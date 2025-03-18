@@ -14,6 +14,7 @@ void main() {
 
     final encrypted = encrypter.encrypt(plainText, iv: iv);
     print('加密后的内容: ${encrypted.base64}');
+    print('加密后的内容: ${encrypted.base16}');
   } catch (e) {
     print('加密失败: $e');
   }
