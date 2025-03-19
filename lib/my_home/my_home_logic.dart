@@ -146,7 +146,7 @@ class MyHomeLogic extends GetxController {
     });
   }
 
-  add(int i, String tableName, {Table1Model? table1, Table2Model? table2}) {
+  recordButton(int i, String tableName, {Table1Model? table1, Table2Model? table2}) {
     // getDeviceId().then((value) {
     //   print('测试=》${value}');
     // });
@@ -403,6 +403,7 @@ class MyHomeLogic extends GetxController {
           _instance?.then((db) => db.delete(DbHelper.table2, where: 'table2Id =?', whereArgs: [state.table2List.last.table2Id]).then((value) => queryAll()));
           state.js1 = state.js1 - 1;
           state.totalValue[28] = "${state.js1}/${state.js2}";
+          Get.back();
         },
       );
     }

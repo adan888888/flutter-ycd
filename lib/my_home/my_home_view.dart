@@ -479,16 +479,16 @@ class MyHomePage extends GetView<MyHomeLogic> {
             onPressed: () {
               switch (i) {
                 case 1: //闲赢
-                  controller.add(1, 'table2');
+                  controller.recordButton(1, 'table2');
                   break;
                 case 2: //庄赢
-                  controller.add(2, 'table2');
+                  controller.recordButton(2, 'table2');
                   break;
                 case 3: //闲输
-                  controller.add(3, 'table2');
+                  controller.recordButton(3, 'table2');
                   break;
                 case 4: //庄输
-                  controller.add(4, 'table2');
+                  controller.recordButton(4, 'table2');
                   break;
               }
             },
