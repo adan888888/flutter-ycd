@@ -8,7 +8,7 @@ import 'package:flutter_screen_lock/flutter_screen_lock.dart';
 import 'package:get/get.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
-import 'package:wakelock/wakelock.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
 import 'package:ycd/my_db/DbHelper.dart';
 import 'package:ycd/my_db/Table1Model.dart';
 import 'package:ycd/utils/loading.dart';
@@ -32,7 +32,7 @@ class MyHomeLogic extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    Wakelock.enable();
+    WakelockPlus.enable();
     onUserInteraction();
     _instance = DbHelper.instance.getDb();
 
@@ -107,7 +107,7 @@ class MyHomeLogic extends GetxController {
     // 取消计时器
     _timer?.cancel();
     super.onClose();
-    Wakelock.disable();
+    WakelockPlus.disable();
     textEditingController.dispose();
   }
 

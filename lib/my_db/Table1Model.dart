@@ -1,3 +1,5 @@
+import 'package:ycd/utils/types%20_of.dart';
+
 class Table1Model {
   String? columnBenjin;
   String? columnYongJin;//赔率
@@ -13,11 +15,11 @@ class Table1Model {
         this.columnLiushuiIndex});
 
   Table1Model.fromJson(Map<String, dynamic> json) {
-    columnBenjin = json['column_benjin'];
-    columnYongJin = json['column_yongJin'];
-    columnMean = json['column_mean'];
-    columnRestartIndex = json['column_restart_index'];
-    columnLiushuiIndex = json['column_liushui_index'];
+    columnBenjin = BXGetString(json['column_benjin']);
+    columnYongJin = BXGetString(json['column_yongJin']);
+    columnMean = BXGetString(json['column_mean']);
+    columnRestartIndex = BXGetString(json['column_restart_index']);
+    columnLiushuiIndex = BXGetString(json['column_liushui_index']);
   }
 
   Map<String, dynamic> toJson() {

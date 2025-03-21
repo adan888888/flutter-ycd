@@ -19,11 +19,26 @@ dependencies:
   loading_animation_widget: ^1.2.1
   flutter_keyboard_visibility: ^6.0.0
   path_provider: ^2.1.3
-  wakelock: ^0.6.2
+  wakelock_plus: ^1.2.0
   flutter_screen_lock: ^9.0.4
-  device_info_plus: ^5.0.5
   encrypt: ^5.0.3
   crypto: ^3.0.1
+  shared_preferences: ^2.2.2
+  #存储
+  flutter_keychain: ^2.5.0
+  #设备信息
+  device_info_plus: ^9.1.2
+  #程序信息
+  package_info_plus: ^8.0.1
+  #日志
+  logger: ^2.3.0
+  #lottie:
+  lottie: ^3.1.0
+  #屏幕适配
+  flutter_screenutil: ^5.9.3
+
+#dependency_overrides:
+#  win32: ^3.0.0  # 选择一个兼容的版本（解决device_info_plus和package_info_plus不兼容）
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -40,7 +55,8 @@ flutter:
   #   - images/a_dot_ham.jpeg
   assets:
     - assets/images/
-
+    - assets/loading_images/
+    - assets/loading.json
   # example:
   # fonts:
   #   - family: Schyler
