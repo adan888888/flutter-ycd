@@ -13,6 +13,9 @@ import 'package:ycd/my_db/DbHelper.dart';
 import 'package:ycd/my_db/Table1Model.dart';
 import 'package:ycd/utils/loading.dart';
 import '../my_db/Table2Model.dart';
+import '../utils/bx_loading.dart';
+import '../utils/network/Api.dart';
+import '../utils/network/http_mgr.dart';
 import 'my_home_state.dart';
 import 'my_home_view.dart';
 
@@ -132,18 +135,58 @@ class MyHomeLogic extends GetxController {
   int next(int min, int max) => min + Random().nextInt(max - min + 1);
 
   queryAll() {
-    _instance?.then((db) {
-      db.query(DbHelper.table1).then((value) {
-        state.table1List.clear();
-        for (var data in value) {
-          state.table1List.add(Table1Model.fromJson(data));
-        }
-        state.totalValue[0] = '${state.table1List.last.columnBenjin}'; //本金
-        state.totalValue[19] = '${state.table1List.last.columnMean}'; //期望值
-        state.chartData.value = List.generate(50, (index) => SalesData(index, double.parse(state.table1List.last.columnBenjin.toString()))).toList();
-        _queryAllTable2();
-      });
-    });
+    // _instance?.then((db) {
+    //   db.query(DbHelper.table1).then((value) {
+    //     state.table1List.clear();
+    //     for (var data in value) {
+    //       state.table1List.add(Table1Model.fromJson(data));
+    //     }
+    //     state.totalValue[0] = '${state.table1List.last.columnBenjin}'; //本金
+    //     state.totalValue[19] = '${state.table1List.last.columnMean}'; //期望值
+    //     state.chartData.value = List.generate(50, (index) => SalesData(index, double.parse(state.table1List.last.columnBenjin.toString()))).toList();
+    //     _queryAllTable2();
+    //   });
+    // });
+
+    ///改变成查询远程数据库
+    _queryMysqlTable1();
+  }
+
+  _queryMysqlTable1() {
+    BXGet<Table1Model>(Api.getTable1,
+        success: (isSuccess, code, message, value) {
+          state.table1List.clear();
+          state.table1List.value = value;
+          state.totalValue[0] = '${state.table1List.last.columnBenjin}'; //本金
+          state.totalValue[19] = '${state.table1List.last.columnMean}'; //期望值
+          state.chartData.value = List.generate(50, (index) => SalesData(index, double.parse(state.table1List.last.columnBenjin.toString()))).toList();
+          _queryMysqlTable2();
+        },
+        failed: (p0, p1) {},
+        onModel: (m) => Table1Model.fromJson(m));
+  }
+
+  _queryMysqlTable2() {
+    BXGet<Table2Model>(Api.getTable2,
+        success: (isSuccess, code, message, results) {
+          if (results.isNotEmpty) {
+            state.table2List.clear();
+            state.table2List.value = results;
+            if (state.table2List.length > 20) scrollController.jumpTo(scrollController.position.maxScrollExtent + 35);
+            if (state.table2List.isNotEmpty) {
+              //统计区计算
+              statisticalArea();
+            } else {
+              state.isCanPress = true;
+              Loading.dismiss();
+            }
+          } else {
+            state.isCanPress = true;
+            BXLoading.showToast("===$message");
+          }
+        },
+        failed: (p0, p1) {},
+        onModel: (m) => Table2Model.fromJson(m));
   }
 
   recordButton(int i, String tableName, {Table1Model? table1, Table2Model? table2}) {
@@ -186,10 +229,19 @@ class MyHomeLogic extends GetxController {
           )
         : Table1Model(columnBenjin: "10000", columnYongJin: "0.95", columnMean: "0.08", columnRestartIndex: "0", columnLiushuiIndex: "10");
 
-    _instance
-        ?.then((value) => value.insert(tableName == 'table1' ? DbHelper.table1 : DbHelper.table2,
-            tableName == 'table1' ? (table as Table1Model).toJson() : (table as Table2Model).toJson()))
-        .then((value) => queryAll());
+    // _instance
+    //     ?.then((value) => value.insert(tableName == 'table1' ? DbHelper.table1 : DbHelper.table2,
+    //         tableName == 'table1' ? (table as Table1Model).toJson() : (table as Table2Model).toJson()))
+    //     .then((value) => queryAll());
+
+    ///改变成插入远程数据库
+    if (tableName == 'table1') {
+      BXPut<Table1Model>(Api.inserttable1,
+          params: (table as Table1Model).toJson(), success: (isSuccess, code, message, results) => queryAll(), onModel: (m) => Table1Model.fromJson(m));
+    } else {
+      BXPut<Table2Model>(Api.inserttable2,
+          params: (table as Table2Model).toJson(), success: (isSuccess, code, message, results) => queryAll(), onModel: (m) => Table2Model.fromJson(m));
+    }
   }
 
   _queryAllTable2() {
@@ -288,7 +340,7 @@ class MyHomeLogic extends GetxController {
             : '可负${((zt_syz.abs() - d) / parse).toStringAsFixed(1)}x$parse'; //还需，可负
     state.totalValue[29] = '${state.table1List.last.columnRestartIndex}'; //重启位置
     state.totalValue[8] = '${state.table1List.last.columnLiushuiIndex}'; //流水索引
-    state.totalValue[12] = '${benUse1.abs()}';//本金使用
+    state.totalValue[12] = '${benUse1.abs()}'; //本金使用
     state.totalValue[16] = '';
 
     state.totalValue[4] = (double.parse(state.totalValue[0]) + zt_syz).toStringAsFixed(2); //当前金额
@@ -383,7 +435,7 @@ class MyHomeLogic extends GetxController {
         return state.bettingMoney;
       case 2: //庄赢
         double parse = double.parse(state.bettingMoney);
-        var xx = parse * double.parse(state.totalValue[23].contains('.')?state.totalValue[23]:'0.95');
+        var xx = parse * double.parse(state.totalValue[23].contains('.') ? state.totalValue[23] : '0.95');
         String syz /*庄赢值*/ = xx.toStringAsFixed(2); //四舍五入保留两位小数
         return syz;
       case 3:
@@ -400,7 +452,8 @@ class MyHomeLogic extends GetxController {
         content: const Text('确定删除最后一行数据？'),
         onCancel: () {},
         onConfirm: () {
-          _instance?.then((db) => db.delete(DbHelper.table2, where: 'table2Id =?', whereArgs: [state.table2List.last.table2Id]).then((value) => queryAll()));
+          // _instance?.then((db) => db.delete(DbHelper.table2, where: 'table2Id =?', whereArgs: [state.table2List.last.table2Id]).then((value) => queryAll()));
+          BXDelete<Table2Model >(Api.deletelast, success: (isSuccess, code, message, results) =>queryAll() ,onModel:(m)=>Table2Model.fromJson(m));
           state.js1 = state.js1 - 1;
           state.totalValue[28] = "${state.js1}/${state.js2}";
           Get.back();
@@ -416,25 +469,35 @@ class MyHomeLogic extends GetxController {
   }
 
   void reStart() {
-    // valueC.last..update('column_restart_index', (value) => "${state.table2List.length - 1}")
-    _instance?.then((_db) => _db.query(DbHelper.table1).then((value) => _instance?.then((db) {
-          //重启时，清除消数列数据
-          for (int i = 0; i < state.table2List.length; i++) {
-            db.update(DbHelper.table2, state.table2List[i].toJson()..update('colmun_shuyingzhi_d', (value) => ''),
-                where: 'table2Id =?', whereArgs: [state.table2List[i].table2Id]);
-          }
-          return db
-              .insert(
-                  DbHelper.table1,
-                  Table1Model(
-                    columnBenjin: value.last['column_benjin'].toString(),
-                    columnYongJin: value.last['column_yongJin'].toString(),
-                    columnMean: value.last['column_mean'].toString(),
-                    columnRestartIndex: "${state.table2List.length}",
-                    columnLiushuiIndex: value.last['column_liushui_index'].toString(),
-                  ).toJson())
-              .then((value) => queryAll());
-        })));
+    // _instance?.then((_db) => _db.query(DbHelper.table1).then((value) => _instance?.then((db) {
+    //       //重启时，清除消数列数据
+    //       for (int i = 0; i < state.table2List.length; i++) {
+    //         db.update(DbHelper.table2, state.table2List[i].toJson()..update('colmun_shuyingzhi_d', (value) => ''),
+    //             where: 'table2Id =?', whereArgs: [state.table2List[i].table2Id]);
+    //       }
+    //       return db
+    //           .insert(
+    //               DbHelper.table1,
+    //               Table1Model(
+    //                 columnBenjin: value.last['column_benjin'].toString(),
+    //                 columnYongJin: value.last['column_yongJin'].toString(),
+    //                 columnMean: value.last['column_mean'].toString(),
+    //                 columnRestartIndex: "${state.table2List.length}",
+    //                 columnLiushuiIndex: value.last['column_liushui_index'].toString(),
+    //               ).toJson())
+    //           .then((value) => queryAll());
+    //     })));
+    BXPost<Table1Model>(
+      Api.restart,
+      params: {"index":state.table2List.length},
+      success: (isSuccess, code, message, value) {
+        if (isSuccess) {
+          // BXLoading.showToast("${value.last.columnRestartIndex}");
+          queryAll();
+        }
+      },
+      onModel: (m) => Table1Model.fromJson(m),
+    );
   }
 
   void updateBenJin(String b) {
@@ -465,6 +528,7 @@ class MyHomeLogic extends GetxController {
         .then((value) => queryAll()))));
   }
 
+  //底部选项
   Future<void> functionConfirm(int i) async {
     var s = textEditingController.text.toString();
     switch (i) {

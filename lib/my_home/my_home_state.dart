@@ -20,7 +20,7 @@ class MyState {
   var bgColor = const Color(0xFFE9EEDB);
   var chartBgColor = Colors.black; //图表背景
   var textColor = Colors.black;
-  var totalValue = <String>[].obs;
+  var totalValue /*统计区*/= <String>[].obs;
   var chartData /*图表数据*/ = <SalesData>[].obs;
 
   // List<SalesData> chartData/*图表数据*/ = List.generate(70, (index) =>SalesData(index.toString(),Random().nextInt(1).toDouble() )).toList().obs;

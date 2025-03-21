@@ -175,20 +175,20 @@ class Network {
         Map<String, String>? header = await getAppHeader();
         response = await provider?.delete(url, headers: header);
       }
-      // log("===${response?.bodyString}");
+      log("===${response?.bodyString}");
       if (response?.statusCode != null && response?.statusCode == 200) {
         if (response != null && (response?.bodyString ?? "").isNotEmpty) {
           var data = jsonDecode(response!.bodyString!);
           BaseModel model = BaseModel.fromJson(data);
           if (model.code == 0) {
-            log("${model.data}");
+            // log("${model.data}");
             var result = model.data ?? [];
             if (onModel == null) {
               success!(true, model.code, "", result);
             } else {
               List<T> values = [];
               if ((result as List).isEmpty) {
-                success!(true, model.code, "", []);
+                success!(true, model.code, "数据为空", []);
               } else {
                 for (var element in result) {
                   values.add(onModel(element));
@@ -220,15 +220,16 @@ class Network {
         }
       } else {
         if (response?.statusText != null && response!.statusText!.contains("timed out")) {
-          if (showError) BXLoading.showToast("网络繁忙");
+          log("***********数据异常***********${response?.statusText} ${response?.statusCode}}");
+          if (showError) BXLoading.showToast("网络繁忙 ${response?.statusText} ${response?.statusCode}");
         } else {
-          if (showError) BXLoading.showToast("网络异常");
+          if (showError) BXLoading.showToast("${response?.statusText} ${response?.statusCode}");
         }
-        if (failed != null) failed!("网络异常", BaseModel.fromJson({"code": -1}));
+        // if (failed != null) failed!("网络异常", BaseModel.fromJson({"code": -1}));
       }
     } catch (e) {
       log("***********数据异常***********${e.toString()}");
-      if (showError) BXLoading.showToast("网络异常");
+      if (showError) BXLoading.showToast("网络异常 ${e.toString()}");
       if (failed != null) failed!("网络异常", BaseModel.fromJson({"code": -1}));
       if (isShowLoading) {
         BXLoading.dismiss();

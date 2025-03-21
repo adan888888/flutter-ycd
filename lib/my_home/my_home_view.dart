@@ -9,8 +9,10 @@ import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:get/get.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 import 'package:ycd/my_db/Table1Model.dart';
+import 'package:ycd/utils/bx_loading.dart';
 import 'package:ycd/utils/network/Api.dart';
 import 'package:ycd/utils/network/http_mgr.dart';
+import '../my_db/Table2Model.dart';
 import '../my_widget/auto_text.dart';
 import '../utils/log.dart';
 import 'my_home_logic.dart';
@@ -35,14 +37,7 @@ class MyHomePage extends GetView<MyHomeLogic> {
             onLongPress: () => controller.lockScreen(),
             child: FloatingActionButton(
               backgroundColor: Colors.transparent,
-              // onPressed: () => controller.setRandom((int _) => print(_)),
-              onPressed: () {
-                BXGet<Table1Model>(Api.getTable1,
-                    success: (isSuccess, code, message, results) {
-                      log("响应数据：${results.first.columnBenjin}");
-                    },
-                    onModel: (m) => Table1Model.fromJson(m));
-              },
+              onPressed: () => controller.setRandom((int _) => print(_)),
               child: Image.asset('assets/images/shai.png'),
             ),
           ),

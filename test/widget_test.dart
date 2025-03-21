@@ -137,5 +137,11 @@ void main() {
   print('最大下注额: $maxBet');
   print('流水返利: ${runningWater*0.0078}');
   print('最终盈利: ${totalProfit.toStringAsFixed(2)}');
+
+
+  print(removeChineseCharacters("可负20x8".split("x")[0])) ;
 }
 int next(int min, int max) => min + Random().nextInt(max - min + 1);
+String removeChineseCharacters(String input) {
+  return input.replaceAll(RegExp('[\u4e00-\u9fa5]'), '');
+}
