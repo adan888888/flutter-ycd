@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 import 'package:device_info_plus/device_info_plus.dart';
+import 'package:easy_refresh/easy_refresh.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screen_lock/flutter_screen_lock.dart';
 import 'package:get/get.dart';
@@ -20,6 +21,7 @@ import 'my_home_state.dart';
 import 'my_home_view.dart';
 
 class MyHomeLogic extends GetxController {
+  EasyRefreshController refreshcontroller = EasyRefreshController(controlFinishRefresh: true, controlFinishLoad: true);
   final MyState state = MyState();
   Future<Database>? _instance;
 
@@ -40,8 +42,14 @@ class MyHomeLogic extends GetxController {
     _instance = DbHelper.instance.getDb();
 
     List.generate(32, (index) => state.totalValue.add('$index'));
-
-    queryAll();
+    //创建表
+    BXPost<Table1Model>(Api.createtables,
+        success: (isSuccess, code, message, results) {
+          if (isSuccess) queryAll();
+          BXLoading.showToast(message);
+        },
+        failed: (p0, p1) => BXLoading.showToast(p1.msg),
+        onModel: (m) => Table1Model.fromJson(m));
     textEditingController.addListener(
       () {
         state.bettingMoney = textEditingController.text;
@@ -154,6 +162,7 @@ class MyHomeLogic extends GetxController {
 
   _queryMysqlTable1() {
     BXGet<Table1Model>(Api.getTable1,
+        isShowLoading: false,
         success: (isSuccess, code, message, value) {
           state.table1List.clear();
           state.table1List.value = value;
@@ -162,13 +171,18 @@ class MyHomeLogic extends GetxController {
           state.chartData.value = List.generate(50, (index) => SalesData(index, double.parse(state.table1List.last.columnBenjin.toString()))).toList();
           _queryMysqlTable2();
         },
-        failed: (p0, p1) {},
+        failed: (p0, p1) {
+          refreshcontroller.finishRefresh(IndicatorResult.fail);
+          state.isCanPress = true;
+        },
         onModel: (m) => Table1Model.fromJson(m));
   }
 
   _queryMysqlTable2() {
     BXGet<Table2Model>(Api.getTable2,
+        isShowLoading: false, //这里需要 false要不然下面的BXLoading.showToast(message)弹不出来
         success: (isSuccess, code, message, results) {
+          refreshcontroller.finishRefresh();
           if (results.isNotEmpty) {
             state.table2List.clear();
             state.table2List.value = results;
@@ -180,12 +194,15 @@ class MyHomeLogic extends GetxController {
               state.isCanPress = true;
               Loading.dismiss();
             }
-          } else {
-            state.isCanPress = true;
-            BXLoading.showToast("===$message");
           }
+          print("===>${message}");
+          BXLoading.showToast(message);
+          state.isCanPress = true;
         },
-        failed: (p0, p1) {},
+        failed: (p0, p1) {
+          refreshcontroller.finishRefresh(IndicatorResult.fail);
+          state.isCanPress = true;
+        },
         onModel: (m) => Table2Model.fromJson(m));
   }
 
@@ -217,7 +234,8 @@ class MyHomeLogic extends GetxController {
     state.totalValue[28] = "${state.js1}/${state.js2}";
     final table = tableName == 'table2'
         ? Table2Model(
-            table2Id: state.table2List.length,
+            table2Id: state.table2List.length + 1,
+            //mysql数据库下标是从1开始的
             columnXiazhujine: state.bettingMoney,
             colmunZx: state.randomValue,
             //输（-） 赢 （+）
@@ -237,10 +255,16 @@ class MyHomeLogic extends GetxController {
     ///改变成插入远程数据库
     if (tableName == 'table1') {
       BXPut<Table1Model>(Api.inserttable1,
-          params: (table as Table1Model).toJson(), success: (isSuccess, code, message, results) => queryAll(), onModel: (m) => Table1Model.fromJson(m));
+          params: (table as Table1Model).toJson(),
+          success: (isSuccess, code, message, results) => queryAll(),
+          failed: (p0, p1) => state.isCanPress = true,
+          onModel: (m) => Table1Model.fromJson(m));
     } else {
       BXPut<Table2Model>(Api.inserttable2,
-          params: (table as Table2Model).toJson(), success: (isSuccess, code, message, results) => queryAll(), onModel: (m) => Table2Model.fromJson(m));
+          params: (table as Table2Model).toJson(),
+          success: (isSuccess, code, message, results) => queryAll(),
+          failed: (p0, p1) => state.isCanPress = true,
+          onModel: (m) => Table2Model.fromJson(m));
     }
   }
 
@@ -453,7 +477,7 @@ class MyHomeLogic extends GetxController {
         onCancel: () {},
         onConfirm: () {
           // _instance?.then((db) => db.delete(DbHelper.table2, where: 'table2Id =?', whereArgs: [state.table2List.last.table2Id]).then((value) => queryAll()));
-          BXDelete<Table2Model >(Api.deletelast, success: (isSuccess, code, message, results) =>queryAll() ,onModel:(m)=>Table2Model.fromJson(m));
+          BXDelete<Table2Model>(Api.deletelast, success: (isSuccess, code, message, results) => queryAll(), onModel: (m) => Table2Model.fromJson(m));
           state.js1 = state.js1 - 1;
           state.totalValue[28] = "${state.js1}/${state.js2}";
           Get.back();
@@ -489,7 +513,7 @@ class MyHomeLogic extends GetxController {
     //     })));
     BXPost<Table1Model>(
       Api.restart,
-      params: {"index":state.table2List.length},
+      params: {"index": state.table2List.length},
       success: (isSuccess, code, message, value) {
         if (isSuccess) {
           // BXLoading.showToast("${value.last.columnRestartIndex}");
@@ -534,21 +558,28 @@ class MyHomeLogic extends GetxController {
     switch (i) {
       case 0: //排序
         Loading.show();
-        var list =
-            state.table2List.map((element) => element.colmunShuyingzhiD.toString().isEmpty ? 0.0 : double.parse(element.colmunShuyingzhiD.toString())).toList()
-              ..removeWhere((element) => element == 0.0)
-              ..sort();
-        _instance?.then((db) {
-          var x = 0;
-          for (int i = state.table2List.length - 1; i >= state.table2List.length - list.length; i--) {
-            x++;
-            if (x > list.length) {
-              break;
-            }
-            db.update(DbHelper.table2, state.table2List[i].toJson()..update('colmun_shuyingzhi_d', (value) => '${list[list.length - x]}'),
-                where: 'table2Id =?', whereArgs: [state.table2List[i].table2Id]);
+        // var list =
+        //     state.table2List.map((element) => element.colmunShuyingzhiD.toString().isEmpty ? 0.0 : double.parse(element.colmunShuyingzhiD.toString())).toList()
+        //       ..removeWhere((element) => element == 0.0)
+        //       ..sort();
+        // _instance?.then((db) {
+        //   var x = 0;
+        //   for (int i = state.table2List.length - 1; i >= state.table2List.length - list.length; i--) {
+        //     x++;
+        //     if (x > list.length) {
+        //       break;
+        //     }
+        //     db.update(DbHelper.table2, state.table2List[i].toJson()..update('colmun_shuyingzhi_d', (value) => '${list[list.length - x]}'),
+        //         where: 'table2Id =?', whereArgs: [state.table2List[i].table2Id]);
+        //   }
+        // }).then((value) => _queryAllTable2());
+        //改成接口
+        BXPost(Api.sortxiaoshu, success: (isSuccess, code, message, results) {
+          if (isSuccess) {
+            BXLoading.showToast(message);
+            queryAll();
           }
-        }).then((value) => _queryAllTable2());
+        });
         break;
       case 1: //清除数据
         Loading.show();
@@ -798,6 +829,14 @@ class MyHomeLogic extends GetxController {
     state.currentTempIndex = index;
     if (state.table2List.isNotEmpty) statisticalArea();
   }
+
+  //上拉刷新
+  void onRefresh() {
+    queryAll();
+  }
+
+  //加载更多
+  void onLoadMore() {}
 }
 
 class NewWidget extends StatefulWidget {

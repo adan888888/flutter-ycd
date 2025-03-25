@@ -1,5 +1,6 @@
 import 'dart:developer';
 
+import 'package:easy_refresh/easy_refresh.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -174,13 +175,18 @@ class MyHomePage extends GetView<MyHomeLogic> {
                         onLongPress: () => controller.lockScreen(),
                         child: ColoredBox(
                           color: controller.state.listViewColor,
-                          child: ListView.separated(
-                            padding: const EdgeInsets.only(left: 6, right: 2),
-                            controller: controller.scrollController,
-                            itemCount: controller.state.table2List.length,
-                            itemBuilder: (BuildContext context, int index) => buildItem(index),
-                            separatorBuilder: (BuildContext context, int index) =>
-                                Divider(height: 2, indent: 5, thickness: 0.3, color: index % 2 == 0 ? Colors.red : Colors.black),
+                          child: EasyRefresh(
+                            controller: controller.refreshcontroller,
+                            onRefresh: () async => controller.onRefresh(),
+                            onLoad: () {},
+                            child: ListView.separated(
+                              padding: const EdgeInsets.only(left: 6, right: 2),
+                              controller: controller.scrollController,
+                              itemCount: controller.state.table2List.length,
+                              itemBuilder: (BuildContext context, int index) => buildItem(index),
+                              separatorBuilder: (BuildContext context, int index) =>
+                                  Divider(height: 2, indent: 5, thickness: 0.3, color: index % 2 == 0 ? Colors.red : Colors.black),
+                            ),
                           ),
                         ),
                       )),

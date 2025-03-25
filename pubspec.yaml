@@ -36,6 +36,8 @@ dependencies:
   lottie: ^3.1.0
   #屏幕适配
   flutter_screenutil: ^5.9.3
+  #上拉下拉刷新
+  easy_refresh: ^3.4.0
 
 #dependency_overrides:
 #  win32: ^3.0.0  # 选择一个兼容的版本（解决device_info_plus和package_info_plus不兼容）

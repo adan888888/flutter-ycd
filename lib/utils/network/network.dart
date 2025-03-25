@@ -184,7 +184,7 @@ class Network {
             // log("${model.data}");
             var result = model.data ?? [];
             if (onModel == null) {
-              success!(true, model.code, "", result);
+              success!(true, model.code, model.msg, result);
             } else {
               List<T> values = [];
               if ((result as List).isEmpty) {
@@ -193,7 +193,7 @@ class Network {
                 for (var element in result) {
                   values.add(onModel(element));
                 }
-                success!(true, model.code, "", values);
+                success!(true, model.code, model.msg, values);
               }
             }
             if (isShowLoading) {
@@ -220,15 +220,15 @@ class Network {
         }
       } else {
         if (response?.statusText != null && response!.statusText!.contains("timed out")) {
-          log("***********数据异常***********${response?.statusText} ${response?.statusCode}}");
-          if (showError) BXLoading.showToast("网络繁忙 ${response?.statusText} ${response?.statusCode}");
+          if (showError) BXLoading.showToast("网络繁忙 请求超时");
         } else {
           if (showError) BXLoading.showToast("${response?.statusText} ${response?.statusCode}");
         }
-        // if (failed != null) failed!("网络异常", BaseModel.fromJson({"code": -1}));
+        log("***********数据异常***********1${response?.statusText} ${response?.statusCode}}");
+        if (failed != null) failed!("数据异常", BaseModel.fromJson({"code": 1, "msg": response?.statusText}));
       }
     } catch (e) {
-      log("***********数据异常***********${e.toString()}");
+      log("***********数据异常***********2${e.toString()}");
       if (showError) BXLoading.showToast("网络异常 ${e.toString()}");
       if (failed != null) failed!("网络异常", BaseModel.fromJson({"code": -1}));
       if (isShowLoading) {
