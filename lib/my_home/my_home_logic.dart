@@ -180,7 +180,7 @@ class MyHomeLogic extends GetxController {
 
   _queryMysqlTable2() {
     BXGet<Table2Model>(Api.getTable2,
-        isShowLoading: false, //这里需要 false要不然下面的BXLoading.showToast(message)弹不出来
+        isShowLoading: true, //这里需要 false要不然下面的BXLoading.showToast(message)弹不出来
         success: (isSuccess, code, message, results) {
           refreshcontroller.finishRefresh();
           if (results.isNotEmpty) {
@@ -196,11 +196,13 @@ class MyHomeLogic extends GetxController {
             }
           }
           print("===>${message}");
-          BXLoading.showToast(message);
+          // BXLoading.showToast(message);
           state.isCanPress = true;
+          state.isRefreshing.value=false;
         },
         failed: (p0, p1) {
           refreshcontroller.finishRefresh(IndicatorResult.fail);
+          state.isRefreshing.value=false;
           state.isCanPress = true;
         },
         onModel: (m) => Table2Model.fromJson(m));
@@ -487,9 +489,17 @@ class MyHomeLogic extends GetxController {
   }
 
   void updateSqlite(int index) {
-    _instance?.then((db) => db.update(DbHelper.table2, state.table2List[index].toJson()..update("colmun_shuyingzhi_d", (value) => "") /*具体更新的数据*/,
-        where: "table2Id =?", //通过id查找需要更新的数据
-        whereArgs: [index])).then((value) => _queryAllTable2());
+    // _instance?.then((db) => db.update(DbHelper.table2, state.table2List[index].toJson()..update("colmun_shuyingzhi_d", (value) => "") /*具体更新的数据*/,
+    //     where: "table2Id =?", //通过id查找需要更新的数据
+    //     whereArgs: [index])).then((value) => _queryAllTable2());
+    BXLoading.show();
+    BXPost(Api.xiaoshu,
+        isShowLoading: false,
+        params: state.table2List[index].toJson()
+          ..update("colmun_shuyingzhi_d", (value) => "")
+          ..update("table2Id", (value) => ((value as int) + 1)), success: (isSuccess, code, message, results) {
+      if (isSuccess) queryAll();
+    });
   }
 
   void reStart() {
@@ -830,8 +840,9 @@ class MyHomeLogic extends GetxController {
     if (state.table2List.isNotEmpty) statisticalArea();
   }
 
-  //上拉刷新
+  //下拉刷新
   void onRefresh() {
+    state.isRefreshing.value = true;
     queryAll();
   }
 

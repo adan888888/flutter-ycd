@@ -171,21 +171,24 @@ class MyHomePage extends GetView<MyHomeLogic> {
                 ),
                 //列表
                 Expanded(
-                  child: Obx(() => GestureDetector(
-                        onLongPress: () => controller.lockScreen(),
-                        child: ColoredBox(
-                          color: controller.state.listViewColor,
-                          child: EasyRefresh(
-                            controller: controller.refreshcontroller,
-                            onRefresh: () async => controller.onRefresh(),
-                            onLoad: () {},
-                            child: ListView.separated(
-                              padding: const EdgeInsets.only(left: 6, right: 2),
-                              controller: controller.scrollController,
-                              itemCount: controller.state.table2List.length,
-                              itemBuilder: (BuildContext context, int index) => buildItem(index),
-                              separatorBuilder: (BuildContext context, int index) =>
-                                  Divider(height: 2, indent: 5, thickness: 0.3, color: index % 2 == 0 ? Colors.red : Colors.black),
+                  child: Obx(() => AbsorbPointer /*NotificationListener 也可以实现（监听滑动的回调）*/ (
+                        absorbing: controller.state.isRefreshing.value,
+                        child: GestureDetector(
+                          onLongPress: () => controller.lockScreen(),
+                          child: ColoredBox(
+                            color: controller.state.listViewColor,
+                            child: EasyRefresh(
+                              controller: controller.refreshcontroller,
+                              onRefresh: () async => controller.onRefresh(),
+                              onLoad: () {},
+                              child: ListView.separated(
+                                padding: const EdgeInsets.only(left: 6, right: 2),
+                                controller: controller.scrollController,
+                                itemCount: controller.state.table2List.length,
+                                itemBuilder: (BuildContext context, int index) => buildItem(index),
+                                separatorBuilder: (BuildContext context, int index) =>
+                                    Divider(height: 2, indent: 5, thickness: 0.3, color: index % 2 == 0 ? Colors.red : Colors.black),
+                              ),
                             ),
                           ),
                         ),

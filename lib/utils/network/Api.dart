@@ -1,7 +1,8 @@
 class Api {
   // static String baseUrl = "https://zsapi.cach.xyz/api/";
-  static String baseUrl = "http://192.168.100.140:3000/api";
-  // static String baseUrl = "http://192.168.32.154:3000/api";
+  // static String baseUrl = "http://192.168.100.140:3000/api";
+
+  static String baseUrl = "http://192.168.32.154:3000/api";
 
   static String config = "/tenant/get";
 
@@ -31,4 +32,7 @@ class Api {
 
   //排序消数列
   static String sortxiaoshu = "/ycd/sortxiaoshu";
+
+  //消数
+  static String xiaoshu = "/ycd/xiaoshu";
 }
