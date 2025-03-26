@@ -198,11 +198,11 @@ class MyHomeLogic extends GetxController {
           print("===>${message}");
           // BXLoading.showToast(message);
           state.isCanPress = true;
-          state.isRefreshing.value=false;
+          state.isRefreshing.value = false;
         },
         failed: (p0, p1) {
           refreshcontroller.finishRefresh(IndicatorResult.fail);
-          state.isRefreshing.value=false;
+          state.isRefreshing.value = false;
           state.isCanPress = true;
         },
         onModel: (m) => Table2Model.fromJson(m));
@@ -479,10 +479,14 @@ class MyHomeLogic extends GetxController {
         onCancel: () {},
         onConfirm: () {
           // _instance?.then((db) => db.delete(DbHelper.table2, where: 'table2Id =?', whereArgs: [state.table2List.last.table2Id]).then((value) => queryAll()));
-          BXDelete<Table2Model>(Api.deletelast, success: (isSuccess, code, message, results) => queryAll(), onModel: (m) => Table2Model.fromJson(m));
-          state.js1 = state.js1 - 1;
-          state.totalValue[28] = "${state.js1}/${state.js2}";
-          Get.back();
+          BXDelete<Table2Model>(Api.deletelast,
+              success: (isSuccess, code, message, results) {
+                queryAll();
+                state.js1 = state.js1 - 1;
+                state.totalValue[28] = "${state.js1}/${state.js2}";
+                Get.back();
+              },
+              onModel: (m) => Table2Model.fromJson(m));
         },
       );
     }
@@ -622,10 +626,20 @@ class MyHomeLogic extends GetxController {
       case 4: //删除本页
         Loading.show();
         state.currentTempIndex = 0;
-        _instance?.then((db) {
-          db.rawQuery('DELETE FROM ${DbHelper.table1}');
-          return db.rawQuery('DELETE FROM ${DbHelper.table2}');
-        }).then((value) => dropAll());
+        // _instance?.then((db) {
+        //   db.rawQuery('DELETE FROM ${DbHelper.table1}');
+        //   return db.rawQuery('DELETE FROM ${DbHelper.table2}');
+        // }).then((value) => dropAll());
+        BXDelete(Api.deleteall, success: (isSuccess, code, message, results) {
+          if (isSuccess) {
+            BXLoading.showToast(message);
+            state.table1List.clear();
+            state.table2List.clear();
+            state.randomValue = '';
+            List.generate(32, (index) => state.totalValue[index] = index.toString());
+            queryAll();
+          }
+        });
         break;
       case 5:
         break;

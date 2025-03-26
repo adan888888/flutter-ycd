@@ -180,7 +180,7 @@ class MyHomePage extends GetView<MyHomeLogic> {
                             child: EasyRefresh(
                               controller: controller.refreshcontroller,
                               onRefresh: () async => controller.onRefresh(),
-                              onLoad: () {},
+                              // onLoad: () {}, //不要onLoad就没有上拉加载更多
                               child: ListView.separated(
                                 padding: const EdgeInsets.only(left: 6, right: 2),
                                 controller: controller.scrollController,
