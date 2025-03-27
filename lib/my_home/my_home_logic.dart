@@ -553,17 +553,25 @@ class MyHomeLogic extends GetxController {
   }
 
   void updateOdds(String b) {
-    _instance?.then((db) => db.query(DbHelper.table1).then((value) => _instance?.then((db) => db
-        .insert(
-            DbHelper.table1,
-            Table1Model(
-              columnBenjin: value.last['column_benjin'].toString(),
-              columnYongJin: b,
-              columnMean: value.last['column_mean'].toString(),
-              columnRestartIndex: value.last['column_restart_index'].toString(),
-              columnLiushuiIndex: value.last['column_liushui_index'].toString(),
-            ).toJson())
-        .then((value) => queryAll()))));
+    // _instance?.then((db) => db.query(DbHelper.table1).then((value) => _instance?.then((db) => db
+    //     .insert(
+    //         DbHelper.table1,
+    //         Table1Model(
+    //           columnBenjin: value.last['column_benjin'].toString(),
+    //           columnYongJin: b,
+    //           columnMean: value.last['column_mean'].toString(),
+    //           columnRestartIndex: value.last['column_restart_index'].toString(),
+    //           columnLiushuiIndex: value.last['column_liushui_index'].toString(),
+    //         ).toJson())
+    //     .then((value) => queryAll()))));
+
+    BXPost/*<Map<String,dynamic>>*/(Api.updateOdds, params: {"odds": b}, success: (isSuccess, int code, String message, List<dynamic> results) {
+      if (isSuccess) {
+        BXLoading.showToast(message);
+        print("赔率值是=${(results[0]["odds"])}");
+        queryAll();
+      }
+    });
   }
 
   //底部选项
@@ -624,24 +632,39 @@ class MyHomeLogic extends GetxController {
         Loading.dismiss();
         break;
       case 4: //删除本页
-        Loading.show();
-        state.currentTempIndex = 0;
+
         // _instance?.then((db) {
         //   db.rawQuery('DELETE FROM ${DbHelper.table1}');
         //   return db.rawQuery('DELETE FROM ${DbHelper.table2}');
         // }).then((value) => dropAll());
-        BXDelete(Api.deleteall, success: (isSuccess, code, message, results) {
-          if (isSuccess) {
-            BXLoading.showToast(message);
-            state.table1List.clear();
-            state.table2List.clear();
-            state.randomValue = '';
-            List.generate(32, (index) => state.totalValue[index] = index.toString());
-            queryAll();
-          }
-        });
+
+        Get.defaultDialog(
+          barrierDismissible: false,
+          title: '警告',
+          content: const Text('是否删除全部数据'),
+          onCancel: () {},
+          onConfirm: () {
+            Loading.show();
+            state.currentTempIndex = 0;
+            BXDelete(Api.deleteall, success: (isSuccess, code, message, results) {
+              if (isSuccess) {
+                BXLoading.showToast(message);
+                state.table1List.clear();
+                state.table2List.clear();
+                state.randomValue = '';
+                List.generate(32, (index) => state.totalValue[index] = index.toString());
+                queryAll();
+              }
+            });
+          },
+        );
         break;
       case 5:
+        BXPost(
+          Api.resetliushui,
+          params: {"resetIndex": (state.table2List.length - 1)},
+          success: (bool isSuccess, int code, String message, List<dynamic> results) {},
+        );
         break;
       case 6: //备份数据
         Loading.show();
@@ -711,17 +734,24 @@ class MyHomeLogic extends GetxController {
   }
 
   void updateQiWangZhi(String qiwangzhi) {
-    _instance?.then((db) => db.query(DbHelper.table1).then((value) => _instance?.then((db) => db
-        .insert(
-            DbHelper.table1,
-            Table1Model(
-              columnBenjin: value.last['column_benjin'].toString(),
-              columnYongJin: value.last['column_yongJin'].toString(),
-              columnMean: qiwangzhi,
-              columnRestartIndex: value.last['column_restart_index'].toString(),
-              columnLiushuiIndex: value.last['column_liushui_index'].toString(),
-            ).toJson())
-        .then((value) => queryAll()))));
+    // _instance?.then((db) => db.query(DbHelper.table1).then((value) => _instance?.then((db) => db
+    //     .insert(
+    //         DbHelper.table1,
+    //         Table1Model(
+    //           columnBenjin: value.last['column_benjin'].toString(),
+    //           columnYongJin: value.last['column_yongJin'].toString(),
+    //           columnMean: qiwangzhi,
+    //           columnRestartIndex: value.last['column_restart_index'].toString(),
+    //           columnLiushuiIndex: value.last['column_liushui_index'].toString(),
+    //         ).toJson())
+    //     .then((value) => queryAll()))));
+    BXPost/*<Map<String,dynamic>>*/(Api.updateQiWangValue, params: {"mean": qiwangzhi}, success: (isSuccess, int code, String message, List<dynamic> results) {
+      if (isSuccess) {
+        BXLoading.showToast(message);
+        print("期望值是=${(results[0]["mean"])}");
+        queryAll();
+      }
+    });
   }
 
   /**

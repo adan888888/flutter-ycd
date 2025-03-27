@@ -38,4 +38,13 @@ class Api {
 
   //删除本页
   static String deleteall = "/ycd/deleteall";
+
+  //重置流水
+  static String resetliushui = "/ycd/resetliushui";
+
+  //修改个性期望值
+  static String updateQiWangValue = "/ycd/updateqiwangvalue";
+
+  //修改赔率
+  static String updateOdds = "/ycd/updateodds";
 }
