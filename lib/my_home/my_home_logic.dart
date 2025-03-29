@@ -196,6 +196,8 @@ class MyHomeLogic extends GetxController {
             }
           }
           print("===>${message}");
+          var list = state.table2List.map((element) => element.colmunShuyingzhiD!.contains("-")?"P":"B").toList();
+          state.list.value=list;
           // BXLoading.showToast(message);
           state.isCanPress = true;
           state.isRefreshing.value = false;
@@ -461,7 +463,7 @@ class MyHomeLogic extends GetxController {
         return state.bettingMoney;
       case 2: //庄赢
         double parse = double.parse(state.bettingMoney);
-        var xx = parse * double.parse(state.totalValue[23].contains('.') ? state.totalValue[23] : '0.95');
+        var xx = parse * double.parse(state.totalValue[23].contains('.') ? state.totalValue[23] : state.totalValue[23]);
         String syz /*庄赢值*/ = xx.toStringAsFixed(2); //四舍五入保留两位小数
         return syz;
       case 3:
@@ -539,17 +541,28 @@ class MyHomeLogic extends GetxController {
   }
 
   void updateBenJin(String b) {
-    _instance?.then((db) => db.query(DbHelper.table1).then((value) => _instance?.then((db) => db
-        .insert(
-            DbHelper.table1,
-            Table1Model(
-              columnBenjin: b,
-              columnYongJin: value.last['column_yongJin'].toString(),
-              columnMean: value.last['column_mean'].toString(),
-              columnRestartIndex: value.last['column_restart_index'].toString(),
-              columnLiushuiIndex: value.last['column_liushui_index'].toString(),
-            ).toJson())
-        .then((value) => queryAll()))));
+    // _instance?.then((db) => db.query(DbHelper.table1).then((value) => _instance?.then((db) => db
+    //     .insert(
+    //         DbHelper.table1,
+    //         Table1Model(
+    //           columnBenjin: b,
+    //           columnYongJin: value.last['column_yongJin'].toString(),
+    //           columnMean: value.last['column_mean'].toString(),
+    //           columnRestartIndex: value.last['column_restart_index'].toString(),
+    //           columnLiushuiIndex: value.last['column_liushui_index'].toString(),
+    //         ).toJson())
+    //     .then((value) => queryAll()))));
+    BXPost<Table1Model>(
+      Api.updateBenjin,
+      params: {"benjin": b},
+      success: (isSuccess, code, message, value) {
+        if (isSuccess) {
+          BXLoading.showToast("${value.last.columnBenjin}");
+          queryAll();
+        }
+      },
+      onModel: (m) => Table1Model.fromJson(m),
+    );
   }
 
   void updateOdds(String b) {
@@ -656,6 +669,7 @@ class MyHomeLogic extends GetxController {
                 queryAll();
               }
             });
+            Get.back();
           },
         );
         break;

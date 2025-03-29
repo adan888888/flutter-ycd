@@ -1,8 +1,8 @@
 class Api {
   // static String baseUrl = "https://zsapi.cach.xyz/api/";
-  static String baseUrl = "http://192.168.100.137:3000/api";
+  // static String baseUrl = "http://192.168.100.32:3000/api";
 
-  // static String baseUrl = "http://192.168.32.154:3000/api";
+  static String baseUrl = "http://192.168.32.154:3000/api";
 
   static String config = "/tenant/get";
 
@@ -47,4 +47,7 @@ class Api {
 
   //修改赔率
   static String updateOdds = "/ycd/updateodds";
+
+  //修改本金
+  static String updateBenjin = "/ycd/updatebenjin";
 }

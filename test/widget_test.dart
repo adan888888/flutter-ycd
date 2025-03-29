@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:math';
 
+import 'package:get/get.dart';
+
 //测试十三层缆
 void main() {
   const int simulations = 10000; // 运行 1 万次游戏
@@ -153,6 +155,8 @@ void main() {
     ..age = 100
     ..name = "John";
   print(jsonEncode(user.toJson()));
+  print("--------------------------------------------------");
+  print(funxxx());
 }
 
 int next(int min, int max) => min + Random().nextInt(max - min + 1);
@@ -169,11 +173,28 @@ class User {
 
   User.fromJson(Map<String, dynamic> j) {
     name = j['name'] as String?;
-    age = j['age'] as int? ;
+    age = j['age'] as int?;
   }
 
   toJson() => {
         'name': name,
         'age': age,
       };
+}
+
+bool funxxx() {
+  var temp = {"x": 0, "y": 0, "tppe": "小"};
+  var temp1 = {"x": 0, "y": 1, "tppe": "操"};
+  var temp3 = {"x": 0, "y": 2, "tppe": "妹"};
+
+  var list = [temp, temp1, temp3];
+
+  for (var value1 in list) {
+    if (value1['x'] == 0 && value1['y'] == 0) {
+      print(value1['tppe']);
+      return true;
+    }
+    print(value1);
+  }
+  return false;
 }
