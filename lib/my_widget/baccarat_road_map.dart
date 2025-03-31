@@ -3,50 +3,69 @@ import 'package:get/get_connect/http/src/request/request.dart';
 
 class BaccaratRoadMap extends StatefulWidget {
   final List<String> results;
+  final ScrollController scrollController;
 
-  const BaccaratRoadMap({required this.results, super.key});
+  const BaccaratRoadMap({required this.results, super.key ,required this.scrollController});
 
   @override
-  _BaccaratRoadMapState createState() => _BaccaratRoadMapState(results);
+  _BaccaratRoadMapState createState() => _BaccaratRoadMapState(results,scrollController);
 }
 
 class _BaccaratRoadMapState extends State<BaccaratRoadMap> {
-  final ScrollController _scrollController = ScrollController();
+  final ScrollController scrollController;
   final List<String> results;
 
-  _BaccaratRoadMapState(this.results);
+  _BaccaratRoadMapState(this.results, this.scrollController);
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return ColoredBox(
       color: Colors.black,
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         // 使用 ClampingScrollPhysics，滚动到边缘时停止
         // physics: const ClampingScrollPhysics(),
-        controller: _scrollController,
+        controller: scrollController,
         child: CustomPaint(
-          size: Size(results.length * 5.0, 95), // 动态宽度
-          painter: RoadMapPainter(results, _scrollController),
+          size: Size(results.length/2 * 12.0, double.infinity), // 动态宽度(这里宽度是有问题的，应该拿画的最宽的那个长度来设置的，要不然滑动会有问题)，后期需要再优化
+          painter: RoadMapPainter(results, scrollController, () {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              // if (mounted) {
+              //   Future<void>.delayed(const Duration(milliseconds: 400));
+              //   scrollController.animateTo(
+              //     scrollController.position.maxScrollExtent-10,
+              //     duration: const Duration(milliseconds: 500),
+              //     curve: Curves.easeOut,
+              //   );
+              // }
+            });
+          }),
         ),
       ),
     );
+  }
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
   }
 }
 
 class RoadMapPainter extends CustomPainter {
   final List<String> results;
-  final double cellSize = 15.0; // 每个单元格大小
+  final double cellSize = 12.0; // 每个单元格大小
   final int maxRows = 6; // 最大行数
   final ScrollController scrollController;
+  final VoidCallback onPaintComplete;
 
-  RoadMapPainter(this.results, this.scrollController);
+  RoadMapPainter(this.results, this.scrollController, this.onPaintComplete);
 
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 2;
+      ..strokeWidth = 1.5;
 
     // 解析结果生成绘图坐标
     final positions = _generatePositions(results);
@@ -57,20 +76,14 @@ class RoadMapPainter extends CustomPainter {
       if (pos['type'] == 'B') {
         paint.color = Colors.red; // 庄：红色
       } else if (pos['type'] == 'P') {
-        paint.color = Colors.blue; // 闲：蓝色
+        paint.color = Colors.green; // 闲：蓝色
       }
 
       canvas.drawCircle(offset + Offset(cellSize / 2, cellSize / 2), cellSize / 2 - 2, paint);
     }
     // _scrollToEnd(scrollController);
-  }
-
-  void _scrollToEnd(ScrollController _scrollController) {
-    _scrollController.animateTo(
-      _scrollController.position.maxScrollExtent-50,
-      duration: const Duration(milliseconds: 500),
-      curve: Curves.easeOut,
-    );
+    // 通知完成绘制
+    onPaintComplete();
   }
 
   /// 根据规则生成大路图坐标

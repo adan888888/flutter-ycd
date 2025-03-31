@@ -361,119 +361,134 @@ class MyHomePage extends GetView<MyHomeLogic> {
               ),
             );
 
-  buildChats() {
-    return Obx(
-      () => controller.state.chartData.isNotEmpty
-          ? SizedBox(
-              height: 70,
-              child: SfCartesianChart(
-                backgroundColor: controller.state.chartBgColor,
-                borderWidth: 0,
-                // borderColor: Colors.red,
-                margin: EdgeInsets.zero,
-                // plotAreaBackgroundColor: Colors.amber,//显示区颜色
-                // plotAreaBorderColor: Colors.red, x轴外边框颜色
-
-                // axes: const [
-                //   NumericAxis(
-                //     name: '你好',
-                //     opposedPosition: false, //右侧显示
-                //     title: AxisTitle(text: '金额（元）'),
-                //   )
-                // ],
-                primaryXAxis: const CategoryAxis(
-                  majorTickLines: MajorTickLines(
-                    size: 1,
-                    color: Colors.green,
-                    width: 1,
-                  ),
-                  rangePadding: ChartRangePadding.auto,
-                  //轴标题
-                  // title: AxisTitle(text: '1111'),
-                  //轴标题置顶
-                  opposedPosition: false,
-                  //是否显示标题
-                  isVisible: false,
-                  labelRotation: -45,
-                  edgeLabelPlacement: EdgeLabelPlacement.none,
-                  // maximum: 10,
-                  // minimum: 0,
-                  //x轴在外 或则内部
-                  labelPosition: ChartDataLabelPosition.inside,
-                  //x轴文案边框颜色
-                  borderColor: Colors.red,
-                  //x轴文案边框宽度
-                  borderWidth: 1,
-                  //x轴文案边框样式，分为所有边框和去掉了上下边框
-                  axisBorderType: AxisBorderType.withoutTopAndBottom,
-                  arrangeByIndex: false,
-                  labelPlacement: LabelPlacement.betweenTicks,
-                  // interactiveTooltip: InteractiveTooltip(
-                  //   borderRadius: 10,
-                  //   borderColor: Colors.blue,
-                  //   borderWidth: 10,
-                  // ),
-                ),
-                //y轴线，显示
-                primaryYAxis: const NumericAxis(
-                  borderWidth: 0,
-                  rangePadding: ChartRangePadding.round,
-                  majorGridLines: MajorGridLines(
-                    width: 1,
-                    color: Colors.green,
-                    dashArray: [1],
-                  ),
-                  //轴标题
-                  // title: AxisTitle(text: '1111'),
-                  //轴标题置顶
-                  opposedPosition: true,
-                  //是否显示标题
-                  isVisible: true,
-                  labelRotation: 0,
-                ),
-
-                // 图表标题
-                // title: const ChartTitle(text: 'Half yearly sales analysis'),
-                // Enable legend
-                legend: const Legend(isVisible: false),
-                // Enable tooltip 点了鼠标提示框
-                tooltipBehavior: TooltipBehavior(enable: false),
-                //系列；串联；连续
-                series: <CartesianSeries<SalesData, String>>[
-                  LineSeries<SalesData, String>(
-                    width: 1.0,
-                    //线条宽度
-                    enableTooltip: true,
-                    //圆点的外边框颜色
-                    pointColorMapper: (datum, index) => index % 3 == 0
-                        ? index % 2 == 0
-                            ? Colors.blue
-                            : Colors.green
-                        : index % 2 == 0
-                            ? Colors.red
-                            : Colors.purple,
-                    //修饰数据点（显示圆圈）
-                    markerSettings: const MarkerSettings(
-                        height: 3,
-                        width: 3,
-                        //不传显示空心
-                        color: Colors.green,
-                        isVisible: true),
-                    dataSource: controller.state.chartData,
-                    xValueMapper: (SalesData sales, _) => "${sales.year}",
-                    yValueMapper: (SalesData sales, _) => sales.sales,
-                    //line color
-                    color: Colors.white,
-                    name: '卖',
-                    //具体的数字显示
-                    dataLabelSettings: const DataLabelSettings(isVisible: false),
+  buildChats() => Obx(
+        () => controller.state.isMap.value
+            ? (controller.state.listMap.isNotEmpty
+                ? SizedBox(
+                    height: 78,
+                    width: double.infinity,
+                    child: GestureDetector(
+                        onTap: () => controller.state.isMap.value = !controller.state.isMap.value,
+                        onDoubleTap: () => controller.srollChange(),
+                        child: BaccaratRoadMap(
+                          results: controller.state.listMap,
+                          scrollController: controller.scrollController1,
+                        )),
                   )
-                ],
-              ),
-            )
-          : const Text('data'),
-    );
-  }
+                : const Text('data'))
+            : (controller.state.chartData.isNotEmpty
+                ? SizedBox(
+                    height: 70,
+                    child: GestureDetector(
+                      onTap: () => controller.state.isMap.value = !controller.state.isMap.value,
+                      child: SfCartesianChart(
+                        backgroundColor: controller.state.chartBgColor,
+                        borderWidth: 0,
+                        // borderColor: Colors.red,
+                        margin: EdgeInsets.zero,
+                        // plotAreaBackgroundColor: Colors.amber,//显示区颜色
+                        // plotAreaBorderColor: Colors.red, x轴外边框颜色
+
+                        // axes: const [
+                        //   NumericAxis(
+                        //     name: '你好',
+                        //     opposedPosition: false, //右侧显示
+                        //     title: AxisTitle(text: '金额（元）'),
+                        //   )
+                        // ],
+                        primaryXAxis: const CategoryAxis(
+                          majorTickLines: MajorTickLines(
+                            size: 1,
+                            color: Colors.green,
+                            width: 1,
+                          ),
+                          rangePadding: ChartRangePadding.auto,
+                          //轴标题
+                          // title: AxisTitle(text: '1111'),
+                          //轴标题置顶
+                          opposedPosition: false,
+                          //是否显示标题
+                          isVisible: false,
+                          labelRotation: -45,
+                          edgeLabelPlacement: EdgeLabelPlacement.none,
+                          // maximum: 10,
+                          // minimum: 0,
+                          //x轴在外 或则内部
+                          labelPosition: ChartDataLabelPosition.inside,
+                          //x轴文案边框颜色
+                          borderColor: Colors.red,
+                          //x轴文案边框宽度
+                          borderWidth: 1,
+                          //x轴文案边框样式，分为所有边框和去掉了上下边框
+                          axisBorderType: AxisBorderType.withoutTopAndBottom,
+                          arrangeByIndex: false,
+                          labelPlacement: LabelPlacement.betweenTicks,
+                          // interactiveTooltip: InteractiveTooltip(
+                          //   borderRadius: 10,
+                          //   borderColor: Colors.blue,
+                          //   borderWidth: 10,
+                          // ),
+                        ),
+                        //y轴线，显示
+                        primaryYAxis: const NumericAxis(
+                          borderWidth: 0,
+                          rangePadding: ChartRangePadding.round,
+                          majorGridLines: MajorGridLines(
+                            width: 1,
+                            color: Colors.green,
+                            dashArray: [1],
+                          ),
+                          //轴标题
+                          // title: AxisTitle(text: '1111'),
+                          //轴标题置顶
+                          opposedPosition: true,
+                          //是否显示标题
+                          isVisible: true,
+                          labelRotation: 0,
+                        ),
+
+                        // 图表标题
+                        // title: const ChartTitle(text: 'Half yearly sales analysis'),
+                        // Enable legend
+                        legend: const Legend(isVisible: false),
+                        // Enable tooltip 点了鼠标提示框
+                        tooltipBehavior: TooltipBehavior(enable: false),
+                        //系列；串联；连续
+                        series: <CartesianSeries<SalesData, String>>[
+                          LineSeries<SalesData, String>(
+                            width: 1.0,
+                            //线条宽度
+                            enableTooltip: true,
+                            //圆点的外边框颜色
+                            pointColorMapper: (datum, index) => index % 3 == 0
+                                ? index % 2 == 0
+                                    ? Colors.blue
+                                    : Colors.green
+                                : index % 2 == 0
+                                    ? Colors.red
+                                    : Colors.purple,
+                            //修饰数据点（显示圆圈）
+                            markerSettings: const MarkerSettings(
+                                height: 3,
+                                width: 3,
+                                //不传显示空心
+                                color: Colors.green,
+                                isVisible: true),
+                            dataSource: controller.state.chartData,
+                            xValueMapper: (SalesData sales, _) => "${sales.year}",
+                            yValueMapper: (SalesData sales, _) => sales.sales,
+                            //line color
+                            color: Colors.white,
+                            name: '卖',
+                            //具体的数字显示
+                            dataLabelSettings: const DataLabelSettings(isVisible: false),
+                          )
+                        ],
+                      ),
+                    ),
+                  )
+                : const Text('data')),
+      );
 
   Container divier(Color color, double height) => Container(height: height, width: 1, color: color);
 

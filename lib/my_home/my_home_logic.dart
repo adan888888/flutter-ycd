@@ -34,6 +34,8 @@ class MyHomeLogic extends GetxController {
 // 定义一个计时器，用于延时锁屏
   Timer? _timer;
 
+  final ScrollController scrollController1 = ScrollController(); //路子图的controller
+
   @override
   void onInit() {
     super.onInit();
@@ -63,6 +65,11 @@ class MyHomeLogic extends GetxController {
       },
     );
     Future.delayed(const Duration(microseconds: 200), () => lockScreen());
+    scrollController1.addListener(() {
+      if (scrollController1.position.pixels == scrollController1.position.maxScrollExtent) {
+        print('已经滚动到了底部');
+      }
+    });
   }
 
   showBottomFunction() {
@@ -196,8 +203,8 @@ class MyHomeLogic extends GetxController {
             }
           }
           print("===>${message}");
-          var list = state.table2List.map((element) => element.colmunShuyingzhiD!.contains("-")?"P":"B").toList();
-          state.list.value=list;
+          var list = state.table2List.map((element) => element.colmunShuyingzhi!.contains("-") ? "P" : "B").toList();
+          state.listMap.value = list;
           // BXLoading.showToast(message);
           state.isCanPress = true;
           state.isRefreshing.value = false;
@@ -463,7 +470,7 @@ class MyHomeLogic extends GetxController {
         return state.bettingMoney;
       case 2: //庄赢
         double parse = double.parse(state.bettingMoney);
-        var xx = parse * double.parse(state.totalValue[23].contains('.') ? state.totalValue[23] : state.totalValue[23]);
+        var xx = parse * double.parse(state.totalValue[23]=="23" ? "0.95" : state.totalValue[23]);
         String syz /*庄赢值*/ = xx.toStringAsFixed(2); //四舍五入保留两位小数
         return syz;
       case 3:
@@ -906,6 +913,14 @@ class MyHomeLogic extends GetxController {
 
   //加载更多
   void onLoadMore() {}
+
+  srollChange() {
+    scrollController1.animateTo(
+      scrollController1.position.maxScrollExtent,
+      duration: const Duration(milliseconds: 500),
+      curve: Curves.easeOut,
+    );
+  }
 }
 
 class NewWidget extends StatefulWidget {
