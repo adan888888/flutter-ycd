@@ -266,13 +266,13 @@ class MyHomeLogic extends GetxController {
     ///改变成插入远程数据库
     if (tableName == 'table1') {
       BXPut<Table1Model>(Api.inserttable1,
-          params: (table as Table1Model).toJson(),
+          params: (table as Table1Model).toJson()..addAll({"UserID":1852251920824012800}),
           success: (isSuccess, code, message, results) => queryAll(),
           failed: (p0, p1) => state.isCanPress = true,
           onModel: (m) => Table1Model.fromJson(m));
     } else {
       BXPut<Table2Model>(Api.inserttable2,
-          params: (table as Table2Model).toJson(),
+          params: (table as Table2Model).toJson()..remove("table2Id")..addAll({"UserID":1852251920824012800}),
           success: (isSuccess, code, message, results) => queryAll(),
           failed: (p0, p1) => state.isCanPress = true,
           onModel: (m) => Table2Model.fromJson(m));

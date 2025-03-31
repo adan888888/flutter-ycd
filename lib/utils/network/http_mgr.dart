@@ -43,6 +43,7 @@ Future<Map<String, String>?> getAppHeader() async {
     //App终端标识 IOS|ANDROID|HARMONYOS|WINDOWS 与X-Web-Terminal-Id二选一
     "X-App-Terminal-Id": os,
     "Authorization": "Bearer $token",
+    "UserId": "1852251920824012800",
   };
   return map;
 }

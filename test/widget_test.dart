@@ -157,6 +157,10 @@ void main() {
   print(jsonEncode(user.toJson()));
   print("--------------------------------------------------");
   print(funxxx());
+
+  print("--------------------------------------------------");
+  var o={"tableId":10000, "age":100, "name":"张三"};
+  print(jsonEncode(o..remove("tableId")));
 }
 
 int next(int min, int max) => min + Random().nextInt(max - min + 1);

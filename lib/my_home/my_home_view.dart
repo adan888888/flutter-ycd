@@ -245,7 +245,7 @@ class MyHomePage extends GetView<MyHomeLogic> {
                 color: controller.state.bgColor,
                 width: 45,
                 alignment: Alignment.centerRight,
-                child: Text("${controller.state.table2List[index].table2Id + 1}"),
+                child: Text("${index + 1}"),
               ),
             ),
             //输赢

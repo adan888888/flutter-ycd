@@ -1,8 +1,8 @@
 class Api {
   // static String baseUrl = "https://zsapi.cach.xyz/api/";
-  // static String baseUrl = "http://192.168.100.32:3000/api";
+  static String baseUrl = "http://192.168.100.144:3000/api";
 
-  static String baseUrl = "http://192.168.32.154:3000/api";
+  // static String baseUrl = "http://192.168.32.154:3000/api";
 
   static String config = "/tenant/get";
 
