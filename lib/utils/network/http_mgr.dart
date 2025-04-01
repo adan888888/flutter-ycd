@@ -11,6 +11,7 @@ import 'network.dart';
 ///获取请求头
 Future<Map<String, String>?> getAppHeader() async {
   Map<String, String> map = {};
+  GetStore.getInstance().checkLoginStatus();
   bool isLogin = GetStore.getInstance().isLogin;
   String token = '';
   String xUserId = '';
@@ -43,7 +44,7 @@ Future<Map<String, String>?> getAppHeader() async {
     //App终端标识 IOS|ANDROID|HARMONYOS|WINDOWS 与X-Web-Terminal-Id二选一
     "X-App-Terminal-Id": os,
     "Authorization": "Bearer $token",
-    "UserId": "1852251920824012800",
+    "UserId": xUserId,
   };
   return map;
 }

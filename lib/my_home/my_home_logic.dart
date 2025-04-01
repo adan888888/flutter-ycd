@@ -13,6 +13,8 @@ import 'package:wakelock_plus/wakelock_plus.dart';
 import 'package:ycd/my_db/DbHelper.dart';
 import 'package:ycd/my_db/Table1Model.dart';
 import 'package:ycd/utils/loading.dart';
+import 'package:ycd/utils/network/get_store.dart';
+import 'package:ycd/utils/storage_util.dart';
 import '../my_db/Table2Model.dart';
 import '../utils/bx_loading.dart';
 import '../utils/network/Api.dart';
@@ -266,13 +268,13 @@ class MyHomeLogic extends GetxController {
     ///改变成插入远程数据库
     if (tableName == 'table1') {
       BXPut<Table1Model>(Api.inserttable1,
-          params: (table as Table1Model).toJson()..addAll({"UserID":1852251920824012800}),
+          params: (table as Table1Model).toJson()..addAll({"UserID":int.parse(GetStore.getInstance().userModel.userId)}),
           success: (isSuccess, code, message, results) => queryAll(),
           failed: (p0, p1) => state.isCanPress = true,
           onModel: (m) => Table1Model.fromJson(m));
     } else {
       BXPut<Table2Model>(Api.inserttable2,
-          params: (table as Table2Model).toJson()..remove("table2Id")..addAll({"UserID":1852251920824012800}),
+          params: (table as Table2Model).toJson()..remove("table2Id")..addAll({"UserID":int.parse(GetStore.getInstance().userModel.userId)}),
           success: (isSuccess, code, message, results) => queryAll(),
           failed: (p0, p1) => state.isCanPress = true,
           onModel: (m) => Table2Model.fromJson(m));

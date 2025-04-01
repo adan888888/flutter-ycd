@@ -1,16 +1,20 @@
+import 'package:hive/hive.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class StorageUtil {
   static SharedPreferences? _prefs;
-
+  static Box? _box ;
   /// 初始化 SharedPreferences
   static Future<void> init() async {
     _prefs = await SharedPreferences.getInstance();
+    await Hive.openBox('myBox');
+    _box = Hive.box("myBox");
   }
 
   /// 存储字符串
   static Future<bool> saveString(String key, String value) async {
     if (_prefs == null) return false;
+    _box?.put(key, value);
     return await _prefs!.setString(key, value);
   }
 
@@ -41,6 +45,7 @@ class StorageUtil {
   /// 获取字符串
   static String? getString(String key) {
     return _prefs?.getString(key);
+    return _box?.get(key);
   }
 
   /// 获取整型

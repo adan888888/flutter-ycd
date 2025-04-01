@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:ffi';
 import 'dart:io';
 
 import 'package:device_info_plus/device_info_plus.dart';
@@ -8,11 +9,11 @@ import '../../model/config_Model.dart';
 import '../../model/user_model.dart';
 import '../storage_util.dart';
 
-
 class GetStore {
   // --- 单例模式 ---
   static GetStore? _instance;
   String shareLink = "";
+
   GetStore._internal();
 
   static GetStore getInstance() {
@@ -22,13 +23,14 @@ class GetStore {
 
   // --- 用户数据缓存与管理 ---
   static UserModel? cacheUserModel;
+
   // --- 用户数据缓存与管理 ---
   static ConfigModel? cacheConfigModel;
 
   /// 获取用户信息数据（异步）
-  UserModel readUserModel()  {
+  UserModel readUserModel() {
     UserModel userModel = UserModel();
-    String? data =  StorageUtil.getString("bx_user");
+    String? data = StorageUtil.getString("bx_user");
     if (data != null && data.isNotEmpty) {
       userModel = UserModel.fromJson(jsonDecode(data));
     }
@@ -36,45 +38,45 @@ class GetStore {
   }
 
   /// 检查登录状态
-  void checkLoginStatus()  {
-    UserModel userModel =  readUserModel();
+  void checkLoginStatus() {
+    UserModel userModel = readUserModel();
     _isLogin = userModel.userId.isNotEmpty;
   }
 
   /// 获取用户信息（缓存优先）
-  UserModel get userModel  {
+  UserModel get userModel {
     if (cacheUserModel != null) {
       return cacheUserModel!;
     }
-    cacheUserModel =  readUserModel();
+    cacheUserModel = readUserModel();
     return cacheUserModel!;
   }
+
   /// 保存用户信息到本地
-  void saveUser(UserModel userModel)  {
+  void saveUser(UserModel userModel) {
     cacheUserModel = userModel;
     StorageUtil.saveString("bx_user", jsonEncode(userModel.toJson()));
   }
 
   /// 清除用户信息
-  void cleanUser()  {
+  void cleanUser() {
     StorageUtil.remove("bx_user");
     cacheUserModel = null;
   }
 
-
   ///获取配置
-  ConfigModel get configModel{
+  ConfigModel get configModel {
     if (cacheConfigModel != null) {
       return cacheConfigModel!;
     }
-    cacheConfigModel =  readConfigModel();
+    cacheConfigModel = readConfigModel();
     return cacheConfigModel!;
   }
 
   /// 获取配置（异步）
-  ConfigModel readConfigModel()  {
+  ConfigModel readConfigModel() {
     ConfigModel configModel = ConfigModel();
-    String? data =  StorageUtil.getString("bx_config");
+    String? data = StorageUtil.getString("bx_config");
     if (data != null && data.isNotEmpty) {
       configModel = ConfigModel.fromJson(jsonDecode(data));
     }
@@ -82,7 +84,7 @@ class GetStore {
   }
 
   /// 保存用户信息到本地
-  void saveConfig(ConfigModel configModel)  {
+  void saveConfig(ConfigModel configModel) {
     cacheConfigModel = configModel;
     StorageUtil.saveString("bx_config", jsonEncode(configModel.toJson()));
   }
@@ -93,12 +95,10 @@ class GetStore {
 
   bool get isLogin => _isLogin;
 
-
   void logout() {
     cleanUser();
     _isLogin = false;
   }
-
 
   void dispose() {
     jumpDepositPageController.close();

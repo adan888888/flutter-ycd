@@ -1,13 +1,13 @@
 class Api {
   // static String baseUrl = "https://zsapi.cach.xyz/api/";
-  static String baseUrl = "http://192.168.100.144:3000/api";
+  static String baseUrl = "http://192.168.100.24:3000/api";
 
   // static String baseUrl = "http://192.168.32.154:3000/api";
 
   static String config = "/tenant/get";
 
   ///登录
-  static String login = "/login";
+  static String login = "/auth/login";
 
   //初始化程序 创建表
   static String createtables = "/ycd/createtable";
