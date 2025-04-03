@@ -13,6 +13,7 @@ import 'package:ycd/my_db/Table1Model.dart';
 import 'package:ycd/my_widget/baccarat_road_map.dart';
 import 'package:ycd/utils/bx_loading.dart';
 import 'package:ycd/utils/network/Api.dart';
+import 'package:ycd/utils/network/get_store.dart';
 import 'package:ycd/utils/network/http_mgr.dart';
 import '../my_db/Table2Model.dart';
 import '../my_widget/auto_text.dart';
@@ -64,11 +65,11 @@ class MyHomePage extends GetView<MyHomeLogic> {
                 )
               ],
               elevation: 0,
-              toolbarHeight: 0,
+              toolbarHeight: 20,
               centerTitle: false,
               backgroundColor: controller.state.chartBgColor,
               title: Text(
-                title,
+                "$title ${GetStore.getInstance().userModel.userId}",
                 style: const TextStyle(fontSize: 12, color: Colors.white),
               )),
           body: SafeArea(

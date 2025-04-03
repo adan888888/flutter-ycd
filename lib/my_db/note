@@ -21,3 +21,6 @@ column_current_jin(当前的钱),
 column_refresh(用来刷新用),
 
 
+
+
+test.sql 这个文件是项目启动动初化数据用的。第一次部署项目。

@@ -61,7 +61,7 @@ class AppPages {
     ),
     GetPage(
       name: AppRoutes.home,
-      page: () => const MyHomePage(title: '记牌器 v1.0'),
+      page: () => const MyHomePage(title: '记牌器v2.0'),
       binding: MyHomeBinding(),
     )
   ];

@@ -174,15 +174,19 @@ class MyHomeLogic extends GetxController {
         isShowLoading: false,
         success: (isSuccess, code, message, value) {
           state.table1List.clear();
-          state.table1List.value = value;
-          state.totalValue[0] = '${state.table1List.last.columnBenjin}'; //本金
-          state.totalValue[19] = '${state.table1List.last.columnMean}'; //期望值
-          state.chartData.value = List.generate(50, (index) => SalesData(index, double.parse(state.table1List.last.columnBenjin.toString()))).toList();
-          _queryMysqlTable2();
+          if (value.isNotEmpty) {
+            state.table1List.value = value;
+            state.totalValue[0] = '${state.table1List.last.columnBenjin}'; //本金
+            state.totalValue[19] = '${state.table1List.last.columnMean}'; //期望值
+            state.chartData.value = List.generate(50, (index) => SalesData(index, double.parse(state.table1List.last.columnBenjin.toString()))).toList();
+            _queryMysqlTable2();
+          }
+          state.isRefreshing.value = false;
         },
         failed: (p0, p1) {
           refreshcontroller.finishRefresh(IndicatorResult.fail);
           state.isCanPress = true;
+          state.isRefreshing.value = false;
         },
         onModel: (m) => Table1Model.fromJson(m));
   }
@@ -192,8 +196,8 @@ class MyHomeLogic extends GetxController {
         isShowLoading: true, //这里需要 false要不然下面的BXLoading.showToast(message)弹不出来
         success: (isSuccess, code, message, results) {
           refreshcontroller.finishRefresh();
+          state.table2List.clear();
           if (results.isNotEmpty) {
-            state.table2List.clear();
             state.table2List.value = results;
             if (state.table2List.length > 20) scrollController.jumpTo(scrollController.position.maxScrollExtent + 35);
             if (state.table2List.isNotEmpty) {
@@ -268,13 +272,15 @@ class MyHomeLogic extends GetxController {
     ///改变成插入远程数据库
     if (tableName == 'table1') {
       BXPut<Table1Model>(Api.inserttable1,
-          params: (table as Table1Model).toJson()..addAll({"UserID":int.parse(GetStore.getInstance().userModel.userId)}),
+          params: (table as Table1Model).toJson()..addAll({"UserID": int.parse(GetStore.getInstance().userModel.userId)}),
           success: (isSuccess, code, message, results) => queryAll(),
           failed: (p0, p1) => state.isCanPress = true,
           onModel: (m) => Table1Model.fromJson(m));
     } else {
       BXPut<Table2Model>(Api.inserttable2,
-          params: (table as Table2Model).toJson()..remove("table2Id")..addAll({"UserID":int.parse(GetStore.getInstance().userModel.userId)}),
+          params: (table as Table2Model).toJson()
+            ..remove("table2Id")
+            ..addAll({"UserID": int.parse(GetStore.getInstance().userModel.userId)}),
           success: (isSuccess, code, message, results) => queryAll(),
           failed: (p0, p1) => state.isCanPress = true,
           onModel: (m) => Table2Model.fromJson(m));
@@ -472,7 +478,7 @@ class MyHomeLogic extends GetxController {
         return state.bettingMoney;
       case 2: //庄赢
         double parse = double.parse(state.bettingMoney);
-        var xx = parse * double.parse(state.totalValue[23]=="23" ? "0.95" : state.totalValue[23]);
+        var xx = parse * double.parse(state.totalValue[23] == "23" ? "0.95" : state.totalValue[23]);
         String syz /*庄赢值*/ = xx.toStringAsFixed(2); //四舍五入保留两位小数
         return syz;
       case 3:
