@@ -24,8 +24,8 @@ dependencies:
   encrypt: ^5.0.3
   crypto: ^3.0.1
   shared_preferences: ^2.5.3
-  #存储
-  flutter_keychain: ^2.5.0
+#  #存储
+#  flutter_keychain: ^2.5.0
   #设备信息
   device_info_plus: ^9.1.2
   #程序信息

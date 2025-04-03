@@ -25,7 +25,8 @@ if (flutterVersionName == null) {
 android {
     namespace "com.like.flutter_ycd"
     compileSdk flutter.compileSdkVersion
-    ndkVersion flutter.ndkVersion
+//    ndkVersion flutter.ndkVersion
+    ndkVersion "27.0.12077973"
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
@@ -58,6 +59,12 @@ android {
             signingConfig signingConfigs.debug
         }
     }
+//    externalNativeBuild {
+//        cmake {
+//            path "CMakeLists.txt"
+//            version "3.18.1" // 确保 CMake 版本正确
+//        }
+//    }
 }
 
 flutter {

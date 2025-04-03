@@ -1,10 +1,26 @@
+/*buildscript {
+    ext.kotlin_version = '1.8.10'
+    repositories {
+        google()
+        mavenCentral()
+    }
+
+    dependencies {
+        classpath 'com.android.tools.build:gradle:7.4.2' // 根据需要调整版本
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+    }
+}*/
 allprojects {
     repositories {
         google()
         mavenCentral()
     }
-}
 
+}
+//// 添加 NDK 路径配置
+//project.ext {
+//    ndkDir = "/Users/a123123/Library/Android/sdk/ndk/27.0.12077973"
+//}
 rootProject.buildDir = '../build'
 subprojects {
     project.buildDir = "${rootProject.buildDir}/${project.name}"
@@ -16,3 +32,5 @@ subprojects {
 tasks.register("clean", Delete) {
     delete rootProject.buildDir
 }
+//cmake.dir=/path/to/cmake
+//ninja.dir=/path/to/ninja
