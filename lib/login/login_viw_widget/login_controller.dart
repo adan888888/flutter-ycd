@@ -33,7 +33,7 @@ class LoginController extends GetxController {
               Future.delayed(const Duration(seconds: 2), () {
                 var userId = GetStore.getInstance().readUserModel().userId;
                 if (userId.isNotEmpty) {
-                  Get.toNamed(AppRoutes.home);
+                  Get.offAndToNamed(AppRoutes.home);
                 }
               });
             }

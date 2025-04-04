@@ -844,6 +844,9 @@ class MyHomeLogic extends GetxController {
     _timer?.cancel();
     _timer = null;
     screenLock(
+      config: const ScreenLockConfig(
+        backgroundColor: Colors.black,
+      ),
       onValidate: (input) => getFuture(input),
       secretsConfig: const SecretsConfig(
         spacing: 15, // or spacingRatio
