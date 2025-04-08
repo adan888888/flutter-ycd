@@ -18,22 +18,25 @@ class LoginWidget extends GetView<LoginController> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              TextFormField(
-                controller: controller.emailController,
-                decoration: const InputDecoration(
-                  labelText: "邮箱",
-                  border: OutlineInputBorder(),
+              Visibility(
+                visible: false,
+                child: TextFormField(
+                  controller: controller.emailController,
+                  decoration: const InputDecoration(
+                    labelText: "邮箱",
+                    border: OutlineInputBorder(),
+                  ),
+                  keyboardType: TextInputType.emailAddress,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return "请输入邮箱";
+                    }
+                    /*else if (!RegExp(r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+").hasMatch(value)) {
+                      return "请输入有效的邮箱地址";
+                    }*/
+                    return null;
+                  },
                 ),
-                keyboardType: TextInputType.emailAddress,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return "请输入邮箱";
-                  }
-                  /*else if (!RegExp(r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+").hasMatch(value)) {
-                    return "请输入有效的邮箱地址";
-                  }*/
-                  return null;
-                },
               ),
               const SizedBox(height: 16),
               TextFormField(

@@ -10,6 +10,7 @@ import 'package:get/get.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
+import 'package:ycd/main.dart';
 import 'package:ycd/my_db/DbHelper.dart';
 import 'package:ycd/my_db/Table1Model.dart';
 import 'package:ycd/utils/loading.dart';
@@ -748,6 +749,10 @@ class MyHomeLogic extends GetxController {
           break;
         }
         updateOdds(s);
+        break;
+      case 11: //退出程序
+        GetStore.getInstance().cleanUser();
+        Get.offAndToNamed(AppRoutes.login);
         break;
     }
   }

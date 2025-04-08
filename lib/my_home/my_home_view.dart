@@ -69,7 +69,7 @@ class MyHomePage extends GetView<MyHomeLogic> {
               centerTitle: false,
               backgroundColor: controller.state.chartBgColor,
               title: Text(
-                "$title ${GetStore.getInstance().userModel.userId}",
+                "$title   ${GetStore.getInstance().userModel.nickname}",
                 style: const TextStyle(fontSize: 12, color: Colors.white),
               )),
           body: SafeArea(
