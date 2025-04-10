@@ -252,7 +252,7 @@ class MyHomeLogic extends GetxController {
     state.totalValue[28] = "${state.js1}/${state.js2}";
     final table = tableName == 'table2'
         ? Table2Model(
-            table2Id: state.table2List.length + 1,
+            id: state.table2List.length + 1,
             //mysql数据库下标是从1开始的
             columnXiazhujine: state.bettingMoney,
             colmunZx: state.randomValue,
@@ -400,11 +400,11 @@ class MyHomeLogic extends GetxController {
     var jb_s = 0;
     var jb_syz = 0.0;
     var jb_count = 0;
-    for (var element in state.table2List) {
-      if (element.table2Id >= index) {
+    for (var i = 0; i < state.table2List.length; i++){
+      if (i >= index) {
         jb_count++;
-        jb_syz += double.parse(element.colmunShuyingzhi.toString());
-        if (element.colmunRemark!.startsWith("-1")) {
+        jb_syz += double.parse(state.table2List[i].colmunShuyingzhi.toString());
+        if (state.table2List[i].colmunRemark!.startsWith("-1")) {
           jb_s--;
         } else {
           jb_y++;
@@ -638,7 +638,7 @@ class MyHomeLogic extends GetxController {
           for (int i = 0; i < state.table2List.length; i++) {
             if (state.table2List[i].colmunShuyingzhiD!.isEmpty) continue;
             db.update(DbHelper.table2, state.table2List[i].toJson()..update('colmun_shuyingzhi_d', (value) => ''),
-                where: 'table2Id =?', whereArgs: [state.table2List[i].table2Id]);
+                where: 'table2Id =?', whereArgs: [state.table2List[i].id]);
           }
         }).then((value) => queryAll());
         break;
