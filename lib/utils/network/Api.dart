@@ -50,4 +50,10 @@ class Api {
 
   //修改本金
   static String updateBenjin = "/ycd/updatebenjin";
+
+  //加载更多历史数据
+  static String loadMore = "/ycd/loadmore";
+
+  //加载更多历史数据
+  static String getStatisticalAreasData = "/ycd/getStatisticalAreasData";
 }

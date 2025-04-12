@@ -78,7 +78,7 @@ class MyHomePage extends GetView<MyHomeLogic> {
               children: <Widget>[
                 //图表区
                 buildChats(),
-                //表格区
+                //表格区统计区
                 /* ColoredBox(
                   color: controller.state.lineColor,
                   child: SizedBox(
@@ -131,7 +131,7 @@ class MyHomePage extends GetView<MyHomeLogic> {
                                   4,
                                   (index) => GestureDetector(
                                         onTap: () {
-                                          if (index == 2) controller.juBuPingHeng(0);
+                                          if (index == 2) controller.juBuPingHeng(-1);
                                         },
                                         child: Center(
                                           child: Text(
@@ -176,17 +176,18 @@ class MyHomePage extends GetView<MyHomeLogic> {
                   child: Obx(() => AbsorbPointer /*NotificationListener 也可以实现（监听滑动的回调）*/ (
                         absorbing: controller.state.isRefreshing.value,
                         child: GestureDetector(
-                          onLongPress: () => controller.lockScreen(),
+                          // onLongPress: () => controller.lockScreen(),
                           child: ColoredBox(
                             color: controller.state.listViewColor,
                             child: EasyRefresh(
                               controller: controller.refreshcontroller,
-                              onRefresh: () async => controller.onRefresh(),
-                              // onLoad: () {}, //不要onLoad就没有上拉加载更多
+                              // onRefresh: () async => controller.onRefresh(),
+                              onLoad: () async => controller.onLoadMore(), //不要onLoad就没有上拉加载更多
                               child: ListView.separated(
+                                reverse: true,
                                 padding: const EdgeInsets.only(left: 6, right: 2),
                                 controller: controller.scrollController,
-                                itemCount: controller.state.table2List.length,
+                                itemCount: controller.state.table2ListX.length,
                                 itemBuilder: (BuildContext context, int index) => buildItem(index),
                                 separatorBuilder: (BuildContext context, int index) =>
                                     Divider(height: 2, indent: 5, thickness: 0.3, color: index % 2 == 0 ? Colors.red : Colors.black),
@@ -236,17 +237,18 @@ class MyHomePage extends GetView<MyHomeLogic> {
       (i * 4 + index) == 15 || (i * 4 + index) == 3 || (i * 4 + index) == 20 || (i * 4 + index) == 24 || (i * 4 + index) == 16 ? 10 : 14;
 
   buildItem(int index) => SizedBox(
+        height: 30,
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             //序号
             GestureDetector(
-              onTap: () => controller.juBuPingHeng(index),
+              onTap: () => controller.juBuPingHeng(controller.state.table2ListX[index].id!),
               child: Container(
                 color: controller.state.bgColor,
                 width: 45,
                 alignment: Alignment.centerRight,
-                child: Text("${index + 1}"),
+                child: Text("${controller.state.table2ListX[index].id}"),
               ),
             ),
             //输赢
@@ -254,9 +256,9 @@ class MyHomePage extends GetView<MyHomeLogic> {
               width: 80,
               alignment: Alignment.centerRight,
               child: Text(
-                controller.state.table2List[index].colmunShuyingzhi.toString(),
+                controller.state.table2ListX[index].colmunShuyingzhi.toString(),
                 style: TextStyle(
-                  color: controller.state.table2List[index].colmunShuyingzhi.toString().startsWith('-') ? Colors.green : Colors.redAccent,
+                  color: controller.state.table2ListX[index].colmunShuyingzhi.toString().startsWith('-') ? Colors.green : Colors.redAccent,
                 ),
               ),
             ),
@@ -265,14 +267,14 @@ class MyHomePage extends GetView<MyHomeLogic> {
                 width: 110,
                 child: Row(mainAxisAlignment: MainAxisAlignment.end, children: [
                   Text(
-                    "${controller.state.table2List[index].colmunShuyingzhiD}",
+                    "${controller.state.table2ListX[index].colmunShuyingzhiD}",
                     style: TextStyle(
-                      color: controller.state.table2List[index].colmunShuyingzhiD.toString().startsWith('-') ? Colors.green : Colors.redAccent,
+                      color: controller.state.table2ListX[index].colmunShuyingzhiD.toString().startsWith('-') ? Colors.green : Colors.redAccent,
                     ),
                   ),
                   const SizedBox(width: 5),
                   Visibility(
-                    visible: controller.state.table2List[index].colmunShuyingzhiD!.isNotEmpty,
+                    visible: controller.state.table2ListX[index].colmunShuyingzhiD!.isNotEmpty,
                     child: GestureDetector(
                         onTap: () {
                           controller.updateSqlite(index);
@@ -284,7 +286,7 @@ class MyHomePage extends GetView<MyHomeLogic> {
             Container(
               width: 55,
               alignment: Alignment.centerRight,
-              child: Text("${controller.state.table2List[index].columnXiazhujine}"),
+              child: Text("${controller.state.table2ListX[index].columnXiazhujine}"),
             ),
             //胜负路
             sflContainer(index),
@@ -292,8 +294,8 @@ class MyHomePage extends GetView<MyHomeLogic> {
         ),
       );
 
-  Container sflContainer(int index) => controller.state.table2List[index].colmunShengfulu == '正打'
-      ? (controller.state.table2List[index].colmunRemark!.startsWith('-')
+  Container sflContainer(int index) => controller.state.table2ListX[index].colmunShengfulu == '正打'
+      ? (controller.state.table2ListX[index].colmunRemark!.startsWith('-')
           ? Container(
               color: Colors.transparent,
               width: 50,
@@ -328,7 +330,7 @@ class MyHomePage extends GetView<MyHomeLogic> {
                 ],
               ),
             ))
-      : controller.state.table2List[index].colmunRemark!.startsWith('-')
+      : controller.state.table2ListX[index].colmunRemark!.startsWith('-')
           ? Container(
               color: Colors.transparent,
               width: 50,
