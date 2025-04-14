@@ -132,8 +132,8 @@ CREATE TABLE `table_yanchendao1` (
 -- Records of table_yanchendao1
 -- ----------------------------
 BEGIN;
-INSERT INTO `table_yanchendao1` (`id`, `column_benjin`, `column_yongjin`, `column_mean`, `column_restart_index`, `column_liushui_index`, `created_at`, `uid`) VALUES (1, '5000', '0.95', '0.08', '0', '0', '2025-04-03 11:27:24', 1907650735441448960);
-INSERT INTO `table_yanchendao1` (`id`, `column_benjin`, `column_yongjin`, `column_mean`, `column_restart_index`, `column_liushui_index`, `created_at`, `uid`) VALUES (2, '5000', '0.95', '0.08', '0', '0', '2025-04-03 11:27:24', 1852251920824012800);
+INSERT INTO `table_yanchendao1` (`id`, `column_benjin`, `column_yongjin`, `column_mean`, `column_restart_index`, `column_liushui_index`, `created_at`, `uid`) VALUES (1, '5000', '0.95', '0.08', '1', '1', '2025-04-03 11:27:24', 1907650735441448960);
+INSERT INTO `table_yanchendao1` (`id`, `column_benjin`, `column_yongjin`, `column_mean`, `column_restart_index`, `column_liushui_index`, `created_at`, `uid`) VALUES (2, '5000', '0.95', '0.08', '1', '1', '2025-04-03 11:27:24', 1852251920824012800);
 COMMIT;
 
 -- ----------------------------
