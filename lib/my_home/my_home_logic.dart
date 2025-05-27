@@ -77,7 +77,7 @@ class MyHomeLogic extends GetxController {
     //1。查询表一数据
     _queryMysqlTable1();
     //2。起始要拿到统计区数据
-    _getStatisticalAreasData( 1);//传的有数据就是从传的数据的行开始计算
+    _getStatisticalAreasData(1); //传的有数据就是从传的数据的行开始计算
     //3。启始先查66条数据
     BXGet<Table2Model>(Api.loadMore,
         params: {"last_id": -1, "uid": GetStore.getInstance().userModel.userId, "c": 66}, //"c"每页多少个数据
@@ -88,7 +88,7 @@ class MyHomeLogic extends GetxController {
             // temp.addAll(state.table2ListX.reversed.toList());
             state.table2ListX.clear();
             state.table2ListX.value = results.reversed.toList();
-            state.listMap.value = state.table2ListX.reversed.toList().map((e) => e.colmunShuyingzhi!.startsWith("-") ? "B" : "P").toList();
+            state.listMap.value = state.table2ListX.reversed.toList().map((e) => e.colmunShuyingzhi!.startsWith("-") ? "P" : "B").toList();
             print("起启一共多少${state.table2ListX.length}条数据");
           }
         },
@@ -111,6 +111,7 @@ class MyHomeLogic extends GetxController {
           state.totalValue[24] = pVal2();
         }
         state.isCanPress = true;
+        getCharts();
       },
     );
   }
@@ -219,7 +220,7 @@ class MyHomeLogic extends GetxController {
             state.table1List.value = value;
             state.totalValue[0] = '${state.table1List.last.columnBenjin}'; //本金
             state.totalValue[19] = '${state.table1List.last.columnMean}'; //期望值
-            state.chartData.value = List.generate(50, (index) => SalesData(index, double.parse(state.table1List.last.columnBenjin.toString()))).toList();
+            state.chartData.value = List.generate(60, (index) => SalesData(index, double.parse(state.table1List.last.columnBenjin.toString()))).toList();
           }
           state.isRefreshing.value = false;
         },
@@ -289,9 +290,9 @@ class MyHomeLogic extends GetxController {
             ..remove("table2Id")
             ..addAll({"UserID": int.parse(GetStore.getInstance().userModel.userId)}),
           success: (isSuccess, code, message, results) {
-            _getStatisticalAreasData(-1); //重新计算
+            _getStatisticalAreasData(-2); //重新计算
             state.table2ListX.insert(0, results.first); //打一手 记录一笔
-            state.listMap.value = state.table2ListX.reversed.toList().map((e) => e.colmunShuyingzhi!.startsWith("-") ? "B" : "P").toList();
+            state.listMap.value = state.table2ListX.reversed.toList().map((e) => e.colmunShuyingzhi!.startsWith("-") ? "P" : "B").toList();
             print("图表的值：${state.listMap}");
           },
           failed: (p0, p1) => state.isCanPress = true,
@@ -299,27 +300,44 @@ class MyHomeLogic extends GetxController {
     }
   }
 
-  // getCharts() {
-  //   var chartDataTemp = <double>[];
-  //   if (state.table2List.length <= state.chartData.length) {
-  //     for (var i = 0; i < state.table2List.length; i++) {
-  //       chartDataTemp.add(double.parse(state.table2List[i].columnCurrentJin.toString()));
-  //     }
-  //   } else {
-  //     for (var i = state.table2List.length - state.chartData.length; i < state.table2List.length; i++) {
-  //       chartDataTemp.add(double.parse(state.table2List[i].columnCurrentJin.toString()));
-  //     }
-  //   }
-  //   if (chartDataTemp.isNotEmpty) {
-  //     var z = 0;
-  //     for (var i = chartDataTemp.length - 1; i >= 0; i--) {
-  //       z++;
-  //       state.chartData[state.chartData.length - z].sales = chartDataTemp[i];
-  //     }
-  //     var removeLast = state.chartData.removeLast();
-  //     Future.delayed(const Duration(milliseconds: 300), () => state.chartData.add(removeLast));
-  //   }
-  // }
+  getCharts() {
+    // var chartDataTemp = <double>[];
+    // if (state.table2ListX.length <= state.chartData.length) {
+    //   for (var i = 0; i < state.table2ListX.length; i++) {
+    //     chartDataTemp.add(double.parse(state.table2ListX[i].columnCurrentJin.toString()));
+    //   }
+    // } else {
+    //   for (var i = state.table2ListX.length - state.chartData.length; i < state.table2ListX.length; i++) {
+    //     chartDataTemp.add(double.parse(state.table2ListX[i].columnCurrentJin.toString()));
+    //   }
+    // }
+    // if (chartDataTemp.isNotEmpty) {
+    //   var z = 0;
+    //   for (var i = chartDataTemp.length - 1; i >= 0; i--) {
+    //     z++;
+    //     state.chartData[state.chartData.length - z].sales = chartDataTemp[i];
+    //   }
+    //   var removeLast = state.chartData.removeLast();
+    //   Future.delayed(const Duration(milliseconds: 300), () => state.chartData.add(removeLast));
+    // // }
+
+    var z = 0;
+    var chartDataTemp = <double>[];
+    BXGet<dynamic>(
+      Api.getLinechartData,
+      success: (isSuccess, code, message, results) {
+        for (var i = results.length - 1; i >= 0; i--) {
+          if (results[i].toString().isNotEmpty) {
+            state.chartData[z].sales = double.parse(results[i]);
+          }
+          z++;
+        }
+        //解决外面的点跑，里面的线不动
+        var removeLast = state.chartData.removeLast();
+        Future.delayed(const Duration(milliseconds: 300), () => state.chartData.add(removeLast));
+      },
+    );
+  }
 
   // void statisticalArea() {
   //   //图表区
@@ -452,9 +470,7 @@ class MyHomeLogic extends GetxController {
 
   //得到当的钱数
   getCurrentJin(int i, double playMoney) {
-    var lastJinE = state.table2ListX.isEmpty
-        ? double.parse(state.table1List.first.columnBenjin.toString())
-        : double.parse(state.table2ListX.first.columnCurrentJin.toString());
+    var lastJinE = state.table2ListX.isEmpty ? 5000 : double.parse(state.table2ListX.first.columnCurrentJin.toString());
     switch (i) {
       case 1:
         return (lastJinE + playMoney);
@@ -491,7 +507,7 @@ class MyHomeLogic extends GetxController {
         onConfirm: () {
           BXDelete<Table2Model>(Api.deletelast,
               success: (isSuccess, code, message, results) {
-                _getStatisticalAreasData(-1);
+                _getStatisticalAreasData(-2);
                 state.js1 = state.js1 - 1;
                 state.totalValue[28] = "${state.js1}/${state.js2}";
                 state.table2ListX.removeAt(0);

@@ -56,4 +56,7 @@ class Api {
 
   //加载更多历史数据
   static String getStatisticalAreasData = "/ycd/getStatisticalAreasData";
+
+  //折线图数据
+  static String getLinechartData = "/ycd/linechartData";
 }

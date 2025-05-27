@@ -4,7 +4,7 @@ import '../my_db/Table1Model.dart';
 import '../my_db/Table2Model.dart';
 
 class MyState {
-  static const OFFSET8431 = 8431;
+  static const OFFSET8431 = 8431; //庄闲占比是 庄60% 闲40%
   static const double height = 16 / 3;
   var isLoading = false;
   var isCanPress = true;
