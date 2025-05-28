@@ -137,9 +137,9 @@ class MyHomeLogic extends GetxController {
       return '${((x + y) / (z1 + 1)).toStringAsFixed(1)}/${((x - y) / (z1 - 1)).toStringAsFixed(1)}';
     } else {
       if ((z1 - 1) <= 0) {
-        return '/${((x - y) / (z1 + 1)).toStringAsFixed(1)}';
+        return '/${((x - y) / (z1 + 1)).toStringAsFixed(0)}';
       }
-      return '${((x + y) / (z1 - 1)).toStringAsFixed(1)}/${((x - y) / (z1 + 1)).toStringAsFixed(1)}';
+      return '${((x + y) / (z1 - 1)).toStringAsFixed(0)}/${((x - y) / (z1 + 1)).toStringAsFixed(0)}';
     }
   }
 
@@ -155,12 +155,12 @@ class MyHomeLogic extends GetxController {
       if ((z1 - 1) <= 0) {
         return '${((x + y) / (z1 + 1)).toStringAsFixed(1)}/';
       }
-      return '${((x + y) / (z1 + 1)).toStringAsFixed(1)}/${((x - y) / (z1 - 1)).toStringAsFixed(1)}';
+      return '${((x + y) / (z1 + 1)).toStringAsFixed(1)}/${((x - y) / (z1 - 1)).toStringAsFixed(0)}';
     } else {
       if ((z1 - 1) <= 0) {
-        return '/${((x - y) / (z1 + 1)).toStringAsFixed(1)}';
+        return '/${((x - y) / (z1 + 1)).toStringAsFixed(0)}';
       }
-      return '${((x + y) / (z1 - 1)).toStringAsFixed(1)}/${((x - y) / (z1 + 1)).toStringAsFixed(1)}';
+      return '${((x + y) / (z1 - 1)).toStringAsFixed(0)}/${((x - y) / (z1 + 1)).toStringAsFixed(0)}';
     }
   }
 

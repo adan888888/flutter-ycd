@@ -141,9 +141,13 @@ class MyHomePage extends GetView<MyHomeLogic> {
                                                   wordSpacing: 0,
                                                   fontSize: fontSize(i, index),
                                                   fontWeight: FontWeight.w300,
-                                                  color: (i * 4 + index) == 2 && controller.state.currentTempIndex != 0
-                                                      ? Colors.purpleAccent
-                                                      : controller.state.textColor),
+                                                  color: ((i * 4 + index) == 26 || (i * 4 + index) == 31)
+                                                      ? Colors.green
+                                                      : ((i * 4 + index) == 24 || (i * 4 + index) == 22)
+                                                          ? Colors.red
+                                                          : (i * 4 + index) == 2 && controller.state.currentTempIndex != 0
+                                                              ? Colors.amber
+                                                              : controller.state.textColor),
                                               controller.state.totalValue[i * 4 + index]),
                                         ),
                                       )).toList())).toList(),
