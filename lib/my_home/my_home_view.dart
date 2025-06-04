@@ -1,4 +1,3 @@
-import 'dart:developer';
 
 import 'package:easy_refresh/easy_refresh.dart';
 import 'package:flutter/cupertino.dart';
@@ -385,7 +384,7 @@ class MyHomePage extends GetView<MyHomeLogic> {
                 : const Text('data'))
             : (controller.state.chartData.isNotEmpty
                 ? SizedBox(
-                    height: 70,
+                    height: 100,
                     child: GestureDetector(
                       onTap: () => controller.state.isMap.value = !controller.state.isMap.value,
                       child: SfCartesianChart(

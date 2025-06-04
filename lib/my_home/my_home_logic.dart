@@ -137,9 +137,9 @@ class MyHomeLogic extends GetxController {
       return '${((x + y) / (z1 + 1)).toStringAsFixed(1)}/${((x - y) / (z1 - 1)).toStringAsFixed(1)}';
     } else {
       if ((z1 - 1) <= 0) {
-        return '/${((x - y) / (z1 + 1)).toStringAsFixed(0)}';
+        return '/${((x - y) / (z1 + 1)).toStringAsFixed(1)}';
       }
-      return '${((x + y) / (z1 - 1)).toStringAsFixed(0)}/${((x - y) / (z1 + 1)).toStringAsFixed(0)}';
+      return '${((x + y) / (z1 - 1)).toStringAsFixed(1)}/${((x - y) / (z1 + 1)).toStringAsFixed(1)}';
     }
   }
 
@@ -155,12 +155,12 @@ class MyHomeLogic extends GetxController {
       if ((z1 - 1) <= 0) {
         return '${((x + y) / (z1 + 1)).toStringAsFixed(1)}/';
       }
-      return '${((x + y) / (z1 + 1)).toStringAsFixed(1)}/${((x - y) / (z1 - 1)).toStringAsFixed(0)}';
+      return '${((x + y) / (z1 + 1)).toStringAsFixed(1)}/${((x - y) / (z1 - 1)).toStringAsFixed(1)}';
     } else {
       if ((z1 - 1) <= 0) {
-        return '/${((x - y) / (z1 + 1)).toStringAsFixed(0)}';
+        return '/${((x - y) / (z1 + 1)).toStringAsFixed(1)}';
       }
-      return '${((x + y) / (z1 - 1)).toStringAsFixed(0)}/${((x - y) / (z1 + 1)).toStringAsFixed(0)}';
+      return '${((x + y) / (z1 - 1)).toStringAsFixed(1)}/${((x - y) / (z1 + 1)).toStringAsFixed(1)}';
     }
   }
 
@@ -180,7 +180,8 @@ class MyHomeLogic extends GetxController {
     state.isCanPress = false;
     state.js2 = state.js2 + 1;
     state.totalValue[28] = "${state.js1}/${state.js2}";
-    if (next(1, 90485) > 44625 - MyState.OFFSET8431) {
+    // if (next(1, 90485) > 44625 - MyState.OFFSET8431) {
+    if (next(1, 100) <= 70) { //1到100（包含1，100）
       state.totalValue[30] = '庄';
       state.randomValue = '庄';
     } else {
@@ -220,7 +221,7 @@ class MyHomeLogic extends GetxController {
             state.table1List.value = value;
             state.totalValue[0] = '${state.table1List.last.columnBenjin}'; //本金
             state.totalValue[19] = '${state.table1List.last.columnMean}'; //期望值
-            state.chartData.value = List.generate(60, (index) => SalesData(index, double.parse(state.table1List.last.columnBenjin.toString()))).toList();
+            state.chartData.value = List.generate(75, (index) => SalesData(index, double.parse(state.table1List.last.columnBenjin.toString()))).toList();
           }
           state.isRefreshing.value = false;
         },
@@ -440,7 +441,7 @@ class MyHomeLogic extends GetxController {
   //               : '可负${((jb_syz.abs() - dJ) / parse).toStringAsFixed(1)}x$parse';
   //
   //   ///第四列
-  //   state.totalValue[3] = '流水${runningWater.toStringAsFixed(0)}';
+  //   state.totalValue[3] = '流水${runningWater.toStringAsFixed(1)}';
   //   state.totalValue[7] = '均利${(zt_syz / state.table2List.length).toStringAsFixed(2)}';
   //   state.totalValue[11] = '连胜负$countLianShengFu';
   //   state.totalValue[15] = '$zCount/${int.parse(state.totalValue[1])}';
