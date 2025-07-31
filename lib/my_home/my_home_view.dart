@@ -1,22 +1,13 @@
-
+import 'dart:io';
 import 'package:easy_refresh/easy_refresh.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:get/get.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
-import 'package:ycd/my_db/Table1Model.dart';
 import 'package:ycd/my_widget/baccarat_road_map.dart';
-import 'package:ycd/utils/bx_loading.dart';
-import 'package:ycd/utils/network/Api.dart';
 import 'package:ycd/utils/network/get_store.dart';
-import 'package:ycd/utils/network/http_mgr.dart';
-import '../my_db/Table2Model.dart';
-import '../my_widget/auto_text.dart';
-import '../utils/log.dart';
 import 'my_home_logic.dart';
 import 'my_home_state.dart';
 
@@ -28,7 +19,7 @@ class MyHomePage extends GetView<MyHomeLogic> {
   @override
   Widget build(BuildContext context) {
     return KeyboardDismissOnTap(
-      dismissOnCapturedTaps: true,
+      dismissOnCapturedTaps: Platform.isMacOS || Platform.isWindows ? false : true,
       child: Listener(
         onPointerDown: (PointerDownEvent event) {
           controller.onUserInteraction();
@@ -210,12 +201,18 @@ class MyHomePage extends GetView<MyHomeLogic> {
                       autofocus: false,
                       controller: controller.textEditingController,
                       onChanged: (value) {},
+                      //表示基础类型是数字键盘，主要用于输入数字, decimal设置为 true 时，允许输入小数
                       keyboardType: const TextInputType.numberWithOptions(decimal: true),
                       // ignorePointers: false,//是否可以用虚拟键盘
                       //过滤（仅只能输入数字，不能小数点.）
                       // inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                       //限制只能输入数字
                       textInputAction: TextInputAction.done,
+                      // 通过输入格式化器限制只能输入数字和小数点
+                      inputFormatters: [
+                        // 允许 0-9 数字和小数点（.）
+                        FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),
+                      ],
                       decoration: const InputDecoration(
                         icon: Icon(CupertinoIcons.ant_fill),
                         contentPadding: EdgeInsets.only(bottom: 7),

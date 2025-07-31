@@ -1,7 +1,9 @@
 # flutter_ycd
 
 一个新 Flutter 项目.
-
+两个账号  
+amdin1/123
+admin2/123
 ## Getting Started
 
 This project is a starting point for a Flutter application.

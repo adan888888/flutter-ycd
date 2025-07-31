@@ -2,7 +2,7 @@ name: ycd
 description: "Flutter."
 publish_to: 'none'
 version: 1.0.0+1
-#运行环境 sdk 3.19.6
+#运行环境 sdk 3.29.2
 environment:
   sdk: '>=3.3.0 <4.0.0'
 
