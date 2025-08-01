@@ -59,4 +59,7 @@ class Api {
 
   //折线图数据
   static String getLinechartData = "/ycd/linechartData";
+
+  //清除数据（消数列数据全部清除）
+  static String cleanDataD = "/ycd/cleanDataD";
 }

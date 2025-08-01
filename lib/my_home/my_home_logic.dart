@@ -654,7 +654,7 @@ class MyHomeLogic extends GetxController {
           }
         });
         break;
-      case 1: //清除数据
+      case 1: //清除数据（消数列数据全部清除）
         // Loading.show();
         // _instance?.then((db) {
         //   for (int i = 0; i < state.table2List.length; i++) {
@@ -669,6 +669,15 @@ class MyHomeLogic extends GetxController {
           state.table2ListX.refresh();
           count++;
         }
+        BXPost<dynamic>(
+          Api.cleanDataD,
+          params: {"uid": GetStore.getInstance().userModel.userId},
+          success: (isSuccess, code, message, results) {
+            if (isSuccess && results.isNotEmpty) {
+              print("起启一共多少${results.first}条数据");
+            }
+          },
+        );
         break;
       case 2: //修改本金
         Loading.show();
