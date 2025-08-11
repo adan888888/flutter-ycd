@@ -242,23 +242,27 @@ class MyHomePage extends GetView<MyHomeLogic> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             //序号
+            // GestureDetector(
+            //   onTap: () => controller.juBuPingHeng(controller.state.table2ListX[index].id!),
+            //   child: Container(
+            //     color: controller.state.bgColor,
+            //     width: 20,
+            //     alignment: Alignment.centerRight,
+            //     // child: Text("${controller.state.table2ListX[index].id}"),
+            //     child: Text("${int.parse(controller.state.totalValue[1])-index}"),
+            //   ),
+            // ),
+            //输赢
             GestureDetector(
               onTap: () => controller.juBuPingHeng(controller.state.table2ListX[index].id!),
               child: Container(
-                color: controller.state.bgColor,
-                width: 45,
+                width: 80,
                 alignment: Alignment.centerRight,
-                child: Text("${controller.state.table2ListX[index].id}"),
-              ),
-            ),
-            //输赢
-            Container(
-              width: 80,
-              alignment: Alignment.centerRight,
-              child: Text(
-                controller.state.table2ListX[index].colmunShuyingzhi.toString(),
-                style: TextStyle(
-                  color: controller.state.table2ListX[index].colmunShuyingzhi.toString().startsWith('-') ? Colors.green : Colors.redAccent,
+                child: Text(
+                  controller.state.table2ListX[index].colmunShuyingzhi.toString(),
+                  style: TextStyle(
+                    color: controller.state.table2ListX[index].colmunShuyingzhi.toString().startsWith('-') ? Colors.green : Colors.redAccent,
+                  ),
                 ),
               ),
             ),

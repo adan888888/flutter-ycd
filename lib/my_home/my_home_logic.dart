@@ -181,7 +181,7 @@ class MyHomeLogic extends GetxController {
     state.js2 = state.js2 + 1;
     state.totalValue[28] = "${state.js1}/${state.js2}";
     // if (next(1, 90485) > 44625 - MyState.OFFSET8431) {
-    if (next(1, 100) <= 70) { //1到100（包含1，100）//<= 70 是 70%庄 30%闲
+    if (next(1, 100) <= 50) { //1到100（包含1，100）//<= 70 是 70%庄 30%闲
       state.totalValue[30] = '庄';
       state.randomValue = '庄';
     } else {
@@ -747,17 +747,17 @@ class MyHomeLogic extends GetxController {
 
         break;
       case 7:
-        Get.defaultDialog(
-          barrierDismissible: false,
-          title: '警告',
-          content: const Text('是否重启'),
-          onCancel: () {},
-          onConfirm: () {
+        // Get.defaultDialog(
+        //   barrierDismissible: false,
+        //   title: '警告',
+        //   content: const Text('是否重启'),
+        //   onCancel: () {},
+        //   onConfirm: () {
             Loading.show();
             reStart();
             Get.back();
-          },
-        );
+          // },
+        // );
         break;
       case 8: //修改期望值
         if (s.isEmpty) {

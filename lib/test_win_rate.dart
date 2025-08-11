@@ -85,7 +85,7 @@ class _SimulationScreenState extends State<SimulationScreen> {
 
     while (totalBets < betsPerSimulation) {
       // 50/50 随机下注（0.5） 60/40(0.6)
-      bool betOnBanker = random.nextDouble() < 0.6;
+      bool betOnBanker = random.nextDouble() < 0.5;
 
       // 模拟开牌结果
       bool bankerWinsThisRound = random.nextDouble() < bankerWinProbability;
