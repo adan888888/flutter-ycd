@@ -256,7 +256,7 @@ class MyHomePage extends GetView<MyHomeLogic> {
             GestureDetector(
               onTap: () => controller.juBuPingHeng(controller.state.table2ListX[index].id!),
               child: Container(
-                width: 80,
+                width: 70,
                 alignment: Alignment.centerRight,
                 child: Text(
                   controller.state.table2ListX[index].colmunShuyingzhi.toString(),
@@ -268,7 +268,7 @@ class MyHomePage extends GetView<MyHomeLogic> {
             ),
             //消数
             SizedBox(
-                width: 110,
+                width: 100,
                 child: Row(mainAxisAlignment: MainAxisAlignment.end, children: [
                   Text(
                     "${controller.state.table2ListX[index].colmunShuyingzhiD}",
