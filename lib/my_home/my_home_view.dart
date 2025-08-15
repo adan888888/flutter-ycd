@@ -131,7 +131,7 @@ class MyHomePage extends GetView<MyHomeLogic> {
                                                   wordSpacing: 0,
                                                   fontSize: fontSize(i, index),
                                                   fontWeight: FontWeight.w300,
-                                                  color: ((i * 4 + index) == 26 || (i * 4 + index) == 31)
+                                                  color: ((i * 4 + index) == 26 || (i * 4 + index) == 27)
                                                       ? Colors.green
                                                       : ((i * 4 + index) == 24 || (i * 4 + index) == 22)
                                                           ? Colors.red

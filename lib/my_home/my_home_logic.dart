@@ -4,7 +4,6 @@ import 'dart:io';
 import 'dart:math';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:easy_refresh/easy_refresh.dart';
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screen_lock/flutter_screen_lock.dart';
 import 'package:get/get.dart';
@@ -89,7 +88,6 @@ class MyHomeLogic extends GetxController {
             state.table2ListX.clear();
             state.table2ListX.value = results.reversed.toList();
             state.listMap.value = state.table2ListX.reversed.toList().map((e) => e.colmunShuyingzhi!.startsWith("-") ? "P" : "B").toList();
-            print("起启一共多少${state.table2ListX.length}条数据");
           }
         },
         onModel: (m) => Table2Model.fromJson(m));
@@ -476,7 +474,7 @@ class MyHomeLogic extends GetxController {
       case 1:
         return (lastJinE + playMoney);
       case 2:
-        return (lastJinE) + playMoney * double.parse(state.totalValue[23] == "23" || state.totalValue[23] == "" ? "0.95" : state.totalValue[23]);
+        return (lastJinE) + playMoney * double.parse(state.totalValue[31] == "31" || state.totalValue[31] == "" ? "0.95" : state.totalValue[31]);
       case 3:
       case 4:
         return (lastJinE) - playMoney;
@@ -489,7 +487,7 @@ class MyHomeLogic extends GetxController {
         return state.bettingMoney;
       case 2: //庄赢
         double parse = double.parse(state.bettingMoney);
-        var xx = parse * double.parse(state.totalValue[23] == "23" || state.totalValue[23] == "" ? "0.95" : state.totalValue[23]);
+        var xx = parse * double.parse(state.totalValue[31] == "31" || state.totalValue[31] == "" ? "0.95" : state.totalValue[31]);
         String syz /*庄赢值*/ = xx.toStringAsFixed(2); //四舍五入保留两位小数
         return syz;
       case 3:
@@ -674,7 +672,7 @@ class MyHomeLogic extends GetxController {
           params: {"uid": GetStore.getInstance().userModel.userId},
           success: (isSuccess, code, message, results) {
             if (isSuccess && results.isNotEmpty) {
-              print("起启一共多少${results.first}条数据");
+              print("清除一共多少${results.first}条数据");
             }
           },
         );
