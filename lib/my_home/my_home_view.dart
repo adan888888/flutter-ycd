@@ -121,7 +121,7 @@ class MyHomePage extends GetView<MyHomeLogic> {
                                   4,
                                   (index) => GestureDetector(
                                         onTap: () {
-                                          if (index == 2) controller.juBuPingHeng(-1);
+                                          if (index == 2) controller.juBuPingHeng(-1, v: controller.state.totalValue[30]);
                                         },
                                         child: Center(
                                           child: Text(
@@ -254,7 +254,7 @@ class MyHomePage extends GetView<MyHomeLogic> {
             // ),
             //输赢
             GestureDetector(
-              onTap: () => controller.juBuPingHeng(controller.state.table2ListX[index].id!),
+              onTap: () => controller.juBuPingHeng(controller.state.table2ListX[index].id!,v:controller.state.totalValue[30]),
               child: Container(
                 width: 70,
                 alignment: Alignment.centerRight,

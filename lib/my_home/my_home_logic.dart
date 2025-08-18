@@ -950,13 +950,14 @@ class MyHomeLogic extends GetxController {
     return deviceId;
   }
 
-  juBuPingHeng(int index) {
+  juBuPingHeng(int index, { v}) {
     if (index == -1) {
       state.currentTempIndex = 0;
     } else {
       state.currentTempIndex = index;
     }
     if (state.table2ListX.isNotEmpty) _getStatisticalAreasData(index);
+    Future.delayed(const Duration(milliseconds: 1000), () => state.totalValue[30]=v.toString());
   }
 
   //下拉刷新
