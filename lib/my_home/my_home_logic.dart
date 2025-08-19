@@ -523,13 +523,18 @@ class MyHomeLogic extends GetxController {
     //     where: "table2Id =?", //通过id查找需要更新的数据
     //     whereArgs: [index])).then((value) => _queryAllTable2());
     BXLoading.show();
-    BXPost(Api.xiaoshu,
-        isShowLoading: false,
-        params: state.table2ListX[index].toJson()
-          ..update("colmun_shuyingzhi_d", (value) => "")
-          ..update("table2Id", (value) => ((value as int) + 1)), success: (isSuccess, code, message, results) {
-      if (isSuccess) queryAll();
-    });
+    BXPost(
+      Api.xiaoshu,
+      isShowLoading: false,
+      params: state.table2ListX[index].toJson()..update("colmun_shuyingzhi_d", (value) => ""),
+      success: (isSuccess, code, message, results) {
+        if (isSuccess) {
+          BXLoading.dismiss();
+          state.table2ListX[index].colmunShuyingzhiD = "";
+          state.table2ListX.refresh();
+        };
+      },
+    );
   }
 
   void reStart() {

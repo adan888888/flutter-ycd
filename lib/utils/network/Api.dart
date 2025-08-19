@@ -15,13 +15,10 @@ class Api {
   //获取表一数据
   static String getTable1 = "/ycd/table1";
 
-  //获取表一数据
-  static String getTable2 = "/ycd/table2";
-
   //插入表一数据
   static String inserttable1 = "/ycd/inserttable1";
 
-  //插入表一数据
+  //插入表二数据
   static String inserttable2 = "/ycd/inserttable2";
 
   //删除最后一行
