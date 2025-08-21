@@ -82,9 +82,6 @@ class MyHomeLogic extends GetxController {
         params: {"last_id": -1, "uid": GetStore.getInstance().userModel.userId, "c": 66}, //"c"每页多少个数据
         success: (isSuccess, code, message, results) {
           if (isSuccess && results.isNotEmpty) {
-            // var temp = <Table2Model>[];
-            // temp.addAll(results);
-            // temp.addAll(state.table2ListX.reversed.toList());
             state.table2ListX.clear();
             state.table2ListX.value = results.reversed.toList();
             state.listMap.value = state.table2ListX.reversed.toList().map((e) => e.colmunShuyingzhi!.startsWith("-") ? "P" : "B").toList();
@@ -192,24 +189,6 @@ class MyHomeLogic extends GetxController {
 
   int next(int min, int max) => min + Random().nextInt(max - min + 1);
 
-  queryAll() {
-    // _instance?.then((db) {
-    //   db.query(DbHelper.table1).then((value) {
-    //     state.table1List.clear();
-    //     for (var data in value) {
-    //       state.table1List.add(Table1Model.fromJson(data));
-    //     }
-    //     state.totalValue[0] = '${state.table1List.last.columnBenjin}'; //本金
-    //     state.totalValue[19] = '${state.table1List.last.columnMean}'; //期望值
-    //     state.chartData.value = List.generate(50, (index) => SalesData(index, double.parse(state.table1List.last.columnBenjin.toString()))).toList();
-    //     _queryAllTable2();
-    //   });
-    // });
-
-    ///改变成查询远程数据库
-    // _queryMysqlTable1();
-  }
-
   _queryMysqlTable1() {
     BXGet<Table1Model>(Api.getTable1,
         isShowLoading: false,
@@ -271,16 +250,11 @@ class MyHomeLogic extends GetxController {
           )
         : Table1Model(columnBenjin: "10000", columnYongJin: "0.95", columnMean: "0.08", columnRestartIndex: "0", columnLiushuiIndex: "10");
 
-    // _instance
-    //     ?.then((value) => value.insert(tableName == 'table1' ? DbHelper.table1 : DbHelper.table2,
-    //         tableName == 'table1' ? (table as Table1Model).toJson() : (table as Table2Model).toJson()))
-    //     .then((value) => queryAll());
-
     ///改变成插入远程数据库
     if (tableName == 'table1') {
       BXPut<Table1Model>(Api.inserttable1,
           params: (table as Table1Model).toJson()..addAll({"UserID": int.parse(GetStore.getInstance().userModel.userId)}),
-          success: (isSuccess, code, message, results) => queryAll(),
+          success: (isSuccess, code, message, results) =>BXLoading.showToast("操作表1") ,
           failed: (p0, p1) => state.isCanPress = true,
           onModel: (m) => Table1Model.fromJson(m));
     } else {
@@ -338,136 +312,6 @@ class MyHomeLogic extends GetxController {
     );
   }
 
-  // void statisticalArea() {
-  //   //图表区
-  //   getCharts();
-  //
-  //   //统计区，计算
-  //   state.totalValue[1] = '${state.table2List.length}'; //一共打多少手
-  //
-  //   //总体
-  //   var zt_y = 0;
-  //   var zt_s = 0;
-  //   var zt_syz = 0.0;
-  //   var runningWater = 0.0;
-  //   var countLianShengFu = 1;
-  //   var zCount = 0;
-  //   var it = state.table2List;
-  //   var benUse1 = state.table2List.isNotEmpty ? int.parse(state.table2List.first.columnXiazhujine.toString()) : 0;
-  //   for (var index = 0; index < state.table2List.length; index++) {
-  //     var element = state.table2List[index];
-  //     zt_syz += double.parse(element.colmunShuyingzhi.toString());
-  //     if (zt_syz < 0 && zt_syz < benUse1) benUse1 = zt_syz.toInt();
-  //
-  //     runningWater += double.parse(element.columnXiazhujine.toString());
-  //     if (element.colmunRemark!.startsWith("-1")) {
-  //       zt_s--;
-  //     } else {
-  //       zt_y++;
-  //     }
-  //     //连胜负
-  //     if (it.length > 1 && (index - 1) >= 0) {
-  //       var shuyingzhi = it[(index - 1)].colmunShuyingzhi; //上一个
-  //       var shuyingzhi1 = element.colmunShuyingzhi;
-  //       if ((double.parse(shuyingzhi1!) > 0 && double.parse(shuyingzhi!) > 0) || (double.parse(shuyingzhi1) < 0 && double.parse(shuyingzhi!) < 0)) {
-  //         countLianShengFu++;
-  //       } else {
-  //         countLianShengFu = 1;
-  //       }
-  //     }
-  //     //庄个数
-  //     if (element.colmunZx == '庄') zCount++;
-  //   }
-  //   state.totalValue[5] = '$zt_y'; //胜
-  //   state.totalValue[9] = '${(zt_y / double.parse(state.totalValue[1]) * 100).toStringAsFixed(2)}%'; //胜率
-  //   state.totalValue[13] = '${zt_y.abs() - zt_s.abs()}'; //净胜~须多少手回到50%
-  //   state.totalValue[17] = zt_syz.toStringAsFixed(3); //一共输赢多少钱
-  //   state.totalValue[21] =
-  //       state.totalValue[13] == '0' ? '-' : (zt_syz / double.parse(removeChineseCharacters(state.totalValue[13])).abs()).toStringAsFixed(2); //平均赢
-  //   var d = (double.parse(state.totalValue[1]) + 1) * double.parse(state.totalValue[19]); //期望一共的值
-  //   var parse = int.parse(state.totalValue[13]).abs();
-  //   state.totalValue[25] = state.totalValue[13] == '0'
-  //       ? '-'
-  //       : zt_syz < 0
-  //           ? '须${((zt_syz.abs() + d) / parse).toStringAsFixed(1)}x$parse'
-  //           : '可负${((zt_syz.abs() - d) / parse).toStringAsFixed(1)}x$parse'; //还需，可负
-  //   state.totalValue[29] = '${state.table1List.last.columnRestartIndex}'; //重启位置
-  //   state.totalValue[8] = '${state.table1List.last.columnLiushuiIndex}'; //流水索引
-  //   state.totalValue[12] = '${benUse1.abs()}'; //本金使用
-  //   state.totalValue[16] = '';
-  //
-  //   state.totalValue[4] = (double.parse(state.totalValue[0]) + zt_syz).toStringAsFixed(2); //当前金额
-  //
-  //   //局部
-  //   int index = state.currentTempIndex != 0
-  //       ? state.currentTempIndex
-  //       : state.table1List.isEmpty
-  //           ? 0
-  //           : int.parse(state.table1List.last.columnRestartIndex.toString()); //重启位置
-  //   state.totalValue[2] = '${state.table2List.length - index}'; //一共打多少手
-  //   var jb_y = 0;
-  //   var jb_s = 0;
-  //   var jb_syz = 0.0;
-  //   var jb_count = 0;
-  //   for (var i = 0; i < state.table2List.length; i++) {
-  //     if (i >= index) {
-  //       jb_count++;
-  //       jb_syz += double.parse(state.table2List[i].colmunShuyingzhi.toString());
-  //       if (state.table2List[i].colmunRemark!.startsWith("-1")) {
-  //         jb_s--;
-  //       } else {
-  //         jb_y++;
-  //       }
-  //     }
-  //   }
-  //   state.totalValue[6] = '$jb_y'; //净胜
-  //   state.totalValue[10] = jb_count == 0 ? "" : '${(jb_y / jb_count * 100).toStringAsFixed(2)}%'; //胜率
-  //   state.totalValue[14] = '${jb_y.abs() - jb_s.abs()}'; //净胜~须多少手回到50%
-  //   state.totalValue[18] = jb_syz.toStringAsFixed(3); //一共输赢多少钱
-  //   state.totalValue[22] =
-  //       state.totalValue[14] == '0' ? "-" : (jb_syz / double.parse(removeChineseCharacters(state.totalValue[14])).abs()).toStringAsFixed(3); //平均赢
-  //   var dJ = (jb_count + 1) * double.parse(state.totalValue[19]); //期望一共的值
-  //   parse = int.parse(state.totalValue[14]).abs();
-  //   state.totalValue[26] = state.totalValue[14] == '0'
-  //       ? "-"
-  //       : jb_syz < 0
-  //           ? parse == 0
-  //               ? ''
-  //               : '须${((jb_syz.abs() + dJ) / parse).toStringAsFixed(1)}x$parse'
-  //           : parse == 0
-  //               ? ''
-  //               : '可负${((jb_syz.abs() - dJ) / parse).toStringAsFixed(1)}x$parse';
-  //
-  //   ///第四列
-  //   state.totalValue[3] = '流水${runningWater.toStringAsFixed(1)}';
-  //   state.totalValue[7] = '均利${(zt_syz / state.table2List.length).toStringAsFixed(2)}';
-  //   state.totalValue[11] = '连胜负$countLianShengFu';
-  //   state.totalValue[15] = '$zCount/${int.parse(state.totalValue[1])}';
-  //   state.totalValue[23] = '${state.table1List.last.columnYongJin}'; //赔率
-  //   state.totalValue[27] = state.totalValue[14] == '0'
-  //       ? ""
-  //       : state.totalValue[21] == '-'
-  //           ? ""
-  //           : (double.parse(removeChineseCharacters(state.totalValue[25].split("x")[0])) / double.parse(state.totalValue[23])).toStringAsFixed(2); //打庄需要
-  //   state.totalValue[31] = state.totalValue[14] == '0'
-  //       ? ""
-  //       : state.totalValue[22] == '-'
-  //           ? ""
-  //           : (double.parse(removeChineseCharacters(state.totalValue[26].split("x")[0])) / double.parse(state.totalValue[23])).toStringAsFixed(2);
-  //
-  //   //预测平均值
-  //   if (textEditingController.text.isNotEmpty) {
-  //     ///总体
-  //     state.totalValue[20] = pVal1();
-  //
-  //     ///局部
-  //     state.totalValue[24] = pVal2();
-  //   }
-  //   state.isCanPress = true;
-  //   Loading.dismiss();
-  // }
-
-  //得到当的钱数
   getCurrentJin(int i, double playMoney) {
     var lastJinE = state.table2ListX.isEmpty ? 5000 : double.parse(state.table2ListX.first.columnCurrentJin.toString());
     switch (i) {
@@ -615,7 +459,8 @@ class MyHomeLogic extends GetxController {
       if (isSuccess) {
         BXLoading.showToast(message);
         print("赔率值是=${(results[0]["odds"])}");
-        queryAll();
+        state.totalValue[31] = (results[0]["odds"]).toString();
+        _getStatisticalAreasData(-2);//和recordButton里面传一样的参数，确保不会破坏局部平衡
       }
     });
   }
@@ -807,22 +652,11 @@ class MyHomeLogic extends GetxController {
   }
 
   void updateQiWangZhi(String qiwangzhi) {
-    // _instance?.then((db) => db.query(DbHelper.table1).then((value) => _instance?.then((db) => db
-    //     .insert(
-    //         DbHelper.table1,
-    //         Table1Model(
-    //           columnBenjin: value.last['column_benjin'].toString(),
-    //           columnYongJin: value.last['column_yongJin'].toString(),
-    //           columnMean: qiwangzhi,
-    //           columnRestartIndex: value.last['column_restart_index'].toString(),
-    //           columnLiushuiIndex: value.last['column_liushui_index'].toString(),
-    //         ).toJson())
-    //     .then((value) => queryAll()))));
     BXPost/*<Map<String,dynamic>>*/(Api.updateQiWangValue, params: {"mean": qiwangzhi}, success: (isSuccess, int code, String message, List<dynamic> results) {
       if (isSuccess) {
         BXLoading.showToast(message);
         print("期望值是=${(results[0]["mean"])}");
-        queryAll();
+        state.totalValue[19] = (results[0]["mean"]).toString();
       }
     });
   }
@@ -866,7 +700,6 @@ class MyHomeLogic extends GetxController {
         _instance?.then((db) => db.insert(DbHelper.table2, element));
       }
       print('=====写入数据库完成====');
-      queryAll();
     });
   }
 
@@ -968,7 +801,7 @@ class MyHomeLogic extends GetxController {
   //下拉刷新
   void onRefresh() {
     state.isRefreshing.value = true;
-    queryAll();
+    _queryMysqlTable1();
   }
 
   //加载更多
