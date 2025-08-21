@@ -32,7 +32,7 @@ class MyState {
 
   var isRefreshing = false.obs;
   var listMap = <String>[].obs; //路子图数据
-  var isMap = true.obs;
+  var isMap = false.obs;
 }
 
 class SalesData {
