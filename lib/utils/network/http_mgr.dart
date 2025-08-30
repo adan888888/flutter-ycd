@@ -1,12 +1,10 @@
 import 'dart:io';
-
 import 'package:package_info_plus/package_info_plus.dart';
-
 import '../../model/base_model.dart';
 import '../../model/user_model.dart';
 import '../local_util.dart';
 import 'get_store.dart';
-import 'network.dart';
+import 'http_service.dart';
 
 ///获取请求头
 Future<Map<String, String>?> getAppHeader() async {
@@ -50,16 +48,9 @@ Future<Map<String, String>?> getAppHeader() async {
 }
 
 ///登录失效处理
-
-enum HttpMethod {
-  get,
-  put,
-  delete,
-  post,
-}
-
 void loginout() {}
 
+// 使用新的Dio服务
 BXGet<T>(String api,
     {Map<String, dynamic>? params,
     required Function(bool isSuccess, int code, String message, List<T> results) success,
@@ -68,8 +59,15 @@ BXGet<T>(String api,
     bool isShowLoading = true,
     bool canCache = true,
     bool showError = true}) {
-  Network.getInstance()
-      .get<T>(api, success: success, failed: failed, isShowLoading: isShowLoading, showError: showError, params: params, onModel: onModel, canCache: canCache);
+  HttpService.getInstance().get<T>(
+    api,
+    params: params,
+    success: success,
+    failed: failed,
+    onModel: onModel,
+    isShowLoading: isShowLoading,
+    showError: showError,
+  );
 }
 
 BXPost<T>(String api,
@@ -80,8 +78,15 @@ BXPost<T>(String api,
     bool isShowLoading = true,
     bool canCache = true,
     bool showError = true}) {
-  Network.getInstance()
-      .post<T>(api, success: success, failed: failed, isShowLoading: isShowLoading, showError: showError, params: params, onModel: onModel, canCache: canCache);
+  HttpService.getInstance().post<T>(
+    api,
+    params: params,
+    success: success,
+    failed: failed,
+    onModel: onModel,
+    isShowLoading: isShowLoading,
+    showError: showError,
+  );
 }
 
 BXDelete<T>(String api,
@@ -92,14 +97,15 @@ BXDelete<T>(String api,
     bool isShowLoading = true,
     bool canCache = true,
     bool showError = true}) {
-  Network.getInstance().delete<T>(api,
-      success: success,
-      failed: failed,
-      isShowLoading: isShowLoading,
-      showError: showError,
-      params: params,
-      onModel: onModel,
-      canCache: canCache);
+  HttpService.getInstance().delete<T>(
+    api,
+    params: params,
+    success: success,
+    failed: failed,
+    onModel: onModel,
+    isShowLoading: isShowLoading,
+    showError: showError,
+  );
 }
 
 BXPut<T>(String api,
@@ -110,12 +116,13 @@ BXPut<T>(String api,
     bool isShowLoading = true,
     bool canCache = true,
     bool showError = true}) {
-  Network.getInstance().put<T>(api,
-      success: success,
-      failed: failed,
-      isShowLoading: isShowLoading,
-      showError: showError,
-      params: params,
-      onModel: onModel,
-      canCache: canCache);
+  HttpService.getInstance().put<T>(
+    api,
+    params: params,
+    success: success,
+    failed: failed,
+    onModel: onModel,
+    isShowLoading: isShowLoading,
+    showError: showError,
+  );
 }
