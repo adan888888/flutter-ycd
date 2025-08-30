@@ -176,14 +176,15 @@ class MyHomeLogic extends GetxController {
     state.js2 = state.js2 + 1;
     state.totalValue[28] = "${state.js1}/${state.js2}";
     // if (next(1, 90485) > 44625 - MyState.OFFSET8431) {
-    if (next(1, 100) <= 50) { //1到100（包含1，100）//<= 70 是 70%庄 30%闲
+    if (next(1, 100) <= 50) {
+      //1到100（包含1，100）//<= 70 是 70%庄 30%闲
       state.totalValue[30] = '庄';
       state.randomValue = '庄';
     } else {
       state.totalValue[30] = '闲';
       state.randomValue = '闲';
     }
-    Get.dialog(NewWidget(state.randomValue), barrierDismissible: false, barrierColor: Colors.black.withOpacity(0.18));
+    Get.dialog(NewWidget(state.randomValue), barrierDismissible: false, barrierColor: Colors.black.withValues(alpha: 0.18));
     state.isCanPress = true;
   }
 
@@ -216,20 +217,20 @@ class MyHomeLogic extends GetxController {
     // });
 
     if (state.randomValue.isEmpty) {
-      Get.snackbar("温馨提示", '请摇塞子', duration: const Duration(seconds: 2), snackPosition: SnackPosition.TOP, backgroundColor: Colors.white.withOpacity(0.7));
+      Get.snackbar("温馨提示", '请摇塞子', duration: const Duration(seconds: 2), snackPosition: SnackPosition.TOP, backgroundColor: Colors.white.withValues(alpha: 0.7));
       return;
     }
 
     if (state.bettingMoney.isEmpty) {
-      Get.snackbar("温馨提示", '请输入下注金额', duration: const Duration(seconds: 2), snackPosition: SnackPosition.TOP, backgroundColor: Colors.white.withOpacity(0.7));
+      Get.snackbar("温馨提示", '请输入下注金额', duration: const Duration(seconds: 2), snackPosition: SnackPosition.TOP, backgroundColor: Colors.white.withValues(alpha: 0.7));
       return;
     }
     if (!state.bettingMoney.isNum) {
-      Get.snackbar("温馨提示", '请输入数字', duration: const Duration(seconds: 2), snackPosition: SnackPosition.TOP, backgroundColor: Colors.white.withOpacity(0.7));
+      Get.snackbar("温馨提示", '请输入数字', duration: const Duration(seconds: 2), snackPosition: SnackPosition.TOP, backgroundColor: Colors.white.withValues(alpha: 0.7));
       return;
     }
     if (!state.isCanPress) {
-      Get.snackbar("温馨提示", '速度太快', duration: const Duration(seconds: 2), snackPosition: SnackPosition.BOTTOM, backgroundColor: Colors.white.withOpacity(0.7));
+      Get.snackbar("温馨提示", '速度太快', duration: const Duration(seconds: 2), snackPosition: SnackPosition.BOTTOM, backgroundColor: Colors.white.withValues(alpha: 0.7));
       return;
     }
     Loading.show();
@@ -254,7 +255,7 @@ class MyHomeLogic extends GetxController {
     if (tableName == 'table1') {
       BXPut<Table1Model>(Api.inserttable1,
           params: (table as Table1Model).toJson()..addAll({"UserID": int.parse(GetStore.getInstance().userModel.userId)}),
-          success: (isSuccess, code, message, results) =>BXLoading.showToast("操作表1") ,
+          success: (isSuccess, code, message, results) => BXLoading.showToast("操作表1"),
           failed: (p0, p1) => state.isCanPress = true,
           onModel: (m) => Table1Model.fromJson(m));
     } else {
@@ -376,7 +377,8 @@ class MyHomeLogic extends GetxController {
           BXLoading.dismiss();
           state.table2ListX[index].colmunShuyingzhiD = "";
           state.table2ListX.refresh();
-        };
+        }
+        ;
       },
     );
   }
@@ -460,7 +462,7 @@ class MyHomeLogic extends GetxController {
         BXLoading.showToast(message);
         print("赔率值是=${(results[0]["odds"])}");
         state.totalValue[31] = (results[0]["odds"]).toString();
-        _getStatisticalAreasData(-2);//和recordButton里面传一样的参数，确保不会破坏局部平衡
+        _getStatisticalAreasData(-2); //和recordButton里面传一样的参数，确保不会破坏局部平衡
       }
     });
   }
@@ -490,9 +492,7 @@ class MyHomeLogic extends GetxController {
         BXPost(Api.sortxiaoshu, success: (isSuccess, code, message, results) {
           if (isSuccess) {
             BXLoading.showToast(message);
-            var list = state.table2ListX
-                .map((element) => element.colmunShuyingzhiD.toString().isEmpty ? 0.0 : double.parse(element.colmunShuyingzhiD.toString()))
-                .toList()
+            var list = state.table2ListX.map((element) => element.colmunShuyingzhiD.toString().isEmpty ? 0.0 : double.parse(element.colmunShuyingzhiD.toString())).toList()
               ..removeWhere((element) => element == 0.0)
               ..sort();
             for (int i = 1; i <= list.length; i++) {
@@ -601,10 +601,10 @@ class MyHomeLogic extends GetxController {
         //   content: const Text('是否重启'),
         //   onCancel: () {},
         //   onConfirm: () {
-            Loading.show();
-            reStart();
-            Get.back();
-          // },
+        Loading.show();
+        reStart();
+        Get.back();
+        // },
         // );
         break;
       case 8: //修改期望值
@@ -646,8 +646,8 @@ class MyHomeLogic extends GetxController {
     state.randomValue = '';
     List.generate(32, (index) => state.totalValue[index] = index.toString());
     _instance
-        ?.then((db) => db.insert(DbHelper.table1,
-            Table1Model(columnBenjin: "5000", columnYongJin: "0.95", columnMean: "0.08", columnRestartIndex: "0", columnLiushuiIndex: "0").toJson()))
+        ?.then((db) =>
+            db.insert(DbHelper.table1, Table1Model(columnBenjin: "5000", columnYongJin: "0.95", columnMean: "0.08", columnRestartIndex: "0", columnLiushuiIndex: "0").toJson()))
         .then((value) => Loading.dismiss());
   }
 
@@ -788,14 +788,14 @@ class MyHomeLogic extends GetxController {
     return deviceId;
   }
 
-  juBuPingHeng(int index, { v}) {
+  juBuPingHeng(int index, {v}) {
     if (index == -1) {
       state.currentTempIndex = 0;
     } else {
       state.currentTempIndex = index;
     }
     if (state.table2ListX.isNotEmpty) _getStatisticalAreasData(index);
-    Future.delayed(const Duration(milliseconds: 1000), () => state.totalValue[30]=v.toString());
+    Future.delayed(const Duration(milliseconds: 1000), () => state.totalValue[30] = v.toString());
   }
 
   //下拉刷新

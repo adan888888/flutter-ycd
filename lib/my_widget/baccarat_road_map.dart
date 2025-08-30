@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:get/get_connect/http/src/request/request.dart';
 
 class BaccaratRoadMap extends StatefulWidget {
   final List<String> results;

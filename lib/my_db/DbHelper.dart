@@ -2,7 +2,6 @@
 
 
 import 'package:sqflite/sqflite.dart';
-
 import 'Table1Model.dart';
 
 class DbHelper {

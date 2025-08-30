@@ -4,7 +4,6 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:lottie/lottie.dart';
-
 import 'color_util.dart';
 
 enum ToastType {
@@ -22,18 +21,16 @@ class BXLoading {
     EasyLoading.show(
       indicator: Container(
         decoration: BoxDecoration(
-          color: ColorUtil.color_0xff733547,
-          borderRadius: BorderRadius.circular(15.w)
-        ),
+            color: ColorUtil.color_0xff733547, borderRadius: BorderRadius.circular(15.w)),
         width: 90,
         height: 90,
         child: Center(
           child: Lottie.asset(
-          'assets/loading.json', // 确保 JSON 动画文件在正确路径
-          width: 60,
-          height: 60,
-          fit: BoxFit.cover,
-        ),
+            'assets/loading.json', // 确保 JSON 动画文件在正确路径
+            width: 60,
+            height: 60,
+            fit: BoxFit.cover,
+          ),
         ),
       ),
       maskType: EasyLoadingMaskType.clear,
@@ -46,7 +43,8 @@ class BXLoading {
     EasyLoading.dismiss();
   }
 
-  static showToast(String toast,{
+  static showToast(
+    String toast, {
     int? interval,
     ToastType toastType = ToastType.easyLoading,
   }) {
@@ -76,7 +74,7 @@ class BXLoading {
       toast,
       maxWidth: Get.width * 0.8,
       colorText: Colors.white,
-      backgroundColor: Colors.black.withOpacity(0.4),
+      backgroundColor: Colors.black.withValues(alpha: 0.4),
       duration: const Duration(
         seconds: 2,
       ),
@@ -97,7 +95,7 @@ class BXLoading {
       ..radius = 10.0
       ..indicatorColor = Colors.white
       ..textColor = Colors.black
-      ..maskColor = Colors.blue.withOpacity(0.5)
+      ..maskColor = Colors.blue.withValues(alpha: 0.5)
       ..userInteractions = true
       ..dismissOnTap = false
       ..maskColor = Colors.transparent
@@ -114,7 +112,7 @@ class BXLoading {
       ..radius = 12
       ..indicatorColor = Colors.white
       ..textColor = Colors.white
-      ..maskColor = Colors.blue.withOpacity(0.5)
+      ..maskColor = Colors.blue.withValues(alpha: 0.5)
       ..userInteractions = true
       ..dismissOnTap = false;
   }
@@ -147,13 +145,14 @@ class LoadingInWidget extends StatelessWidget {
     return Stack(
       children: [
         child,
-       if(showLoading!) Center(
-          child: LoadingAnimationWidget.flickr(
-            leftDotColor: const Color(0xFF1A1A3F),
-            rightDotColor: const Color(0xFFEA3799),
-            size: 30,
+        if (showLoading!)
+          Center(
+            child: LoadingAnimationWidget.flickr(
+              leftDotColor: const Color(0xFF1A1A3F),
+              rightDotColor: const Color(0xFFEA3799),
+              size: 30,
+            ),
           ),
-        ),
       ],
     );
   }

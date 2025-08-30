@@ -13,7 +13,7 @@ class MyState {
   var js1 = 0; //随机总数
   var js2 = 0;
   int currentTempIndex = 0;
-  var lineColor = Colors.black87.withOpacity(0.8);
+  var lineColor = Colors.black87.withValues(alpha: 0.8);
   var listViewColor = const Color(0xFFE9EEDB);
   var bgColor = const Color(0xFFE9EEDB);
   var chartBgColor = Colors.black; //图表背景

@@ -1,9 +1,4 @@
-
-
-
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-
 
 enum ColorType {
   rgb,
@@ -11,7 +6,6 @@ enum ColorType {
 }
 
 class ColorUtil {
-
   static const Color white = Colors.white;
   static const Color black = Colors.black;
   static const Color yellow = Colors.yellow;
@@ -44,8 +38,7 @@ class ColorUtil {
   //酒红色分割线
   static const Color wineLineColor = Color(0xff8f3f65);
   //次灰色背景
-  static const Color lightGrayColor = Color.fromRGBO(255, 255, 255,
-      0.04);
+  static const Color lightGrayColor = Color.fromRGBO(255, 255, 255, 0.04);
   //白色文字色
   static const Color whiteTextColor = Color(0xffffffff);
   //红色文字色
@@ -61,8 +54,7 @@ class ColorUtil {
   //首页setion灰
   static const Color sectionGrayColor = Color(0xff394142);
   //输入框的holder文字颜色
-  static const Color searchPlaceHolderColor = Color.fromRGBO(255, 255, 255,
-      0.4);
+  static const Color searchPlaceHolderColor = Color.fromRGBO(255, 255, 255, 0.4);
   //line灰色
   static const Color lineGrayColor = Color(0xffD4D4D4);
   //黄色字体
@@ -81,8 +73,7 @@ class ColorUtil {
   //弹框白色背景
   static const Color whiteGrayColor = Color(0xfff8f8f8);
   //弹框灰色背景 background: #99ACAE;
-  static const Color contentGrayColor = Color.fromRGBO(153, 172, 174,
-      0.12);
+  static const Color contentGrayColor = Color.fromRGBO(153, 172, 174, 0.12);
 
   static const Color text748082Color = Color(0xff748082);
 
@@ -95,6 +86,4 @@ class ColorUtil {
   static const Color color_0xff83002E = Color(0xff83002E);
   static const Color color_0xfff0285c = Color(0xfff0285c);
   static const Color color_0xff733547 = Color(0xff733547);
-
-
 }

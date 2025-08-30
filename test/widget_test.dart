@@ -1,8 +1,6 @@
 import 'dart:convert';
 import 'dart:math';
 
-import 'package:get/get.dart';
-
 //测试十三层缆
 void main() {
   const int simulations = 10000; // 运行 1 万次游戏

@@ -1,9 +1,4 @@
-import 'dart:convert';
-import 'dart:math';
-import 'dart:typed_data';
-
 import  'package:encrypt/encrypt.dart' as encrypt;
-import 'package:crypto/crypto.dart';
 
 void main() {
  /* //1.(字符串)将字符串转为key, 一定需要32个字符

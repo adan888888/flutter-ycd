@@ -1,7 +1,4 @@
-import 'dart:convert';
-
 import '../utils/types _of.dart';
-
 
 class ConfigModel {
   int tenantId = 0; // Default value set to 0
@@ -33,12 +30,11 @@ class ConfigModel {
       ..skinTemplate = BXGetString(json['skinTemplate'])
       ..langMain = BXGetString(json['langMain'])
       ..compliance = BXGetString(json['compliance']);
-
   }
 
   Map<String, dynamic> toJson() {
     return {
-      'domains':domains.toJson(),
+      'domains': domains.toJson(),
       'tenantId': tenantId,
       'tenantCode': tenantCode,
       'currencySymbol': currencySymbol,
@@ -93,18 +89,15 @@ class SwitchConfig {
       'isSubTable': isSubTable,
     };
   }
-
 }
 
 class Domains {
   String activity = ""; // Default value set to false
 
-
   Domains();
 
   factory Domains.fromJson(Map<String, dynamic> json) {
-    return Domains()
-      ..activity = "https://${BXGetString(json['activity'])}";
+    return Domains()..activity = "https://${BXGetString(json['activity'])}";
   }
 
   Map<String, dynamic> toJson() {

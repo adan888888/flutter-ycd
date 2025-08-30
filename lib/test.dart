@@ -1,6 +1,4 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-
 import 'my_widget/baccarat_road_map.dart';
 
 void main() {

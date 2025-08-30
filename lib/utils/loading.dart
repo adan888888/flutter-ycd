@@ -66,7 +66,7 @@ class Loading {
       toast,
       maxWidth: Get.width * 0.8,
       colorText: Colors.white,
-      backgroundColor: Colors.black.withOpacity(0.4),
+      backgroundColor: Colors.black.withValues(alpha: 0.4),
       duration: const Duration(
         seconds: 2,
       ),
@@ -87,7 +87,7 @@ class Loading {
       ..radius = 10.0
       ..indicatorColor = Colors.white
       ..textColor = Colors.black
-      ..maskColor = Colors.blue.withOpacity(0.5)
+      ..maskColor = Colors.blue.withValues(alpha: 0.5)
       ..userInteractions = true
       ..dismissOnTap = false
       ..maskColor = Colors.transparent
@@ -104,7 +104,7 @@ class Loading {
       ..radius = 10.0
       ..indicatorColor = Colors.white
       ..textColor = Colors.white
-      ..maskColor = Colors.blue.withOpacity(0.5)
+      ..maskColor = Colors.blue.withValues(alpha: 0.5)
       ..userInteractions = true
       ..dismissOnTap = false;
   }
@@ -137,13 +137,14 @@ class LoadingInWidget extends StatelessWidget {
     return Stack(
       children: [
         child,
-       if(showLoading!) Center(
-          child: LoadingAnimationWidget.flickr(
-            leftDotColor: const Color(0xFF1A1A3F),
-            rightDotColor: const Color(0xFFEA3799),
-            size: 30,
+        if (showLoading!)
+          Center(
+            child: LoadingAnimationWidget.flickr(
+              leftDotColor: const Color(0xFF1A1A3F),
+              rightDotColor: const Color(0xFFEA3799),
+              size: 30,
+            ),
           ),
-        ),
       ],
     );
   }

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-
 import '../../main.dart';
 import '../../model/user_model.dart';
 import '../../utils/network/Api.dart';

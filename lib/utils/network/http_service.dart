@@ -1,10 +1,6 @@
-import 'dart:convert';
 import 'dart:developer';
-
 import 'package:dio/dio.dart' as dio;
-import 'package:get/get.dart';
 import 'package:flutter/foundation.dart';
-
 import '../../model/base_model.dart';
 import '../bx_loading.dart';
 import 'dio_manager.dart';

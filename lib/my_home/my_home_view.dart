@@ -4,9 +4,9 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
+import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
-import 'package:flutter/foundation.dart';
 import 'package:ycd/my_widget/baccarat_road_map.dart';
 import 'package:ycd/utils/network/get_store.dart';
 import 'my_home_logic.dart';
@@ -306,15 +306,15 @@ class MyHomePage extends GetView<MyHomeLogic> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  divier(Colors.grey.withOpacity(0.5), 15),
+                  divier(Colors.grey.withValues(alpha: 0.5), 15),
                   const SizedBox(width: 2),
                   const Text("1", style: TextStyle(color: Colors.green)),
                   const SizedBox(width: 8),
-                  divier(Colors.grey.withOpacity(0.5), 15),
+                  divier(Colors.grey.withValues(alpha: 0.5), 15),
                   const SizedBox(width: 8),
                   const Text("1", style: TextStyle(color: Colors.green)),
                   const SizedBox(width: 2),
-                  divier(Colors.grey.withOpacity(0.5), 15),
+                  divier(Colors.grey.withValues(alpha: 0.5), 15),
                 ],
               ),
             )
@@ -324,13 +324,13 @@ class MyHomePage extends GetView<MyHomeLogic> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  divier(Colors.grey.withOpacity(0.5), 15),
+                  divier(Colors.grey.withValues(alpha: 0.5), 15),
                   const Text("1", style: TextStyle(color: Colors.red)),
                   const SizedBox(width: 8),
-                  divier(Colors.grey.withOpacity(0.5), 15),
+                  divier(Colors.grey.withValues(alpha: 0.5), 15),
                   const SizedBox(width: 8),
                   const Text("1", style: TextStyle(color: Colors.red)),
-                  divier(Colors.grey.withOpacity(0.5), 15),
+                  divier(Colors.grey.withValues(alpha: 0.5), 15),
                 ],
               ),
             ))
@@ -341,13 +341,13 @@ class MyHomePage extends GetView<MyHomeLogic> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  divier(Colors.grey.withOpacity(0.5), 15),
+                  divier(Colors.grey.withValues(alpha: 0.5), 15),
                   const Text("1", style: TextStyle(color: Colors.green)),
                   const SizedBox(width: 8),
-                  divier(Colors.grey.withOpacity(0.5), 15),
+                  divier(Colors.grey.withValues(alpha: 0.5), 15),
                   const SizedBox(width: 8),
                   const Text("1", style: TextStyle(color: Colors.red)),
-                  divier(Colors.grey.withOpacity(0.5), 15),
+                  divier(Colors.grey.withValues(alpha: 0.5), 15),
                 ],
               ),
             )
@@ -357,13 +357,13 @@ class MyHomePage extends GetView<MyHomeLogic> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  divier(Colors.grey.withOpacity(0.5), 15),
+                  divier(Colors.grey.withValues(alpha: 0.5), 15),
                   const Text("1", style: TextStyle(color: Colors.red)),
                   const SizedBox(width: 8),
-                  divier(Colors.grey.withOpacity(0.5), 15),
+                  divier(Colors.grey.withValues(alpha: 0.5), 15),
                   const SizedBox(width: 8),
                   const Text("1", style: TextStyle(color: Colors.green)),
-                  divier(Colors.grey.withOpacity(0.5), 15),
+                  divier(Colors.grey.withValues(alpha: 0.5), 15),
                 ],
               ),
             );
