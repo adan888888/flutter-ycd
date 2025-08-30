@@ -1,4 +1,4 @@
-import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../main.dart';
@@ -16,29 +16,62 @@ class LoginController extends GetxController {
   final TextEditingController userNameController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
 
+  // 切换密码可见性
+  void togglePasswordVisibility() {
+    state.isPasswordVisible.value = !state.isPasswordVisible.value;
+  }
+
   Future<void> login() async {
     if (formKey.currentState!.validate()) {
+      // 设置加载状态
+      state.isLoading.value = true;
+
       String email = emailController.text;
       String usrname = userNameController.text;
       String password = passwordController.text;
 
-      // 模拟登录逻辑（这里可以调用API）
-      BXPost<UserModel>(Api.login,
-          // params: { "username": "admin1","password": "123"},
-          params: {"username": usrname, "password": password},
-          success: (isSuccess, code, message, results) {
-            if (isSuccess) {
-              // ScaffoldMessenger.of(Get.context!).showSnackBar(SnackBar(content: Text("登录成功: $usrname")));
-              GetStore.getInstance().saveUser(results.first);
-              Future.delayed(const Duration(seconds: 2), () {
-                var userId = GetStore.getInstance().readUserModel().userId;
-                if (userId.isNotEmpty) {
-                  Get.offAndToNamed(AppRoutes.home);
-                }
-              });
-            }
-          },
-          onModel: (m) => UserModel.fromJson(m));
+      try {
+        // 模拟登录逻辑（这里可以调用API）
+        BXPost<UserModel>(Api.login,
+            // params: { "username": "admin1","password": "123"},
+            params: {"username": usrname, "password": password},
+            success: (isSuccess, code, message, results) {
+              if (isSuccess) {
+                // ScaffoldMessenger.of(Get.context!).showSnackBar(SnackBar(content: Text("登录成功: $usrname")));
+                GetStore.getInstance().saveUser(results.first);
+                Future.delayed(const Duration(seconds: 2), () {
+                  var userId = GetStore.getInstance().readUserModel().userId;
+                  if (userId.isNotEmpty) {
+                    Get.offAndToNamed(AppRoutes.home);
+                  }
+                });
+              } else {
+                // 显示错误信息
+                Get.snackbar(
+                  '登录失败',
+                  message,
+                  snackPosition: SnackPosition.TOP,
+                  backgroundColor: Colors.red.withValues(alpha: 0.8),
+                  colorText: Colors.white,
+                  duration: const Duration(seconds: 3),
+                );
+              }
+            },
+            onModel: (m) => UserModel.fromJson(m));
+      } catch (e) {
+        // 处理异常
+        Get.snackbar(
+          '登录失败',
+          '网络连接错误，请稍后重试',
+          snackPosition: SnackPosition.TOP,
+          backgroundColor: Colors.red.withValues(alpha: 0.8),
+          colorText: Colors.white,
+          duration: const Duration(seconds: 3),
+        );
+      } finally {
+        // 重置加载状态
+        state.isLoading.value = false;
+      }
     }
   }
 }
