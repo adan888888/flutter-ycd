@@ -10,11 +10,11 @@ void main() {
   final encrypter = Encrypter(AES(key, mode: AESMode.cbc, padding: 'PKCS7'));
   var plainText="123456";
   try {
-
     final encrypted = encrypter.encrypt(plainText, iv: iv);
-    print('加密后的内容: ${encrypted.base64}');
     print('加密后的内容: ${encrypted.base16}');
+    print('加密后的内容: ${encrypted.base64}');
   } catch (e) {
+
     print('加密失败: $e');
   }
 }
