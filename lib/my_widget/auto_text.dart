@@ -76,9 +76,8 @@ class AutoTextState extends State<AutoText> with TickerProviderStateMixin {
 
           var textWidth = textPainter.width;
           var fontSize = textFieldTextStyle.fontSize;
-          /**
-           * only text width largger than Container Width can do while
-           */
+
+          /// only text width largger than Container Width can do while
           if (textWidth > containerWidth!) {
             while (textWidth > containerWidth && fontSize! > widget.minTextSize) {
               fontSize -= 0.5;
@@ -106,6 +105,6 @@ class AutoTextState extends State<AutoText> with TickerProviderStateMixin {
           parent: _controller,
           curve: const Interval(0.0, 1.0, curve: Curves.easeOut),
         ),
-        child: Text(maxLines: 1, widget.text, key: _autoTextKey, style: textFieldTextStyle.copyWith(fontSize: _fontSize,overflow: TextOverflow.visible)));
+        child: Text(maxLines: 1, widget.text, key: _autoTextKey, style: textFieldTextStyle.copyWith(fontSize: _fontSize, overflow: TextOverflow.visible)));
   }
 }

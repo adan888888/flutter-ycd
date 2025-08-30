@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'login_controller.dart';
@@ -304,7 +303,7 @@ class LoginWidget extends GetView<LoginController> {
                             ? SizedBox(
                                 width: 24.w,
                                 height: 24.w,
-                                child: CircularProgressIndicator(
+                                child: const CircularProgressIndicator(
                                   strokeWidth: 2,
                                   valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                                 ),
@@ -325,57 +324,6 @@ class LoginWidget extends GetView<LoginController> {
           ),
         );
       },
-    );
-  }
-
-  Widget _buildAccountCard(String username, String password) {
-    return GestureDetector(
-      onTap: () {
-        final controller = Get.find<LoginController>();
-        controller.userNameController.text = username;
-        controller.passwordController.text = password;
-        HapticFeedback.lightImpact();
-
-        // 显示提示
-        Get.snackbar(
-          '已填入账号',
-          '用户名: $username',
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.green.withValues(alpha: 0.8),
-          colorText: Colors.white,
-          duration: const Duration(seconds: 1),
-        );
-      },
-      child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
-        decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.2),
-          borderRadius: BorderRadius.circular(8.r),
-          border: Border.all(
-            color: Colors.white.withValues(alpha: 0.3),
-            width: 1,
-          ),
-        ),
-        child: Column(
-          children: [
-            Text(
-              username,
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 14.sp,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            Text(
-              password,
-              style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.7),
-                fontSize: 12.sp,
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }
