@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:device_info_plus/device_info_plus.dart';
+import 'package:flutter/foundation.dart';
 
 import '../../model/config_Model.dart';
 import '../../model/user_model.dart';
@@ -111,13 +112,19 @@ class GetStore {
   Future<String> getDeviceId() async {
     DeviceInfoPlugin info = DeviceInfoPlugin();
     String? deviceId;
-    if (Platform.isAndroid) {
+    
+    if (kIsWeb) {
+      // Web 平台使用浏览器信息作为设备ID
+      WebBrowserInfo webInfo = await info.webBrowserInfo;
+      deviceId = webInfo.userAgent ?? "web_browser";
+    } else if (Platform.isAndroid) {
       AndroidDeviceInfo androidInfo = await info.androidInfo;
       deviceId = androidInfo.id;
     } else if (Platform.isIOS) {
       IosDeviceInfo iosInfo = await info.iosInfo;
       deviceId = iosInfo.identifierForVendor;
     }
-    return deviceId ?? "";
+    
+    return deviceId ?? "unknown_device";
   }
 }

@@ -4,6 +4,7 @@ import 'dart:io';
 
 import 'package:dio/dio.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:flutter/foundation.dart';
 
 import '../../model/base_model.dart';
 import '../../model/user_model.dart';
@@ -34,16 +35,27 @@ class DioManager {
     _dio.options.receiveTimeout = const Duration(seconds: 15);
     _dio.options.sendTimeout = const Duration(seconds: 15);
 
+    // Web平台特殊配置
+    if (kIsWeb) {
+      // 移除可能冲突的头部
+      _dio.options.headers.remove('Access-Control-Allow-Origin');
+      _dio.options.headers.remove('Access-Control-Allow-Methods');
+      _dio.options.headers.remove('Access-Control-Allow-Headers');
+
+      // 设置更简单的配置
+      _dio.options.headers['Content-Type'] = 'application/json';
+    }
+
     // 请求拦截器
     _dio.interceptors.add(InterceptorsWrapper(
       onRequest: (options, handler) async {
         // 添加请求头
         final headers = await _getHeaders();
         options.headers.addAll(headers);
-        
+
         log('🌐 请求: ${options.method} ${options.uri}');
         log('📝 参数: ${options.data}');
-        
+
         handler.next(options);
       },
       onResponse: (response, handler) {
@@ -59,25 +71,28 @@ class DioManager {
 
   Future<Map<String, String>> _getHeaders() async {
     Map<String, String> headers = {};
-    
+
     GetStore.getInstance().checkLoginStatus();
     bool isLogin = GetStore.getInstance().isLogin;
     String token = '';
     String xUserId = '';
-    
+
     if (isLogin) {
       UserModel userModel = await GetStore.getInstance().userModel;
       token = userModel.token ?? "";
       xUserId = userModel.userId.toString();
     }
-    
+
     String deviceid = await GetStore.getInstance().getDeviceId();
     PackageInfo info = await PackageInfo.fromPlatform();
     String os = '';
     String xDeviceType = '';
     String lan = LocalUtil.getLoaclString();
-    
-    if (Platform.isIOS) {
+
+    if (kIsWeb) {
+      os = "WEB";
+      xDeviceType = "4";
+    } else if (Platform.isIOS) {
       os = "IOS";
       xDeviceType = "3";
     } else {
@@ -95,7 +110,7 @@ class DioManager {
       "Authorization": "Bearer $token",
       "UserId": xUserId,
     };
-    
+
     return headers;
   }
 

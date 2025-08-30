@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:get/get.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
+import 'package:flutter/foundation.dart';
 import 'package:ycd/my_widget/baccarat_road_map.dart';
 import 'package:ycd/utils/network/get_store.dart';
 import 'my_home_logic.dart';
@@ -19,7 +20,7 @@ class MyHomePage extends GetView<MyHomeLogic> {
   @override
   Widget build(BuildContext context) {
     return KeyboardDismissOnTap(
-      dismissOnCapturedTaps: Platform.isMacOS || Platform.isWindows ? false : true,
+      dismissOnCapturedTaps: kIsWeb ? false : (Platform.isMacOS || Platform.isWindows ? false : true),
       child: Listener(
         onPointerDown: (PointerDownEvent event) {
           controller.onUserInteraction();
@@ -233,8 +234,7 @@ class MyHomePage extends GetView<MyHomeLogic> {
     );
   }
 
-  double fontSize(int i, int index) =>
-      (i * 4 + index) == 15 || (i * 4 + index) == 3 || (i * 4 + index) == 20 || (i * 4 + index) == 24 || (i * 4 + index) == 16 ? 10 : 14;
+  double fontSize(int i, int index) => (i * 4 + index) == 15 || (i * 4 + index) == 3 || (i * 4 + index) == 20 || (i * 4 + index) == 24 || (i * 4 + index) == 16 ? 10 : 14;
 
   buildItem(int index) => SizedBox(
         height: 30,
@@ -254,7 +254,7 @@ class MyHomePage extends GetView<MyHomeLogic> {
             // ),
             //输赢
             GestureDetector(
-              onTap: () => controller.juBuPingHeng(controller.state.table2ListX[index].id!,v:controller.state.totalValue[30]),
+              onTap: () => controller.juBuPingHeng(controller.state.table2ListX[index].id!, v: controller.state.totalValue[30]),
               child: Container(
                 width: 70,
                 alignment: Alignment.centerRight,

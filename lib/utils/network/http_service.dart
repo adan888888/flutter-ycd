@@ -3,6 +3,7 @@ import 'dart:developer';
 
 import 'package:dio/dio.dart' as dio;
 import 'package:get/get.dart';
+import 'package:flutter/foundation.dart';
 
 import '../../model/base_model.dart';
 import '../bx_loading.dart';
@@ -123,7 +124,7 @@ class HttpService {
 
     try {
       dio.Response response;
-      
+
       switch (method.toUpperCase()) {
         case 'GET':
           response = await _dioManager.get(api, queryParameters: params);
@@ -148,7 +149,7 @@ class HttpService {
         final data = response.data;
         if (data != null) {
           BaseModel model = BaseModel.fromJson(data);
-          
+
           if (model.code == 0) {
             var result = model.data ?? [];
             if (onModel == null) {
@@ -171,7 +172,7 @@ class HttpService {
               if (failed != null) failed(model.msg, model);
               if (model.code != 8 && showError) BXLoading.showToast(model.msg);
             }
-            
+
             // 处理登录失效
             if (model.data != null && model.code == 7 && ((model.data as List).first["reload"] ?? false)) {
               // 这里可以添加登录失效处理逻辑
@@ -186,7 +187,13 @@ class HttpService {
       }
     } on dio.DioException catch (e) {
       String errorMsg = _handleDioError(e);
-      if (showError) BXLoading.showToast(errorMsg);
+
+      // Web平台特殊处理
+      if (kIsWeb && e.type == dio.DioExceptionType.connectionError) {
+        errorMsg = 'Web平台连接错误，请检查后端服务器CORS配置';
+      }
+
+      if (showError) BXLoading.showToast(errorMsg.contains("401") ? "用户名或者密码错误" : errorMsg);
       if (failed != null) failed(errorMsg, BaseModel.fromJson({"code": -1, "msg": errorMsg}));
     } catch (e) {
       String errorMsg = '网络异常: ${e.toString()}';

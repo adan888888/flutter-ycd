@@ -31,13 +31,11 @@ class LoginController extends GetxController {
       String password = passwordController.text;
 
       try {
-        // 模拟登录逻辑（这里可以调用API）
+        // 真实登录逻辑
         BXPost<UserModel>(Api.login,
-            // params: { "username": "admin1","password": "123"},
             params: {"username": usrname, "password": password},
             success: (isSuccess, code, message, results) {
               if (isSuccess) {
-                // ScaffoldMessenger.of(Get.context!).showSnackBar(SnackBar(content: Text("登录成功: $usrname")));
                 GetStore.getInstance().saveUser(results.first);
                 Future.delayed(const Duration(seconds: 2), () {
                   var userId = GetStore.getInstance().readUserModel().userId;
@@ -46,7 +44,6 @@ class LoginController extends GetxController {
                   }
                 });
               } else {
-                // 显示错误信息
                 Get.snackbar(
                   '登录失败',
                   message,

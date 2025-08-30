@@ -1,6 +1,18 @@
+import 'package:flutter/foundation.dart';
+
 class Api {
   // static String baseUrl = "https://zsapi.cach.xyz/api/";
-  static String baseUrl = "http://localhost:3000/api";
+
+  // 根据平台动态选择baseUrl
+  static String get baseUrl {
+    if (kIsWeb) {
+      // Web平台使用代理服务器解决CORS问题
+      return "http://localhost:3001/api";
+    } else {
+      // 移动端直接连接后端
+      return "http://localhost:3000/api";
+    }
+  }
 
   // static String baseUrl = "http://192.168.32.154:3000/api";
 

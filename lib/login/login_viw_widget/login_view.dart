@@ -45,7 +45,7 @@ class LoginWidget extends GetView<LoginController> {
                   // 登录按钮
                   _buildLoginButton(controller),
 
-                  SizedBox(height: 160.h),
+                  SizedBox(height: 300.h),
                 ],
               ),
             ),

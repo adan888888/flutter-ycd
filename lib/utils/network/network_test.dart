@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+
 import 'http_service.dart';
 import 'Api.dart';
 import '../../model/user_model.dart';
@@ -20,9 +22,26 @@ class NetworkTest {
       },
       failed: (error, model) {
         debugPrint('❌ 登录失败: $error');
+        debugPrint('🔍 错误详情: ${model.msg}');
       },
       onModel: (json) => UserModel.fromJson(json),
       isShowLoading: false, // 测试时不显示loading
+    );
+  }
+
+  static void testConnection() {
+    debugPrint('🔗 测试网络连接...');
+
+    // 简单的GET请求测试
+    HttpService.getInstance().get<dynamic>(
+      '/',
+      success: (isSuccess, code, message, results) {
+        debugPrint('✅ 连接成功: $message');
+      },
+      failed: (error, model) {
+        debugPrint('❌ 连接失败: $error');
+      },
+      isShowLoading: false,
     );
   }
 }

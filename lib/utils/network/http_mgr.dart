@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:flutter/foundation.dart';
 import '../../model/base_model.dart';
 import '../../model/user_model.dart';
 import '../local_util.dart';
@@ -23,7 +24,10 @@ Future<Map<String, String>?> getAppHeader() async {
   String os = '';
   String xDeviceType = '';
   String lan = LocalUtil.getLoaclString();
-  if (Platform.isIOS) {
+  if (kIsWeb) {
+    os = "WEB";
+    xDeviceType = "4";
+  } else if (Platform.isIOS) {
     os = "IOS";
     xDeviceType = "3";
   } else {
