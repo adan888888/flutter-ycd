@@ -74,8 +74,8 @@ class DioManager {
     String xUserId = '';
 
     if (isLogin) {
-      UserModel userModel = await GetStore.getInstance().userModel;
-      token = userModel.token ?? "";
+      UserModel userModel = GetStore.getInstance().userModel;
+      token = userModel.token;
       xUserId = userModel.userId.toString();
     }
 

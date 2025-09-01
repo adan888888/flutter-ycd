@@ -296,7 +296,6 @@ class MyHomeLogic extends GetxController {
     // // }
 
     var z = 0;
-    var chartDataTemp = <double>[];
     BXGet<dynamic>(
       Api.getLinechartData,
       success: (isSuccess, code, message, results) {
@@ -512,7 +511,7 @@ class MyHomeLogic extends GetxController {
         //   }
         // }).then((value) => queryAll());
         int count = 0;
-        for (var value in state.table2ListX) {
+        for (var _ in state.table2ListX) {
           state.table2ListX[count].colmunShuyingzhiD = "";
           state.table2ListX.refresh();
           count++;

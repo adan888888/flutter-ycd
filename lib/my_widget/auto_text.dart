@@ -70,7 +70,7 @@ class AutoTextState extends State<AutoText> with TickerProviderStateMixin {
     _fontSize = widget.textSize!;
     _controller = AnimationController(vsync: this, duration: const Duration(milliseconds: 200))
       ..addStatusListener((status) {
-        double? containerWidth = widget.width ?? _autoTextKey.currentContext?.size?.width; //始终是-2
+        double? containerWidth = widget.width; //始终是-2
         if (status == AnimationStatus.completed) {
           //当前没有缩放前的text宽度
 
