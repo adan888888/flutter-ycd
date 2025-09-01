@@ -80,10 +80,14 @@ class LoginWidget extends GetView<LoginController> {
                       ),
                     ],
                   ),
-                  child: Icon(
-                    Icons.casino,
-                    size: 60.w,
-                    color: Colors.white,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(60.w),
+                    child: Image.asset(
+                      'assets/images/temp_dice.png',
+                      width: 60.w,
+                      height: 60.w,
+                      fit: BoxFit.cover,
+                    ),
                   ),
                 ),
 
