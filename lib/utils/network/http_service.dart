@@ -143,8 +143,11 @@ class HttpService {
       }
 
       log('🌐 请求URL: ${response.requestOptions.method} ${response.requestOptions.uri}');
-      log('📝 请求参数: ${response.requestOptions.data}');
+      if (response.requestOptions.data != null) {
+        log('📝 请求参数: ${response.requestOptions.data}');
+      }
       log('✅ 响应数据: ${response.statusCode} ${jsonEncode(response.data)}');
+      log('\n---------------------------------------------------------------------------------------------------------------------------------------');
 
       if (response.statusCode == 200) {
         final data = response.data;
@@ -191,7 +194,7 @@ class HttpService {
         try {
           if (e.response?.data != null) {
             BaseModel errorModel = BaseModel.fromJson(e.response!.data);
-            errorMsg = errorModel.msg ?? '登录已过期，请重新登录';
+            errorMsg = errorModel.msg;
             log('🔐 解析的错误信息: $errorMsg');
           }
         } catch (parseError) {

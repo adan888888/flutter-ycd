@@ -1,7 +1,6 @@
 import 'dart:developer';
 import 'dart:io';
 import 'package:dio/dio.dart';
-import 'package:package_info_plus/package_info_plus.dart';
 import 'package:flutter/foundation.dart';
 import '../../model/user_model.dart';
 import '../local_util.dart';
@@ -81,7 +80,6 @@ class DioManager {
     }
 
     String deviceid = await GetStore.getInstance().getDeviceId();
-    PackageInfo info = await PackageInfo.fromPlatform();
     String os = '';
     String xDeviceType = '';
     String lan = LocalUtil.getLoaclString();
