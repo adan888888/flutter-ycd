@@ -1,9 +1,13 @@
+import 'dart:convert';
 import 'dart:developer';
 import 'package:dio/dio.dart' as dio;
 import 'package:flutter/foundation.dart';
+import 'package:get/get.dart';
 import '../../model/base_model.dart';
 import '../bx_loading.dart';
+import '../../main.dart';
 import 'dio_manager.dart';
+import 'get_store.dart';
 
 class HttpService {
   static HttpService? _instance;
@@ -138,8 +142,9 @@ class HttpService {
           throw Exception('不支持的请求方法: $method');
       }
 
-      log('🌐 请求URL: ${response.requestOptions.uri}');
-      log('📝 响应数据: ${response.data}');
+      log('🌐 请求URL: ${response.requestOptions.method} ${response.requestOptions.uri}');
+      log('📝 请求参数: ${response.requestOptions.data}');
+      log('✅ 响应数据: ${response.statusCode} ${jsonEncode(response.data)}');
 
       if (response.statusCode == 200) {
         final data = response.data;
@@ -168,12 +173,6 @@ class HttpService {
               if (failed != null) failed(model.msg, model);
               if (model.code != 8 && showError) BXLoading.showToast(model.msg);
             }
-
-            // 处理登录失效
-            if (model.data != null && model.code == 7 && ((model.data as List).first["reload"] ?? false)) {
-              // 这里可以添加登录失效处理逻辑
-              log('登录失效，需要重新登录');
-            }
           }
         }
       } else {
@@ -184,12 +183,48 @@ class HttpService {
     } on dio.DioException catch (e) {
       String errorMsg = _handleDioError(e);
 
+      // 处理401未授权错误（token过期）
+      if (e.response?.statusCode == 401) {
+        log('🔐 401错误: ${e.response?.data}');
+
+        // 尝试解析服务端返回的错误信息
+        try {
+          if (e.response?.data != null) {
+            BaseModel errorModel = BaseModel.fromJson(e.response!.data);
+            errorMsg = errorModel.msg ?? '登录已过期，请重新登录';
+            log('🔐 解析的错误信息: $errorMsg');
+          }
+        } catch (parseError) {
+          errorMsg = '登录已过期，请重新登录';
+          log('🔐 解析错误信息失败: $parseError');
+        }
+
+        // 清除本地用户信息
+        GetStore.getInstance().cleanUser();
+
+        // 显示提示
+        if (showError) BXLoading.showToast(errorMsg);
+
+        // 跳转到登录页面（避免重复跳转）
+        Future.delayed(const Duration(seconds: 1), () {
+          // 检查当前是否已经在登录页面
+          if (Get.currentRoute != AppRoutes.login) {
+            log('🔄 跳转到登录页面，当前路由: ${Get.currentRoute}');
+            Get.offAllNamed(AppRoutes.login);
+          } else {
+            log('ℹ️ 当前已在登录页面，无需跳转');
+          }
+        });
+
+        return;
+      }
+
       // Web平台特殊处理
       if (kIsWeb && e.type == dio.DioExceptionType.connectionError) {
         errorMsg = 'Web平台连接错误，请检查后端服务器CORS配置';
       }
 
-      if (showError) BXLoading.showToast(errorMsg.contains("401") ? "用户名或者密码错误" : errorMsg);
+      if (showError) BXLoading.showToast(errorMsg);
       if (failed != null) failed(errorMsg, BaseModel.fromJson({"code": -1, "msg": errorMsg}));
     } catch (e) {
       String errorMsg = '网络异常: ${e.toString()}';
@@ -212,6 +247,10 @@ class HttpService {
       case dio.DioExceptionType.receiveTimeout:
         return '接收超时，请重试';
       case dio.DioExceptionType.badResponse:
+        // 特殊处理401错误
+        if (error.response?.statusCode == 401) {
+          return '登录已过期，请重新登录';
+        }
         return '服务器响应错误: ${error.response?.statusCode}';
       case dio.DioExceptionType.cancel:
         return '请求已取消';

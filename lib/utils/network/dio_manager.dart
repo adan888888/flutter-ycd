@@ -48,14 +48,9 @@ class DioManager {
         // 添加请求头
         final headers = await _getHeaders();
         options.headers.addAll(headers);
-
-        log('🌐 请求: ${options.method} ${options.uri}');
-        log('📝 参数: ${options.data}');
-
         handler.next(options);
       },
       onResponse: (response, handler) {
-        log('✅ 响应: ${response.statusCode} ${response.data}');
         handler.next(response);
       },
       onError: (error, handler) {
@@ -76,6 +71,12 @@ class DioManager {
     if (isLogin) {
       UserModel userModel = GetStore.getInstance().userModel;
       token = userModel.token;
+
+      //检查token是否已经包含Bearer前缀，如果有则移除
+      if (token.startsWith('Bearer ')) {
+        token = token.substring(7);
+      }
+
       xUserId = userModel.userId.toString();
     }
 
