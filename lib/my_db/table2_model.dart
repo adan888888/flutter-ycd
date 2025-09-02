@@ -31,15 +31,15 @@ class Table2Model {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['id'] = this.id;
-    data['column_xiazhujine'] = this.columnXiazhujine;
-    data['colmun_shuyingzhi'] = this.colmunShuyingzhi;
-    data['colmun_shuyingzhi_d'] = this.colmunShuyingzhiD;
-    data['colmun_shengfulu'] = this.colmunShengfulu;
-    data['colmun_zx'] = this.colmunZx;
-    data['colmun_remark'] = this.colmunRemark;
-    data['column_current_jin'] = this.columnCurrentJin;
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['id'] = id;
+    data['column_xiazhujine'] = columnXiazhujine;
+    data['colmun_shuyingzhi'] = colmunShuyingzhi;
+    data['colmun_shuyingzhi_d'] = colmunShuyingzhiD;
+    data['colmun_shengfulu'] = colmunShengfulu;
+    data['colmun_zx'] = colmunZx;
+    data['colmun_remark'] = colmunRemark;
+    data['column_current_jin'] = columnCurrentJin;
     return data;
   }
 }

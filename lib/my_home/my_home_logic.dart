@@ -11,13 +11,13 @@ import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 import 'package:ycd/main.dart';
-import 'package:ycd/my_db/DbHelper.dart';
-import 'package:ycd/my_db/Table1Model.dart';
+import 'package:ycd/my_db/db_helper.dart';
+import 'package:ycd/my_db/table1_model.dart';
 import 'package:ycd/utils/loading.dart';
 import 'package:ycd/utils/network/get_store.dart';
-import '../my_db/Table2Model.dart';
+import '../my_db/table2_model.dart';
 import '../utils/bx_loading.dart';
-import '../utils/network/Api.dart';
+import '../utils/network/api.dart';
 import '../utils/network/http_mgr.dart';
 import 'my_home_state.dart';
 import 'my_home_view.dart';
@@ -122,7 +122,7 @@ class MyHomeLogic extends GetxController {
     var x = double.parse(state.totalValue[18]); //总输赢
     var y = double.parse(state.bettingMoney); //输入框下注额
     var z = double.parse(removeChineseCharacters(state.totalValue[14])); //净胜
-    var z1 = (double.parse(removeChineseCharacters(state.totalValue[14])).abs()); //净胜绝对值
+    var z1 = double.parse(removeChineseCharacters(state.totalValue[14])).abs(); //净胜绝对值
     if (z == 0) {
       return "回合结束";
     } else if (z > 0) /*赢>输的情况*/ {
@@ -143,7 +143,7 @@ class MyHomeLogic extends GetxController {
     var x = double.parse(state.totalValue[17]); //总输赢
     var y = double.parse(state.bettingMoney); //输入框下注额
     var z = double.parse(removeChineseCharacters(state.totalValue[13])); //净胜
-    var z1 = (double.parse(removeChineseCharacters(state.totalValue[13])).abs()); //净胜绝对值
+    var z1 = double.parse(removeChineseCharacters(state.totalValue[13])).abs(); //净胜绝对值
     if (z == 0) {
       return "回合结束";
     } else if (z > 0) /*赢>输的情况*/ {

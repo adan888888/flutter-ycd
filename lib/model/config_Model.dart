@@ -1,4 +1,4 @@
-import '../utils/types _of.dart';
+import '../utils/types_of.dart';
 
 class ConfigModel {
   int tenantId = 0; // Default value set to 0
@@ -18,18 +18,18 @@ class ConfigModel {
 
   factory ConfigModel.fromJson(Map<String, dynamic> json) {
     return ConfigModel()
-      ..tenantId = BXGetInt(json['tenantId'])
-      ..tenantCode = BXGetString(json['tenantCode'])
-      ..tenantSiteStatus = BXGetBool(json['tenantSiteStatus'])
+      ..tenantId = bxGetInt(json['tenantId'])
+      ..tenantCode = bxGetString(json['tenantCode'])
+      ..tenantSiteStatus = bxGetBool(json['tenantSiteStatus'])
       ..switchConfig = SwitchConfig.fromJson(json['switch'] ?? {})
       ..domains = Domains.fromJson(json['domains'] ?? {})
-      ..timeZone = BXGetString(json['timeZone'])
-      ..currencySymbol = BXGetString(json['currencySymbol'])
-      ..currencyMain = BXGetString(json['currencyMain'])
-      ..domainMain = BXGetString(json['domainMain'])
-      ..skinTemplate = BXGetString(json['skinTemplate'])
-      ..langMain = BXGetString(json['langMain'])
-      ..compliance = BXGetString(json['compliance']);
+      ..timeZone = bxGetString(json['timeZone'])
+      ..currencySymbol = bxGetString(json['currencySymbol'])
+      ..currencyMain = bxGetString(json['currencyMain'])
+      ..domainMain = bxGetString(json['domainMain'])
+      ..skinTemplate = bxGetString(json['skinTemplate'])
+      ..langMain = bxGetString(json['langMain'])
+      ..compliance = bxGetString(json['compliance']);
   }
 
   Map<String, dynamic> toJson() {
@@ -65,15 +65,15 @@ class SwitchConfig {
 
   factory SwitchConfig.fromJson(Map<String, dynamic> json) {
     return SwitchConfig()
-      ..isVipSystem = BXGetBool(json['isVipSystem'])
-      ..isPaymentMerchantIntegration = BXGetBool(json['isPaymentMerchantIntegration'])
-      ..isPayoutMerchantIntegration = BXGetBool(json['isPayoutMerchantIntegration'])
-      ..isThirdPartyGameApi = BXGetBool(json['isThirdPartyGameApi'])
-      ..isLottery = BXGetBool(json['isLottery'])
-      ..isOutsourcedCustomerService = BXGetBool(json['isOutsourcedCustomerService'])
-      ..isRegisterMobileVerification = BXGetBool(json['isRegisterMobileVerification'])
-      ..isRegisterEmailVerification = BXGetBool(json['isRegisterEmailVerification'])
-      ..isSubTable = BXGetBool(json['isSubTable']);
+      ..isVipSystem = bxGetBool(json['isVipSystem'])
+      ..isPaymentMerchantIntegration = bxGetBool(json['isPaymentMerchantIntegration'])
+      ..isPayoutMerchantIntegration = bxGetBool(json['isPayoutMerchantIntegration'])
+      ..isThirdPartyGameApi = bxGetBool(json['isThirdPartyGameApi'])
+      ..isLottery = bxGetBool(json['isLottery'])
+      ..isOutsourcedCustomerService = bxGetBool(json['isOutsourcedCustomerService'])
+      ..isRegisterMobileVerification = bxGetBool(json['isRegisterMobileVerification'])
+      ..isRegisterEmailVerification = bxGetBool(json['isRegisterEmailVerification'])
+      ..isSubTable = bxGetBool(json['isSubTable']);
   }
 
   Map<String, dynamic> toJson() {
@@ -97,7 +97,7 @@ class Domains {
   Domains();
 
   factory Domains.fromJson(Map<String, dynamic> json) {
-    return Domains()..activity = "https://${BXGetString(json['activity'])}";
+    return Domains()..activity = "https://${bxGetString(json['activity'])}";
   }
 
   Map<String, dynamic> toJson() {

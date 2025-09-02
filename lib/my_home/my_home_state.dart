@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../my_db/Table1Model.dart';
-import '../my_db/Table2Model.dart';
+import '../my_db/table1_model.dart';
+import '../my_db/table2_model.dart';
 
 class MyState {
   static const OFFSET8431 = 8431; //庄闲占比是 庄60% 闲40%

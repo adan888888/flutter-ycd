@@ -1,5 +1,4 @@
-import '../utils/types _of.dart';
-
+import '../utils/types_of.dart';
 
 class UserModel {
   String userId = "";
@@ -22,25 +21,25 @@ class UserModel {
     account = map["account"] ?? "";
     email = map["email"] ?? "";
     phone = map["phone"] ?? "";
-    status = BXGetInt(map["status"]);
+    status = bxGetInt(map["status"]);
     nickname = map["nickname"] ?? "";
     avatar = map["avatar"] ?? "";
     statusDesc = map["status_desc"] ?? "";
-    levelId = BXGetInt(map["levelId"]);
+    levelId = bxGetInt(map["levelId"]);
   }
 
   Map<String, dynamic> toJson() => {
-    "userId": userId,
-    "token": token,
-    "refresh_token": refreshToken,
-    "account": account,
-    "email": email,
-    "phone": phone,
-    "status": status,
-    "nickname": nickname,
-    "avatar": avatar,
-    "status_desc": statusDesc,
-  };
+        "userId": userId,
+        "token": token,
+        "refresh_token": refreshToken,
+        "account": account,
+        "email": email,
+        "phone": phone,
+        "status": status,
+        "nickname": nickname,
+        "avatar": avatar,
+        "status_desc": statusDesc,
+      };
 }
 
 class SystemAvatarModel {
@@ -51,8 +50,8 @@ class SystemAvatarModel {
   SystemAvatarModel();
 
   SystemAvatarModel.fromJson(Map<String, dynamic> map) {
-    id = BXGetInt(map["id"]);
-    avatar = BXGetString(map["avatar"]);
-    avatarUrl = BXGetString(map["avatarUrl"]);
+    id = bxGetInt(map["id"]);
+    avatar = bxGetString(map["avatar"]);
+    avatarUrl = bxGetString(map["avatarUrl"]);
   }
 }

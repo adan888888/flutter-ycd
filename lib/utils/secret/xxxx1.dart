@@ -1,5 +1,5 @@
 import 'package:encrypt/encrypt.dart';
-import 'package:ycd/utils/secret/aes_constant.dart';
+import 'aes_constants.dart';
 
 void main() {
   // 定义密钥

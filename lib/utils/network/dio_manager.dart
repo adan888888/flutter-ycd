@@ -6,7 +6,7 @@ import 'package:flutter/foundation.dart';
 import '../../model/user_model.dart';
 import '../local_util.dart';
 import 'get_store.dart';
-import 'Api.dart';
+import 'api.dart';
 
 class DioManager {
   static DioManager? _instance;

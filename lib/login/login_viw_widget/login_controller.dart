@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../main.dart';
 import '../../model/user_model.dart';
-import '../../utils/network/Api.dart';
+import '../../utils/network/api.dart';
 import '../../utils/network/get_store.dart';
 import '../../utils/network/http_mgr.dart';
 import 'login_state.dart';
@@ -25,7 +25,6 @@ class LoginController extends GetxController {
       // 设置加载状态
       state.isLoading.value = true;
 
-      String email = emailController.text;
       String usrname = userNameController.text;
       String password = passwordController.text;
 

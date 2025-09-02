@@ -23,32 +23,14 @@ class AutoText extends StatefulWidget {
   /// 字体的样式
   final TextStyle? textStyle;
 
-  AutoText({Key? key, String? text, this.textStyle, required this.width, double? minTextSize, this.textColor, double? textSize})
-      : this.minTextSize = minTextSize ?? 6,
-        this.textSize = textSize != null
-            ? textSize
-            : textStyle != null
-                ? textStyle.fontSize
-                : 14,
-        this.text = text ?? '',
-        super(key: key);
+  AutoText({super.key, String? text, this.textStyle, required this.width, double? minTextSize, this.textColor, double? textSize})
+      : minTextSize = minTextSize ?? 6,
+        textSize = textSize ?? textStyle?.fontSize ?? 14,
+        text = text ?? '';
 
   @override
   State<StatefulWidget> createState() {
-    //定义开始的text样式
-    TextStyle textFieldTextStyle = textStyle ?? TextStyle(fontSize: textSize, color: textColor);
-
-    final textPainter = TextPainter(
-      textDirection: TextDirection.ltr,
-      text: TextSpan(
-        text: text,
-        style: textFieldTextStyle,
-      ),
-    );
-    textPainter.layout();
-    State state = AutoTextState(textPainter, textFieldTextStyle);
-
-    return state;
+    return AutoTextState();
   }
 }
 
@@ -62,15 +44,27 @@ class AutoTextState extends State<AutoText> with TickerProviderStateMixin {
 
   late AnimationController _controller;
 
-  AutoTextState(this.textPainter, this.textFieldTextStyle);
-
   @override
   void initState() {
     super.initState();
     _fontSize = widget.textSize!;
+
+    // 初始化文本样式
+    textFieldTextStyle = widget.textStyle ?? TextStyle(fontSize: widget.textSize, color: widget.textColor);
+
+    // 初始化文本绘制器
+    textPainter = TextPainter(
+      textDirection: TextDirection.ltr,
+      text: TextSpan(
+        text: widget.text,
+        style: textFieldTextStyle,
+      ),
+    );
+    textPainter.layout();
+
     _controller = AnimationController(vsync: this, duration: const Duration(milliseconds: 200))
       ..addStatusListener((status) {
-        double? containerWidth = widget.width; //始终是-2
+        double containerWidth = widget.width;
         if (status == AnimationStatus.completed) {
           //当前没有缩放前的text宽度
 
@@ -78,7 +72,7 @@ class AutoTextState extends State<AutoText> with TickerProviderStateMixin {
           var fontSize = textFieldTextStyle.fontSize;
 
           /// only text width largger than Container Width can do while
-          if (textWidth > containerWidth!) {
+          if (textWidth > containerWidth) {
             while (textWidth > containerWidth && fontSize! > widget.minTextSize) {
               fontSize -= 0.5;
               textPainter.text = TextSpan(

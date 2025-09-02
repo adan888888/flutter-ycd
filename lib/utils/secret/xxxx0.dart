@@ -1,5 +1,5 @@
 import 'package:encrypt/encrypt.dart';
-import 'aes_constant.dart';
+import 'aes_constants.dart';
 
 void main() {
   // 定义密钥
@@ -8,13 +8,12 @@ void main() {
   final iv = IV.fromUtf8(AESCONSTANT.IV);
   // 创建解密器
   final encrypter = Encrypter(AES(key, mode: AESMode.cbc, padding: 'PKCS7'));
-  var plainText="123456";
+  var plainText = "123456";
   try {
     final encrypted = encrypter.encrypt(plainText, iv: iv);
     print('加密后的内容: ${encrypted.base16}');
     print('加密后的内容: ${encrypted.base64}');
   } catch (e) {
-
     print('加密失败: $e');
   }
 }

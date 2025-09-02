@@ -52,7 +52,7 @@ class AppPages {
   static final pages = [
     GetPage(
       name: AppRoutes.login,
-      page: () => LoginWidget(),
+      page: () => const LoginWidget(),
       binding: LoginBinding(),
       middlewares: [
         AppMiddleware(),

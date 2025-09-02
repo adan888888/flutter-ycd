@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/foundation.dart';
-import '../../model/config_Model.dart';
+import '../../model/config_model.dart';
 import '../../model/user_model.dart';
 import '../storage_util.dart';
 
