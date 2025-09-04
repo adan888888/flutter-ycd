@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../../main.dart';
+import '../../routes/app_routes.dart'; // 导入新的路由配置
 import '../../model/user_model.dart';
 import '../../utils/network/api.dart';
 import '../../utils/network/get_store.dart';
@@ -38,7 +38,7 @@ class LoginController extends GetxController {
                 Future.delayed(const Duration(seconds: 2), () {
                   var userId = GetStore.getInstance().readUserModel().userId;
                   if (userId.isNotEmpty) {
-                    Get.offAndToNamed(AppRoutes.home);
+                    Get.offAndToNamed(AppRoutes.gameHome);
                   }
                 });
               } else {

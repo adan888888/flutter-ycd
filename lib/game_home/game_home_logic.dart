@@ -10,7 +10,6 @@ import 'package:get/get.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
-import 'package:ycd/main.dart';
 import 'package:ycd/my_db/db_helper.dart';
 import 'package:ycd/my_db/table1_model.dart';
 import 'package:ycd/utils/loading.dart';
@@ -19,12 +18,13 @@ import '../my_db/table2_model.dart';
 import '../utils/bx_loading.dart';
 import '../utils/network/api.dart';
 import '../utils/network/http_mgr.dart';
-import 'my_home_state.dart';
-import 'my_home_view.dart';
+import '../routes/app_routes.dart';
+import 'game_home_state.dart';
+import 'game_home_view.dart';
 
-class MyHomeLogic extends GetxController {
+class GameHomeLogic extends GetxController {
   EasyRefreshController refreshcontroller = EasyRefreshController(controlFinishRefresh: true, controlFinishLoad: true);
-  final MyState state = MyState();
+  final GameState state = GameState();
   Future<Database>? _instance;
 
   final scrollController = ScrollController();

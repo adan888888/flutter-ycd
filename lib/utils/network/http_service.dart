@@ -5,7 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import '../../model/base_model.dart';
 import '../bx_loading.dart';
-import '../../main.dart';
+import '../../routes/app_routes.dart'; // 添加路由配置导入
 import 'dio_manager.dart';
 import 'get_store.dart';
 

@@ -24,28 +24,78 @@ class LoginWidget extends GetView<LoginController> {
           ),
         ),
         child: SafeArea(
-          child: SingleChildScrollView(
-            child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: 24.w),
-              child: Column(
-                children: [
-                  SizedBox(height: 60.h),
+          child: Column(
+            children: [
+              // 返回按钮区域
+              _buildBackButton(),
 
-                  // Logo和标题区域
-                  _buildHeader(),
+              // 主要内容区域
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 24.w),
+                    child: Column(
+                      children: [
+                        SizedBox(height: 40.h),
 
-                  SizedBox(height: 10.h),
+                        // Logo和标题区域
+                        _buildHeader(),
 
-                  // 登录表单
-                  _buildLoginForm(controller),
+                        SizedBox(height: 10.h),
 
-                  SizedBox(height: 40.h),
+                        // 登录表单
+                        _buildLoginForm(controller),
 
-                  // 登录按钮
-                  _buildLoginButton(controller),
+                        SizedBox(height: 40.h),
 
-                  SizedBox(height: 300.h),
-                ],
+                        // 登录按钮
+                        _buildLoginButton(controller),
+
+                        SizedBox(height: 300.h),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // 返回按钮
+  Widget _buildBackButton() {
+    return Padding(
+      padding: EdgeInsets.only(left: 16.w, top: 16.h),
+      child: Align(
+        alignment: Alignment.topLeft,
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.2),
+            borderRadius: BorderRadius.circular(25.r),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.1),
+                blurRadius: 10,
+                offset: const Offset(0, 5),
+              ),
+            ],
+          ),
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              borderRadius: BorderRadius.circular(25.r),
+              onTap: () {
+                Get.back(); // 返回上一页（HomePage）
+              },
+              child: Padding(
+                padding: EdgeInsets.all(12.w),
+                child: Icon(
+                  Icons.arrow_back_ios_new,
+                  color: Colors.white,
+                  size: 24.w,
+                ),
               ),
             ),
           ),

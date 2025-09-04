@@ -9,11 +9,11 @@ import 'package:get/get.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 import 'package:ycd/my_widget/baccarat_road_map.dart';
 import 'package:ycd/utils/network/get_store.dart';
-import 'my_home_logic.dart';
-import 'my_home_state.dart';
+import 'game_home_logic.dart';
+import 'game_home_state.dart';
 
-class MyHomePage extends GetView<MyHomeLogic> {
-  const MyHomePage({super.key, required this.title});
+class GameHomePage extends GetView<GameHomeLogic> {
+  const GameHomePage({super.key, required this.title});
 
   final String title;
 
@@ -548,10 +548,10 @@ class MyHomePage extends GetView<MyHomeLogic> {
       );
 
   buildButtonStyle(Color bg) => ButtonStyle(
-        backgroundColor: MaterialStateProperty.all(bg),
-        overlayColor: MaterialStateProperty.all(Colors.red.shade100),
-        padding: MaterialStateProperty.all(EdgeInsetsGeometry.lerp(EdgeInsets.zero, EdgeInsets.zero, 0)),
-        shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+        backgroundColor: WidgetStateProperty.all(bg),
+        overlayColor: WidgetStateProperty.all(Colors.red.shade100),
+        padding: WidgetStateProperty.all(EdgeInsetsGeometry.lerp(EdgeInsets.zero, EdgeInsets.zero, 0)),
+        shape: WidgetStateProperty.all<RoundedRectangleBorder>(
           RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(5.0), // 设置圆角大小
           ),
@@ -569,7 +569,7 @@ class SinglePicker extends StatefulWidget {
 }
 
 class _SinglePickerState extends State<SinglePicker> {
-  final controller = Get.find<MyHomeLogic>();
+  final controller = Get.find<GameHomeLogic>();
   int selectIndex = 0;
 
   @override
