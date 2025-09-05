@@ -8,6 +8,7 @@ import 'package:ycd/pages/investment_calculator_page.dart';
 import 'package:ycd/pages/rsi_analysis_page.dart';
 import 'package:ycd/pages/rsi_strategy_backtest_page.dart';
 import 'package:ycd/pages/buy_records_page.dart';
+import 'package:ycd/pages/currency_converter_page.dart';
 import 'package:ycd/utils/app_middleware.dart';
 
 /// 应用路由配置
@@ -26,6 +27,7 @@ class AppRoutes {
   static const String rsiAnalysis = '/rsi-analysis';
   static const String rsiStrategyBacktest = '/rsi-strategy-backtest';
   static const String buyRecords = '/buy-records';
+  static const String currencyConverter = '/currency-converter';
 }
 
 /// 应用页面配置
@@ -70,6 +72,10 @@ class AppPages {
     GetPage(
       name: AppRoutes.buyRecords,
       page: () => const BuyRecordsPage(),
+    ),
+    GetPage(
+      name: AppRoutes.currencyConverter,
+      page: () => const CurrencyConverterPage(),
     ),
   ];
 }

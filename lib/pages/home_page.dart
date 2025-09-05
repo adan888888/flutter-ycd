@@ -10,14 +10,12 @@ class HomePage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: const Text('百家乐模拟器'), backgroundColor: Theme.of(context).colorScheme.inversePrimary, centerTitle: true),
       body: Padding(
-        padding: const EdgeInsets.all(24.0),
+        padding: const EdgeInsets.symmetric(horizontal: 14.0),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.start,
           children: [
-            const Icon(Icons.show_chart_sharp, size: 140, color: Color.fromARGB(150, 104, 57, 88)),
-            const SizedBox(height: 1),
+            const Icon(Icons.show_chart_sharp, size: 100, color: Color.fromARGB(150, 104, 57, 88)),
             const Text('选择您需要的功能', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.deepPurple)),
-            const SizedBox(height: 32),
 
             // 投资计算器选项
             _buildOptionCard(
@@ -64,11 +62,25 @@ class HomePage extends StatelessWidget {
             _buildOptionCard(
               context,
               icon: Icons.receipt_long,
-              title: '买入记录',
+              title: '持币记录分析',
               subtitle: '查看历史买入记录',
               color: Colors.purple,
               onTap: () {
                 Get.toNamed('/buy-records');
+              },
+            ),
+
+            const SizedBox(height: 4),
+
+            // 汇率换算选项
+            _buildOptionCard(
+              context,
+              icon: Icons.currency_exchange,
+              title: '汇率换算',
+              subtitle: '实时汇率换算工具',
+              color: Colors.teal,
+              onTap: () {
+                Get.toNamed('/currency-converter');
               },
             ),
 
