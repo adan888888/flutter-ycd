@@ -31,7 +31,7 @@ class GameHomePage extends GetView<GameHomeLogic> {
             onLongPress: () => controller.lockScreen(),
             child: FloatingActionButton(
               backgroundColor: Colors.transparent,
-              onPressed: () => controller.setRandom((int _) => print(_)),
+              onPressed: () => controller.setRandom((int _) => debugPrint(_.toString())),
               child: Image.asset('assets/images/shai.png'),
             ),
           ),

@@ -258,10 +258,18 @@ class HttpService {
       case dio.DioExceptionType.cancel:
         return '请求已取消';
       case dio.DioExceptionType.connectionError:
-        return '网络连接错误，请检查网络';
+        // 断网或网络不可达的情况
+        if (error.message?.contains('Network is unreachable') == true || error.message?.contains('No address associated with hostname') == true) {
+          return '网络不可达，请检查网络连接';
+        }
+        return '网络连接失败，请检查网络连接';
       case dio.DioExceptionType.badCertificate:
         return '证书验证失败';
       case dio.DioExceptionType.unknown:
+        // 检查是否是网络相关错误
+        if (error.message?.contains('SocketException') == true || error.message?.contains('Failed host lookup') == true) {
+          return '网络连接失败，请检查网络连接';
+        }
         return '未知错误: ${error.message}';
     }
   }

@@ -17,9 +17,9 @@ class LoginWidget extends GetView<LoginController> {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              Colors.blue.shade900,
-              Colors.purple.shade800,
-              Colors.indigo.shade900,
+              Colors.deepPurple.shade100,
+              Colors.deepPurple.shade200,
+              Colors.deepPurple.shade50,
             ],
           ),
         ),
@@ -36,8 +36,6 @@ class LoginWidget extends GetView<LoginController> {
                     padding: EdgeInsets.symmetric(horizontal: 24.w),
                     child: Column(
                       children: [
-                        SizedBox(height: 40.h),
-
                         // Logo和标题区域
                         _buildHeader(),
 
@@ -117,8 +115,8 @@ class LoginWidget extends GetView<LoginController> {
               children: [
                 // Logo
                 Container(
-                  width: 120.w,
-                  height: 120.w,
+                  width: 40.w,
+                  height: 40.w,
                   decoration: BoxDecoration(
                     color: Colors.white.withValues(alpha: 0.2),
                     shape: BoxShape.circle,
@@ -248,40 +246,40 @@ class LoginWidget extends GetView<LoginController> {
       cursorColor: Colors.orange,
       cursorHeight: 15.h,
       style: TextStyle(
-        color: Colors.white,
+        color: Colors.black87,
         fontSize: 16.sp,
       ),
       decoration: InputDecoration(
         labelText: labelText,
         labelStyle: TextStyle(
-          color: Colors.white.withValues(alpha: 0.85),
+          color: Colors.black87,
           fontSize: 17.sp,
           fontWeight: FontWeight.w500,
         ),
         prefixIcon: Icon(
           prefixIcon,
-          color: Colors.white.withValues(alpha: 0.8),
+          color: Colors.black54,
           size: 22.w,
         ),
         suffixIcon: suffixIcon,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16.r),
           borderSide: BorderSide(
-            color: Colors.white.withValues(alpha: 0.18),
+            color: Colors.black26,
             width: 1.2,
           ),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16.r),
           borderSide: BorderSide(
-            color: Colors.white.withValues(alpha: 0.18),
+            color: Colors.black26,
             width: 1.2,
           ),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16.r),
           borderSide: BorderSide(
-            color: Colors.blueAccent.withValues(alpha: 0.8),
+            color: Colors.deepPurple.shade400.withValues(alpha: 0.8),
             width: 2.2,
           ),
         ),
@@ -300,7 +298,7 @@ class LoginWidget extends GetView<LoginController> {
           ),
         ),
         filled: true,
-        fillColor: Colors.white.withValues(alpha: 0.13),
+        fillColor: Colors.white.withValues(alpha: 0.8),
         contentPadding: EdgeInsets.symmetric(
           horizontal: 16.w,
           vertical: 12.h,
@@ -311,7 +309,7 @@ class LoginWidget extends GetView<LoginController> {
         ),
         // 优化：增加hintStyle
         hintStyle: TextStyle(
-          color: Colors.white.withValues(alpha: 0.5),
+          color: Colors.black54,
           fontSize: 15.sp,
         ),
       ),
@@ -334,13 +332,13 @@ class LoginWidget extends GetView<LoginController> {
                     borderRadius: BorderRadius.circular(16.r),
                     gradient: LinearGradient(
                       colors: [
-                        Colors.blue.shade400,
-                        Colors.purple.shade400,
+                        Colors.deepPurple.shade200,
+                        Colors.deepPurple.shade300,
                       ],
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.blue.withValues(alpha: 0.3),
+                        color: Colors.deepPurple.withValues(alpha: 0.3),
                         blurRadius: 15,
                         offset: const Offset(0, 8),
                       ),

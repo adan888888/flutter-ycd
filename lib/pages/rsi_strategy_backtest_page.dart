@@ -140,39 +140,40 @@ class _RSIStrategyBacktestPageState extends State<RSIStrategyBacktestPage> {
     }
   }
 
-  // 执行策略逻辑 - 每周定投1700元
+  // 执行策略逻辑 - 两周定投2000元
   Map<String, dynamic> _executeStrategy(List<double> prices, List<DateTime> dates, List<double> rsiValues) {
     double totalInvested = 0;
     double totalCoins = 0;
     final trades = <Map<String, dynamic>>[];
 
-    // 每周定投1000元
-    const weeklyAmount = 1000.0;
+    // 两周定投2000元
+    const biweeklyAmount = 2000.0;
 
-    // 计算有多少周（最近1年约52周）
+    // 计算有多少个两周周期（最近1年约26个两周周期）
     final totalWeeks = (dates.length / 7).floor();
-    final actualWeeks = totalWeeks > 52 ? 52 : totalWeeks; // 限制为52周
+    final biweeklyPeriods = (totalWeeks / 2).floor(); // 两周为一个周期
+    final actualPeriods = biweeklyPeriods > 26 ? 26 : biweeklyPeriods; // 限制为26个周期
 
     // 获取真正的当前价格（使用最后一个价格作为参考）
     final lastPrice = prices.last;
     debugPrint('数据中最后价格: $lastPrice');
     debugPrint('数据中最后日期: ${dates.last}');
-    debugPrint('实际回测周数: $actualWeeks');
+    debugPrint('实际回测两周周期数: $actualPeriods');
 
-    for (int week = 0; week < actualWeeks; week++) {
-      // 每周选择一天进行投资（这里选择每周的第一天）
-      final dayIndex = week * 7;
+    for (int period = 0; period < actualPeriods; period++) {
+      // 每两周选择一天进行投资（这里选择每个周期的第一天）
+      final dayIndex = period * 14; // 两周 = 14天
       if (dayIndex < prices.length) {
         final price = prices[dayIndex];
         final date = dates[dayIndex];
         final rsi = rsiValues[dayIndex];
 
         // 买入
-        final coinsBought = weeklyAmount / price;
-        totalInvested += weeklyAmount;
+        final coinsBought = biweeklyAmount / price;
+        totalInvested += biweeklyAmount;
         totalCoins += coinsBought;
 
-        trades.add({'date': date.toString().substring(0, 10), 'price': price, 'rsi': rsi, 'amount': weeklyAmount, 'coins': coinsBought, 'week': week + 1, 'type': '定投'});
+        trades.add({'date': date.toString().substring(0, 10), 'price': price, 'rsi': rsi, 'amount': biweeklyAmount, 'coins': coinsBought, 'period': period + 1, 'type': '定投'});
       }
     }
 
@@ -199,7 +200,7 @@ class _RSIStrategyBacktestPageState extends State<RSIStrategyBacktestPage> {
       'currentPrice': currentPrice,
       'coinName': _getCoinName(_selectedCoin),
       'period': '最近1年',
-      'weeks': actualWeeks,
+      'periods': actualPeriods,
     };
   }
 
@@ -255,7 +256,7 @@ class _RSIStrategyBacktestPageState extends State<RSIStrategyBacktestPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('${_getCoinName(_selectedCoin)} 每周定投回测 - 最近1年'), backgroundColor: Theme.of(context).colorScheme.inversePrimary),
+      appBar: AppBar(title: Text('${_getCoinName(_selectedCoin)} 两周定投回测 - 最近1年'), backgroundColor: Theme.of(context).colorScheme.inversePrimary),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: SingleChildScrollView(
@@ -338,12 +339,12 @@ class _RSIStrategyBacktestPageState extends State<RSIStrategyBacktestPage> {
                         child: const Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text('每周定投策略设置', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.blue)),
+                            Text('两周定投策略设置', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.blue)),
                             SizedBox(height: 8),
-                            Text('• 每周定投: \$1000', style: TextStyle(fontSize: 12)),
-                            Text('• 投资频率: 每周一次', style: TextStyle(fontSize: 12)),
-                            Text('• 投资时间: 每周第一天', style: TextStyle(fontSize: 12)),
-                            Text('• 回测周期: 最近1年数据 (约52周)', style: TextStyle(fontSize: 12)),
+                            Text('• 两周定投: \$2000', style: TextStyle(fontSize: 12)),
+                            Text('• 投资频率: 每两周一次', style: TextStyle(fontSize: 12)),
+                            Text('• 投资时间: 每两周第一天', style: TextStyle(fontSize: 12)),
+                            Text('• 回测周期: 最近1年数据 (约26个两周周期)', style: TextStyle(fontSize: 12)),
                             Text('• 策略类型: 定期定额投资', style: TextStyle(fontSize: 12)),
                             Text('• 数据来源: 币安API (日K线)', style: TextStyle(fontSize: 12)),
                           ],
@@ -357,7 +358,7 @@ class _RSIStrategyBacktestPageState extends State<RSIStrategyBacktestPage> {
                         child: ElevatedButton(
                           onPressed: _isLoadingBacktest ? null : _runBacktest,
                           style: ElevatedButton.styleFrom(backgroundColor: Colors.blue, foregroundColor: Colors.white),
-                          child: _isLoadingBacktest ? const CircularProgressIndicator(color: Colors.white) : Text('执行${_getCoinName(_selectedCoin)}最近1年每周定投回测'),
+                          child: _isLoadingBacktest ? const CircularProgressIndicator(color: Colors.white) : Text('执行${_getCoinName(_selectedCoin)}最近1年两周定投回测'),
                         ),
                       ),
                     ],
@@ -375,10 +376,10 @@ class _RSIStrategyBacktestPageState extends State<RSIStrategyBacktestPage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('${_backtestResult!['coinName']} 最近1年每周定投回测结果', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                        Text('${_backtestResult!['coinName']} 最近1年两周定投回测结果', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                         const SizedBox(height: 16),
                         _buildResultRow('回测周期', _backtestResult!['period']),
-                        _buildResultRow('实际周数', '${_backtestResult!['weeks']}周'),
+                        _buildResultRow('实际周期数', '${_backtestResult!['periods']}个两周周期'),
                         _buildResultRow('总本钱', '\$${_backtestResult!['totalInvested'].toStringAsFixed(2)}'),
                         _buildResultRow('累计买入数量', '${_backtestResult!['totalCoins'].toStringAsFixed(6)}'),
                         _buildResultRow('当前价格', '\$${_backtestResult!['currentPrice'].toStringAsFixed(2)}'),
@@ -401,7 +402,7 @@ class _RSIStrategyBacktestPageState extends State<RSIStrategyBacktestPage> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text('最近1年交易记录', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                          const Text('最近1年两周定投记录', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                           const SizedBox(height: 16),
                           Container(
                             height: 500,
@@ -410,7 +411,7 @@ class _RSIStrategyBacktestPageState extends State<RSIStrategyBacktestPage> {
                               itemBuilder: (context, index) {
                                 final trade = _backtestResult!['trades'][index];
                                 return ListTile(
-                                  title: Text('第${trade['week']}周 - ${trade['date']}'),
+                                  title: Text('第${trade['period']}个两周周期 - ${trade['date']}'),
                                   subtitle: Text(
                                     '价格: \$${trade['price'].toStringAsFixed(2)} | RSI: ${trade['rsi'].toStringAsFixed(1)} | 金额: \$${trade['amount'].toStringAsFixed(2)}',
                                   ),
@@ -418,7 +419,7 @@ class _RSIStrategyBacktestPageState extends State<RSIStrategyBacktestPage> {
                                   leading: Container(
                                     padding: const EdgeInsets.all(8),
                                     decoration: BoxDecoration(color: Colors.blue.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(8)),
-                                    child: Text('${trade['week']}', style: const TextStyle(fontWeight: FontWeight.bold)),
+                                    child: Text('${trade['period']}', style: const TextStyle(fontWeight: FontWeight.bold)),
                                   ),
                                 );
                               },

@@ -27,16 +27,14 @@ class _BuyRecordsPageState extends State<BuyRecordsPage> {
   Future<void> _fetchCurrentPrice() async {
     try {
       final symbol = _currentCurrency == 'btc' ? 'BTCUSDT' : 'ETHUSDT';
-      final response = await http
-          .get(
-            Uri.parse('https://api.binance.com/api/v3/ticker/price?symbol=$symbol'),
-            headers: {
-              'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-              'Accept': 'application/json',
-              'Accept-Language': 'en-US,en;q=0.9',
-            },
-          )
-          .timeout(const Duration(seconds: 30));
+      final response = await http.get(
+        Uri.parse('https://api.binance.com/api/v3/ticker/price?symbol=$symbol'),
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+          'Accept': 'application/json',
+          'Accept-Language': 'en-US,en;q=0.9',
+        },
+      ).timeout(const Duration(seconds: 30));
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
@@ -60,16 +58,14 @@ class _BuyRecordsPageState extends State<BuyRecordsPage> {
     });
 
     try {
-      final response = await http
-          .get(
-            Uri.parse('http://localhost:3000/api/buyRecords?currency=$_currentCurrency'),
-            headers: {
-              'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-              'Accept': 'application/json',
-              'Accept-Language': 'en-US,en;q=0.9',
-            },
-          )
-          .timeout(const Duration(seconds: 30));
+      final response = await http.get(
+        Uri.parse('http://localhost:3000/api/buyRecords?currency=$_currentCurrency'),
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+          'Accept': 'application/json',
+          'Accept-Language': 'en-US,en;q=0.9',
+        },
+      ).timeout(const Duration(seconds: 30));
 
       debugPrint('请求URL: ${response.request?.url}');
       debugPrint('响应状态码: ${response.statusCode}');
@@ -211,6 +207,49 @@ class _BuyRecordsPageState extends State<BuyRecordsPage> {
     return {'totalCost': totalCost, 'totalQuantity': totalQuantity, 'averagePrice': averagePrice};
   }
 
+  // 计算累计收益统计 (基于当前实时价格)
+  Map<String, dynamic> _calculateCurrentProfitStats(int recordIndex) {
+    if (_buyRecords.isEmpty || _currentPrice == null || recordIndex < 0 || recordIndex >= _buyRecords.length) {
+      return {};
+    }
+
+    // 计算累计的买入金额和BTC数量
+    double totalBuyAmount = 0;
+    double totalBtcQuantity = 0;
+
+    for (int i = 0; i <= recordIndex; i++) {
+      final record = _buyRecords[i];
+      final buyPrice = record['buy_price'] as num?;
+      final buyAmount = record['buy_amount'] as num?;
+
+      if (buyPrice != null && buyAmount != null) {
+        totalBuyAmount += buyAmount;
+        totalBtcQuantity += buyAmount / buyPrice;
+      }
+    }
+
+    if (totalBtcQuantity == 0) return {};
+
+    // 累计当前价值
+    final currentValue = totalBtcQuantity * _currentPrice!;
+
+    // 累计收益
+    final profit = currentValue - totalBuyAmount;
+
+    // 累计收益率
+    final profitPercentage = (profit / totalBuyAmount) * 100;
+
+    debugPrint('累计收益调试 (前${recordIndex + 1}笔):');
+    debugPrint('累计买入金额: $totalBuyAmount');
+    debugPrint('累计BTC数量: $totalBtcQuantity');
+    debugPrint('当前价格: $_currentPrice');
+    debugPrint('累计当前价值: $currentValue');
+    debugPrint('累计收益: $profit');
+    debugPrint('累计收益率: ${profitPercentage.toStringAsFixed(2)}%');
+
+    return {'totalBuyAmount': totalBuyAmount, 'totalBtcQuantity': totalBtcQuantity, 'currentValue': currentValue, 'profit': profit, 'profitPercentage': profitPercentage};
+  }
+
   // 切换币种
   void _switchCurrency(String currency) {
     if (_currentCurrency != currency) {
@@ -278,49 +317,6 @@ class _BuyRecordsPageState extends State<BuyRecordsPage> {
         ),
       ),
     );
-  }
-
-  // 计算累计收益统计 (基于当前实时价格)
-  Map<String, dynamic> _calculateCurrentProfitStats(int recordIndex) {
-    if (_buyRecords.isEmpty || _currentPrice == null || recordIndex < 0 || recordIndex >= _buyRecords.length) {
-      return {};
-    }
-
-    // 计算累计的买入金额和BTC数量
-    double totalBuyAmount = 0;
-    double totalBtcQuantity = 0;
-
-    for (int i = 0; i <= recordIndex; i++) {
-      final record = _buyRecords[i];
-      final buyPrice = record['buy_price'] as num?;
-      final buyAmount = record['buy_amount'] as num?;
-
-      if (buyPrice != null && buyAmount != null) {
-        totalBuyAmount += buyAmount;
-        totalBtcQuantity += buyAmount / buyPrice;
-      }
-    }
-
-    if (totalBtcQuantity == 0) return {};
-
-    // 累计当前价值
-    final currentValue = totalBtcQuantity * _currentPrice!;
-
-    // 累计收益
-    final profit = currentValue - totalBuyAmount;
-
-    // 累计收益率
-    final profitPercentage = (profit / totalBuyAmount) * 100;
-
-    debugPrint('累计收益调试 (前${recordIndex + 1}笔):');
-    debugPrint('累计买入金额: $totalBuyAmount');
-    debugPrint('累计BTC数量: $totalBtcQuantity');
-    debugPrint('当前价格: $_currentPrice');
-    debugPrint('累计当前价值: $currentValue');
-    debugPrint('累计收益: $profit');
-    debugPrint('累计收益率: ${profitPercentage.toStringAsFixed(2)}%');
-
-    return {'totalBuyAmount': totalBuyAmount, 'totalBtcQuantity': totalBtcQuantity, 'currentValue': currentValue, 'profit': profit, 'profitPercentage': profitPercentage};
   }
 
   @override
@@ -392,11 +388,9 @@ class _BuyRecordsPageState extends State<BuyRecordsPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 记录详情 - 压缩为两行显示
+            Text('第${index + 1}笔#', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.blue)),
             Row(
               children: [
-                Text('第${index + 1}笔#', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.blue)),
-                const SizedBox(width: 8),
                 Expanded(child: _buildCompactRecordDetails(record)),
               ],
             ),
@@ -417,11 +411,11 @@ class _BuyRecordsPageState extends State<BuyRecordsPage> {
   Widget _buildCompactRecordDetails(Map<String, dynamic> record) {
     return Row(
       children: [
-        Text('价格: ', style: const TextStyle(fontSize: 11, color: Colors.grey)),
-        Text(_formatPriceWithDecimals(record['buy_price']), style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+        const Text('买入价格: ', style: TextStyle(fontSize: 10, color: Colors.grey)),
+        Text(_formatPriceWithDecimals(record['buy_price']), style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w600)),
         const SizedBox(width: 20),
-        Text('数量: ', style: const TextStyle(fontSize: 11, color: Colors.grey)),
-        Text(record['buy_amount']?.toString() ?? '未知', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+        const Text('数量: ', style: TextStyle(fontSize: 10, color: Colors.grey)),
+        Text(record['buy_amount']?.toString() ?? '未知', style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w600)),
       ],
     );
   }
@@ -465,28 +459,17 @@ class _BuyRecordsPageState extends State<BuyRecordsPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('累计收益', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.purple)),
+        const SizedBox(height: 10),
+        const Text('统计信息', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.purple)),
         const SizedBox(height: 2),
-        Row(
+        Column(
           children: [
-            Expanded(child: _buildStatItem('累计投入', _formatPriceInteger(profitStats['totalBuyAmount']), Colors.orange)),
-            Expanded(child: _buildStatItem('当前价格', _formatPrice(_currentPrice!), Colors.blue)),
+            _buildStatItem('收益率', '${profitStats['profitPercentage'].toStringAsFixed(2)}%', isProfit ? Colors.green : Colors.red),
+            _buildStatItem('累计收益', _formatPriceFourDecimals(profit), isProfit ? Colors.green : Colors.red),
           ],
         ),
         const SizedBox(height: 3),
-        Row(
-          children: [
-            Expanded(child: _buildStatItem('累计BTC', profitStats['totalBtcQuantity'].toStringAsFixed(8), Colors.grey)),
-            Expanded(child: _buildStatItem('当前价值', _formatPrice(profitStats['currentValue']), Colors.green)),
-          ],
-        ),
-        const SizedBox(height: 3),
-        Row(
-          children: [
-            Expanded(child: _buildStatItem('累计收益', _formatPriceFourDecimals(profit), isProfit ? Colors.green : Colors.red)),
-            Expanded(child: _buildStatItem('收益率', '${profitStats['profitPercentage'].toStringAsFixed(2)}%', isProfit ? Colors.green : Colors.red)),
-          ],
-        ),
+        _buildStatItem('当前价格', _formatPrice(_currentPrice!), Colors.blue),
       ],
     );
   }

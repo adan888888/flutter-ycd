@@ -69,7 +69,7 @@ class GameHomeLogic extends GetxController {
     // Future.delayed(const Duration(seconds: 20), () => lockScreen());
     scrollController1.addListener(() {
       if (scrollController1.position.pixels == scrollController1.position.maxScrollExtent) {
-        print('已经滚动到了底部');
+        debugPrint('已经滚动到了底部');
       }
     });
 
@@ -213,7 +213,7 @@ class GameHomeLogic extends GetxController {
 
   recordButton(int i, String tableName, {Table1Model? table1, Table2Model? table2}) {
     // getDeviceId().then((value) {
-    //   print('测试=》${value}');
+    //   debugPrint('测试=》${value}');
     // });
 
     if (state.randomValue.isEmpty) {
@@ -267,7 +267,7 @@ class GameHomeLogic extends GetxController {
             _getStatisticalAreasData(-2); //重新计算
             state.table2ListX.insert(0, results.first); //打一手 记录一笔
             state.listMap.value = state.table2ListX.reversed.toList().map((e) => e.colmunShuyingzhi!.startsWith("-") ? "P" : "B").toList();
-            print("图表的值：${state.listMap}");
+            debugPrint("图表的值：${state.listMap}");
           },
           failed: (p0, p1) => state.isCanPress = true,
           onModel: (m) => Table2Model.fromJson(m));
@@ -459,7 +459,7 @@ class GameHomeLogic extends GetxController {
     BXPost/*<Map<String,dynamic>>*/(Api.updateOdds, params: {"odds": b}, success: (isSuccess, int code, String message, List<dynamic> results) {
       if (isSuccess) {
         BXLoading.showToast(message);
-        print("赔率值是=${(results[0]["odds"])}");
+        debugPrint("赔率值是=${(results[0]["odds"])}");
         state.totalValue[31] = (results[0]["odds"]).toString();
         _getStatisticalAreasData(-2); //和recordButton里面传一样的参数，确保不会破坏局部平衡
       }
@@ -521,7 +521,7 @@ class GameHomeLogic extends GetxController {
           params: {"uid": GetStore.getInstance().userModel.userId},
           success: (isSuccess, code, message, results) {
             if (isSuccess && results.isNotEmpty) {
-              print("清除一共多少${results.first}条数据");
+              debugPrint("清除一共多少${results.first}条数据");
             }
           },
         );
@@ -584,9 +584,9 @@ class GameHomeLogic extends GetxController {
         final Directory documentsDirectory = await getApplicationDocumentsDirectory();
         final Directory tempDir = await getTemporaryDirectory();
         final Directory? downloadsDir = await getDownloadsDirectory();
-        print(documentsDirectory);
-        print(tempDir);
-        print(downloadsDir);
+        debugPrint(documentsDirectory.path);
+        debugPrint(tempDir.path);
+        debugPrint(downloadsDir?.path);
 
         _instance
             ?.then((db) => db.query(DbHelper.table1))
@@ -654,7 +654,7 @@ class GameHomeLogic extends GetxController {
     BXPost/*<Map<String,dynamic>>*/(Api.updateQiWangValue, params: {"mean": qiwangzhi}, success: (isSuccess, int code, String message, List<dynamic> results) {
       if (isSuccess) {
         BXLoading.showToast(message);
-        print("期望值是=${(results[0]["mean"])}");
+        debugPrint("期望值是=${(results[0]["mean"])}");
         state.totalValue[19] = (results[0]["mean"]).toString();
       }
     });
@@ -666,7 +666,7 @@ class GameHomeLogic extends GetxController {
     //写入字符串
     file.writeAsString(s).then((value) {
       Loading.dismiss();
-      print('=====备份完成=====');
+      debugPrint('=====备份完成=====');
     });
   }
 
@@ -681,20 +681,20 @@ class GameHomeLogic extends GetxController {
     var filePath = file.path;
     file.readAsString().then((String value) {
       var s = '文件存储路径：' + filePath;
-      print(s);
+      debugPrint(s);
       var split1 = value.split('\n')[0];
-      print(jsonDecode(split1).length);
-      print(split1);
+      debugPrint(jsonDecode(split1).length);
+      debugPrint(split1);
       var split2 = value.split('\n')[1];
-      print(jsonDecode(split2).length);
-      print(split2);
+      debugPrint(jsonDecode(split2).length);
+      debugPrint(split2);
       for (var element in jsonDecode(split1)) {
         _instance?.then((db) => db.insert(DbHelper.table1, element));
       }
       for (var element in jsonDecode(split2)) {
         _instance?.then((db) => db.insert(DbHelper.table2, element));
       }
-      print('=====写入数据库完成====');
+      debugPrint('=====写入数据库完成====');
     });
   }
 
@@ -770,7 +770,7 @@ class GameHomeLogic extends GetxController {
       // deviceId = androidInfo.product;//dandelion
       // deviceId = androidInfo.tags;//release-keys
       deviceId = androidInfo.device; //release-keys
-      print(androidInfo.toMap());
+      debugPrint(androidInfo.data.toString());
       deviceId = androidInfo.device; //release-keys
     } else if (Platform.isIOS) {
       IosDeviceInfo iosInfo = await deviceInfo.iosInfo;

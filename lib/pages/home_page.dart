@@ -12,10 +12,10 @@ class HomePage extends StatelessWidget {
       body: Padding(
         padding: const EdgeInsets.all(24.0),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.start,
           children: [
-            const Icon(Icons.casino, size: 80, color: Colors.deepPurple),
-            const SizedBox(height: 24),
+            const Icon(Icons.show_chart_sharp, size: 140, color: Color.fromARGB(150, 104, 57, 88)),
+            const SizedBox(height: 1),
             const Text('选择您需要的功能', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.deepPurple)),
             const SizedBox(height: 32),
 
@@ -79,6 +79,7 @@ class HomePage extends StatelessWidget {
             _buildOptionCard(
               context,
               icon: Icons.games,
+              imagePath: 'assets/images/temp_dice.png', // 添加图片路径
               title: '百家乐游戏',
               subtitle: '体验真实的游戏乐趣',
               color: Colors.red,
@@ -93,7 +94,13 @@ class HomePage extends StatelessWidget {
     );
   }
 
-  Widget _buildOptionCard(BuildContext context, {required IconData icon, required String title, required String subtitle, required Color color, required VoidCallback onTap}) {
+  Widget _buildOptionCard(BuildContext context,
+      {required IconData icon,
+      String? imagePath, // 添加可选的图片路径参数
+      required String title,
+      required String subtitle,
+      required Color color,
+      required VoidCallback onTap}) {
     return Card(
       elevation: 4,
       child: InkWell(
@@ -107,7 +114,14 @@ class HomePage extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(10), // 从12改为10，减少图标容器间距
                 decoration: BoxDecoration(color: color.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12)),
-                child: Icon(icon, size: 26, color: color), // 从28改为26，稍微减小图标
+                child: imagePath != null
+                    ? Image.asset(
+                        imagePath,
+                        width: 26,
+                        height: 26,
+                        fit: BoxFit.contain,
+                      )
+                    : Icon(icon, size: 26, color: color), // 从28改为26，稍微减小图标
               ),
               const SizedBox(width: 14), // 从16改为14，减少图标和文字间距
               Expanded(
