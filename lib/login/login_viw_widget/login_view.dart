@@ -264,14 +264,14 @@ class LoginWidget extends GetView<LoginController> {
         suffixIcon: suffixIcon,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16.r),
-          borderSide: BorderSide(
+          borderSide: const BorderSide(
             color: Colors.black26,
             width: 1.2,
           ),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16.r),
-          borderSide: BorderSide(
+          borderSide: const BorderSide(
             color: Colors.black26,
             width: 1.2,
           ),

@@ -50,7 +50,7 @@ class _RSIAnalysisPageState extends State<RSIAnalysisPage> {
 
       // 获取价格数据 - 使用OKX API
       final response = await http.get(
-        Uri.parse('https://api.binance.com/api/v3/klines?symbol=${_selectedCoin}&interval=1d&limit=100'),
+        Uri.parse('https://api.binance.com/api/v3/klines?symbol=$_selectedCoin&interval=1d&limit=100'),
         headers: {
           'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
           'Accept': 'application/json',
@@ -190,7 +190,7 @@ class _RSIAnalysisPageState extends State<RSIAnalysisPage> {
                       // 币种选择
                       const Text('选择币种', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
                       const SizedBox(height: 8),
-                      Container(
+                      SizedBox(
                         height: 120,
                         child: ListView.builder(
                           scrollDirection: Axis.horizontal,
@@ -291,7 +291,7 @@ class _RSIAnalysisPageState extends State<RSIAnalysisPage> {
                         _buildSimpleRow('当前价格', '\$${_rsiResult!['currentPrice'].toStringAsFixed(2)}'),
                         _buildSimpleRow('RSI 6日', '${_rsiResult!['rsi'].toStringAsFixed(2)}'),
                         _buildSimpleRow('市场状态', _rsiResult!['status']),
-                        _buildSimpleRow('更新时间', '${_rsiResult!['timestamp'].toString().substring(0, 19)}'),
+                        _buildSimpleRow('更新时间', _rsiResult!['timestamp'].toString().substring(0, 19)),
                         if (_rsiResult!['isCustomPrice']) ...[_buildSimpleRow('价格类型', '假设价格')] else ...[_buildSimpleRow('价格类型', '实时价格')],
                       ],
                     ),

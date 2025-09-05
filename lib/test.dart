@@ -75,7 +75,7 @@ class _MyAppState extends State<MyApp> {
                         onPressed: () => setState(() {
                               results.add("P");
                             }),
-                        child: Text("增加P"))),
+                        child: const Text("增加P"))),
                 const Spacer(),
                 ColoredBox(
                     color: Colors.yellow,
@@ -83,7 +83,7 @@ class _MyAppState extends State<MyApp> {
                         onPressed: () => setState(() {
                               results.add("B");
                             }),
-                        child: Text("增加B")))
+                        child: const Text("增加B")))
               ],
             )
           ],

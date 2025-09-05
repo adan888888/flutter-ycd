@@ -2,13 +2,15 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 
 void main() {
-  runApp(CoinFlipImageApp());
+  runApp(const CoinFlipImageApp());
 }
 
 class CoinFlipImageApp extends StatelessWidget {
+  const CoinFlipImageApp({super.key});
+
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return const MaterialApp(
       home: CoinFlipImagePage(),
       debugShowCheckedModeBanner: false,
     );
@@ -16,11 +18,13 @@ class CoinFlipImageApp extends StatelessWidget {
 }
 
 class CoinFlipImagePage extends StatefulWidget {
+  const CoinFlipImagePage({super.key});
+
   @override
-  _CoinFlipImagePageState createState() => _CoinFlipImagePageState();
+  CoinFlipImagePageState createState() => CoinFlipImagePageState();
 }
 
-class _CoinFlipImagePageState extends State<CoinFlipImagePage> with SingleTickerProviderStateMixin {
+class CoinFlipImagePageState extends State<CoinFlipImagePage> with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _animation;
   final Random _rng = Random();
@@ -33,7 +37,7 @@ class _CoinFlipImagePageState extends State<CoinFlipImagePage> with SingleTicker
   void initState() {
     super.initState();
     _controller = AnimationController(
-      duration: Duration(milliseconds: 2000),
+      duration: const Duration(milliseconds: 2000),
       vsync: this,
     );
     _animation = Tween<double>(begin: 0, end: 1).animate(CurvedAnimation(
@@ -54,6 +58,7 @@ class _CoinFlipImagePageState extends State<CoinFlipImagePage> with SingleTicker
         }
       });
   }
+
   void _flipCoin() {
     if (isFlipping) return;
 
@@ -66,18 +71,18 @@ class _CoinFlipImagePageState extends State<CoinFlipImagePage> with SingleTicker
     double baseTurns = 5;
     double finalAngle = baseTurns * pi * 2 + (isHeads ? 0 : pi);
 
-    _animation = Tween<double>(begin: 0, end: finalAngle).animate(
-        CurvedAnimation(parent: _controller, curve: Curves.easeOut)
-    )..addListener(() {
-      setState(() {});
-    })..addStatusListener((status) {
-      if (status == AnimationStatus.completed) {
-        setState(() {
-          isFlipping = false;
-        });
-        _controller.reset();
-      }
-    });
+    _animation = Tween<double>(begin: 0, end: finalAngle).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut))
+      ..addListener(() {
+        setState(() {});
+      })
+      ..addStatusListener((status) {
+        if (status == AnimationStatus.completed) {
+          setState(() {
+            isFlipping = false;
+          });
+          _controller.reset();
+        }
+      });
 
     _controller.forward();
   }
@@ -101,21 +106,21 @@ class _CoinFlipImagePageState extends State<CoinFlipImagePage> with SingleTicker
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('🪙 Flip Coin (Realistic Style)')),
+      appBar: AppBar(title: const Text('🪙 Flip Coin (Realistic Style)')),
       backgroundColor: Colors.white,
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             _buildCoinFace(),
-            SizedBox(height: 40),
+            const SizedBox(height: 40),
             ElevatedButton.icon(
               onPressed: _flipCoin,
-              icon: Icon(Icons.flip),
-              label: Text('Flip Coin'),
+              icon: const Icon(Icons.flip),
+              label: const Text('Flip Coin'),
               style: ElevatedButton.styleFrom(
-                padding: EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-                textStyle: TextStyle(fontSize: 18),
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                textStyle: const TextStyle(fontSize: 18),
               ),
             ),
           ],

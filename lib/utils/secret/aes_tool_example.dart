@@ -28,7 +28,7 @@ void main() {
   final encrypter = encrypt.Encrypter(encrypt.AES(key, mode: encrypt.AESMode.cbc, padding: 'PKCS7'));
 
   // 要加密的明文
-  final plainText = '123456';
+  const plainText = '123456';
 
   // 加密
   final encrypted = encrypter.encrypt(plainText, iv: iv);

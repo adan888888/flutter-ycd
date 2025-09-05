@@ -14,7 +14,7 @@ class HomePage extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.start,
           children: [
-            const Icon(Icons.show_chart_sharp, size: 100, color: Color.fromARGB(150, 104, 57, 88)),
+            const Text('⚡️', style: TextStyle(fontSize: 80, color: Color.fromARGB(150, 104, 57, 88))),
             const Text('选择您需要的功能', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.deepPurple)),
 
             // 投资计算器选项

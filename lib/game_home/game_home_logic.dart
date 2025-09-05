@@ -377,7 +377,6 @@ class GameHomeLogic extends GetxController {
           state.table2ListX[index].colmunShuyingzhiD = "";
           state.table2ListX.refresh();
         }
-        ;
       },
     );
   }
@@ -680,7 +679,7 @@ class GameHomeLogic extends GetxController {
     }
     var filePath = file.path;
     file.readAsString().then((String value) {
-      var s = '文件存储路径：' + filePath;
+      var s = '文件存储路径：$filePath';
       debugPrint(s);
       var split1 = value.split('\n')[0];
       debugPrint(jsonDecode(split1).length);
@@ -707,7 +706,7 @@ class GameHomeLogic extends GetxController {
     final filePath = fileDirectory.path;
 
     //或者file对象（操作文件记得导入import 'dart:io'）
-    return File(filePath + "/" + fileName);
+    return File("$filePath/$fileName");
   }
 
   lockScreen() {

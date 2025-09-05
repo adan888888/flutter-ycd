@@ -10,7 +10,7 @@ void main() {
   // 创建解密器
   final encrypter = encrypt.Encrypter(encrypt.AES(key, mode: encrypt.AESMode.cbc, padding: 'PKCS7'));
   // 密文
-  final encryptedBase64 = 'ZHpPjn8bOx/ujPt1+uJmMg==';
+  const encryptedBase64 = 'ZHpPjn8bOx/ujPt1+uJmMg==';
   try {
     // 解密
     final decrypted = encrypter.decrypt64(encryptedBase64, iv: iv);

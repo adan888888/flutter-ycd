@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 void main() => runApp(BaccaratSimulatorApp());
 
 class BaccaratSimulatorApp extends StatelessWidget {
+  const BaccaratSimulatorApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -14,6 +16,8 @@ class BaccaratSimulatorApp extends StatelessWidget {
 }
 
 class BaccaratSimulatorPage extends StatefulWidget {
+  const BaccaratSimulatorPage({super.key});
+
   @override
   _BaccaratSimulatorPageState createState() => _BaccaratSimulatorPageState();
 }
@@ -62,24 +66,24 @@ class _BaccaratSimulatorPageState extends State<BaccaratSimulatorPage> {
     final winLossDiff = wins - losses;
 
     return Scaffold(
-      appBar: AppBar(title: Text('🎲 Baccarat Simulation')),
+      appBar: AppBar(title: const Text('🎲 Baccarat Simulation')),
       body: Center(
         child: Padding(
-          padding: EdgeInsets.all(24),
+          padding: const EdgeInsets.all(24),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text('模拟局数: $totalRounds', style: TextStyle(fontSize: 20)),
-              SizedBox(height: 20),
-              Text('✔️ 赢了: $wins', style: TextStyle(fontSize: 20, color: Colors.green)),
-              Text('❌ 输了: $losses', style: TextStyle(fontSize: 20, color: Colors.red)),
-              SizedBox(height: 20),
-              Text('📊 胜率: $winRate%', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
-              Text('🏆 赢比输多: $winLossDiff 局', style: TextStyle(fontSize: 20)),
-              SizedBox(height: 30),
+              Text('模拟局数: $totalRounds', style: const TextStyle(fontSize: 20)),
+              const SizedBox(height: 20),
+              Text('✔️ 赢了: $wins', style: const TextStyle(fontSize: 20, color: Colors.green)),
+              Text('❌ 输了: $losses', style: const TextStyle(fontSize: 20, color: Colors.red)),
+              const SizedBox(height: 20),
+              Text('📊 胜率: $winRate%', style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+              Text('🏆 赢比输多: $winLossDiff 局', style: const TextStyle(fontSize: 20)),
+              const SizedBox(height: 30),
               ElevatedButton.icon(
-                icon: Icon(Icons.replay),
-                label: Text('重新模拟'),
+                icon: const Icon(Icons.replay),
+                label: const Text('重新模拟'),
                 onPressed: runSimulation,
               ),
             ],

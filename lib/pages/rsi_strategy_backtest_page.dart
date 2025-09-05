@@ -48,7 +48,7 @@ class _RSIStrategyBacktestPageState extends State<RSIStrategyBacktestPage> {
       // 获取最近1年的价格数据 - 使用币安API
       // 1年 = 365天，加上一些缓冲，请求400天数据
       final response = await http.get(
-        Uri.parse('https://api.binance.com/api/v3/klines?symbol=${_selectedCoin}&interval=1d&limit=400'),
+        Uri.parse('https://api.binance.com/api/v3/klines?symbol=$_selectedCoin&interval=1d&limit=400'),
         headers: {
           'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
           'Accept': 'application/json',
@@ -272,7 +272,7 @@ class _RSIStrategyBacktestPageState extends State<RSIStrategyBacktestPage> {
                     children: [
                       const Text('选择币种', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
                       const SizedBox(height: 8),
-                      Container(
+                      SizedBox(
                         height: 120,
                         child: ListView.builder(
                           scrollDirection: Axis.horizontal,
@@ -404,7 +404,7 @@ class _RSIStrategyBacktestPageState extends State<RSIStrategyBacktestPage> {
                         children: [
                           const Text('最近1年两周定投记录', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                           const SizedBox(height: 16),
-                          Container(
+                          SizedBox(
                             height: 500,
                             child: ListView.builder(
                               itemCount: _backtestResult!['trades'].length,

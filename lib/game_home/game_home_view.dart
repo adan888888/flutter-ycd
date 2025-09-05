@@ -502,7 +502,7 @@ class GameHomePage extends GetView<GameHomeLogic> {
   Container divier2(Color color, double height) => Container(height: height, width: 5, color: Colors.transparent);
 
   buildButton(Color bg, String str, int i) => Expanded(
-        child: Container(
+        child: SizedBox(
           height: 32,
           child: TextButton(
             style: buildButtonStyle(bg),
@@ -535,7 +535,7 @@ class GameHomePage extends GetView<GameHomeLogic> {
             child: controller.state.isLoading
                 ? const CupertinoActivityIndicator()
                 : Text(
-                    '$str',
+                    str,
                     style: const TextStyle(
                       color: Colors.black38,
                       fontWeight: FontWeight.bold,
@@ -593,7 +593,7 @@ class _SinglePickerState extends State<SinglePicker> {
                   Get.back();
                   controller.functionConfirm(selectIndex);
                 },
-                style: ButtonStyle(backgroundColor: MaterialStateProperty.all(Colors.transparent)),
+                style: ButtonStyle(backgroundColor: WidgetStateProperty.all(Colors.transparent)),
                 child: const Text(
                   "确定",
                   style: TextStyle(color: Colors.redAccent, fontSize: 20),
