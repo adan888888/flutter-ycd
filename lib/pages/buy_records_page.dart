@@ -412,10 +412,10 @@ class _BuyRecordsPageState extends State<BuyRecordsPage> {
     return Row(
       children: [
         const Text('买入价格: ', style: TextStyle(fontSize: 10, color: Colors.grey)),
-        Text(_formatPriceWithDecimals(record['buy_price']), style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w600)),
+        Text(_formatPriceWithDecimals(record['buy_price']), style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w800)),
         const SizedBox(width: 20),
         const Text('数量: ', style: TextStyle(fontSize: 10, color: Colors.grey)),
-        Text(record['buy_amount']?.toString() ?? '未知', style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w600)),
+        Text(record['buy_amount']?.toString() ?? '未知', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w800)),
       ],
     );
   }
@@ -440,8 +440,8 @@ class _BuyRecordsPageState extends State<BuyRecordsPage> {
         const SizedBox(height: 2),
         Row(
           children: [
-            _buildStatItem('总成本', _formatPriceInteger(stats['totalCost']), Colors.red),
-            _buildStatItem('均价', _formatPriceTwoDecimals(stats['averagePrice']), Colors.orange),
+            _buildStatItem('总成本', _formatPriceInteger(stats['totalCost']), Colors.black),
+            _buildStatItem('均价', _formatPriceTwoDecimals(stats['averagePrice']), Colors.black),
             Expanded(child: _buildStatItem('总数量', stats['totalQuantity'].toStringAsFixed(8), Colors.grey)),
           ],
         ),
@@ -464,7 +464,7 @@ class _BuyRecordsPageState extends State<BuyRecordsPage> {
         const SizedBox(height: 2),
         Column(
           children: [
-            _buildStatItem('收益率', '${profitStats['profitPercentage'].toStringAsFixed(2)}%', isProfit ? Colors.green : Colors.red),
+            _buildStatItem('收益率    ', '${profitStats['profitPercentage'].toStringAsFixed(2)}%', isProfit ? Colors.green : Colors.red),
             _buildStatItem('累计收益', _formatPriceFourDecimals(profit), isProfit ? Colors.green : Colors.red),
           ],
         ),

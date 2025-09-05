@@ -31,8 +31,7 @@ class HomePage extends StatelessWidget {
               },
             ),
 
-            const SizedBox(height: 8),
-
+            const SizedBox(height: 4),
             // RSI分析选项
             _buildOptionCard(
               context,
@@ -45,7 +44,7 @@ class HomePage extends StatelessWidget {
               },
             ),
 
-            const SizedBox(height: 8),
+            const SizedBox(height: 4),
 
             // 每周定投回测选项
             _buildOptionCard(
@@ -59,7 +58,7 @@ class HomePage extends StatelessWidget {
               },
             ),
 
-            const SizedBox(height: 8),
+            const SizedBox(height: 4),
 
             // 买入记录选项
             _buildOptionCard(
@@ -73,7 +72,7 @@ class HomePage extends StatelessWidget {
               },
             ),
 
-            const SizedBox(height: 8),
+            const SizedBox(height: 4),
 
             // 百家乐游戏选项 - 移到最后一个
             _buildOptionCard(
