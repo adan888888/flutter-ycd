@@ -208,7 +208,9 @@ class LoginWidget extends GetView<LoginController> {
                         //为true时 看不见的
                         suffixIcon: IconButton(
                           icon: Icon(
-                            controller.state.isPasswordVisible.value ? Icons.visibility_off : Icons.visibility,
+                            controller.state.isPasswordVisible.value
+                                ? Icons.visibility_off
+                                : Icons.visibility,
                             color: Colors.white.withValues(alpha: 0.7),
                           ),
                           onPressed: controller.togglePasswordVisibility,
@@ -348,7 +350,9 @@ class LoginWidget extends GetView<LoginController> {
                     color: Colors.transparent,
                     child: InkWell(
                       borderRadius: BorderRadius.circular(16.r),
-                      onTap: controller.state.isLoading.value ? null : controller.login,
+                      onTap: controller.state.isLoading.value
+                          ? null
+                          : controller.login,
                       child: Container(
                         alignment: Alignment.center,
                         child: controller.state.isLoading.value
@@ -357,7 +361,8 @@ class LoginWidget extends GetView<LoginController> {
                                 height: 24.w,
                                 child: const CircularProgressIndicator(
                                   strokeWidth: 2,
-                                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                      Colors.white),
                                 ),
                               )
                             : Text(

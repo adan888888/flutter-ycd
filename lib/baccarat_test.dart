@@ -19,7 +19,7 @@ class BaccaratSimulatorPage extends StatefulWidget {
   const BaccaratSimulatorPage({super.key});
 
   @override
-  State<BaccaratSimulatorPage>  createState() => _BaccaratSimulatorPageState();
+  State<BaccaratSimulatorPage> createState() => _BaccaratSimulatorPageState();
 }
 
 class _BaccaratSimulatorPageState extends State<BaccaratSimulatorPage> {
@@ -75,11 +75,16 @@ class _BaccaratSimulatorPageState extends State<BaccaratSimulatorPage> {
             children: [
               Text('模拟局数: $totalRounds', style: const TextStyle(fontSize: 20)),
               const SizedBox(height: 20),
-              Text('✔️ 赢了: $wins', style: const TextStyle(fontSize: 20, color: Colors.green)),
-              Text('❌ 输了: $losses', style: const TextStyle(fontSize: 20, color: Colors.red)),
+              Text('✔️ 赢了: $wins',
+                  style: const TextStyle(fontSize: 20, color: Colors.green)),
+              Text('❌ 输了: $losses',
+                  style: const TextStyle(fontSize: 20, color: Colors.red)),
               const SizedBox(height: 20),
-              Text('📊 胜率: $winRate%', style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
-              Text('🏆 赢比输多: $winLossDiff 局', style: const TextStyle(fontSize: 20)),
+              Text('📊 胜率: $winRate%',
+                  style: const TextStyle(
+                      fontSize: 22, fontWeight: FontWeight.bold)),
+              Text('🏆 赢比输多: $winLossDiff 局',
+                  style: const TextStyle(fontSize: 20)),
               const SizedBox(height: 30),
               ElevatedButton.icon(
                 icon: const Icon(Icons.replay),

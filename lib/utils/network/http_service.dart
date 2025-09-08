@@ -1,11 +1,13 @@
 import 'dart:convert';
 import 'dart:developer';
+
 import 'package:dio/dio.dart' as dio;
 import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
+
 import '../../model/base_model.dart';
-import '../bx_loading.dart';
 import '../../routes/app_routes.dart'; // 添加路由配置导入
+import '../bx_loading.dart';
 import 'dio_manager.dart';
 import 'get_store.dart';
 
@@ -24,7 +26,8 @@ class HttpService {
   Future<void> get<T>(
     String api, {
     Map<String, dynamic>? params,
-    required Function(bool isSuccess, int code, String message, List<T> results) success,
+    required Function(bool isSuccess, int code, String message, List<T> results)
+        success,
     Function(String, BaseModel)? failed,
     Function(dynamic)? onModel,
     bool isShowLoading = true,
@@ -46,7 +49,8 @@ class HttpService {
   Future<void> post<T>(
     String api, {
     Map<String, dynamic>? params,
-    required Function(bool isSuccess, int code, String message, List<T> results) success,
+    required Function(bool isSuccess, int code, String message, List<T> results)
+        success,
     Function(String, BaseModel)? failed,
     Function(dynamic)? onModel,
     bool isShowLoading = true,
@@ -68,7 +72,8 @@ class HttpService {
   Future<void> put<T>(
     String api, {
     Map<String, dynamic>? params,
-    required Function(bool isSuccess, int code, String message, List<T> results) success,
+    required Function(bool isSuccess, int code, String message, List<T> results)
+        success,
     Function(String, BaseModel)? failed,
     Function(dynamic)? onModel,
     bool isShowLoading = true,
@@ -90,7 +95,8 @@ class HttpService {
   Future<void> delete<T>(
     String api, {
     Map<String, dynamic>? params,
-    required Function(bool isSuccess, int code, String message, List<T> results) success,
+    required Function(bool isSuccess, int code, String message, List<T> results)
+        success,
     Function(String, BaseModel)? failed,
     Function(dynamic)? onModel,
     bool isShowLoading = true,
@@ -112,7 +118,8 @@ class HttpService {
     String api, {
     required String method,
     Map<String, dynamic>? params,
-    required Function(bool isSuccess, int code, String message, List<T> results) success,
+    required Function(bool isSuccess, int code, String message, List<T> results)
+        success,
     Function(String, BaseModel)? failed,
     Function(dynamic)? onModel,
     bool isShowLoading = true,
@@ -181,7 +188,14 @@ class HttpService {
       } else {
         String errorMsg = '请求失败: ${response.statusCode}';
         if (showError) BXLoading.showToast(errorMsg);
-        if (failed != null) failed(errorMsg, BaseModel.fromJson({"code": response.statusCode ?? -1, "msg": errorMsg}));
+        if (failed != null) {
+          failed(
+              errorMsg,
+              BaseModel.fromJson({
+                "code": response.statusCode ?? -1,
+                "msg": errorMsg,
+              }));
+        }
       }
     } on dio.DioException catch (e) {
       String errorMsg = _handleDioError(e);
@@ -189,7 +203,10 @@ class HttpService {
       // 处理401未授权错误（token过期）
       if (e.response?.statusCode == 401) {
         log('🔐 401错误: ${e.response?.data}');
-
+        if (e.response!.data.toString().contains("Access denied")) {
+          BXLoading.showToast("连接不上数据库，Access denied");
+          return;
+        }
         // 尝试解析服务端返回的错误信息
         try {
           if (e.response?.data != null) {
@@ -228,12 +245,16 @@ class HttpService {
       }
 
       if (showError) BXLoading.showToast(errorMsg);
-      if (failed != null) failed(errorMsg, BaseModel.fromJson({"code": -1, "msg": errorMsg}));
+      if (failed != null) {
+        failed(errorMsg, BaseModel.fromJson({"code": -1, "msg": errorMsg}));
+      }
     } catch (e) {
       String errorMsg = '网络异常: ${e.toString()}';
       log('❌ 网络异常: $errorMsg');
       if (showError) BXLoading.showToast(errorMsg);
-      if (failed != null) failed(errorMsg, BaseModel.fromJson({"code": -1, "msg": errorMsg}));
+      if (failed != null) {
+        failed(errorMsg, BaseModel.fromJson({"code": -1, "msg": errorMsg}));
+      }
     } finally {
       if (isShowLoading) {
         BXLoading.dismiss();
@@ -259,7 +280,9 @@ class HttpService {
         return '请求已取消';
       case dio.DioExceptionType.connectionError:
         // 断网或网络不可达的情况
-        if (error.message?.contains('Network is unreachable') == true || error.message?.contains('No address associated with hostname') == true) {
+        if (error.message?.contains('Network is unreachable') == true ||
+            error.message?.contains('No address associated with hostname') ==
+                true) {
           return '网络不可达，请检查网络连接';
         }
         return '网络连接失败，请检查网络连接';
@@ -267,7 +290,8 @@ class HttpService {
         return '证书验证失败';
       case dio.DioExceptionType.unknown:
         // 检查是否是网络相关错误
-        if (error.message?.contains('SocketException') == true || error.message?.contains('Failed host lookup') == true) {
+        if (error.message?.contains('SocketException') == true ||
+            error.message?.contains('Failed host lookup') == true) {
           return '网络连接失败，请检查网络连接';
         }
         return '未知错误: ${error.message}';
