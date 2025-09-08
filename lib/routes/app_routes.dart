@@ -1,14 +1,15 @@
 import 'package:get/get_navigation/src/routes/get_route.dart';
-import 'package:ycd/login/login_viw_widget/login_binding.dart';
-import 'package:ycd/login/login_viw_widget/login_view.dart';
 import 'package:ycd/game_home/game_home_binding.dart';
 import 'package:ycd/game_home/game_home_view.dart';
+import 'package:ycd/login/login_viw_widget/login_binding.dart';
+import 'package:ycd/login/login_viw_widget/login_view.dart';
+import 'package:ycd/pages/baccarat_simulation_page.dart';
+import 'package:ycd/pages/buy_records_page.dart';
+import 'package:ycd/pages/currency_converter_page.dart';
 import 'package:ycd/pages/home_page.dart';
 import 'package:ycd/pages/investment_calculator_page.dart';
 import 'package:ycd/pages/rsi_analysis_page.dart';
 import 'package:ycd/pages/rsi_strategy_backtest_page.dart';
-import 'package:ycd/pages/buy_records_page.dart';
-import 'package:ycd/pages/currency_converter_page.dart';
 import 'package:ycd/utils/app_middleware.dart';
 
 /// 应用路由配置
@@ -28,6 +29,9 @@ class AppRoutes {
   static const String rsiStrategyBacktest = '/rsi-strategy-backtest';
   static const String buyRecords = '/buy-records';
   static const String currencyConverter = '/currency-converter';
+
+  // 游戏相关
+  static const String baccaratSimulation = '/baccarat-simulation';
 }
 
 /// 应用页面配置
@@ -76,6 +80,12 @@ class AppPages {
     GetPage(
       name: AppRoutes.currencyConverter,
       page: () => const CurrencyConverterPage(),
+    ),
+
+    // 百家乐开奖模拟页面
+    GetPage(
+      name: AppRoutes.baccaratSimulation,
+      page: () => const BaccaratSimulationPage(),
     ),
   ];
 }

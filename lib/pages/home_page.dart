@@ -13,7 +13,7 @@ class HomePage extends StatelessWidget {
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         centerTitle: true,
       ),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 14.0),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.start,
@@ -32,6 +32,8 @@ class HomePage extends StatelessWidget {
                   fontWeight: FontWeight.bold,
                   color: Colors.deepPurple),
             ),
+
+            const SizedBox(height: 20),
 
             // 投资计算器选项
             _buildOptionCard(
@@ -92,17 +94,30 @@ class HomePage extends StatelessWidget {
 
             const SizedBox(height: 4),
 
-            // 百家乐游戏选项 - 移到最后一个
+            // 百家乐开奖模拟选项 - 倒数第二
+            _buildOptionCard(
+              context,
+              icon: Icons.casino,
+              title: '百家乐开奖模拟',
+              subtitle: '模拟真实的开奖过程',
+              color: Colors.amber,
+              onTap: () => Get.toNamed('/baccarat-simulation'),
+            ),
+
+            const SizedBox(height: 4),
+
+            // 百家乐游戏选项 - 最后面
             _buildOptionCard(
               context,
               icon: Icons.games,
-              imagePath: 'assets/images/temp_dice.png', // 添加图片路径
+              imagePath: 'assets/images/temp_dice.png',
               title: '百家乐游戏',
               subtitle: '体验真实的游戏乐趣',
               color: Colors.red,
-              // 检查登录状态，如果未登录则跳转到登录页
               onTap: () => Get.toNamed('/login'),
             ),
+
+            const SizedBox(height: 20), // 底部留白
           ],
         ),
       ),
