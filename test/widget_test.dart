@@ -1,15 +1,16 @@
 import 'dart:convert';
 import 'dart:math';
+import 'package:flutter/foundation.dart'; // Added for debugPrint
 
 //测试十三层缆
 void main() {
   const int simulations = 10000; // 运行 1 万次游戏
   const double bankerWinRate = 0.5068; // 庄的胜率
-  const double playerWinRate = 0.4932; // 闲的胜率
+  // const double playerWinRate = 0.4932; // 闲的胜率 - 未使用，已注释
   const double bankerCommission = 0.95; // 押庄赢了后扣除 5% 佣金
 
   // 下注缆系统，第一列为主注，第二列和第三列用于补救
-  List<List<int>> fibSystem = [
+  const List<List<int>> fibSystem = [
     [1],
     [2],
     [3, 2, 4],
@@ -34,14 +35,14 @@ void main() {
   double totalProfit = 0; // 统计总盈利
   int totalBets = 0; // 统计总下注次数
   int runningWater = 0;
-  Random random = Random();
+  final Random random = Random();
 
   for (int i = 0; i < simulations; i++) {
     int currentRow = 0; // 记录当前下注行
     int currentCol = 0; // 记录当前下注列
 
     while (currentRow < fibSystem.length) {
-      int bet = fibSystem[currentRow][currentCol]; // 获取当前下注额
+      final int bet = fibSystem[currentRow][currentCol]; // 获取当前下注额
       maxBet = max(maxBet, bet); // 记录最大下注额
       if (totalBets > simulations - 1) {
         break;
@@ -49,14 +50,14 @@ void main() {
       totalBets++; // 统计总下注次数
 
       // 随机选择押庄还是押闲（50% 概率）
-      bool betOnBanker = random.nextBool(); //假设true为庄
+      // bool betOnBanker = random.nextBool(); //假设true为庄 - 注释掉用于测试
+      bool betOnBanker;
       if (next(1, 90485) > 44625 - 10000) {
         betOnBanker = true;
       } else {
         betOnBanker = false;
       }
-      betOnBanker = true;
-      bool bankerWinsRound = random.nextDouble() /* 0.0（包含）到 1.0（不包含）之间的随机双精度浮点数*/ < bankerWinRate; // 模拟开出的庄还是闲小于bankerWinRate是庄
+      final bool bankerWinsRound = random.nextDouble() /* 0.0（包含）到 1.0（不包含）之间的随机双精度浮点数*/ < bankerWinRate; // 模拟开出的庄还是闲小于bankerWinRate是庄
 
       if (betOnBanker) {
         //如果投注是庄
@@ -125,40 +126,40 @@ void main() {
     }
   }
 
-  double winRate = totalBetsWon / totalBets; // 计算下注胜率
-  double successRate = successfulResets / simulations; // 计算缆法成功回本率
-  double brokenRate = brokenFib / simulations; // 计算断缆率
+  final double winRate = totalBetsWon / totalBets; // 计算下注胜率
+  final double successRate = successfulResets / simulations; // 计算缆法成功回本率
+  final double brokenRate = brokenFib / simulations; // 计算断缆率
 
-  print('总局数: $simulations');
-  print('庄赢次数: $bankerWins');
-  print('闲赢次数: $playerWins');
-  print('庄闲偏差（庄赢 - 闲赢）: ${bankerWins - playerWins}');
-  print('缆法成功回本次数: $successfulResets');
-  print('缆法成功回本率: ${(successRate * 100).toStringAsFixed(2)}%');
-  print('断缆次数: $brokenFib');
-  print('断缆率: ${(brokenRate * 100).toStringAsFixed(2)}%');
-  print('总共赢了多少注: $totalBetsWon');
-  print('总下注次数: $totalBets');
-  print('下注胜率: ${(winRate * 100).toStringAsFixed(2)}%');
-  print('最大下注额: $maxBet');
-  print('流水返利: ${runningWater * 0.0078}');
-  print('最终盈利: ${totalProfit.toStringAsFixed(2)}');
+  // 替换所有 print 语句为 debugPrint
+  debugPrint('总局数: $simulations');
+  debugPrint('庄赢次数: $bankerWins');
+  debugPrint('闲赢次数: $playerWins');
+  debugPrint('庄闲偏差（庄赢 - 闲赢）: ${bankerWins - playerWins}');
+  debugPrint('缆法成功回本次数: $successfulResets');
+  debugPrint('缆法成功回本率: ${(successRate * 100).toStringAsFixed(2)}%');
+  debugPrint('断缆次数: $brokenFib');
+  debugPrint('断缆率: ${(brokenRate * 100).toStringAsFixed(2)}%');
+  debugPrint('总共赢了多少注: $totalBetsWon');
+  debugPrint('总下注次数: $totalBets');
+  debugPrint('下注胜率: ${(winRate * 100).toStringAsFixed(2)}%');
+  debugPrint('最大下注额: $maxBet');
+  debugPrint('流水返利: ${runningWater * 0.0078}');
+  debugPrint('最终盈利: ${totalProfit.toStringAsFixed(2)}');
 
-  print(removeChineseCharacters("可负20x8".split("x")[0]));
+  debugPrint(removeChineseCharacters("可负20x8".split("x")[0]));
 
-  String ssss = '''
-     {"name":"john","age":"2000"}
-  ''';
-  var user = User("john", 1000)
+  // 移除未使用的变量 ssss
+  final user = User("john", 1000)
     ..age = 100
     ..name = "John";
-  print(jsonEncode(user.toJson()));
-  print("--------------------------------------------------");
-  print(funxxx());
+  debugPrint(jsonEncode(user.toJson()));
+  debugPrint("--------------------------------------------------");
+  debugPrint(funxxx().toString());
 
-  print("--------------------------------------------------");
-  var o={"tableId":10000, "age":100, "name":"张三"};
-  print(jsonEncode(o..remove("tableId")));
+  debugPrint("--------------------------------------------------");
+  final Map<String, dynamic> o = {"tableId": 10000, "age": 100, "name": "张三"};
+  o.remove("tableId");
+  debugPrint(jsonEncode(o));
 }
 
 int next(int min, int max) => min + Random().nextInt(max - min + 1);
@@ -178,25 +179,25 @@ class User {
     age = j['age'] as int?;
   }
 
-  toJson() => {
+  Map<String, dynamic> toJson() => {
         'name': name,
         'age': age,
       };
 }
 
 bool funxxx() {
-  var temp = {"x": 0, "y": 0, "tppe": "小"};
-  var temp1 = {"x": 0, "y": 1, "tppe": "操"};
-  var temp3 = {"x": 0, "y": 2, "tppe": "妹"};
+  final Map<String, dynamic> temp = {"x": 0, "y": 0, "tppe": "小"};
+  final Map<String, dynamic> temp1 = {"x": 0, "y": 1, "tppe": "操"};
+  final Map<String, dynamic> temp3 = {"x": 0, "y": 2, "tppe": "妹"};
 
-  var list = [temp, temp1, temp3];
+  final List<Map<String, dynamic>> list = [temp, temp1, temp3];
 
-  for (var value1 in list) {
+  for (final Map<String, dynamic> value1 in list) {
     if (value1['x'] == 0 && value1['y'] == 0) {
-      print(value1['tppe']);
+      debugPrint(value1['tppe'].toString());
       return true;
     }
-    print(value1);
+    debugPrint(value1.toString());
   }
   return false;
 }

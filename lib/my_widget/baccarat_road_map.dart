@@ -4,18 +4,13 @@ class BaccaratRoadMap extends StatefulWidget {
   final List<String> results;
   final ScrollController scrollController;
 
-  const BaccaratRoadMap({required this.results, super.key ,required this.scrollController});
+  const BaccaratRoadMap({required this.results, super.key, required this.scrollController});
 
   @override
-  _BaccaratRoadMapState createState() => _BaccaratRoadMapState(results,scrollController);
+  State<BaccaratRoadMap> createState() => _BaccaratRoadMapState();
 }
 
 class _BaccaratRoadMapState extends State<BaccaratRoadMap> {
-  final ScrollController scrollController;
-  final List<String> results;
-
-  _BaccaratRoadMapState(this.results, this.scrollController);
-
   @override
   Widget build(BuildContext context) {
     return ColoredBox(
@@ -24,10 +19,10 @@ class _BaccaratRoadMapState extends State<BaccaratRoadMap> {
         scrollDirection: Axis.horizontal,
         // 使用 ClampingScrollPhysics，滚动到边缘时停止
         // physics: const ClampingScrollPhysics(),
-        controller: scrollController,
+        controller: widget.scrollController,
         child: CustomPaint(
-          size: Size(results.length/2 * 12.0, double.infinity), // 动态宽度(这里宽度是有问题的，应该拿画的最宽的那个长度来设置的，要不然滑动会有问题)，后期需要再优化
-          painter: RoadMapPainter(results, scrollController, () {
+          size: Size(widget.results.length / 2 * 12.0, double.infinity), // 动态宽度(这里宽度是有问题的，应该拿画的最宽的那个长度来设置的，要不然滑动会有问题)，后期需要再优化
+          painter: RoadMapPainter(widget.results, widget.scrollController, () {
             WidgetsBinding.instance.addPostFrameCallback((_) {
               // if (mounted) {
               //   Future<void>.delayed(const Duration(milliseconds: 400));
@@ -46,7 +41,6 @@ class _BaccaratRoadMapState extends State<BaccaratRoadMap> {
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
   }
 }

@@ -1,14 +1,14 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 
-void main() => runApp(BaccaratSimulatorApp());
+void main() => runApp(const BaccaratSimulatorApp());
 
 class BaccaratSimulatorApp extends StatelessWidget {
   const BaccaratSimulatorApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return const MaterialApp(
       home: BaccaratSimulatorPage(),
       debugShowCheckedModeBanner: false,
     );
@@ -19,7 +19,7 @@ class BaccaratSimulatorPage extends StatefulWidget {
   const BaccaratSimulatorPage({super.key});
 
   @override
-  _BaccaratSimulatorPageState createState() => _BaccaratSimulatorPageState();
+  State<BaccaratSimulatorPage>  createState() => _BaccaratSimulatorPageState();
 }
 
 class _BaccaratSimulatorPageState extends State<BaccaratSimulatorPage> {

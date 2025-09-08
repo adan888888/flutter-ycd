@@ -1,16 +1,12 @@
-
 import 'package:logger/logger.dart';
 
 class Log {
   static final Logger _logger = Logger(
-    printer: PrefixPrinter(PrettyPrinter(
-        stackTraceBeginIndex: 1,
-        methodCount: 2
-    )),
+    printer: PrefixPrinter(PrettyPrinter(stackTraceBeginIndex: 1, methodCount: 2)),
   );
 
-  static void v(dynamic message) {
-    _logger.v(message);
+  static void t(dynamic message) {
+    _logger.t(message);
   }
 
   static void d(dynamic message) {
@@ -29,7 +25,7 @@ class Log {
     _logger.e(message);
   }
 
-  static void wtf(dynamic message) {
-    _logger.wtf(message);
+  static void f(dynamic message) {
+    _logger.f(message);
   }
 }

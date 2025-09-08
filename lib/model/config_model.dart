@@ -1,4 +1,4 @@
-import '../utils/types_of.dart';
+import 'package:ycd/utils/types_of.dart';
 
 class ConfigModel {
   int tenantId = 0; // Default value set to 0

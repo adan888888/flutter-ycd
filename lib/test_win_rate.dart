@@ -25,7 +25,7 @@ class SimulationScreen extends StatefulWidget {
   const SimulationScreen({super.key});
 
   @override
-  _SimulationScreenState createState() => _SimulationScreenState();
+  State<SimulationScreen> createState() => _SimulationScreenState();
 }
 
 class _SimulationScreenState extends State<SimulationScreen> {
@@ -57,7 +57,7 @@ class _SimulationScreenState extends State<SimulationScreen> {
       // 执行单次模拟
       final result = await Future<SimulationResult>.delayed(
         const Duration(milliseconds: 100), // 延迟一下，避免UI卡顿
-            () => _runSingleSimulation(),
+        () => _runSingleSimulation(),
       );
 
       setState(() {
@@ -98,8 +98,7 @@ class _SimulationScreenState extends State<SimulationScreen> {
       }
 
       // 判断是否赢了这一局
-      bool win = (betOnBanker && bankerWinsThisRound) ||
-          (!betOnBanker && !bankerWinsThisRound);
+      bool win = (betOnBanker && bankerWinsThisRound) || (!betOnBanker && !bankerWinsThisRound);
 
       // 更新统计
       if (win) {
@@ -210,9 +209,7 @@ class _SimulationScreenState extends State<SimulationScreen> {
                       DataCell(Text(
                         '${result.winLossDifference}',
                         style: TextStyle(
-                          color: result.winLossDifference >= 0
-                              ? Colors.green
-                              : Colors.red,
+                          color: result.winLossDifference >= 0 ? Colors.green : Colors.red,
                         ),
                       )),
                     ]);
