@@ -3,13 +3,13 @@ import 'package:ycd/game_home/game_home_binding.dart';
 import 'package:ycd/game_home/game_home_view.dart';
 import 'package:ycd/login/login_viw_widget/login_binding.dart';
 import 'package:ycd/login/login_viw_widget/login_view.dart';
-import 'package:ycd/pages/baccarat_simulation_page.dart';
-import 'package:ycd/pages/buy_records_page.dart';
-import 'package:ycd/pages/currency_converter_page.dart';
+import 'package:ycd/pages/baccarat_simulation/index.dart';
+import 'package:ycd/pages/buy_records/index.dart';
+import 'package:ycd/pages/currency_converter/index.dart';
 import 'package:ycd/pages/home_page.dart';
-import 'package:ycd/pages/investment_calculator_page.dart';
-import 'package:ycd/pages/rsi_analysis_page.dart';
-import 'package:ycd/pages/rsi_strategy_backtest_page.dart';
+import 'package:ycd/pages/investment_calculator/index.dart';
+import 'package:ycd/pages/rsi_analysis/index.dart';
+import 'package:ycd/pages/rsi_strategy_backtest/index.dart';
 import 'package:ycd/utils/app_middleware.dart';
 
 /// 应用路由配置
@@ -63,29 +63,35 @@ class AppPages {
     // 投资工具页面
     GetPage(
       name: AppRoutes.investmentCalculator,
-      page: () => const InvestmentCalculatorPage(),
+      page: () => const InvestmentCalculatorView(),
+      binding: InvestmentCalculatorBinding(),
     ),
     GetPage(
       name: AppRoutes.rsiAnalysis,
-      page: () => const RSIAnalysisPage(),
+      page: () => const RSIAnalysisView(),
+      binding: RSIAnalysisBinding(),
     ),
     GetPage(
       name: AppRoutes.rsiStrategyBacktest,
-      page: () => const RSIStrategyBacktestPage(),
+      page: () => const RSIStrategyBacktestView(),
+      binding: RSIStrategyBacktestBinding(),
     ),
     GetPage(
       name: AppRoutes.buyRecords,
-      page: () => const BuyRecordsPage(),
+      page: () => const BuyRecordsView(),
+      binding: BuyRecordsBinding(),
     ),
     GetPage(
       name: AppRoutes.currencyConverter,
-      page: () => const CurrencyConverterPage(),
+      page: () => const CurrencyConverterView(),
+      binding: CurrencyConverterBinding(),
     ),
 
     // 百家乐开奖模拟页面
     GetPage(
       name: AppRoutes.baccaratSimulation,
-      page: () => const BaccaratSimulationPage(),
+      page: () => const BaccaratSimulationView(),
+      binding: BaccaratSimulationBinding(),
     ),
   ];
 }

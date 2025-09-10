@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:ycd/routes/app_routes.dart';
 
 // 首页选择界面
 class HomePage extends StatelessWidget {
@@ -42,7 +43,7 @@ class HomePage extends StatelessWidget {
               title: '复利投资计算器',
               subtitle: '计算复利收益',
               color: Colors.blue,
-              onTap: () => Get.toNamed('/investment-calculator'),
+              onTap: () => Get.toNamed(AppRoutes.investmentCalculator),
             ),
 
             const SizedBox(height: 4),
@@ -53,7 +54,7 @@ class HomePage extends StatelessWidget {
               title: '多币种 RSI 分析',
               subtitle: '分析相对强弱指数',
               color: Colors.green,
-              onTap: () => Get.toNamed('/rsi-analysis'),
+              onTap: () => Get.toNamed(AppRoutes.rsiAnalysis),
             ),
 
             const SizedBox(height: 4),
@@ -65,7 +66,7 @@ class HomePage extends StatelessWidget {
               title: '每周定投回测',
               subtitle: '回测定投策略',
               color: Colors.orange,
-              onTap: () => Get.toNamed('/rsi-strategy-backtest'),
+              onTap: () => Get.toNamed(AppRoutes.rsiStrategyBacktest),
             ),
 
             const SizedBox(height: 4),
@@ -77,7 +78,7 @@ class HomePage extends StatelessWidget {
               title: '持币记录分析',
               subtitle: '查看历史买入记录',
               color: Colors.purple,
-              onTap: () => Get.toNamed('/buy-records'),
+              onTap: () => Get.toNamed(AppRoutes.buyRecords),
             ),
 
             const SizedBox(height: 4),
@@ -89,7 +90,7 @@ class HomePage extends StatelessWidget {
               title: '汇率换算',
               subtitle: '实时汇率换算工具',
               color: Colors.teal,
-              onTap: () => Get.toNamed('/currency-converter'),
+              onTap: () => Get.toNamed(AppRoutes.currencyConverter),
             ),
 
             const SizedBox(height: 4),
@@ -101,7 +102,7 @@ class HomePage extends StatelessWidget {
               title: '百家乐开奖模拟',
               subtitle: '模拟真实的开奖过程',
               color: Colors.amber,
-              onTap: () => Get.toNamed('/baccarat-simulation'),
+              onTap: () => Get.toNamed(AppRoutes.baccaratSimulation),
             ),
 
             const SizedBox(height: 4),
@@ -114,7 +115,7 @@ class HomePage extends StatelessWidget {
               title: '百家乐游戏',
               subtitle: '体验真实的游戏乐趣',
               color: Colors.red,
-              onTap: () => Get.toNamed('/login'),
+              onTap: () => Get.toNamed(AppRoutes.login),
             ),
 
             const SizedBox(height: 20), // 底部留白
