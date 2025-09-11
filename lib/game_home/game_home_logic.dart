@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
+
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:easy_refresh/easy_refresh.dart';
 import 'package:flutter/material.dart';
@@ -14,11 +15,12 @@ import 'package:ycd/my_db/db_helper.dart';
 import 'package:ycd/my_db/table1_model.dart';
 import 'package:ycd/utils/loading.dart';
 import 'package:ycd/utils/network/get_store.dart';
+
 import '../my_db/table2_model.dart';
+import '../routes/app_routes.dart';
 import '../utils/bx_loading.dart';
 import '../utils/network/api.dart';
 import '../utils/network/http_mgr.dart';
-import '../routes/app_routes.dart';
 import 'game_home_state.dart';
 import 'game_home_view.dart';
 
@@ -84,7 +86,10 @@ class GameHomeLogic extends GetxController {
           if (isSuccess && results.isNotEmpty) {
             state.table2ListX.clear();
             state.table2ListX.value = results.reversed.toList();
-            state.listMap.value = state.table2ListX.reversed.toList().map((e) => e.colmunShuyingzhi!.startsWith("-") ? "P" : "B").toList();
+            state.listMap.value = state.table2ListX.reversed
+                .toList()
+                .map((e) => e.colmunShuyingzhi!.startsWith("-") ? "P" : "B")
+                .toList();
           }
         },
         onModel: (m) => Table2Model.fromJson(m));
@@ -184,7 +189,8 @@ class GameHomeLogic extends GetxController {
       state.totalValue[30] = '闲';
       state.randomValue = '闲';
     }
-    Get.dialog(NewWidget(state.randomValue), barrierDismissible: false, barrierColor: Colors.black.withValues(alpha: 0.18));
+    Get.dialog(NewWidget(state.randomValue),
+        barrierDismissible: false, barrierColor: Colors.black.withValues(alpha: 0.18));
     state.isCanPress = true;
   }
 
@@ -199,7 +205,8 @@ class GameHomeLogic extends GetxController {
             state.table1List.value = value;
             state.totalValue[0] = '${state.table1List.last.columnBenjin}'; //本金
             state.totalValue[19] = '${state.table1List.last.columnMean}'; //期望值
-            state.chartData.value = List.generate(75, (index) => SalesData(index, double.parse(state.table1List.last.columnBenjin.toString()))).toList();
+            state.chartData.value = List.generate(
+                75, (index) => SalesData(index, double.parse(state.table1List.last.columnBenjin.toString()))).toList();
           }
           state.isRefreshing.value = false;
         },
@@ -217,20 +224,32 @@ class GameHomeLogic extends GetxController {
     // });
 
     if (state.randomValue.isEmpty) {
-      Get.snackbar("温馨提示", '请摇塞子', duration: const Duration(seconds: 2), snackPosition: SnackPosition.TOP, backgroundColor: Colors.white.withValues(alpha: 0.7));
+      Get.snackbar("温馨提示", '请摇塞子',
+          duration: const Duration(seconds: 2),
+          snackPosition: SnackPosition.TOP,
+          backgroundColor: Colors.white.withValues(alpha: 0.7));
       return;
     }
 
     if (state.bettingMoney.isEmpty) {
-      Get.snackbar("温馨提示", '请输入下注金额', duration: const Duration(seconds: 2), snackPosition: SnackPosition.TOP, backgroundColor: Colors.white.withValues(alpha: 0.7));
+      Get.snackbar("温馨提示", '请输入下注金额',
+          duration: const Duration(seconds: 2),
+          snackPosition: SnackPosition.TOP,
+          backgroundColor: Colors.white.withValues(alpha: 0.7));
       return;
     }
     if (!state.bettingMoney.isNum) {
-      Get.snackbar("温馨提示", '请输入数字', duration: const Duration(seconds: 2), snackPosition: SnackPosition.TOP, backgroundColor: Colors.white.withValues(alpha: 0.7));
+      Get.snackbar("温馨提示", '请输入数字',
+          duration: const Duration(seconds: 2),
+          snackPosition: SnackPosition.TOP,
+          backgroundColor: Colors.white.withValues(alpha: 0.7));
       return;
     }
     if (!state.isCanPress) {
-      Get.snackbar("温馨提示", '速度太快', duration: const Duration(seconds: 2), snackPosition: SnackPosition.BOTTOM, backgroundColor: Colors.white.withValues(alpha: 0.7));
+      Get.snackbar("温馨提示", '速度太快',
+          duration: const Duration(seconds: 2),
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.white.withValues(alpha: 0.7));
       return;
     }
     Loading.show();
@@ -244,17 +263,26 @@ class GameHomeLogic extends GetxController {
             colmunZx: state.randomValue,
             //输（-） 赢 （+）
             colmunRemark: (i == 1 || i == 2) ? "1" : "-1",
-            colmunShengfulu: ((i == 1 || i == 3) && (state.randomValue == '闲')) || ((i == 2 || i == 4) && (state.randomValue == '庄')) ? "正打" : "反打",
+            colmunShengfulu:
+                ((i == 1 || i == 3) && (state.randomValue == '闲')) || ((i == 2 || i == 4) && (state.randomValue == '庄'))
+                    ? "正打"
+                    : "反打",
             colmunShuyingzhi: syzL(i),
             colmunShuyingzhiD: syzL(i),
             columnCurrentJin: getCurrentJin(i, double.parse(state.bettingMoney)).toString(),
           )
-        : Table1Model(columnBenjin: "10000", columnYongJin: "0.95", columnMean: "0.08", columnRestartIndex: "0", columnLiushuiIndex: "10");
+        : Table1Model(
+            columnBenjin: "10000",
+            columnYongJin: "0.95",
+            columnMean: "0.08",
+            columnRestartIndex: "0",
+            columnLiushuiIndex: "10");
 
     ///改变成插入远程数据库
     if (tableName == 'table1') {
       BXPut<Table1Model>(Api.inserttable1,
-          params: (table as Table1Model).toJson()..addAll({"UserID": int.parse(GetStore.getInstance().userModel.userId)}),
+          params: (table as Table1Model).toJson()
+            ..addAll({"UserID": int.parse(GetStore.getInstance().userModel.userId)}),
           success: (isSuccess, code, message, results) => BXLoading.showToast("操作表1"),
           failed: (p0, p1) => state.isCanPress = true,
           onModel: (m) => Table1Model.fromJson(m));
@@ -266,7 +294,10 @@ class GameHomeLogic extends GetxController {
           success: (isSuccess, code, message, results) {
             _getStatisticalAreasData(-2); //重新计算
             state.table2ListX.insert(0, results.first); //打一手 记录一笔
-            state.listMap.value = state.table2ListX.reversed.toList().map((e) => e.colmunShuyingzhi!.startsWith("-") ? "P" : "B").toList();
+            state.listMap.value = state.table2ListX.reversed
+                .toList()
+                .map((e) => e.colmunShuyingzhi!.startsWith("-") ? "P" : "B")
+                .toList();
             debugPrint("图表的值：${state.listMap}");
           },
           failed: (p0, p1) => state.isCanPress = true,
@@ -318,7 +349,10 @@ class GameHomeLogic extends GetxController {
       case 1:
         return (lastJinE + playMoney);
       case 2:
-        return (lastJinE) + playMoney * double.parse(state.totalValue[31] == "31" || state.totalValue[31] == "" ? "0.95" : state.totalValue[31]);
+        return (lastJinE) +
+            playMoney *
+                double.parse(
+                    state.totalValue[31] == "31" || state.totalValue[31] == "" ? "0.95" : state.totalValue[31]);
       case 3:
       case 4:
         return (lastJinE) - playMoney;
@@ -331,7 +365,8 @@ class GameHomeLogic extends GetxController {
         return state.bettingMoney;
       case 2: //庄赢
         double parse = double.parse(state.bettingMoney);
-        var xx = parse * double.parse(state.totalValue[31] == "31" || state.totalValue[31] == "" ? "0.95" : state.totalValue[31]);
+        var xx = parse *
+            double.parse(state.totalValue[31] == "31" || state.totalValue[31] == "" ? "0.95" : state.totalValue[31]);
         String syz /*庄赢值*/ = xx.toStringAsFixed(2); //四舍五入保留两位小数
         return syz;
       case 3:
@@ -455,7 +490,8 @@ class GameHomeLogic extends GetxController {
     //         ).toJson())
     //     .then((value) => queryAll()))));
 
-    BXPost/*<Map<String,dynamic>>*/(Api.updateOdds, params: {"odds": b}, success: (isSuccess, int code, String message, List<dynamic> results) {
+    BXPost/*<Map<String,dynamic>>*/(Api.updateOdds, params: {"odds": b},
+        success: (isSuccess, int code, String message, List<dynamic> results) {
       if (isSuccess) {
         BXLoading.showToast(message);
         debugPrint("赔率值是=${(results[0]["odds"])}");
@@ -490,7 +526,11 @@ class GameHomeLogic extends GetxController {
         BXPost(Api.sortxiaoshu, success: (isSuccess, code, message, results) {
           if (isSuccess) {
             BXLoading.showToast(message);
-            var list = state.table2ListX.map((element) => element.colmunShuyingzhiD.toString().isEmpty ? 0.0 : double.parse(element.colmunShuyingzhiD.toString())).toList()
+            var list = state.table2ListX
+                .map((element) => element.colmunShuyingzhiD.toString().isEmpty
+                    ? 0.0
+                    : double.parse(element.colmunShuyingzhiD.toString()))
+                .toList()
               ..removeWhere((element) => element == 0.0)
               ..sort();
             for (int i = 1; i <= list.length; i++) {
@@ -587,9 +627,9 @@ class GameHomeLogic extends GetxController {
         debugPrint(tempDir.path);
         debugPrint(downloadsDir?.path);
 
-        _instance
-            ?.then((db) => db.query(DbHelper.table1))
-            .then((value1) => _instance?.then((db) => db.query(DbHelper.table2)).then((value2) => saveString('${jsonEncode(value1)}\n${jsonEncode(value2)}')));
+        _instance?.then((db) => db.query(DbHelper.table1)).then((value1) => _instance
+            ?.then((db) => db.query(DbHelper.table2))
+            .then((value2) => saveString('${jsonEncode(value1)}\n${jsonEncode(value2)}')));
 
         break;
       case 7:
@@ -644,13 +684,21 @@ class GameHomeLogic extends GetxController {
     state.randomValue = '';
     List.generate(32, (index) => state.totalValue[index] = index.toString());
     _instance
-        ?.then((db) =>
-            db.insert(DbHelper.table1, Table1Model(columnBenjin: "5000", columnYongJin: "0.95", columnMean: "0.08", columnRestartIndex: "0", columnLiushuiIndex: "0").toJson()))
+        ?.then((db) => db.insert(
+            DbHelper.table1,
+            Table1Model(
+                    columnBenjin: "5000",
+                    columnYongJin: "0.95",
+                    columnMean: "0.08",
+                    columnRestartIndex: "0",
+                    columnLiushuiIndex: "0")
+                .toJson()))
         .then((value) => Loading.dismiss());
   }
 
   void updateQiWangZhi(String qiwangzhi) {
-    BXPost/*<Map<String,dynamic>>*/(Api.updateQiWangValue, params: {"mean": qiwangzhi}, success: (isSuccess, int code, String message, List<dynamic> results) {
+    BXPost/*<Map<String,dynamic>>*/(Api.updateQiWangValue, params: {"mean": qiwangzhi},
+        success: (isSuccess, int code, String message, List<dynamic> results) {
       if (isSuccess) {
         BXLoading.showToast(message);
         debugPrint("期望值是=${(results[0]["mean"])}");
@@ -744,7 +792,7 @@ class GameHomeLogic extends GetxController {
     // 取消之前的计时器
     _timer?.cancel();
     // 设置新的计时器，时间设置为你想要的锁屏延时时间
-    _timer = Timer(const Duration(seconds: 60 * 2), () {
+    _timer = Timer(const Duration(seconds: 60 * 2000), () {
       lockScreen();
     });
   }
@@ -799,7 +847,11 @@ class GameHomeLogic extends GetxController {
   //加载更多
   void onLoadMore() {
     BXGet<Table2Model>(Api.loadMore,
-        params: {"last_id": state.table2ListX.last.id, "uid": GetStore.getInstance().userModel.userId, "c": 10}, //"c"每页多少个数据
+        params: {
+          "last_id": state.table2ListX.last.id,
+          "uid": GetStore.getInstance().userModel.userId,
+          "c": 10
+        }, //"c"每页多少个数据
         success: (isSuccess, code, message, results) {
           if (isSuccess && results.isNotEmpty) {
             var temp = <Table2Model>[];

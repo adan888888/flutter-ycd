@@ -1,16 +1,17 @@
 import 'dart:io';
+
 import 'package:easy_refresh/easy_refresh.dart';
+import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
-import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
-import 'package:syncfusion_flutter_charts/charts.dart';
 import 'package:ycd/my_widget/baccarat_road_map.dart';
 import 'package:ycd/utils/network/get_store.dart';
+
 import 'game_home_logic.dart';
-import 'game_home_state.dart';
 
 class GameHomePage extends GetView<GameHomeLogic> {
   const GameHomePage({super.key, required this.title});
@@ -122,7 +123,8 @@ class GameHomePage extends GetView<GameHomeLogic> {
                                   4,
                                   (index) => GestureDetector(
                                         onTap: () {
-                                          if (index == 2) controller.juBuPingHeng(-1, v: controller.state.totalValue[30]);
+                                          if (index == 2)
+                                            controller.juBuPingHeng(-1, v: controller.state.totalValue[30]);
                                         },
                                         child: Center(
                                           child: Text(
@@ -136,7 +138,8 @@ class GameHomePage extends GetView<GameHomeLogic> {
                                                       ? Colors.green
                                                       : ((i * 4 + index) == 24 || (i * 4 + index) == 22)
                                                           ? Colors.red
-                                                          : (i * 4 + index) == 2 && controller.state.currentTempIndex != 0
+                                                          : (i * 4 + index) == 2 &&
+                                                                  controller.state.currentTempIndex != 0
                                                               ? Colors.amber
                                                               : controller.state.textColor),
                                               controller.state.totalValue[i * 4 + index]),
@@ -161,7 +164,8 @@ class GameHomePage extends GetView<GameHomeLogic> {
                           onTap: () {
                             controller.deleteLast();
                           },
-                          child: SizedBox(width: 65, child: Image.asset('assets/images/delete.png', width: 35, height: 35))),
+                          child: SizedBox(
+                              width: 65, child: Image.asset('assets/images/delete.png', width: 35, height: 35))),
                       Container(height: 25, width: 0.5, color: Colors.black),
                     ],
                   ),
@@ -184,8 +188,11 @@ class GameHomePage extends GetView<GameHomeLogic> {
                                 controller: controller.scrollController,
                                 itemCount: controller.state.table2ListX.length,
                                 itemBuilder: (BuildContext context, int index) => buildItem(index),
-                                separatorBuilder: (BuildContext context, int index) =>
-                                    Divider(height: 2, indent: 5, thickness: 0.3, color: index % 2 == 0 ? Colors.red : Colors.black),
+                                separatorBuilder: (BuildContext context, int index) => Divider(
+                                    height: 2,
+                                    indent: 5,
+                                    thickness: 0.3,
+                                    color: index % 2 == 0 ? Colors.red : Colors.black),
                               ),
                             ),
                           ),
@@ -234,7 +241,13 @@ class GameHomePage extends GetView<GameHomeLogic> {
     );
   }
 
-  double fontSize(int i, int index) => (i * 4 + index) == 15 || (i * 4 + index) == 3 || (i * 4 + index) == 20 || (i * 4 + index) == 24 || (i * 4 + index) == 16 ? 10 : 14;
+  double fontSize(int i, int index) => (i * 4 + index) == 15 ||
+          (i * 4 + index) == 3 ||
+          (i * 4 + index) == 20 ||
+          (i * 4 + index) == 24 ||
+          (i * 4 + index) == 16
+      ? 10
+      : 14;
 
   buildItem(int index) => SizedBox(
         height: 30,
@@ -254,14 +267,17 @@ class GameHomePage extends GetView<GameHomeLogic> {
             // ),
             //输赢
             GestureDetector(
-              onTap: () => controller.juBuPingHeng(controller.state.table2ListX[index].id!, v: controller.state.totalValue[30]),
+              onTap: () =>
+                  controller.juBuPingHeng(controller.state.table2ListX[index].id!, v: controller.state.totalValue[30]),
               child: Container(
                 width: 70,
                 alignment: Alignment.centerRight,
                 child: Text(
                   controller.state.table2ListX[index].colmunShuyingzhi.toString(),
                   style: TextStyle(
-                    color: controller.state.table2ListX[index].colmunShuyingzhi.toString().startsWith('-') ? Colors.green : Colors.redAccent,
+                    color: controller.state.table2ListX[index].colmunShuyingzhi.toString().startsWith('-')
+                        ? Colors.green
+                        : Colors.redAccent,
                   ),
                 ),
               ),
@@ -273,7 +289,9 @@ class GameHomePage extends GetView<GameHomeLogic> {
                   Text(
                     "${controller.state.table2ListX[index].colmunShuyingzhiD}",
                     style: TextStyle(
-                      color: controller.state.table2ListX[index].colmunShuyingzhiD.toString().startsWith('-') ? Colors.green : Colors.redAccent,
+                      color: controller.state.table2ListX[index].colmunShuyingzhiD.toString().startsWith('-')
+                          ? Colors.green
+                          : Colors.redAccent,
                     ),
                   ),
                   const SizedBox(width: 5),
@@ -388,109 +406,133 @@ class GameHomePage extends GetView<GameHomeLogic> {
                     height: 100,
                     child: GestureDetector(
                       onTap: () => controller.state.isMap.value = !controller.state.isMap.value,
-                      child: SfCartesianChart(
-                        backgroundColor: controller.state.chartBgColor,
-                        borderWidth: 0,
-                        // borderColor: Colors.red,
-                        margin: EdgeInsets.zero,
-                        // plotAreaBackgroundColor: Colors.amber,//显示区颜色
-                        // plotAreaBorderColor: Colors.red, x轴外边框颜色
-
-                        // axes: const [
-                        //   NumericAxis(
-                        //     name: '你好',
-                        //     opposedPosition: false, //右侧显示
-                        //     title: AxisTitle(text: '金额（元）'),
-                        //   )
-                        // ],
-                        primaryXAxis: const CategoryAxis(
-                          majorTickLines: MajorTickLines(
-                            size: 1,
-                            color: Colors.green,
-                            width: 1,
+                      child: Container(
+                        color: controller.state.chartBgColor,
+                        padding: const EdgeInsets.all(8.0), // 添加内边距
+                        child: LineChart(
+                          LineChartData(
+                            backgroundColor: Colors.transparent,
+                            borderData: FlBorderData(show: false), // 无边框
+                            gridData: const FlGridData(show: false), // 无网格
+                            titlesData: FlTitlesData(
+                              show: true,
+                              rightTitles: const AxisTitles(
+                                sideTitles: SideTitles(showTitles: false),
+                              ),
+                              topTitles: const AxisTitles(
+                                sideTitles: SideTitles(showTitles: false),
+                              ),
+                              bottomTitles: const AxisTitles(
+                                sideTitles: SideTitles(showTitles: false),
+                              ),
+                              leftTitles: AxisTitles(
+                                sideTitles: SideTitles(
+                                  showTitles: true,
+                                  reservedSize: 25,
+                                  interval: controller.state.chartData.isEmpty
+                                      ? 10
+                                      : (controller.state.chartData
+                                              .map((e) => e.sales)
+                                              .reduce((a, b) => a > b ? a : b) /
+                                          5),
+                                  getTitlesWidget: (value, meta) {
+                                    String displayValue;
+                                    if (value >= 1000) {
+                                      displayValue = '${(value / 1000).toStringAsFixed(1)}k';
+                                    } else if (value >= 100) {
+                                      displayValue = value.toInt().toString();
+                                    } else {
+                                      displayValue = value.toStringAsFixed(1);
+                                    }
+                                    return Text(
+                                      displayValue,
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 9,
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ),
+                            ),
+                            // 添加内边距
+                            minX: 0,
+                            maxX: controller.state.chartData.length.toDouble() + 0.5,
+                            minY: 0,
+                            maxY: controller.state.chartData.isNotEmpty
+                                ? controller.state.chartData.map((e) => e.sales).reduce((a, b) => a > b ? a : b) * 1.1
+                                : 100,
+                            // 设置图表边距
+                            clipData: const FlClipData.none(),
+                            // 添加一些内边距
+                            lineTouchData: LineTouchData(
+                              enabled: true,
+                              handleBuiltInTouches: true,
+                              touchTooltipData: LineTouchTooltipData(
+                                getTooltipItems: (touchedSpots) {
+                                  return touchedSpots.map((touchedSpot) {
+                                    return LineTooltipItem(
+                                      touchedSpot.y.toStringAsFixed(1),
+                                      const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    );
+                                  }).toList();
+                                },
+                              ),
+                              getTouchedSpotIndicator: (LineChartBarData barData, List<int> spotIndexes) {
+                                return spotIndexes.map((spotIndex) {
+                                  return TouchedSpotIndicatorData(
+                                    const FlLine(
+                                      color: Colors.transparent, // 透明线条，不显示
+                                      strokeWidth: 0,
+                                    ),
+                                    FlDotData(
+                                      show: true, // 显示数据点高亮
+                                      getDotPainter: (spot, percent, barData, index) {
+                                        return FlDotCirclePainter(
+                                          radius: 4,
+                                          color: Colors.white,
+                                          strokeWidth: 2,
+                                          strokeColor: Colors.black,
+                                        );
+                                      },
+                                    ),
+                                  );
+                                }).toList();
+                              },
+                            ),
+                            lineBarsData: [
+                              LineChartBarData(
+                                spots: controller.state.chartData
+                                    .map((data) => FlSpot(data.year.toDouble(), data.sales))
+                                    .toList(),
+                                isCurved: true,
+                                color: Colors.white,
+                                barWidth: 2,
+                                dotData: FlDotData(
+                                  show: true,
+                                  getDotPainter: (spot, percent, barData, index) {
+                                    // 根据索引设置不同颜色
+                                    Color dotColor;
+                                    if (index % 3 == 0) {
+                                      dotColor = index % 2 == 0 ? Colors.blue : Colors.green;
+                                    } else {
+                                      dotColor = index % 2 == 0 ? Colors.red : Colors.purple;
+                                    }
+                                    return FlDotCirclePainter(
+                                      radius: 3,
+                                      color: dotColor,
+                                      strokeWidth: 0,
+                                    );
+                                  },
+                                ),
+                              ),
+                            ],
                           ),
-                          rangePadding: ChartRangePadding.auto,
-                          //轴标题
-                          // title: AxisTitle(text: '1111'),
-                          //轴标题置顶
-                          opposedPosition: false,
-                          //是否显示标题
-                          isVisible: false,
-                          labelRotation: -45,
-                          edgeLabelPlacement: EdgeLabelPlacement.none,
-                          // maximum: 10,
-                          // minimum: 0,
-                          //x轴在外 或则内部
-                          labelPosition: ChartDataLabelPosition.inside,
-                          //x轴文案边框颜色
-                          borderColor: Colors.red,
-                          //x轴文案边框宽度
-                          borderWidth: 1,
-                          //x轴文案边框样式，分为所有边框和去掉了上下边框
-                          axisBorderType: AxisBorderType.withoutTopAndBottom,
-                          arrangeByIndex: false,
-                          labelPlacement: LabelPlacement.betweenTicks,
-                          // interactiveTooltip: InteractiveTooltip(
-                          //   borderRadius: 10,
-                          //   borderColor: Colors.blue,
-                          //   borderWidth: 10,
-                          // ),
                         ),
-                        //y轴线，显示
-                        primaryYAxis: const NumericAxis(
-                          borderWidth: 0,
-                          rangePadding: ChartRangePadding.round,
-                          majorGridLines: MajorGridLines(
-                            width: 1,
-                            color: Colors.green,
-                            dashArray: [1],
-                          ),
-                          //轴标题
-                          // title: AxisTitle(text: '1111'),
-                          //轴标题置顶
-                          opposedPosition: true,
-                          //是否显示标题
-                          isVisible: true,
-                          labelRotation: 0,
-                        ),
-
-                        // 图表标题
-                        // title: const ChartTitle(text: 'Half yearly sales analysis'),
-                        // Enable legend
-                        legend: const Legend(isVisible: false),
-                        // Enable tooltip 点了鼠标提示框
-                        tooltipBehavior: TooltipBehavior(enable: false),
-                        //系列；串联；连续
-                        series: <CartesianSeries<SalesData, String>>[
-                          LineSeries<SalesData, String>(
-                            width: 1.0,
-                            //线条宽度
-                            enableTooltip: true,
-                            //圆点的外边框颜色
-                            pointColorMapper: (datum, index) => index % 3 == 0
-                                ? index % 2 == 0
-                                    ? Colors.blue
-                                    : Colors.green
-                                : index % 2 == 0
-                                    ? Colors.red
-                                    : Colors.purple,
-                            //修饰数据点（显示圆圈）
-                            markerSettings: const MarkerSettings(
-                                height: 3,
-                                width: 3,
-                                //不传显示空心
-                                color: Colors.green,
-                                isVisible: true),
-                            dataSource: controller.state.chartData,
-                            xValueMapper: (SalesData sales, _) => "${sales.year}",
-                            yValueMapper: (SalesData sales, _) => sales.sales,
-                            //line color
-                            color: Colors.white,
-                            name: '卖',
-                            //具体的数字显示
-                            dataLabelSettings: const DataLabelSettings(isVisible: false),
-                          )
-                        ],
                       ),
                     ),
                   )
