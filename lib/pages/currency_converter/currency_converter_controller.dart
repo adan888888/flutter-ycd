@@ -20,9 +20,10 @@ class CurrencyConverterController extends GetxController {
   final List<Map<String, dynamic>> currencies = [
     {'code': 'USD', 'name': '美元', 'symbol': '\$', 'flag': '🇺🇸'},
     {'code': 'CNY', 'name': '人民币', 'symbol': '¥', 'flag': '🇨🇳'},
+    {'code': 'JPY', 'name': '日元', 'symbol': '¥', 'flag': '🇯🇵'},
+    {'code': 'VND', 'name': '越南盾', 'symbol': '₫', 'flag': '🇻🇳'},
     {'code': 'EUR', 'name': '欧元', 'symbol': '€', 'flag': '🇪🇺'},
     {'code': 'GBP', 'name': '英镑', 'symbol': '£', 'flag': '🇬🇧'},
-    {'code': 'JPY', 'name': '日元', 'symbol': '¥', 'flag': '🇯🇵'},
     {'code': 'KRW', 'name': '韩元', 'symbol': '₩', 'flag': '🇰🇷'},
     {'code': 'HKD', 'name': '港币', 'symbol': 'HK\$', 'flag': '🇭🇰'},
     {'code': 'SGD', 'name': '新加坡元', 'symbol': 'S\$', 'flag': '🇸🇬'},
@@ -57,8 +58,7 @@ class CurrencyConverterController extends GetxController {
 
       // 使用免费的汇率API
       final response = await http.get(
-        Uri.parse(
-            'https://api.exchangerate-api.com/v4/latest/${fromCurrency.value}'),
+        Uri.parse('https://api.exchangerate-api.com/v4/latest/${fromCurrency.value}'),
       );
 
       if (response.statusCode == 200) {

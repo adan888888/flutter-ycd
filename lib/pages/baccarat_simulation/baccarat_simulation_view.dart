@@ -36,9 +36,6 @@ class BaccaratSimulationView extends GetView<BaccaratSimulationController> {
             const SizedBox(height: 24),
             // 开始按钮
             _buildStartButton(),
-            const SizedBox(height: 16),
-            // 测试按钮
-            _buildTestButton(),
             const SizedBox(height: 24),
             // 历史记录
             _buildHistorySection(),
@@ -186,8 +183,7 @@ class BaccaratSimulationView extends GetView<BaccaratSimulationController> {
                             ),
                           ),
                           child: Center(
-                            child:
-                                cell.isEmpty ? null : _buildBigRoadItem(cell),
+                            child: cell.isEmpty ? null : _buildBigRoadItem(cell),
                           ),
                         ),
                       )
@@ -318,8 +314,7 @@ class BaccaratSimulationView extends GetView<BaccaratSimulationController> {
             vertical: 12,
           ),
           decoration: BoxDecoration(
-            color:
-                _getResultColor(controller.state.winner).withValues(alpha: 0.1),
+            color: _getResultColor(controller.state.winner).withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
               color: _getResultColor(controller.state.winner),
@@ -327,9 +322,7 @@ class BaccaratSimulationView extends GetView<BaccaratSimulationController> {
             ),
           ),
           child: Text(
-            controller.state.currentResult.isEmpty
-                ? '点击开始模拟'
-                : controller.state.currentResult,
+            controller.state.currentResult.isEmpty ? '点击开始模拟' : controller.state.currentResult,
             style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.bold,
@@ -426,8 +419,7 @@ class BaccaratSimulationView extends GetView<BaccaratSimulationController> {
     return GetBuilder<BaccaratSimulationController>(
       builder: (controller) {
         return ElevatedButton.icon(
-          onPressed:
-              controller.state.isAnimating ? null : controller.startSimulation,
+          onPressed: controller.state.isAnimating ? null : controller.startSimulation,
           icon: controller.state.isAnimating
               ? const SizedBox(
                   width: 20,
@@ -443,28 +435,6 @@ class BaccaratSimulationView extends GetView<BaccaratSimulationController> {
             minimumSize: const Size(200, 50),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  // 构建测试按钮
-  Widget _buildTestButton() {
-    return GetBuilder<BaccaratSimulationController>(
-      builder: (controller) {
-        return ElevatedButton.icon(
-          onPressed: controller.state.isAnimating ? null : controller.quickTest,
-          icon: const Icon(Icons.science),
-          label: const Text('快速测试'),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.purple.shade600,
-            foregroundColor: Colors.white,
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-            minimumSize: const Size(160, 40),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
             ),
           ),
         );
@@ -491,8 +461,7 @@ class BaccaratSimulationView extends GetView<BaccaratSimulationController> {
               ),
             ),
             const SizedBox(height: 12),
-            ...controller.state.gameHistory
-                .map((game) => _buildHistoryItem(game)),
+            ...controller.state.gameHistory.map((game) => _buildHistoryItem(game)),
           ],
         );
       },

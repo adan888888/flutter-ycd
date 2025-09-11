@@ -1,5 +1,3 @@
-import 'package:flutter/material.dart';
-
 /// 百家乐模拟状态管理
 class BaccaratSimulationState {
   // ***********== 常量定义 ***********==
@@ -74,120 +72,6 @@ class BaccaratSimulationState {
     initializeBigRoad();
   }
 
-  /// 重置所有状态
-  /// 清空所有游戏数据，回到初始状态
-  void reset() {
-    isAnimating = false;
-    currentResult = '';
-    playerCards = '';
-    bankerCards = '';
-    playerTotal = 0;
-    bankerTotal = 0;
-    winner = '';
-    showResultArea = true;
-    gameHistory.clear();
-    roadMap.clear();
-    initializeBigRoad();
-  }
-
-  /// 开始动画状态
-  /// 设置动画标志为true，显示结果区域
-  void startAnimation() {
-    isAnimating = true;
-    showResultArea = true;
-  }
-
-  /// 结束动画状态
-  /// 设置动画标志为false，隐藏结果区域
-  void endAnimation() {
-    isAnimating = false;
-    showResultArea = false;
-  }
-
-  /// 添加游戏记录
-  /// 将新的游戏结果添加到历史记录中
-  /// [record] 游戏记录，包含手牌、点数、获胜者等信息
-  void addGameRecord(Map<String, dynamic> record) {
-    gameHistory.insert(0, record);
-    roadMap.insert(0, record['winner']);
-
-    // 限制历史记录数量
-    if (gameHistory.length > 20) {
-      gameHistory = gameHistory.take(20).toList();
-    }
-
-    if (roadMap.length > 50) {
-      roadMap = roadMap.take(50).toList();
-    }
-  }
-
-  /// 更新大路图
-  /// 根据百家乐大路规则更新大路图数据
-  /// [winner] 本局获胜者（闲家/庄家/和局）
-  ///
-  /// 大路规则：
-  /// - 和局不记录在大路中
-  /// - 第一局记录在[0][0]位置
-  /// - 与上局不同：向右移动（新列）
-  /// - 与上局相同：向下移动（同列）
-  /// - 长龙规则（标准）：同列向下，若到底或下方被占，则锁定当前行改为向右平移
-
-  void updateBigRoad(String winner) {
-    debugPrint('🐉️ 上局: $lastWinner 当前: $winner');
-
-    // 和局不记录在大路中
-    if (winner == '和局') {
-      return;
-    }
-
-    /************如果是第一局，直接记录在第1行第1列 ********************************************** */
-    if (lastWinner == '') {
-      debugPrint('🐉️ 第一局，记录在 [$currentRow][$currentCol]');
-      bigRoad[currentRow][currentCol] = winner;
-      currentCol++;
-    }
-
-    /************ 如果与上一局不同，向右移动（新列）************************************************/
-    else if (lastWinner != winner) {
-      dragonStartCol = -1;
-      dragonParallelRow = -1;
-      currentRow = 0;
-      bigRoad[currentRow][currentCol] = winner;
-      debugPrint('🐉️ 与上一局不同，记录在 [$currentRow][$currentCol]');
-      currentCol++;
-    }
-
-    /************ 如果与上一局相同，向下移动 *****************************************************/
-    else {
-      currentRow++;
-      var ids = currentCol - 1;
-      // for (int i = 0; i < bigRoad[currentRow].length; i++) {
-      //
-      // }
-
-      //如果下方有东西
-      if (currentRow < bigRoadRows && bigRoad[currentRow][ids].isNotEmpty) {
-        dragonStartCol++;
-        bigRoad[dragonParallelRow][dragonStartCol] = winner;
-        debugPrint('🐉️（下方有东西 长龙）与上一局相同，记录在 [$dragonParallelRow][$dragonStartCol]');
-      }
-      //如果超过了6行，就要往右
-      else if (currentRow > bigRoadRows - 1) {
-        dragonStartCol++;
-        bigRoad[dragonParallelRow][dragonStartCol] = winner;
-        debugPrint('🐉️（超过6行 长龙）与上一局相同，记录在 [$dragonParallelRow][$dragonStartCol]');
-      } else {
-        //没有超过6行，就正常往下走
-        bigRoad[currentRow][currentCol - 1] = winner;
-        dragonParallelRow = currentRow; //会记录走的最后一次行
-        dragonStartCol = currentCol - 1; //会记录走的最后一次列
-        debugPrint('🐉️ 与上一局相同，记录在 [$currentRow][${currentCol - 1}]');
-      }
-    }
-
-    lastWinner = winner;
-  }
-
   /// 初始化大路图
   /// 创建6行120列的空大路图，重置所有位置状态
   void initializeBigRoad() {
@@ -205,29 +89,5 @@ class BaccaratSimulationState {
   bool get hasBigRoadData {
     bool hasData = bigRoad.any((row) => row.any((cell) => cell.isNotEmpty));
     return hasData;
-  }
-
-  /// 更新游戏结果
-  /// 更新当前游戏的所有结果数据
-  /// [playerCards] 闲家手牌显示文本
-  /// [bankerCards] 庄家手牌显示文本
-  /// [playerTotal] 闲家总点数
-  /// [bankerTotal] 庄家总点数
-  /// [winner] 获胜者
-  /// [currentResult] 结果描述文本
-  void updateGameResult({
-    required String playerCards,
-    required String bankerCards,
-    required int playerTotal,
-    required int bankerTotal,
-    required String winner,
-    required String currentResult,
-  }) {
-    this.playerCards = playerCards;
-    this.bankerCards = bankerCards;
-    this.playerTotal = playerTotal;
-    this.bankerTotal = bankerTotal;
-    this.winner = winner;
-    this.currentResult = currentResult;
   }
 }

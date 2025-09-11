@@ -72,6 +72,7 @@ class BaccaratSimulationController extends GetxController with GetSingleTickerPr
 
   /// 自动滚动到当前绘制位置
   void scrollToCurrentPosition(int currentCol) {
+    // 使用 addPostFrameCallback 保证在当前帧绘制完成后再执行滚动，避免滚动区域未布局完成导致异常
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (scrollController.hasClients) {
         // 计算当前列右边界的位置
@@ -213,7 +214,7 @@ class BaccaratSimulationController extends GetxController with GetSingleTickerPr
     if (state.isAnimating) return;
 
     // 开始动画状态
-    state.startAnimation();
+    startAnimation();
     update(); // 触发UI更新
     animationController.forward();
 
@@ -245,7 +246,7 @@ class BaccaratSimulationController extends GetxController with GetSingleTickerPr
     }
 
     // 更新状态
-    state.updateGameResult(
+    updateGameResult(
       playerCards: playerCards,
       bankerCards: bankerCards,
       playerTotal: playerTotal,
@@ -264,11 +265,11 @@ class BaccaratSimulationController extends GetxController with GetSingleTickerPr
       'timestamp': DateTime.now(),
     };
 
-    state.addGameRecord(gameRecord);
+    addGameRecord(gameRecord);
 
     // 更新大路
     debugPrint('🎰 Controller: 准备更新大路，winner: $winner');
-    state.updateBigRoad(winner);
+    updateBigRoad(winner);
     update(); // 触发GetBuilder更新
 
     // 自动滚动到当前位置
@@ -277,95 +278,147 @@ class BaccaratSimulationController extends GetxController with GetSingleTickerPr
     await Future.delayed(const Duration(milliseconds: 1000));
 
     // 完成动画状态
-    state.endAnimation();
+    endAnimation();
     update(); // 触发UI更新
     animationController.reset();
+  }
+
+  /// 更新大路图
+  /// 根据百家乐大路规则更新大路图数据
+  /// [winner] 本局获胜者（闲家/庄家/和局）
+  ///
+  /// 大路规则：
+  /// - 和局不记录在大路中
+  /// - 第一局记录在[0][0]位置
+  /// - 与上局不同：向右移动（新列）
+  /// - 与上局相同：向下移动（同列）
+  /// - 长龙规则（标准）：同列向下，若到底或下方被占，则锁定当前行改为向右平移
+  void updateBigRoad(String winner) {
+    debugPrint('🐉️ 上局: ${state.lastWinner} 当前: $winner');
+
+    // 和局不记录在大路中
+    if (winner == '和局') {
+      return;
+    }
+
+    /************如果是第一局，直接记录在第1行第1列 ********************************************** */
+    if (state.lastWinner == '') {
+      debugPrint('🐉️ 第一局，记录在 [${state.currentRow}][${state.currentCol}]');
+      state.bigRoad[state.currentRow][state.currentCol] = winner;
+      state.currentCol++;
+    }
+
+    /************ 如果与上一局不同，向右移动（新列）************************************************/
+    else if (state.lastWinner != winner) {
+      state.dragonStartCol = -1;
+      state.dragonParallelRow = -1;
+      state.currentRow = 0;
+      state.bigRoad[state.currentRow][state.currentCol] = winner;
+      debugPrint('🐉️ 与上一局不同，记录在 [${state.currentRow}][${state.currentCol}]');
+      state.currentCol++;
+    }
+
+    /************ 如果与上一局相同，向下移动 *****************************************************/
+    else {
+      state.currentRow++;
+      var ids = state.currentCol - 1; // 当前列的列
+
+      // 如果下方有内容，或者已经超过6行，则需要往右平移（长龙处理）
+      if ((state.currentRow < BaccaratSimulationState.bigRoadRows && state.bigRoad[state.currentRow][ids].isNotEmpty) ||
+          state.currentRow > BaccaratSimulationState.bigRoadRows - 1) {
+        // 长龙处理：向右平移
+        state.dragonStartCol++;
+        state.bigRoad[state.dragonParallelRow][state.dragonStartCol] = winner;
+        debugPrint('🐉️（长龙处理）与上一局相同，记录在 [${state.dragonParallelRow}][${state.dragonStartCol}]');
+      } else {
+        // 没有超过6行，且下方没有内容，正常往下走
+        state.bigRoad[state.currentRow][state.currentCol - 1] = winner;
+        state.dragonParallelRow = state.currentRow; // 记录最后一次行
+        state.dragonStartCol = state.currentCol - 1; // 记录最后一次列
+        debugPrint('🐉️ 与上一局相同，记录在 [${state.currentRow}][${state.currentCol - 1}]');
+      }
+    }
+
+    state.lastWinner = winner;
+  }
+
+  /// 重置所有状态
+  /// 清空所有游戏数据，回到初始状态
+  void reset() {
+    state.isAnimating = false;
+    state.currentResult = '';
+    state.playerCards = '';
+    state.bankerCards = '';
+    state.playerTotal = 0;
+    state.bankerTotal = 0;
+    state.winner = '';
+    state.showResultArea = true;
+    state.gameHistory.clear();
+    state.roadMap.clear();
+    _initializeBigRoad();
+  }
+
+  /// 开始动画状态
+  /// 设置动画标志为true，显示结果区域
+  void startAnimation() {
+    state.isAnimating = true;
+    state.showResultArea = true;
+  }
+
+  /// 结束动画状态
+  /// 设置动画标志为false，隐藏结果区域
+  void endAnimation() {
+    state.isAnimating = false;
+    state.showResultArea = false;
+  }
+
+  /// 添加游戏记录
+  /// 将新的游戏结果添加到历史记录中
+  /// [record] 游戏记录，包含手牌、点数、获胜者等信息
+  void addGameRecord(Map<String, dynamic> record) {
+    state.gameHistory.insert(0, record);
+    state.roadMap.insert(0, record['winner']);
+
+    // 限制历史记录数量
+    if (state.gameHistory.length > 20) {
+      state.gameHistory = state.gameHistory.take(20).toList();
+    }
+
+    if (state.roadMap.length > 50) {
+      state.roadMap = state.roadMap.take(50).toList();
+    }
+  }
+
+  /// 更新游戏结果
+  /// 更新当前游戏的所有结果数据
+  /// [playerCards] 闲家手牌显示文本
+  /// [bankerCards] 庄家手牌显示文本
+  /// [playerTotal] 闲家总点数
+  /// [bankerTotal] 庄家总点数
+  /// [winner] 获胜者
+  /// [currentResult] 结果描述文本
+  void updateGameResult({
+    required String playerCards,
+    required String bankerCards,
+    required int playerTotal,
+    required int bankerTotal,
+    required String winner,
+    required String currentResult,
+  }) {
+    state.playerCards = playerCards;
+    state.bankerCards = bankerCards;
+    state.playerTotal = playerTotal;
+    state.bankerTotal = bankerTotal;
+    state.winner = winner;
+    state.currentResult = currentResult;
   }
 
   /// 清空历史记录
   /// 重置所有游戏数据，清空大路图和历史记录
   void clearHistory() {
-    state.reset();
-    _initializeBigRoad();
+    reset();
     update(); // 触发UI更新
     // 滚动到起始位置
     scrollToCurrentPosition(0);
-  }
-
-  /// 快速测试大路图绘制逻辑
-  /// 生成一系列测试数据来验证大路图规则
-  void quickTest() {
-    debugPrint('🧪 开始快速测试大路图绘制逻辑');
-
-    // 清空当前数据
-    clearHistory();
-
-    // 测试序列：P, B, P, P, P, P, P, P, P, P, P, P, P, B, P, P, P, P, P, P, P, B
-    List<String> testSequence = [
-      '闲家',
-      '闲家',
-      '闲家',
-      '闲家',
-      '闲家',
-      '闲家',
-      '闲家',
-      '闲家',
-      '闲家',
-      '庄家',
-      '庄家',
-      '庄家',
-      '庄家',
-      '庄家',
-      '庄家',
-      // '闲家',
-      // '闲家',
-      // '闲家',
-      // '闲家',
-      // '闲家',
-      // '闲家',
-      // '闲家',
-      // '闲家',
-      // '闲家',
-      // '闲家',
-      // '闲家',
-      // '庄家',
-      // '庄家',
-      // '庄家',
-      // '庄家',
-    ];
-
-    // 逐个添加测试数据
-    for (int i = 0; i < testSequence.length; i++) {
-      Future.delayed(Duration(milliseconds: i * 200), () {
-        String winner = testSequence[i];
-        debugPrint('🧪 测试第${i + 1}局: $winner');
-
-        // 更新大路图
-        state.updateBigRoad(winner);
-
-        // 更新游戏结果
-        state.updateGameResult(
-          playerCards: '测试牌组',
-          bankerCards: '测试牌组',
-          playerTotal: winner == '闲家' ? 8 : 7,
-          bankerTotal: winner == '庄家' ? 8 : 7,
-          winner: winner,
-          currentResult: '测试结果',
-        );
-
-        // 触发UI更新
-        update();
-
-        // 滚动到当前位置
-        scrollToCurrentPosition(state.currentCol);
-      });
-    }
-
-    Get.snackbar(
-      '测试开始',
-      '正在生成测试数据，请观察大路图绘制逻辑',
-      snackPosition: SnackPosition.TOP,
-      duration: const Duration(seconds: 5),
-    );
   }
 }
