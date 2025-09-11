@@ -66,7 +66,8 @@ class BaccaratSimulationState {
   /// 长龙平行绘制的行位置（当长龙开始向右平行绘制时记录）
   int dragonParallelRow = -1;
   int recordRowFirst = 0; //记录横向的次数
-  int recordRightCol = 0; //记录横向时候的列
+  int recordRightCol = 0; //记录横向时候的
+
   /// 构造函数
   /// 初始化大路图数据
   BaccaratSimulationState() {
@@ -132,41 +133,56 @@ class BaccaratSimulationState {
   /// - 长龙规则（标准）：同列向下，若到底或下方被占，则锁定当前行改为向右平移
 
   void updateBigRoad(String winner) {
-    debugPrint('🛣️ updateBigRoad called with winner: $winner');
-    debugPrint('🛣️ lastWinner: $lastWinner');
-    debugPrint('🛣️ currentRow: $currentRow, currentCol: $currentCol');
+    debugPrint('🐉️ 上局: $lastWinner 当前: $winner');
 
     // 和局不记录在大路中
     if (winner == '和局') {
-      debugPrint('🛣️ 和局，不记录在大路中');
       return;
     }
 
-    /************如果是第一局，直接记录在第1行第1列 *********** */
+    /************如果是第一局，直接记录在第1行第1列 ********************************************** */
     if (lastWinner == '') {
       debugPrint('🐉️ 第一局，记录在 [$currentRow][$currentCol]');
       bigRoad[currentRow][currentCol] = winner;
       currentCol++;
     }
-    /************ 如果与上一局不同，向右移动（新列）************/
+
+    /************ 如果与上一局不同，向右移动（新列）************************************************/
     else if (lastWinner != winner) {
-      debugPrint('🐉️ 与上一局不同，记录在 [$currentRow][$currentCol]');
+      dragonStartCol = -1;
+      dragonParallelRow = -1;
+      currentRow = 0;
       bigRoad[currentRow][currentCol] = winner;
+      debugPrint('🐉️ 与上一局不同，记录在 [$currentRow][$currentCol]');
       currentCol++;
     }
-    /************ 如果与上一局相同，向下移动*********** */
+
+    /************ 如果与上一局相同，向下移动 *****************************************************/
     else {
-      debugPrint('🐉️ 相同结果，向下移动');
+      currentRow++;
+      var ids = currentCol - 1;
+      // for (int i = 0; i < bigRoad[currentRow].length; i++) {
+      //
+      // }
 
-      // 边界检查
-      if (currentCol <= 0) {
-        return;
+      //如果下方有东西
+      if (currentRow < bigRoadRows && bigRoad[currentRow][ids].isNotEmpty) {
+        dragonStartCol++;
+        bigRoad[dragonParallelRow][dragonStartCol] = winner;
+        debugPrint('🐉️（下方有东西 长龙）与上一局相同，记录在 [$dragonParallelRow][$dragonStartCol]');
       }
-
-      // 当前运行中的列（上一手所在列）
-      int colIdx = currentCol - 1;
-
-      bigRoad[dragonParallelRow][currentCol] = winner;
+      //如果超过了6行，就要往右
+      else if (currentRow > bigRoadRows - 1) {
+        dragonStartCol++;
+        bigRoad[dragonParallelRow][dragonStartCol] = winner;
+        debugPrint('🐉️（超过6行 长龙）与上一局相同，记录在 [$dragonParallelRow][$dragonStartCol]');
+      } else {
+        //没有超过6行，就正常往下走
+        bigRoad[currentRow][currentCol - 1] = winner;
+        dragonParallelRow = currentRow; //会记录走的最后一次行
+        dragonStartCol = currentCol - 1; //会记录走的最后一次列
+        debugPrint('🐉️ 与上一局相同，记录在 [$currentRow][${currentCol - 1}]');
+      }
     }
 
     lastWinner = winner;
@@ -175,8 +191,7 @@ class BaccaratSimulationState {
   /// 初始化大路图
   /// 创建6行120列的空大路图，重置所有位置状态
   void initializeBigRoad() {
-    bigRoad = List.generate(
-        bigRoadRows, (index) => List.generate(bigRoadCols, (index) => ''));
+    bigRoad = List.generate(bigRoadRows, (index) => List.generate(bigRoadCols, (index) => ''));
     currentRow = 0;
     currentCol = 0;
     lastWinner = '';
@@ -189,8 +204,6 @@ class BaccaratSimulationState {
   /// 返回true表示大路图中有任何非空数据
   bool get hasBigRoadData {
     bool hasData = bigRoad.any((row) => row.any((cell) => cell.isNotEmpty));
-    debugPrint('🛣️ hasBigRoadData: $hasData');
-    debugPrint('🛣️ bigRoad content: $bigRoad');
     return hasData;
   }
 

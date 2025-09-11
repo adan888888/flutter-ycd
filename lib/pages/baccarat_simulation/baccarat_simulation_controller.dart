@@ -8,8 +8,7 @@ import 'baccarat_simulation_state.dart';
 
 /// 百家乐模拟控制器
 /// 负责游戏逻辑、动画控制和状态管理
-class BaccaratSimulationController extends GetxController
-    with GetSingleTickerProviderStateMixin {
+class BaccaratSimulationController extends GetxController with GetSingleTickerProviderStateMixin {
   // ========== 状态管理 ==========
   /// 游戏状态管理实例
   final BaccaratSimulationState state = BaccaratSimulationState();
@@ -76,20 +75,16 @@ class BaccaratSimulationController extends GetxController
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (scrollController.hasClients) {
         // 计算当前列右边界的位置
-        double currentColRightEdge =
-            (currentCol + 1) * BaccaratSimulationState.cellWidth;
+        double currentColRightEdge = (currentCol + 1) * BaccaratSimulationState.cellWidth;
 
         // 获取当前可见区域的右边界
         double currentScrollOffset = scrollController.position.pixels;
-        double visibleRightEdge =
-            currentScrollOffset + scrollController.position.viewportDimension;
+        double visibleRightEdge = currentScrollOffset + scrollController.position.viewportDimension;
 
         // 只有当当前列的右边界超出可见区域右边界时才滚动
         if (currentColRightEdge > visibleRightEdge) {
           // 计算需要滚动的距离，让当前列刚好可见
-          double scrollDistance = currentColRightEdge -
-              visibleRightEdge +
-              BaccaratSimulationState.cellWidth;
+          double scrollDistance = currentColRightEdge - visibleRightEdge + BaccaratSimulationState.cellWidth;
           double newOffset = currentScrollOffset + scrollDistance;
 
           // 确保不超过最大滚动范围
@@ -118,21 +113,7 @@ class BaccaratSimulationController extends GetxController
   /// - 总点数 = 所有卡片点数之和 % 10
   Map<String, dynamic> _generateCard() {
     final suits = ['♠', '♥', '♦', '♣'];
-    final ranks = [
-      'A',
-      '2',
-      '3',
-      '4',
-      '5',
-      '6',
-      '7',
-      '8',
-      '9',
-      '10',
-      'J',
-      'Q',
-      'K'
-    ];
+    final ranks = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
 
     final suit = suits[_random.nextInt(suits.length)];
     final rank = ranks[_random.nextInt(ranks.length)];
@@ -202,11 +183,9 @@ class BaccaratSimulationController extends GetxController
         bankerGetsThird = true;
       } else if (bankerTotal == 3 && playerCards[2]['value'] != 8) {
         bankerGetsThird = true;
-      } else if (bankerTotal == 4 &&
-          [2, 3, 4, 5, 6, 7].contains(playerCards[2]['value'])) {
+      } else if (bankerTotal == 4 && [2, 3, 4, 5, 6, 7].contains(playerCards[2]['value'])) {
         bankerGetsThird = true;
-      } else if (bankerTotal == 5 &&
-          [4, 5, 6, 7].contains(playerCards[2]['value'])) {
+      } else if (bankerTotal == 5 && [4, 5, 6, 7].contains(playerCards[2]['value'])) {
         bankerGetsThird = true;
       } else if (bankerTotal == 6 && [6, 7].contains(playerCards[2]['value'])) {
         bankerGetsThird = true;
@@ -246,10 +225,8 @@ class BaccaratSimulationController extends GetxController
     final bankerResult = results[1];
 
     // 更新结果
-    final playerCards =
-        playerResult['cards'].map((card) => card['display']).join(' ');
-    final bankerCards =
-        bankerResult['cards'].map((card) => card['display']).join(' ');
+    final playerCards = playerResult['cards'].map((card) => card['display']).join(' ');
+    final bankerCards = bankerResult['cards'].map((card) => card['display']).join(' ');
     final playerTotal = playerResult['total'];
     final bankerTotal = bankerResult['total'];
 
@@ -334,16 +311,12 @@ class BaccaratSimulationController extends GetxController
       '闲家',
       '闲家',
       '闲家',
-      '闲家',
-      '闲家',
-      '闲家',
-      '闲家',
       '庄家',
       '庄家',
-      // '庄家',
-      // '庄家',
-      // '庄家',
-      // '庄家',
+      '庄家',
+      '庄家',
+      '庄家',
+      '庄家',
       // '闲家',
       // '闲家',
       // '闲家',
