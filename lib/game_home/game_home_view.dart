@@ -408,130 +408,187 @@ class GameHomePage extends GetView<GameHomeLogic> {
                       onTap: () => controller.state.isMap.value = !controller.state.isMap.value,
                       child: Container(
                         color: controller.state.chartBgColor,
-                        padding: const EdgeInsets.all(8.0), // 添加内边距
-                        child: LineChart(
-                          LineChartData(
-                            backgroundColor: Colors.transparent,
-                            borderData: FlBorderData(show: false), // 无边框
-                            gridData: const FlGridData(show: false), // 无网格
-                            titlesData: FlTitlesData(
-                              show: true,
-                              rightTitles: const AxisTitles(
-                                sideTitles: SideTitles(showTitles: false),
-                              ),
-                              topTitles: const AxisTitles(
-                                sideTitles: SideTitles(showTitles: false),
-                              ),
-                              bottomTitles: const AxisTitles(
-                                sideTitles: SideTitles(showTitles: false),
-                              ),
-                              leftTitles: AxisTitles(
-                                sideTitles: SideTitles(
-                                  showTitles: true,
-                                  reservedSize: 25,
-                                  interval: controller.state.chartData.isEmpty
-                                      ? 10
-                                      : (controller.state.chartData
-                                              .map((e) => e.sales)
-                                              .reduce((a, b) => a > b ? a : b) /
-                                          5),
-                                  getTitlesWidget: (value, meta) {
-                                    String displayValue;
-                                    if (value >= 1000) {
-                                      displayValue = '${(value / 1000).toStringAsFixed(1)}k';
-                                    } else if (value >= 100) {
-                                      displayValue = value.toInt().toString();
-                                    } else {
-                                      displayValue = value.toStringAsFixed(1);
-                                    }
-                                    return Text(
-                                      displayValue,
-                                      style: const TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 9,
-                                      ),
+                        padding: const EdgeInsets.only(top: 8.0, right: 0.0, bottom: 8.0), // 去掉左边内边距
+                        child: Builder(
+                          builder: (context) {
+                            return LineChart(
+                              LineChartData(
+                                backgroundColor: Colors.transparent,
+                                borderData: FlBorderData(show: false), // 无边框
+                                gridData: FlGridData(
+                                  show: true,
+                                  horizontalInterval: (() {
+                                    if (controller.state.chartData.isEmpty) return 1.0;
+                                    final minV =
+                                        controller.state.chartData.map((e) => e.sales).reduce((a, b) => a < b ? a : b) *
+                                            0.9;
+                                    final maxV =
+                                        controller.state.chartData.map((e) => e.sales).reduce((a, b) => a > b ? a : b) *
+                                            1.1;
+                                    final span = maxV - minV;
+                                    final step = span / 2.0;
+                                    return (step.isFinite && step > 0) ? step : 1.0;
+                                  })(),
+                                  getDrawingHorizontalLine: (value) {
+                                    return FlLine(
+                                      color: Colors.white.withOpacity(0.3),
+                                      strokeWidth: 1,
+                                      dashArray: [5, 5], // 虚线样式
+                                    );
+                                  },
+                                  verticalInterval: 1, // 设置一个很小的值，但不显示垂直网格线
+                                  getDrawingVerticalLine: (value) {
+                                    return const FlLine(
+                                      color: Colors.transparent, // 透明色，实际上不显示
+                                      strokeWidth: 0,
                                     );
                                   },
                                 ),
-                              ),
-                            ),
-                            // 添加内边距
-                            minX: 0,
-                            maxX: controller.state.chartData.length.toDouble() + 0.5,
-                            minY: 0,
-                            maxY: controller.state.chartData.isNotEmpty
-                                ? controller.state.chartData.map((e) => e.sales).reduce((a, b) => a > b ? a : b) * 1.1
-                                : 100,
-                            // 设置图表边距
-                            clipData: const FlClipData.none(),
-                            // 添加一些内边距
-                            lineTouchData: LineTouchData(
-                              enabled: true,
-                              handleBuiltInTouches: true,
-                              touchTooltipData: LineTouchTooltipData(
-                                getTooltipItems: (touchedSpots) {
-                                  return touchedSpots.map((touchedSpot) {
-                                    return LineTooltipItem(
-                                      touchedSpot.y.toStringAsFixed(1),
-                                      const TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    );
-                                  }).toList();
-                                },
-                              ),
-                              getTouchedSpotIndicator: (LineChartBarData barData, List<int> spotIndexes) {
-                                return spotIndexes.map((spotIndex) {
-                                  return TouchedSpotIndicatorData(
-                                    const FlLine(
-                                      color: Colors.transparent, // 透明线条，不显示
-                                      strokeWidth: 0,
-                                    ),
-                                    FlDotData(
-                                      show: true, // 显示数据点高亮
-                                      getDotPainter: (spot, percent, barData, index) {
-                                        return FlDotCirclePainter(
-                                          radius: 4,
-                                          color: Colors.white,
-                                          strokeWidth: 2,
-                                          strokeColor: Colors.black,
+                                titlesData: FlTitlesData(
+                                  show: true,
+                                  rightTitles: const AxisTitles(
+                                    sideTitles: SideTitles(showTitles: false),
+                                  ),
+                                  topTitles: const AxisTitles(
+                                    sideTitles: SideTitles(showTitles: false),
+                                  ),
+                                  bottomTitles: const AxisTitles(
+                                    sideTitles: SideTitles(showTitles: false),
+                                  ),
+                                  leftTitles: AxisTitles(
+                                    sideTitles: SideTitles(
+                                      showTitles: true,
+                                      reservedSize: 40,
+                                      interval: (() {
+                                        if (controller.state.chartData.isEmpty) return 1.0;
+                                        final minV = controller.state.chartData
+                                                .map((e) => e.sales)
+                                                .reduce((a, b) => a < b ? a : b) *
+                                            0.9;
+                                        final maxV = controller.state.chartData
+                                                .map((e) => e.sales)
+                                                .reduce((a, b) => a > b ? a : b) *
+                                            1.1;
+                                        final span = maxV - minV;
+                                        final step = span / 2.0;
+                                        return (step.isFinite && step > 0) ? step : 1.0;
+                                      })(),
+                                      getTitlesWidget: (value, meta) {
+                                        // 简单显示所有由fl_chart生成的标签
+                                        return SideTitleWidget(
+                                          meta: meta,
+                                          space: 4,
+                                          child: Text(
+                                            _formatValue(value),
+                                            maxLines: 1,
+                                            softWrap: false,
+                                            overflow: TextOverflow.clip,
+                                            textAlign: TextAlign.right,
+                                            style: const TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 10,
+                                            ),
+                                          ),
                                         );
                                       },
                                     ),
-                                  );
-                                }).toList();
-                              },
-                            ),
-                            lineBarsData: [
-                              LineChartBarData(
-                                spots: controller.state.chartData
-                                    .map((data) => FlSpot(data.year.toDouble(), data.sales))
-                                    .toList(),
-                                isCurved: true,
-                                color: Colors.white,
-                                barWidth: 2,
-                                dotData: FlDotData(
-                                  show: true,
-                                  getDotPainter: (spot, percent, barData, index) {
-                                    // 根据索引设置不同颜色
-                                    Color dotColor;
-                                    if (index % 3 == 0) {
-                                      dotColor = index % 2 == 0 ? Colors.blue : Colors.green;
-                                    } else {
-                                      dotColor = index % 2 == 0 ? Colors.red : Colors.purple;
-                                    }
-                                    return FlDotCirclePainter(
-                                      radius: 3,
-                                      color: dotColor,
-                                      strokeWidth: 0,
-                                    );
+                                  ),
+                                ),
+                                // 添加内边距
+                                minX: 0,
+                                maxX: controller.state.chartData.length.toDouble() + 0.5,
+                                minY: controller.state.chartData.isNotEmpty
+                                    ? controller.state.chartData.map((e) => e.sales).reduce((a, b) => a < b ? a : b) *
+                                        0.9
+                                    : 0,
+                                maxY: controller.state.chartData.isNotEmpty
+                                    ? controller.state.chartData.map((e) => e.sales).reduce((a, b) => a > b ? a : b) *
+                                        1.1
+                                    : 100,
+                                // 设置图表边距
+                                clipData: const FlClipData.none(),
+                                // 添加一些内边距
+                                lineTouchData: LineTouchData(
+                                  enabled: true,
+                                  handleBuiltInTouches: true,
+                                  touchTooltipData: LineTouchTooltipData(
+                                    getTooltipItems: (touchedSpots) {
+                                      return touchedSpots.map((touchedSpot) {
+                                        return LineTooltipItem(
+                                          touchedSpot.y.toStringAsFixed(1),
+                                          const TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        );
+                                      }).toList();
+                                    },
+                                  ),
+                                  getTouchedSpotIndicator: (LineChartBarData barData, List<int> spotIndexes) {
+                                    return spotIndexes.map((spotIndex) {
+                                      return TouchedSpotIndicatorData(
+                                        const FlLine(
+                                          color: Colors.transparent, // 透明线条，不显示
+                                          strokeWidth: 0,
+                                        ),
+                                        FlDotData(
+                                          show: true, // 显示数据点高亮
+                                          getDotPainter: (spot, percent, barData, index) {
+                                            return FlDotCirclePainter(
+                                              radius: 4,
+                                              color: Colors.white,
+                                              strokeWidth: 2,
+                                              strokeColor: Colors.black,
+                                            );
+                                          },
+                                        ),
+                                      );
+                                    }).toList();
                                   },
                                 ),
+                                lineBarsData: [
+                                  LineChartBarData(
+                                    spots: controller.state.chartData
+                                        .map((data) => FlSpot(data.year.toDouble(), data.sales))
+                                        .toList(),
+                                    isCurved: true,
+                                    color: Colors.white,
+                                    barWidth: 2,
+                                    dotData: FlDotData(
+                                      show: true,
+                                      getDotPainter: (spot, percent, barData, index) {
+                                        // 根据相对于上一个点的资金变化设置颜色
+                                        Color dotColor;
+                                        if (index == 0) {
+                                          // 第一个点，无法比较，使用灰色
+                                          dotColor = const Color(0xFF6B7280);
+                                        } else {
+                                          // 获取当前点和上一个点的值
+                                          final currentValue = spot.y;
+                                          final previousValue = barData.spots[index - 1].y;
+                                          final change = currentValue - previousValue;
+
+                                          if (change > 0) {
+                                            dotColor = const Color(0xFF10B981); // 绿色 - 资金增加
+                                          } else if (change < 0) {
+                                            dotColor = const Color(0xFFEF4444); // 红色 - 资金减少
+                                          } else {
+                                            dotColor = const Color(0xFF6B7280); // 灰色 - 无变化
+                                          }
+                                        }
+                                        return FlDotCirclePainter(
+                                          radius: 3,
+                                          color: dotColor,
+                                          strokeWidth: 0,
+                                        );
+                                      },
+                                    ),
+                                  ),
+                                ],
                               ),
-                            ],
-                          ),
+                            );
+                          },
                         ),
                       ),
                     ),
@@ -588,6 +645,20 @@ class GameHomePage extends GetView<GameHomeLogic> {
           ),
         ),
       );
+
+  String _formatValue(double value) {
+    final absValue = value.abs();
+    if (absValue >= 1000) {
+      final formatted = (value / 1000).toStringAsFixed(1);
+      return '${formatted}k';
+    } else if (absValue >= 100) {
+      return value.toInt().toString();
+    } else if (absValue < 0.1) {
+      return '0';
+    } else {
+      return value.toStringAsFixed(1);
+    }
+  }
 
   buildButtonStyle(Color bg) => ButtonStyle(
         backgroundColor: WidgetStateProperty.all(bg),
