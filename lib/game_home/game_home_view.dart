@@ -76,7 +76,8 @@ class GameHomePage extends GetView<GameHomeLogic> {
                   child: SizedBox(
                     height: ((MediaQuery.of(context).size.width - 3) / 4) / MyState.height * 8 + 4,
                     width: double.infinity,
-                    child: Obx(() => GridView.builder(
+                    child: GetBuilder<GameHomeLogic>(
+                          builder: (controller) => GridView.builder(
                           gridDelegate:  const SliverGridDelegateWithFixedCrossAxisCount(
                             crossAxisCount: 4,
                             mainAxisSpacing: 0.5,
@@ -93,59 +94,61 @@ class GameHomePage extends GetView<GameHomeLogic> {
                                     textAlign: TextAlign.center, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w400, color: controller.state.textColor))),
                           ),
                         )),
+                        ),
                   ),
                 ),*/
-                Obx(() => Table(
-                      border: TableBorder(
-                        //在右上下的边框线
-                        // top: BorderSide(color: Colors.red),
-                        // left: BorderSide(color: Colors.red),
-                        // right: BorderSide(color: Colors.red),
-                        // bottom: BorderSide(color: Colors.red),
-                        //水平线
-                        horizontalInside: BorderSide(color: controller.state.lineColor, width: 0.5),
-                        //垂直线
-                        verticalInside: BorderSide(color: controller.state.lineColor, width: 0.5),
-                      ),
-                      //单元格的宽， map哪列 ：宽度
-                      columnWidths: const {
-                        1: FlexColumnWidth(1),
-                        0: IntrinsicColumnWidth(), //包裹内容
-                        3: IntrinsicColumnWidth(),
-                        2: FlexColumnWidth(1),
-                      },
-                      defaultVerticalAlignment: TableCellVerticalAlignment.middle, //垂直的位置
-                      children: List.generate(
-                          8,
-                          (i) => TableRow(
-                              decoration: BoxDecoration(color: controller.state.bgColor),
-                              children: List.generate(
-                                  4,
-                                  (index) => GestureDetector(
-                                        onTap: () {
-                                          if (index == 2)
-                                            controller.juBuPingHeng(-1, v: controller.state.totalValue[30]);
-                                        },
-                                        child: Center(
-                                          child: Text(
-                                              style: TextStyle(
-                                                  height: 1.1,
-                                                  //相当于padding
-                                                  wordSpacing: 0,
-                                                  fontSize: fontSize(i, index),
-                                                  fontWeight: FontWeight.w300,
-                                                  color: ((i * 4 + index) == 26 || (i * 4 + index) == 27)
-                                                      ? Colors.green
-                                                      : ((i * 4 + index) == 24 || (i * 4 + index) == 22)
-                                                          ? Colors.red
-                                                          : (i * 4 + index) == 2 &&
-                                                                  controller.state.currentTempIndex != 0
-                                                              ? Colors.amber
-                                                              : controller.state.textColor),
-                                              controller.state.totalValue[i * 4 + index]),
-                                        ),
-                                      )).toList())).toList(),
-                    )),
+                GetBuilder<GameHomeLogic>(
+                    builder: (controller) => Table(
+                          border: TableBorder(
+                            //在右上下的边框线
+                            // top: BorderSide(color: Colors.red),
+                            // left: BorderSide(color: Colors.red),
+                            // right: BorderSide(color: Colors.red),
+                            // bottom: BorderSide(color: Colors.red),
+                            //水平线
+                            horizontalInside: BorderSide(color: controller.state.lineColor, width: 0.5),
+                            //垂直线
+                            verticalInside: BorderSide(color: controller.state.lineColor, width: 0.5),
+                          ),
+                          //单元格的宽， map哪列 ：宽度
+                          columnWidths: const {
+                            1: FlexColumnWidth(1),
+                            0: IntrinsicColumnWidth(), //包裹内容
+                            3: IntrinsicColumnWidth(),
+                            2: FlexColumnWidth(1),
+                          },
+                          defaultVerticalAlignment: TableCellVerticalAlignment.middle, //垂直的位置
+                          children: List.generate(
+                              8,
+                              (i) => TableRow(
+                                  decoration: BoxDecoration(color: controller.state.bgColor),
+                                  children: List.generate(
+                                      4,
+                                      (index) => GestureDetector(
+                                            onTap: () {
+                                              if (index == 2)
+                                                controller.juBuPingHeng(-1, v: controller.state.totalValue[30]);
+                                            },
+                                            child: Center(
+                                              child: Text(
+                                                  style: TextStyle(
+                                                      height: 1.1,
+                                                      //相当于padding
+                                                      wordSpacing: 0,
+                                                      fontSize: fontSize(i, index),
+                                                      fontWeight: FontWeight.w300,
+                                                      color: ((i * 4 + index) == 26 || (i * 4 + index) == 27)
+                                                          ? Colors.green
+                                                          : ((i * 4 + index) == 24 || (i * 4 + index) == 22)
+                                                              ? Colors.red
+                                                              : (i * 4 + index) == 2 &&
+                                                                      controller.state.currentTempIndex != 0
+                                                                  ? Colors.amber
+                                                                  : controller.state.textColor),
+                                                  controller.state.totalValue[i * 4 + index]),
+                                            ),
+                                          )).toList())).toList(),
+                        )),
                 //按钮功能区
                 SizedBox(
                   height: 35,
@@ -172,32 +175,33 @@ class GameHomePage extends GetView<GameHomeLogic> {
                 ),
                 //列表
                 Expanded(
-                  child: Obx(() => AbsorbPointer /*NotificationListener 也可以实现（监听滑动的回调）*/ (
-                        absorbing: controller.state.isRefreshing.value,
-                        child: GestureDetector(
-                          // onLongPress: () => controller.lockScreen(),
-                          child: ColoredBox(
-                            color: controller.state.listViewColor,
-                            child: EasyRefresh(
-                              controller: controller.refreshcontroller,
-                              // onRefresh: () async => controller.onRefresh(),
-                              onLoad: () async => controller.onLoadMore(), //不要onLoad就没有上拉加载更多
-                              child: ListView.separated(
-                                reverse: true,
-                                padding: const EdgeInsets.only(left: 6, right: 2),
-                                controller: controller.scrollController,
-                                itemCount: controller.state.table2ListX.length,
-                                itemBuilder: (BuildContext context, int index) => buildItem(index),
-                                separatorBuilder: (BuildContext context, int index) => Divider(
-                                    height: 2,
-                                    indent: 5,
-                                    thickness: 0.3,
-                                    color: index % 2 == 0 ? Colors.red : Colors.black),
+                  child: GetBuilder<GameHomeLogic>(
+                      builder: (controller) => AbsorbPointer /*NotificationListener 也可以实现（监听滑动的回调）*/ (
+                            absorbing: controller.state.isRefreshing,
+                            child: GestureDetector(
+                              // onLongPress: () => controller.lockScreen(),
+                              child: ColoredBox(
+                                color: controller.state.listViewColor,
+                                child: EasyRefresh(
+                                  controller: controller.refreshcontroller,
+                                  // onRefresh: () async => controller.onRefresh(),
+                                  onLoad: () async => controller.onLoadMore(), //不要onLoad就没有上拉加载更多
+                                  child: ListView.separated(
+                                    reverse: true,
+                                    padding: const EdgeInsets.only(left: 6, right: 2),
+                                    controller: controller.scrollController,
+                                    itemCount: controller.state.table2ListX.length,
+                                    itemBuilder: (BuildContext context, int index) => buildItem(index),
+                                    separatorBuilder: (BuildContext context, int index) => Divider(
+                                        height: 2,
+                                        indent: 5,
+                                        thickness: 0.3,
+                                        color: index % 2 == 0 ? Colors.red : Colors.black),
+                                  ),
+                                ),
                               ),
                             ),
-                          ),
-                        ),
-                      )),
+                          )),
                 ),
                 //输入金额
                 SafeArea(
@@ -298,9 +302,7 @@ class GameHomePage extends GetView<GameHomeLogic> {
                   Visibility(
                     visible: controller.state.table2ListX[index].colmunShuyingzhiD!.isNotEmpty,
                     child: GestureDetector(
-                        onTap: () {
-                          controller.updateSqlite(index);
-                        },
+                        onTap: () => controller.updateLists(index),
                         child: Image.asset(height: 20, 'assets/images/delete.png')),
                   )
                 ])),
@@ -386,14 +388,14 @@ class GameHomePage extends GetView<GameHomeLogic> {
               ),
             );
 
-  buildChats() => Obx(
-        () => controller.state.isMap.value
+  buildChats() => GetBuilder<GameHomeLogic>(
+        builder: (controller) => controller.state.isMap
             ? (controller.state.listMap.isNotEmpty
                 ? SizedBox(
                     height: 100,
                     width: double.infinity,
                     child: GestureDetector(
-                        onTap: () => controller.state.isMap.value = !controller.state.isMap.value,
+                        onTap: () => controller.changeChart(),
                         onDoubleTap: () => controller.srollChange(),
                         child: BaccaratRoadMap(
                           results: controller.state.listMap,
@@ -405,7 +407,7 @@ class GameHomePage extends GetView<GameHomeLogic> {
                 ? SizedBox(
                     height: 100,
                     child: GestureDetector(
-                      onTap: () => controller.state.isMap.value = !controller.state.isMap.value,
+                      onTap: () => controller.changeChart(),
                       child: Container(
                         color: controller.state.chartBgColor,
                         padding: const EdgeInsets.only(top: 8.0, right: 0.0, bottom: 8.0), // 去掉左边内边距
@@ -414,7 +416,8 @@ class GameHomePage extends GetView<GameHomeLogic> {
                             return LineChart(
                               LineChartData(
                                 backgroundColor: Colors.transparent,
-                                borderData: FlBorderData(show: false), // 无边框
+                                borderData: FlBorderData(show: false),
+                                // 无边框
                                 gridData: FlGridData(
                                   show: true,
                                   horizontalInterval: (() {
@@ -436,7 +439,8 @@ class GameHomePage extends GetView<GameHomeLogic> {
                                       dashArray: [5, 5], // 虚线样式
                                     );
                                   },
-                                  verticalInterval: 1, // 设置一个很小的值，但不显示垂直网格线
+                                  verticalInterval: 1,
+                                  // 设置一个很小的值，但不显示垂直网格线
                                   getDrawingVerticalLine: (value) {
                                     return const FlLine(
                                       color: Colors.transparent, // 透明色，实际上不显示
@@ -687,7 +691,7 @@ class _SinglePickerState extends State<SinglePicker> {
 
   @override
   void initState() {
-    selectIndex = controller.state.selectIndex.value;
+    selectIndex = controller.state.selectIndex;
     super.initState();
   }
 
@@ -714,22 +718,23 @@ class _SinglePickerState extends State<SinglePicker> {
               ),
             ],
           ),
-          Obx(() => Expanded(
-                child: CupertinoPicker(
-                    scrollController: controller.fixedExtentScrollController,
-                    itemExtent: 50, // 每个选项的高度
-                    onSelectedItemChanged: (int index) {
-                      // 处理选中项的变化
-                      selectIndex = index;
-                    },
-                    children: List.generate(
-                      controller.state.functionTypes.length,
-                      (index) => Align(
-                        alignment: Alignment.center,
-                        child: Text(controller.state.functionTypes[index].toString()),
-                      ),
-                    )),
-              ))
+          GetBuilder<GameHomeLogic>(
+              builder: (controller) => Expanded(
+                    child: CupertinoPicker(
+                        scrollController: controller.fixedExtentScrollController,
+                        itemExtent: 50, // 每个选项的高度
+                        onSelectedItemChanged: (int index) {
+                          // 处理选中项的变化
+                          selectIndex = index;
+                        },
+                        children: List.generate(
+                          controller.state.functionTypes.length,
+                          (index) => Align(
+                            alignment: Alignment.center,
+                            child: Text(controller.state.functionTypes[index].toString()),
+                          ),
+                        )),
+                  ))
         ],
       ),
     );

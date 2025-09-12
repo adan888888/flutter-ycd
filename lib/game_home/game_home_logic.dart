@@ -85,8 +85,8 @@ class GameHomeLogic extends GetxController {
         success: (isSuccess, code, message, results) {
           if (isSuccess && results.isNotEmpty) {
             state.table2ListX.clear();
-            state.table2ListX.value = results.reversed.toList();
-            state.listMap.value = state.table2ListX.reversed
+            state.table2ListX = results.reversed.toList();
+            state.listMap = state.table2ListX.reversed
                 .toList()
                 .map((e) => e.colmunShuyingzhi!.startsWith("-") ? "P" : "B")
                 .toList();
@@ -100,7 +100,7 @@ class GameHomeLogic extends GetxController {
       Api.getStatisticalAreasData,
       params: {"tempIndex": tempIndex},
       success: (isSuccess, code, message, results) {
-        state.totalValue.value = results.map((e) => e.toString()).toList();
+        state.totalValue = results.map((e) => e.toString()).toList();
         state.totalValue[28] = "${state.js1}/${state.js2}";
         //预测平均值
         if (textEditingController.text.isNotEmpty) {
@@ -111,6 +111,7 @@ class GameHomeLogic extends GetxController {
           state.totalValue[24] = pVal2();
         }
         state.isCanPress = true;
+        update();
         getCharts();
       },
     );
@@ -118,7 +119,7 @@ class GameHomeLogic extends GetxController {
 
   showBottomFunction() {
     focusNode.nextFocus();
-    fixedExtentScrollController = FixedExtentScrollController(initialItem: state.selectIndex.value);
+    fixedExtentScrollController = FixedExtentScrollController(initialItem: state.selectIndex);
     Get.bottomSheet(const SinglePicker());
   }
 
@@ -180,6 +181,7 @@ class GameHomeLogic extends GetxController {
     state.isCanPress = false;
     state.js2 = state.js2 + 1;
     state.totalValue[28] = "${state.js1}/${state.js2}";
+    update();
     // if (next(1, 90485) > 44625 - MyState.OFFSET8431) {
     if (next(1, 100) <= 50) {
       //1到100（包含1，100）//<= 70 是 70%庄 30%闲
@@ -189,9 +191,11 @@ class GameHomeLogic extends GetxController {
       state.totalValue[30] = '闲';
       state.randomValue = '闲';
     }
+    update();
     Get.dialog(NewWidget(state.randomValue),
         barrierDismissible: false, barrierColor: Colors.black.withValues(alpha: 0.18));
     state.isCanPress = true;
+    update();
   }
 
   int next(int min, int max) => min + Random().nextInt(max - min + 1);
@@ -202,18 +206,19 @@ class GameHomeLogic extends GetxController {
         success: (isSuccess, code, message, value) {
           state.table1List.clear();
           if (value.isNotEmpty) {
-            state.table1List.value = value;
+            state.table1List = value;
             state.totalValue[0] = '${state.table1List.last.columnBenjin}'; //本金
             state.totalValue[19] = '${state.table1List.last.columnMean}'; //期望值
-            state.chartData.value = List.generate(
+            state.chartData = List.generate(
                 75, (index) => SalesData(index, double.parse(state.table1List.last.columnBenjin.toString()))).toList();
           }
-          state.isRefreshing.value = false;
+          state.isRefreshing = false;
+          update();
         },
         failed: (p0, p1) {
           refreshcontroller.finishRefresh(IndicatorResult.fail);
           state.isCanPress = true;
-          state.isRefreshing.value = false;
+          state.isRefreshing = false;
         },
         onModel: (m) => Table1Model.fromJson(m));
   }
@@ -294,7 +299,7 @@ class GameHomeLogic extends GetxController {
           success: (isSuccess, code, message, results) {
             _getStatisticalAreasData(-2); //重新计算
             state.table2ListX.insert(0, results.first); //打一手 记录一笔
-            state.listMap.value = state.table2ListX.reversed
+            state.listMap = state.table2ListX.reversed
                 .toList()
                 .map((e) => e.colmunShuyingzhi!.startsWith("-") ? "P" : "B")
                 .toList();
@@ -338,7 +343,10 @@ class GameHomeLogic extends GetxController {
         }
         //解决外面的点跑，里面的线不动
         var removeLast = state.chartData.removeLast();
-        Future.delayed(const Duration(milliseconds: 300), () => state.chartData.add(removeLast));
+        Future.delayed(const Duration(milliseconds: 300), () {
+          state.chartData.add(removeLast);
+          update();
+        });
       },
     );
   }
@@ -389,6 +397,7 @@ class GameHomeLogic extends GetxController {
                 state.js1 = state.js1 - 1;
                 state.totalValue[28] = "${state.js1}/${state.js2}";
                 state.table2ListX.removeAt(0);
+                update();
                 Get.back();
               },
               onModel: (m) => Table2Model.fromJson(m));
@@ -397,7 +406,7 @@ class GameHomeLogic extends GetxController {
     }
   }
 
-  void updateSqlite(int index) {
+  void updateLists(int index) {
     // _instance?.then((db) => db.update(DbHelper.table2, state.table2List[index].toJson()..update("colmun_shuyingzhi_d", (value) => "") /*具体更新的数据*/,
     //     where: "table2Id =?", //通过id查找需要更新的数据
     //     whereArgs: [index])).then((value) => _queryAllTable2());
@@ -408,9 +417,11 @@ class GameHomeLogic extends GetxController {
       params: state.table2ListX[index].toJson()..update("colmun_shuyingzhi_d", (value) => ""),
       success: (isSuccess, code, message, results) {
         if (isSuccess) {
-          BXLoading.dismiss();
           state.table2ListX[index].colmunShuyingzhiD = "";
-          state.table2ListX.refresh();
+          Future.delayed(const Duration(milliseconds: 500), () {
+            BXLoading.dismiss();
+            update();
+          });
         }
       },
     );
@@ -441,8 +452,8 @@ class GameHomeLogic extends GetxController {
       success: (isSuccess, code, message, value) {
         if (isSuccess) {
           // BXLoading.showToast("${value.last.columnRestartIndex}");
-          state.table1List.value = value;
-          state.table2ListX.value = state.table2ListX.map((element) => element..colmunShuyingzhiD = "").toList();
+          state.table1List = value;
+          state.table2ListX = state.table2ListX.map((element) => element..colmunShuyingzhiD = "").toList();
           _getStatisticalAreasData(-1);
           state.currentTempIndex = 0;
         }
@@ -535,7 +546,7 @@ class GameHomeLogic extends GetxController {
               ..sort();
             for (int i = 1; i <= list.length; i++) {
               state.table2ListX[i - 1].colmunShuyingzhiD = list[list.length - i].toString();
-              state.table2ListX.refresh(); //调用了list里面的对象一定要用refresh()要不然不会刷新
+              update(); //调用了list里面的对象一定要用refresh()要不然不会刷新
             }
           }
         });
@@ -552,7 +563,7 @@ class GameHomeLogic extends GetxController {
         int count = 0;
         for (var _ in state.table2ListX) {
           state.table2ListX[count].colmunShuyingzhiD = "";
-          state.table2ListX.refresh();
+          update();
           count++;
         }
         BXPost<dynamic>(
@@ -834,13 +845,17 @@ class GameHomeLogic extends GetxController {
     } else {
       state.currentTempIndex = index;
     }
+    update();
     if (state.table2ListX.isNotEmpty) _getStatisticalAreasData(index);
-    Future.delayed(const Duration(milliseconds: 1000), () => state.totalValue[30] = v.toString());
+    Future.delayed(const Duration(milliseconds: 1000), () {
+      state.totalValue[30] = v.toString();
+      update();
+    });
   }
 
   //下拉刷新
   void onRefresh() {
-    state.isRefreshing.value = true;
+    state.isRefreshing = true;
     _queryMysqlTable1();
   }
 
@@ -858,7 +873,8 @@ class GameHomeLogic extends GetxController {
             temp.addAll(results);
             temp.addAll(state.table2ListX.reversed.toList());
             state.table2ListX.clear();
-            state.table2ListX.value = temp.reversed.toList();
+            state.table2ListX = temp.reversed.toList();
+            update();
           }
           refreshcontroller.finishLoad(IndicatorResult.success, isSuccess);
         },
@@ -871,6 +887,11 @@ class GameHomeLogic extends GetxController {
       duration: const Duration(milliseconds: 500),
       curve: Curves.easeOut,
     );
+  }
+
+  changeChart() {
+    state.isMap = !state.isMap;
+    update();
   }
 }
 
