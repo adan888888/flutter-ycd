@@ -390,7 +390,7 @@ class GameHomePage extends GetView<GameHomeLogic> {
         () => controller.state.isMap.value
             ? (controller.state.listMap.isNotEmpty
                 ? SizedBox(
-                    height: 78,
+                    height: 100,
                     width: double.infinity,
                     child: GestureDetector(
                         onTap: () => controller.state.isMap.value = !controller.state.isMap.value,

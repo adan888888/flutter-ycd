@@ -42,7 +42,7 @@ class BaccaratSimulationState {
   /// 简单的路子图记录（用于其他路子图显示）
   List<String> roadMap = [];
 
-  /// 大路图数据（6行30列的二维数组）
+  /// 大路图数据（6行${bigRoadCols}列的二维数组）
   List<List<String>> bigRoad = [];
 
   // ***********== 大路图状态 ***********==

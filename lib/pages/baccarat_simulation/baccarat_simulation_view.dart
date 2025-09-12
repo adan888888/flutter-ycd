@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../my_widget/baccarat_big_road_widget.dart';
 import 'baccarat_simulation_controller.dart';
 import 'baccarat_simulation_state.dart';
 
@@ -166,85 +167,18 @@ class BaccaratSimulationView extends GetView<BaccaratSimulationController> {
   Widget _buildBigRoadGrid() {
     return GetBuilder<BaccaratSimulationController>(
       builder: (controller) {
-        // 构建大路图内容
-        Widget bigRoadContent = Column(
-          children: controller.state.bigRoad
-              .map(
-                (row) => Row(
-                  children: row
-                      .map(
-                        (cell) => Container(
-                          width: BaccaratSimulationState.cellWidth,
-                          height: BaccaratSimulationState.cellWidth,
-                          decoration: BoxDecoration(
-                            border: Border.all(
-                              color: Colors.grey.shade300,
-                              width: 0.5,
-                            ),
-                          ),
-                          child: Center(
-                            child: cell.isEmpty ? null : _buildBigRoadItem(cell),
-                          ),
-                        ),
-                      )
-                      .toList(),
-                ),
-              )
-              .toList(),
-        );
-
-        return Container(
-          decoration: BoxDecoration(
-            border: Border.all(color: Colors.grey.shade300, width: 1),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: controller.state.hasBigRoadData
-              ? SingleChildScrollView(
-                  controller: controller.scrollController,
-                  scrollDirection: Axis.horizontal,
-                  child: bigRoadContent,
-                )
-              : Center(child: bigRoadContent), // 没有数据时居中显示
+        return BaccaratBigRoadWidget(
+          bigRoadData: controller.state.bigRoad,
+          cellWidth: BaccaratSimulationState.cellWidth,
+          cellHeight: BaccaratSimulationState.cellWidth,
+          hasData: controller.state.hasBigRoadData,
+          scrollController: controller.scrollController,
+          borderColor: Colors.grey.shade300,
+          backgroundColor: Colors.white,
+          borderRadius: 8.0,
+          showBorder: true,
         );
       },
-    );
-  }
-
-  // 构建大路图项
-  Widget _buildBigRoadItem(String winner) {
-    Color color;
-    String text;
-    switch (winner) {
-      case '闲家':
-        color = Colors.blue;
-        text = 'P';
-        break;
-      case '庄家':
-        color = Colors.red;
-        text = 'B';
-        break;
-      default:
-        color = Colors.grey;
-        text = '?';
-    }
-
-    return Container(
-      width: 16,
-      height: 16,
-      decoration: BoxDecoration(
-        color: color,
-        shape: BoxShape.circle,
-      ),
-      child: Center(
-        child: Text(
-          text,
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 10,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-      ),
     );
   }
 
