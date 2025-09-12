@@ -24,9 +24,8 @@ class GameHomePage extends GetView<GameHomeController> {
     return KeyboardDismissOnTap(
       dismissOnCapturedTaps: kIsWeb ? false : (Platform.isMacOS || Platform.isWindows ? false : true),
       child: Listener(
-        onPointerDown: (PointerDownEvent event) {
-          controller.onUserInteraction();
-        },
+        onPointerDown: (PointerDownEvent event) => controller.onUserInteraction(),
+        onPointerMove: (event) => controller.onUserInteraction(),
         child: Scaffold(
           floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
           floatingActionButton: GestureDetector(
