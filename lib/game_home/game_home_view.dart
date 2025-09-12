@@ -8,12 +8,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:get/get.dart';
-import 'package:ycd/my_widget/baccarat_road_map.dart';
+import 'package:ycd/game_home/game_home_state.dart';
 import 'package:ycd/utils/network/get_store.dart';
 
-import 'game_home_logic.dart';
+import '../my_widget/baccarat_big_road_widget.dart';
+import 'game_home_controller.dart';
 
-class GameHomePage extends GetView<GameHomeLogic> {
+class GameHomePage extends GetView<GameHomeController> {
   const GameHomePage({super.key, required this.title});
 
   final String title;
@@ -97,7 +98,7 @@ class GameHomePage extends GetView<GameHomeLogic> {
                         ),
                   ),
                 ),*/
-                GetBuilder<GameHomeLogic>(
+                GetBuilder<GameHomeController>(
                     builder: (controller) => Table(
                           border: TableBorder(
                             //在右上下的边框线
@@ -175,7 +176,7 @@ class GameHomePage extends GetView<GameHomeLogic> {
                 ),
                 //列表
                 Expanded(
-                  child: GetBuilder<GameHomeLogic>(
+                  child: GetBuilder<GameHomeController>(
                       builder: (controller) => AbsorbPointer /*NotificationListener 也可以实现（监听滑动的回调）*/ (
                             absorbing: controller.state.isRefreshing,
                             child: GestureDetector(
@@ -388,21 +389,66 @@ class GameHomePage extends GetView<GameHomeLogic> {
               ),
             );
 
-  buildChats() => GetBuilder<GameHomeLogic>(
-        builder: (controller) => controller.state.isMap
-            ? (controller.state.listMap.isNotEmpty
-                ? SizedBox(
-                    height: 100,
-                    width: double.infinity,
-                    child: GestureDetector(
-                        onTap: () => controller.changeChart(),
-                        onDoubleTap: () => controller.srollChange(),
-                        child: BaccaratRoadMap(
-                          results: controller.state.listMap,
-                          scrollController: controller.scrollController1,
-                        )),
+  buildChats() => GetBuilder<GameHomeController>(
+        builder: (controller) => controller.state.isBigRoad
+            ? (controller.state.hasBigRoadData
+                //大路子图
+                ? GestureDetector(
+                    onTap: () => controller.changeChart(),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                      child: Card(
+                        elevation: 4,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: Colors.white10,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    '   ',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.grey.shade700,
+                                    ),
+                                  ),
+                                  Row(
+                                    children: [
+                                      _buildLegendItem('输', Colors.blue),
+                                      const SizedBox(width: 2),
+                                      _buildLegendItem('赢', Colors.red),
+                                      const SizedBox(width: 4),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                              // 大路网格
+                              BaccaratBigRoadWidget(
+                                bigRoadData: controller.state.bigRoad,
+                                cellWidth: GameState.cellWidth,
+                                cellHeight: GameState.cellWidth,
+                                hasData: controller.state.hasBigRoadData,
+                                scrollController: controller.roadMapScrollController,
+                                borderColor: Colors.grey.shade300,
+                                backgroundColor: Colors.white,
+                                borderRadius: 0.0,
+                                showBorder: true,
+                                front: "W",
+                                back: "L",
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
                   )
-                : const Text('data'))
+                : const Text('暂无数据📊'))
             : (controller.state.chartData.isNotEmpty
                 ? SizedBox(
                     height: 100,
@@ -674,6 +720,31 @@ class GameHomePage extends GetView<GameHomeLogic> {
           ),
         ),
       );
+
+  // 构建图例项
+  Widget _buildLegendItem(String label, Color color) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 12,
+          height: 12,
+          decoration: BoxDecoration(
+            color: color,
+            shape: BoxShape.circle,
+          ),
+        ),
+        const SizedBox(width: 4),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 12,
+            color: Colors.grey.shade600,
+          ),
+        ),
+      ],
+    );
+  }
 }
 
 // Expanded(child: Container(height: double.infinity, color:controller.state.bgColor, child: Text(text, textAlign: TextAlign.center)));
@@ -686,7 +757,7 @@ class SinglePicker extends StatefulWidget {
 }
 
 class _SinglePickerState extends State<SinglePicker> {
-  final controller = Get.find<GameHomeLogic>();
+  final controller = Get.find<GameHomeController>();
   int selectIndex = 0;
 
   @override
@@ -718,7 +789,7 @@ class _SinglePickerState extends State<SinglePicker> {
               ),
             ],
           ),
-          GetBuilder<GameHomeLogic>(
+          GetBuilder<GameHomeController>(
               builder: (controller) => Expanded(
                     child: CupertinoPicker(
                         scrollController: controller.fixedExtentScrollController,

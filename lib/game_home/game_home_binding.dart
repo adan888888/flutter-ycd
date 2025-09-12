@@ -1,9 +1,10 @@
 import 'package:get/get.dart';
-import 'game_home_logic.dart';
+
+import 'game_home_controller.dart';
 
 class GameHomeBinding extends Bindings {
   @override
   void dependencies() {
-    Get.lazyPut(() => GameHomeLogic());
+    Get.lazyPut(() => GameHomeController());
   }
 }

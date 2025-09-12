@@ -24,7 +24,7 @@ import '../utils/network/http_mgr.dart';
 import 'game_home_state.dart';
 import 'game_home_view.dart';
 
-class GameHomeLogic extends GetxController {
+class GameHomeController extends GetxController {
   EasyRefreshController refreshcontroller = EasyRefreshController(controlFinishRefresh: true, controlFinishLoad: true);
   final GameState state = GameState();
   Future<Database>? _instance;
@@ -38,7 +38,7 @@ class GameHomeLogic extends GetxController {
 // 定义一个计时器，用于延时锁屏
   Timer? _timer;
 
-  final ScrollController scrollController1 = ScrollController(); //路子图的controller
+  final ScrollController roadMapScrollController = ScrollController(); //路子图的controller
 
   @override
   void onInit() {
@@ -68,12 +68,6 @@ class GameHomeLogic extends GetxController {
         }
       },
     );
-    // Future.delayed(const Duration(seconds: 20), () => lockScreen());
-    scrollController1.addListener(() {
-      if (scrollController1.position.pixels == scrollController1.position.maxScrollExtent) {
-        debugPrint('已经滚动到了底部');
-      }
-    });
 
     //1。查询表一数据
     _queryMysqlTable1();
@@ -86,13 +80,111 @@ class GameHomeLogic extends GetxController {
           if (isSuccess && results.isNotEmpty) {
             state.table2ListX.clear();
             state.table2ListX = results.reversed.toList();
-            state.listMap = state.table2ListX.reversed
+            var list = state.table2ListX.reversed
                 .toList()
-                .map((e) => e.colmunShuyingzhi!.startsWith("-") ? "P" : "B")
+                .map((e) => e.colmunShuyingzhi!.startsWith("-") ? "闲家" : "庄家")
                 .toList();
+            debugPrint('-------> $list');
+            for (var value in list) {
+              updateBigRoad(value);
+            }
+            update();
           }
         },
         onModel: (m) => Table2Model.fromJson(m));
+  }
+
+  /// 更新大路图
+  /// 根据百家乐大路规则更新大路图数据
+  /// [winner] 本局获胜者（闲家/庄家/和局）
+  ///
+  /// 大路规则：
+  /// - 和局不记录在大路中
+  /// - 第一局记录在[0][0]位置
+  /// - 与上局不同：向右移动（新列）
+  /// - 与上局相同：向下移动（同列）
+  /// - 长龙规则（标准）：同列向下，若到底或下方被占，则锁定当前行改为向右平移
+  void updateBigRoad(String winner) {
+    debugPrint('🐉️ 上局: ${state.lastWinner} 当前: $winner');
+
+    // 和局不记录在大路中
+    if (winner == '和局') {
+      return;
+    }
+
+    /************如果是第一局，直接记录在第1行第1列 ********************************************** */
+    if (state.lastWinner == '') {
+      debugPrint('🐉️ 第一局，记录在 [${state.currentRow}][${state.currentCol}]');
+      state.bigRoad[state.currentRow][state.currentCol] = winner;
+      state.currentCol++;
+    }
+
+    /************ 如果与上一局不同，向右移动（新列）************************************************/
+    else if (state.lastWinner != winner) {
+      state.dragonStartCol = -1;
+      state.dragonParallelRow = -1;
+      state.currentRow = 0;
+      state.bigRoad[state.currentRow][state.currentCol] = winner;
+      debugPrint('🐉️ 与上一局不同，记录在 [${state.currentRow}][${state.currentCol}]');
+      state.currentCol++;
+    }
+
+    /************ 如果与上一局相同，向下移动 *****************************************************/
+    else {
+      state.currentRow++;
+      var ids = state.currentCol - 1; // 当前列的列
+
+      // 如果下方有内容，或者已经超过6行，则需要往右平移（长龙处理）
+      if ((state.currentRow < GameState.bigRoadRows && state.bigRoad[state.currentRow][ids].isNotEmpty) ||
+          state.currentRow > GameState.bigRoadRows - 1) {
+        // 长龙处理：向右平移
+        state.dragonStartCol++;
+        state.bigRoad[state.dragonParallelRow][state.dragonStartCol] = winner;
+        debugPrint('🐉️（长龙处理）与上一局相同，记录在 [${state.dragonParallelRow}][${state.dragonStartCol}]');
+      } else {
+        // 没有超过6行，且下方没有内容，正常往下走
+        state.bigRoad[state.currentRow][state.currentCol - 1] = winner;
+        state.dragonParallelRow = state.currentRow; // 记录最后一次行
+        state.dragonStartCol = state.currentCol - 1; // 记录最后一次列
+        debugPrint('🐉️ 与上一局相同，记录在 [${state.currentRow}][${state.currentCol - 1}]');
+      }
+    }
+
+    state.lastWinner = winner;
+  }
+
+  /// 自动滚动到当前绘制位置
+  void scrollToCurrentPosition(int currentCol) {
+    // 使用 addPostFrameCallback 保证在当前帧绘制完成后再执行滚动，避免滚动区域未布局完成导致异常
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (roadMapScrollController.hasClients) {
+        // 计算当前列右边界的位置
+        double currentColRightEdge = (currentCol + 1) * GameState.cellWidth;
+
+        // 获取当前可见区域的右边界
+        double currentScrollOffset = roadMapScrollController.position.pixels;
+        double visibleRightEdge = currentScrollOffset + roadMapScrollController.position.viewportDimension;
+
+        // 只有当当前列的右边界超出可见区域右边界时才滚动
+        if (currentColRightEdge > visibleRightEdge) {
+          // 计算需要滚动的距离，让当前列刚好可见
+          double scrollDistance = currentColRightEdge - visibleRightEdge + GameState.cellWidth;
+          double newOffset = currentScrollOffset + scrollDistance;
+
+          // 确保不超过最大滚动范围
+          double maxOffset = roadMapScrollController.position.maxScrollExtent;
+          if (newOffset > maxOffset) {
+            newOffset = maxOffset;
+          }
+
+          roadMapScrollController.animateTo(
+            newOffset,
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeOut,
+          );
+        }
+      }
+    });
   }
 
   void _getStatisticalAreasData(int? tempIndex) {
@@ -299,11 +391,9 @@ class GameHomeLogic extends GetxController {
           success: (isSuccess, code, message, results) {
             _getStatisticalAreasData(-2); //重新计算
             state.table2ListX.insert(0, results.first); //打一手 记录一笔
-            state.listMap = state.table2ListX.reversed
-                .toList()
-                .map((e) => e.colmunShuyingzhi!.startsWith("-") ? "P" : "B")
-                .toList();
-            debugPrint("图表的值：${state.listMap}");
+            updateBigRoad(state.table2ListX[0].colmunShuyingzhi!.startsWith("-") ? "闲家" : "庄家");
+            // 自动滚动到当前位置
+            scrollToCurrentPosition(state.currentCol);
           },
           failed: (p0, p1) => state.isCanPress = true,
           onModel: (m) => Table2Model.fromJson(m));
@@ -311,26 +401,6 @@ class GameHomeLogic extends GetxController {
   }
 
   getCharts() {
-    // var chartDataTemp = <double>[];
-    // if (state.table2ListX.length <= state.chartData.length) {
-    //   for (var i = 0; i < state.table2ListX.length; i++) {
-    //     chartDataTemp.add(double.parse(state.table2ListX[i].columnCurrentJin.toString()));
-    //   }
-    // } else {
-    //   for (var i = state.table2ListX.length - state.chartData.length; i < state.table2ListX.length; i++) {
-    //     chartDataTemp.add(double.parse(state.table2ListX[i].columnCurrentJin.toString()));
-    //   }
-    // }
-    // if (chartDataTemp.isNotEmpty) {
-    //   var z = 0;
-    //   for (var i = chartDataTemp.length - 1; i >= 0; i--) {
-    //     z++;
-    //     state.chartData[state.chartData.length - z].sales = chartDataTemp[i];
-    //   }
-    //   var removeLast = state.chartData.removeLast();
-    //   Future.delayed(const Duration(milliseconds: 300), () => state.chartData.add(removeLast));
-    // // }
-
     var z = 0;
     BXGet<dynamic>(
       Api.getLinechartData,
@@ -881,16 +951,8 @@ class GameHomeLogic extends GetxController {
         onModel: (m) => Table2Model.fromJson(m));
   }
 
-  srollChange() {
-    scrollController1.animateTo(
-      scrollController1.position.maxScrollExtent,
-      duration: const Duration(milliseconds: 500),
-      curve: Curves.easeOut,
-    );
-  }
-
   changeChart() {
-    state.isMap = !state.isMap;
+    state.isBigRoad = !state.isBigRoad;
     update();
   }
 }

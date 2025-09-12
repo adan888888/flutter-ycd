@@ -30,6 +30,10 @@ class BaccaratBigRoadWidget extends StatelessWidget {
   /// 是否显示边框
   final bool showBorder;
 
+  final String front;
+
+  final String back;
+
   const BaccaratBigRoadWidget({
     super.key,
     required this.bigRoadData,
@@ -41,6 +45,8 @@ class BaccaratBigRoadWidget extends StatelessWidget {
     this.backgroundColor,
     this.borderRadius = 8.0,
     this.showBorder = true,
+    this.front = "b",
+    this.back = "p",
   });
 
   @override
@@ -62,7 +68,7 @@ class BaccaratBigRoadWidget extends StatelessWidget {
                         ),
                       ),
                       child: Center(
-                        child: cell.isEmpty ? null : _buildBigRoadItem(cell),
+                        child: cell.isEmpty ? null : _buildBigRoadItem(cell, front, back),
                       ),
                     ),
                   )
@@ -89,18 +95,18 @@ class BaccaratBigRoadWidget extends StatelessWidget {
   }
 
   /// 构建大路图项
-  Widget _buildBigRoadItem(String winner) {
+  Widget _buildBigRoadItem(String winner, String front, String back) {
     Color color;
     String text;
 
     switch (winner) {
       case '闲家':
-        color = Colors.blue;
-        text = 'P';
+        color = Colors.green;
+        text = back;
         break;
       case '庄家':
         color = Colors.red;
-        text = 'B';
+        text = front;
         break;
       default:
         color = Colors.grey;
@@ -121,7 +127,9 @@ class BaccaratBigRoadWidget extends StatelessWidget {
             color: Colors.white,
             fontSize: 10,
             fontWeight: FontWeight.bold,
+            height: 1.0,
           ),
+          textAlign: TextAlign.center,
         ),
       ),
     );
