@@ -154,16 +154,17 @@ class GameHomeController extends GetxController {
   }
 
   /// 自动滚动到当前绘制位置
-  void scrollToCurrentPosition(int currentCol) {
+  void scrollToCurrentPosition() {
     // 使用 addPostFrameCallback 保证在当前帧绘制完成后再执行滚动，避免滚动区域未布局完成导致异常
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (roadMapScrollController.hasClients) {
-        // 计算当前列右边界的位置
-        double currentColRightEdge = (currentCol + 1) * GameState.cellWidth;
+        // 计算当前列右边界的位置(这样计算还是有点不准，能在整个数据里找到最右边的列才更准，不过实际中应该没有那长的龙，先就这样吧)
+        double currentColRightEdge =
+            (state.dragonStartCol == -1 ? state.currentCol : state.dragonStartCol + 1) * GameState.cellWidth;
 
-        // 获取当前可见区域的右边界
-        double currentScrollOffset = roadMapScrollController.position.pixels;
-        double visibleRightEdge = currentScrollOffset + roadMapScrollController.position.viewportDimension;
+        double currentScrollOffset = roadMapScrollController.position.pixels /* 当前滚动位置（滑动了多少）*/;
+        /* 当前滚动位置 + 可见区域尺寸 = 可见区域右边界 */
+        double visibleRightEdge = currentScrollOffset + roadMapScrollController.position.viewportDimension /* 可见区域尺寸 */;
 
         // 只有当当前列的右边界超出可见区域右边界时才滚动
         if (currentColRightEdge > visibleRightEdge) {
@@ -393,7 +394,7 @@ class GameHomeController extends GetxController {
             state.table2ListX.insert(0, results.first); //打一手 记录一笔
             updateBigRoad(state.table2ListX[0].colmunShuyingzhi!.startsWith("-") ? "闲家" : "庄家");
             // 自动滚动到当前位置
-            scrollToCurrentPosition(state.currentCol);
+            scrollToCurrentPosition();
           },
           failed: (p0, p1) => state.isCanPress = true,
           onModel: (m) => Table2Model.fromJson(m));
