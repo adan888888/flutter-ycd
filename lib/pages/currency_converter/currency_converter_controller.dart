@@ -56,10 +56,18 @@ class CurrencyConverterController extends GetxController {
         return;
       }
 
-      // 使用免费的汇率API
-      final response = await http.get(
-        Uri.parse('https://api.exchangerate-api.com/v4/latest/${fromCurrency.value}'),
+      // 使用高精度汇率API
+      // 优先使用高精度API
+      var response = await http.get(
+        Uri.parse('https://api.fxratesapi.com/latest?base=${fromCurrency.value}'),
       );
+
+      // 如果高精度API失败，使用备用API
+      if (response.statusCode != 200) {
+        response = await http.get(
+          Uri.parse('https://api.exchangerate-api.com/v4/latest/${fromCurrency.value}'),
+        );
+      }
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
@@ -113,7 +121,7 @@ class CurrencyConverterController extends GetxController {
 
   // 格式化金额显示
   String formatAmount(double amount) {
-    if (amount == 0) return '0.00';
-    return amount.toStringAsFixed(2);
+    if (amount == 0) return '0.0000';
+    return amount.toStringAsFixed(4);
   }
 }

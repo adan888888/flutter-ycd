@@ -43,12 +43,10 @@ class CurrencyConverterView extends GetView<CurrencyConverterController> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('输入金额',
-                style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+            const Text('输入金额', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
             const SizedBox(height: 6),
             Obx(() {
-              final fromCurrencyInfo =
-                  controller.getCurrencyInfo(controller.fromCurrency.value);
+              final fromCurrencyInfo = controller.getCurrencyInfo(controller.fromCurrency.value);
               return TextField(
                 controller: controller.amountController,
                 keyboardType: TextInputType.number,
@@ -102,8 +100,7 @@ class CurrencyConverterView extends GetView<CurrencyConverterController> {
                     color: Colors.blue.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child:
-                      const Icon(Icons.swap_vert, color: Colors.blue, size: 18),
+                  child: const Icon(Icons.swap_vert, color: Colors.blue, size: 18),
                 ),
               ),
             ),
@@ -124,12 +121,10 @@ class CurrencyConverterView extends GetView<CurrencyConverterController> {
   }
 
   // 构建货币选择器
-  Widget _buildCurrencySelector(
-      String label, String selectedCurrency, Function(String) onChanged) {
+  Widget _buildCurrencySelector(String label, String selectedCurrency, Function(String) onChanged) {
     return Row(
       children: [
-        Text(label,
-            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+        Text(label, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
         const SizedBox(width: 8),
         Expanded(
           child: DropdownButtonFormField<String>(
@@ -146,15 +141,11 @@ class CurrencyConverterView extends GetView<CurrencyConverterController> {
                 value: currency['code'],
                 child: Row(
                   children: [
-                    Text(currency['flag'],
-                        style: const TextStyle(fontSize: 16)),
+                    Text(currency['flag'], style: const TextStyle(fontSize: 16)),
                     const SizedBox(width: 8),
-                    Text(currency['code'],
-                        style: const TextStyle(fontWeight: FontWeight.bold)),
+                    Text(currency['code'], style: const TextStyle(fontWeight: FontWeight.bold)),
                     const SizedBox(width: 4),
-                    Text(currency['name'],
-                        style:
-                            const TextStyle(fontSize: 12, color: Colors.grey)),
+                    Text(currency['name'], style: const TextStyle(fontSize: 12, color: Colors.grey)),
                   ],
                 ),
               );
@@ -208,8 +199,7 @@ class CurrencyConverterView extends GetView<CurrencyConverterController> {
       }
 
       if (controller.convertedAmount.value > 0) {
-        final toCurrencyInfo =
-            controller.getCurrencyInfo(controller.toCurrency.value);
+        final toCurrencyInfo = controller.getCurrencyInfo(controller.toCurrency.value);
         return Card(
           child: Padding(
             padding: const EdgeInsets.all(16.0),
@@ -222,8 +212,7 @@ class CurrencyConverterView extends GetView<CurrencyConverterController> {
                 const SizedBox(height: 8),
                 Text(
                   '${toCurrencyInfo?['flag']} ${controller.formatAmount(controller.convertedAmount.value)} ${controller.toCurrency.value}',
-                  style: const TextStyle(
-                      fontSize: 24, fontWeight: FontWeight.bold),
+                  style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 8),
                 Text(
@@ -272,9 +261,7 @@ class CurrencyConverterView extends GetView<CurrencyConverterController> {
         const SizedBox(width: 8),
         Expanded(
           child: Obx(() => ElevatedButton.icon(
-                onPressed: controller.isLoading.value
-                    ? null
-                    : controller.fetchExchangeRate,
+                onPressed: controller.isLoading.value ? null : controller.fetchExchangeRate,
                 icon: controller.isLoading.value
                     ? const SizedBox(
                         width: 16,
