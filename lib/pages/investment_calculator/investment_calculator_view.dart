@@ -50,14 +50,12 @@ class InvestmentCalculatorView extends GetView<InvestmentCalculatorController> {
               controller: controller.initialAmountController,
               label: '初始投资金额',
               hint: '请输入初始投资金额',
-              prefix: '\$',
             ),
             const SizedBox(height: 12),
             _buildTextField(
               controller: controller.monthlyController,
               label: '每月投资金额',
               hint: '请输入每月投资金额',
-              prefix: '\$',
             ),
             const SizedBox(height: 12),
             _buildTextField(
@@ -80,15 +78,13 @@ class InvestmentCalculatorView extends GetView<InvestmentCalculatorController> {
                     Radio<String>(
                       value: 'compound',
                       groupValue: controller.calculationMethod.value,
-                      onChanged: (value) =>
-                          controller.calculationMethod.value = value!,
+                      onChanged: (value) => controller.calculationMethod.value = value!,
                     ),
                     const Text('复利'),
                     Radio<String>(
                       value: 'simple',
                       groupValue: controller.calculationMethod.value,
-                      onChanged: (value) =>
-                          controller.calculationMethod.value = value!,
+                      onChanged: (value) => controller.calculationMethod.value = value!,
                     ),
                     const Text('单利'),
                   ],
@@ -174,20 +170,26 @@ class InvestmentCalculatorView extends GetView<InvestmentCalculatorController> {
                 const SizedBox(height: 16),
                 _buildResultItem(
                   '总投资本金',
-                  '\$${controller.formatCurrency(controller.totalPrincipal.value)}',
+                  controller.formatCurrencyWithChinese(controller.totalPrincipal.value),
                   Colors.blue,
                 ),
                 const SizedBox(height: 8),
                 _buildResultItem(
                   '预期收益',
-                  '\$${controller.formatCurrency(controller.totalInterest.value)}',
+                  controller.formatCurrencyWithChinese(controller.totalInterest.value),
                   Colors.green,
                 ),
                 const SizedBox(height: 8),
                 _buildResultItem(
                   '总金额',
-                  '\$${controller.formatCurrency(controller.totalAmount.value)}',
+                  controller.formatCurrencyWithChinese(controller.totalAmount.value),
                   Colors.purple,
+                ),
+                const SizedBox(height: 8),
+                _buildResultItem(
+                  '翻倍数',
+                  '${controller.getMultiplier().toStringAsFixed(2)}倍',
+                  Colors.orange,
                 ),
               ],
             ),
@@ -199,16 +201,28 @@ class InvestmentCalculatorView extends GetView<InvestmentCalculatorController> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(
-          label,
-          style: const TextStyle(fontSize: 16),
+        Expanded(
+          flex: 2,
+          child: Text(
+            label,
+            style: const TextStyle(fontSize: 16),
+          ),
         ),
-        Text(
-          value,
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-            color: color,
+        const SizedBox(width: 8),
+        Expanded(
+          flex: 3,
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerRight,
+            child: Text(
+              value,
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: color,
+              ),
+              textAlign: TextAlign.right,
+            ),
           ),
         ),
       ],
