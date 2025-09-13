@@ -130,7 +130,7 @@ class BuyRecordsController extends GetxController {
   String formatPriceWithDecimals(dynamic price) {
     try {
       if (price is num) {
-        return '\$${price.toStringAsFixed(4)}';
+        return '\$${price.toStringAsFixed(3)}';
       }
       return price.toString();
     } catch (e) {
@@ -154,7 +154,7 @@ class BuyRecordsController extends GetxController {
   String formatPriceTwoDecimals(dynamic price) {
     try {
       if (price is num) {
-        return '\$${price.toStringAsFixed(2)}';
+        return '\$${price.toStringAsFixed(3)}';
       }
       return price.toString();
     } catch (e) {

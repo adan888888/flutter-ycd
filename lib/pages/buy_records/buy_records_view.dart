@@ -99,29 +99,34 @@ class BuyRecordsView extends StatelessWidget {
 
   Widget _buildRecordCard(BuyRecordsController controller, Map<String, dynamic> record, int index) {
     return Card(
-      margin: const EdgeInsets.only(bottom: 12),
       child: Padding(
-        padding: const EdgeInsets.all(10),
+        padding: const EdgeInsets.only(left: 10, right: 10, top: 0, bottom: 10),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              '第${index + 1}笔#',
-              style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.blue),
-            ),
-            Row(
-              children: [
-                Expanded(child: _buildCompactRecordDetails(controller, record)),
-              ],
-            ),
-            const Divider(height: 8),
-            // 累计投资统计 (前N笔)
-            _buildCumulativeStats(controller, index + 1),
             // 只有最后一条记录才显示与当前价格的比较，并且只在有内容时才显示分隔线
             if (controller.state.currentPrice != null && index == controller.state.buyRecords.length - 1) ...[
-              const Divider(height: 6),
               _buildCurrentProfitStats(controller, index),
+              const Divider(height: 6),
+              const SizedBox(height: 16),
             ],
+
+            Row(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                Text(
+                  '第${index + 1}笔',
+                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.blue),
+                ),
+                const SizedBox(width: 16),
+                _buildStatItemX('累计购买数量 ',
+                    controller.calculateCumulativeStats(index + 1)['totalQuantity'].toStringAsFixed(8), Colors.grey),
+              ],
+            ),
+
+            _buildCompactRecordDetails(controller, record),
+            // 累计投资统计 (前N笔)
+            _buildCumulativeStats(controller, index + 1),
           ],
         ),
       ),
@@ -131,16 +136,16 @@ class BuyRecordsView extends StatelessWidget {
   Widget _buildCompactRecordDetails(BuyRecordsController controller, Map<String, dynamic> record) {
     return Row(
       children: [
-        const Text('买入价格: ', style: TextStyle(fontSize: 10, color: Colors.grey)),
+        const Text('购买价格:', style: TextStyle(fontSize: 11, color: Colors.grey)),
         Text(
           controller.formatPriceWithDecimals(record['buy_price']),
-          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w800),
+          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w800),
         ),
-        const SizedBox(width: 20),
-        const Text('数量: ', style: TextStyle(fontSize: 10, color: Colors.grey)),
+        const SizedBox(width: 8),
+        const Text('购买金额', style: TextStyle(fontSize: 11, color: Colors.grey)),
         Text(
-          record['buy_amount']?.toString() ?? '未知',
-          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w800),
+          record['buy_amount']!.toString().isEmpty ? '未知' : "\$${record['buy_amount']}",
+          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w800),
         ),
       ],
     );
@@ -149,8 +154,18 @@ class BuyRecordsView extends StatelessWidget {
   Widget _buildStatItem(String label, String value, Color color) {
     return Row(
       children: [
-        Text('$label ', style: const TextStyle(fontSize: 10, color: Colors.grey)),
-        Text(value, style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: color)),
+        Text(label, style: const TextStyle(fontSize: 11, color: Colors.grey)),
+        Text(value, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: color)),
+        const SizedBox(width: 8), // 添加右侧间距
+      ],
+    );
+  }
+
+  Widget _buildStatItemX(String label, String value, Color color) {
+    return Row(
+      children: [
+        Text(label, style: const TextStyle(fontSize: 10, color: Colors.grey)),
+        Text(value, style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: color)),
         const SizedBox(width: 8), // 添加右侧间距
       ],
     );
@@ -166,11 +181,8 @@ class BuyRecordsView extends StatelessWidget {
         const SizedBox(height: 2),
         Row(
           children: [
-            _buildStatItem('总成本', controller.formatPriceInteger(stats['totalCost']), Colors.black),
-            _buildStatItem('均价', controller.formatPriceTwoDecimals(stats['averagePrice']), Colors.black),
-            Expanded(
-              child: _buildStatItem('总数量', stats['totalQuantity'].toStringAsFixed(8), Colors.grey),
-            ),
+            _buildStatItem('购买均价:', controller.formatPriceTwoDecimals(stats['averagePrice']), Colors.black),
+            _buildStatItem('累计成本', controller.formatPriceInteger(stats['totalCost']), Colors.black),
           ],
         ),
       ],
@@ -187,8 +199,7 @@ class BuyRecordsView extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const SizedBox(height: 10),
-        const Text('统计信息', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.purple)),
+        const Text('统计信息', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.purple)),
         const SizedBox(height: 2),
         Column(
           children: [
@@ -204,8 +215,8 @@ class BuyRecordsView extends StatelessWidget {
             ),
           ],
         ),
-        const SizedBox(height: 3),
         _buildStatItem('当前价格', controller.formatPrice(controller.state.currentPrice!), Colors.blue),
+        const SizedBox(height: 10),
       ],
     );
   }
@@ -247,7 +258,7 @@ class BuyRecordsView extends StatelessWidget {
         child: Container(
           height: 80,
           decoration: BoxDecoration(
-            color: isSelected ? color.withValues(alpha: 0.1) : Colors.grey[100],
+            color: isSelected ? color.withValues(alpha: 0.1) : Colors.grey[120],
             border: Border.all(
               color: isSelected ? color : Colors.grey[300]!,
               width: isSelected ? 2 : 1,
