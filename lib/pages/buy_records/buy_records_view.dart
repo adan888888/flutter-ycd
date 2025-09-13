@@ -3,398 +3,276 @@ import 'package:get/get.dart';
 
 import 'buy_records_controller.dart';
 
-class BuyRecordsView extends GetView<BuyRecordsController> {
+class BuyRecordsView extends StatelessWidget {
   const BuyRecordsView({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('买入记录'),
-        backgroundColor: Colors.blue.shade600,
-        foregroundColor: Colors.white,
-        centerTitle: true,
-        actions: [
-          // 币种切换按钮
-          Obx(() => PopupMenuButton<String>(
-                onSelected: controller.changeCurrency,
-                itemBuilder: (context) => [
-                  const PopupMenuItem(
-                    value: 'btc',
-                    child: Text('BTC'),
-                  ),
-                  const PopupMenuItem(
-                    value: 'eth',
-                    child: Text('ETH'),
-                  ),
-                ],
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Text(
-                    controller.currentCurrencyDisplayName,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              )),
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: controller.refreshData,
-            tooltip: '刷新',
+    return GetBuilder<BuyRecordsController>(
+      builder: (controller) {
+        return Scaffold(
+          appBar: AppBar(
+            title: const Text('买入记录'),
+            backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.refresh),
+                onPressed: controller.refreshAllData,
+                tooltip: '刷新数据',
+              ),
+            ],
           ),
-        ],
-      ),
-      body: Obx(() {
-        if (controller.isLoading.value) {
-          return const Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                CircularProgressIndicator(),
-                SizedBox(height: 16),
-                Text('加载中...'),
-              ],
-            ),
-          );
-        }
-
-        if (controller.errorMessage.value.isNotEmpty) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  Icons.error_outline,
-                  size: 64,
-                  color: Colors.red.shade400,
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  controller.errorMessage.value,
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Colors.red.shade600,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 16),
-                ElevatedButton(
-                  onPressed: controller.refreshData,
-                  child: const Text('重试'),
-                ),
-              ],
-            ),
-          );
-        }
-
-        if (controller.buyRecords.isEmpty) {
-          return const Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  Icons.inbox,
-                  size: 64,
-                  color: Colors.grey,
-                ),
-                SizedBox(height: 16),
-                Text(
-                  '暂无买入记录',
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Colors.grey,
-                  ),
-                ),
-              ],
-            ),
-          );
-        }
-
-        return Column(
-          children: [
-            // 统计信息卡片
-            _buildStatisticsCard(),
-            // 价格信息卡片
-            _buildPriceCard(),
-            // 记录列表
-            Expanded(
-              child: _buildRecordsList(),
-            ),
-          ],
+          body: _buildBody(controller),
         );
-      }),
+      },
     );
   }
 
-  // 构建统计信息卡片
-  Widget _buildStatisticsCard() {
-    return Obx(() => Card(
-          margin: const EdgeInsets.all(8.0),
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '投资概览',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.blue.shade700,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    _buildStatItem(
-                      '总投资',
-                      '\$${controller.formatCurrency(controller.totalInvestment, isPrice: true)}',
-                      Colors.blue,
-                    ),
-                    _buildStatItem(
-                      '当前价值',
-                      '\$${controller.formatCurrency(controller.totalCurrentValue, isPrice: true)}',
-                      Colors.green,
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    _buildStatItem(
-                      '盈亏',
-                      '\$${controller.formatCurrency(controller.totalProfitLoss, isPrice: true)}',
-                      controller.totalProfitLoss >= 0
-                          ? Colors.green
-                          : Colors.red,
-                    ),
-                    _buildStatItem(
-                      '盈亏率',
-                      controller.formatPercentage(
-                          controller.totalProfitLossPercentage),
-                      controller.totalProfitLoss >= 0
-                          ? Colors.green
-                          : Colors.red,
-                    ),
-                  ],
-                ),
-              ],
+  Widget _buildBody(BuyRecordsController controller) {
+    if (controller.state.isLoading) {
+      return const Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            CircularProgressIndicator(),
+            SizedBox(height: 16),
+            Text('正在加载买入记录...'),
+          ],
+        ),
+      );
+    }
+
+    if (controller.state.errorMessage != null) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.error_outline, size: 64, color: Colors.red[300]),
+            const SizedBox(height: 16),
+            Text(
+              controller.state.errorMessage!,
+              style: const TextStyle(fontSize: 16, color: Colors.red),
+              textAlign: TextAlign.center,
             ),
-          ),
-        ));
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () => controller.refreshAllData(),
+              child: const Text('重试'),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return RefreshIndicator(
+      onRefresh: controller.refreshAllData,
+      child: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          // 币种切换区域
+          _buildCurrencySelector(controller),
+          const SizedBox(height: 16),
+          // 买入记录列表区域
+          if (controller.state.buyRecords.isEmpty)
+            // 没有记录时显示提示
+            const Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.inbox_outlined, size: 64, color: Colors.grey),
+                  SizedBox(height: 16),
+                  Text('暂无买入记录', style: TextStyle(fontSize: 16, color: Colors.grey)),
+                ],
+              ),
+            )
+          else
+            // 有记录时显示列表
+            ...List.generate(controller.state.buyRecords.length, (index) {
+              final recordIndex = controller.state.buyRecords.length - 1 - index; // 倒序索引
+              final record = controller.state.buyRecords[recordIndex];
+              return _buildRecordCard(controller, record, recordIndex);
+            }),
+        ],
+      ),
+    );
   }
 
-  // 构建统计项
-  Widget _buildStatItem(String label, String value, Color color) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 12,
-            color: Colors.grey.shade600,
-          ),
+  Widget _buildRecordCard(BuyRecordsController controller, Map<String, dynamic> record, int index) {
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      child: Padding(
+        padding: const EdgeInsets.all(10),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              '第${index + 1}笔#',
+              style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.blue),
+            ),
+            Row(
+              children: [
+                Expanded(child: _buildCompactRecordDetails(controller, record)),
+              ],
+            ),
+            const Divider(height: 8),
+            // 累计投资统计 (前N笔)
+            _buildCumulativeStats(controller, index + 1),
+            // 只有最后一条记录才显示与当前价格的比较，并且只在有内容时才显示分隔线
+            if (controller.state.currentPrice != null && index == controller.state.buyRecords.length - 1) ...[
+              const Divider(height: 6),
+              _buildCurrentProfitStats(controller, index),
+            ],
+          ],
         ),
-        const SizedBox(height: 4),
+      ),
+    );
+  }
+
+  Widget _buildCompactRecordDetails(BuyRecordsController controller, Map<String, dynamic> record) {
+    return Row(
+      children: [
+        const Text('买入价格: ', style: TextStyle(fontSize: 10, color: Colors.grey)),
         Text(
-          value,
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-            color: color,
-          ),
+          controller.formatPriceWithDecimals(record['buy_price']),
+          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w800),
+        ),
+        const SizedBox(width: 20),
+        const Text('数量: ', style: TextStyle(fontSize: 10, color: Colors.grey)),
+        Text(
+          record['buy_amount']?.toString() ?? '未知',
+          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w800),
         ),
       ],
     );
   }
 
-  // 构建价格信息卡片
-  Widget _buildPriceCard() {
-    return Obx(() => Card(
-          margin: const EdgeInsets.symmetric(horizontal: 8.0),
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  '当前${controller.currentCurrencyDisplayName}价格',
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                Text(
-                  controller.currentPrice.value > 0
-                      ? '\$${controller.formatCurrency(controller.currentPrice.value, isPrice: true)}'
-                      : '加载中...',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.green.shade600,
-                  ),
-                ),
-              ],
+  Widget _buildStatItem(String label, String value, Color color) {
+    return Row(
+      children: [
+        Text('$label ', style: const TextStyle(fontSize: 10, color: Colors.grey)),
+        Text(value, style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: color)),
+        const SizedBox(width: 8), // 添加右侧间距
+      ],
+    );
+  }
+
+  Widget _buildCumulativeStats(BuyRecordsController controller, int recordCount) {
+    final stats = controller.calculateCumulativeStats(recordCount);
+    if (stats.isEmpty) return const SizedBox.shrink();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 2),
+        Row(
+          children: [
+            _buildStatItem('总成本', controller.formatPriceInteger(stats['totalCost']), Colors.black),
+            _buildStatItem('均价', controller.formatPriceTwoDecimals(stats['averagePrice']), Colors.black),
+            Expanded(
+              child: _buildStatItem('总数量', stats['totalQuantity'].toStringAsFixed(8), Colors.grey),
             ),
-          ),
-        ));
+          ],
+        ),
+      ],
+    );
   }
 
-  // 构建记录列表
-  Widget _buildRecordsList() {
-    return Obx(() => ListView.builder(
-          itemCount: controller.buyRecords.length,
-          itemBuilder: (context, index) {
-            final record = controller.buyRecords[index];
-            return _buildRecordItem(record);
-          },
-        ));
+  Widget _buildCurrentProfitStats(BuyRecordsController controller, int index) {
+    final profitStats = controller.calculateCurrentProfitStats(index);
+    if (profitStats.isEmpty) return const SizedBox.shrink();
+
+    final profit = profitStats['profit'] as double;
+    final isProfit = profit >= 0;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 10),
+        const Text('统计信息', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.purple)),
+        const SizedBox(height: 2),
+        Column(
+          children: [
+            _buildStatItem(
+              '收益率    ',
+              '${profitStats['profitPercentage'].toStringAsFixed(2)}%',
+              isProfit ? Colors.green : Colors.red,
+            ),
+            _buildStatItem(
+              '累计收益',
+              controller.formatPriceFourDecimals(profit),
+              isProfit ? Colors.green : Colors.red,
+            ),
+          ],
+        ),
+        const SizedBox(height: 3),
+        _buildStatItem('当前价格', controller.formatPrice(controller.state.currentPrice!), Colors.blue),
+      ],
+    );
   }
 
-  // 构建记录项
-  Widget _buildRecordItem(Map<String, dynamic> record) {
-    final profitLoss = controller.calculateProfitLoss(record);
-    final profitLossPercentage =
-        controller.calculateProfitLossPercentage(record);
-    final isProfit = profitLoss >= 0;
-
+  // 构建币种选择器
+  Widget _buildCurrencySelector(BuyRecordsController controller) {
     return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
       child: Padding(
-        padding: const EdgeInsets.all(12.0),
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  record['coin_symbol']?.toString().toUpperCase() ?? 'N/A',
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                Text(
-                  record['buy_date']?.toString() ?? 'N/A',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey.shade600,
-                  ),
-                ),
-              ],
+            Text(
+              '选择币种',
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.grey[700]),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 16),
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      '买入价格',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey.shade600,
-                      ),
-                    ),
-                    Text(
-                      '\$${controller.formatCurrency(record['buy_price']?.toDouble() ?? 0.0, isPrice: true)}',
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text(
-                      '数量',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey.shade600,
-                      ),
-                    ),
-                    Text(
-                      controller.formatCurrency(
-                          record['quantity']?.toDouble() ?? 0.0),
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
+                _buildCurrencyCard(controller, 'btc', 'BTC', Colors.orange),
+                const SizedBox(width: 12),
+                _buildCurrencyCard(controller, 'eth', 'ETH', Colors.blue),
+                const SizedBox(width: 12),
+                _buildCurrencyCard(controller, 'ada', 'ADA', Colors.green),
               ],
-            ),
-            const SizedBox(height: 8),
-            Container(
-              padding: const EdgeInsets.all(8.0),
-              decoration: BoxDecoration(
-                color: isProfit ? Colors.green.shade50 : Colors.red.shade50,
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(
-                  color: isProfit ? Colors.green.shade200 : Colors.red.shade200,
-                ),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        '盈亏',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey.shade600,
-                        ),
-                      ),
-                      Text(
-                        '\$${controller.formatCurrency(profitLoss, isPrice: true)}',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          color: isProfit
-                              ? Colors.green.shade700
-                              : Colors.red.shade700,
-                        ),
-                      ),
-                    ],
-                  ),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Text(
-                        '盈亏率',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey.shade600,
-                        ),
-                      ),
-                      Text(
-                        controller.formatPercentage(profitLossPercentage),
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          color: isProfit
-                              ? Colors.green.shade700
-                              : Colors.red.shade700,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  // 构建币种选择卡片
+  Widget _buildCurrencyCard(BuyRecordsController controller, String currency, String label, Color color) {
+    final isSelected = controller.state.currentCurrency == currency;
+    return Expanded(
+      child: InkWell(
+        onTap: () => controller.switchCurrency(currency),
+        child: Container(
+          height: 80,
+          decoration: BoxDecoration(
+            color: isSelected ? color.withValues(alpha: 0.1) : Colors.grey[100],
+            border: Border.all(
+              color: isSelected ? color : Colors.grey[300]!,
+              width: isSelected ? 2 : 1,
+            ),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                '($label)',
+                style: TextStyle(
+                  color: isSelected ? color : Colors.grey[600],
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                  fontSize: 12,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Icon(
+                Icons.attach_money,
+                size: 24,
+                color: isSelected ? color : Colors.grey[600],
+              ),
+            ],
+          ),
         ),
       ),
     );

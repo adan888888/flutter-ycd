@@ -1,27 +1,44 @@
 import 'dart:convert';
 
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
+import 'package:ycd/utils/network/api.dart';
 
+import 'buy_records_state.dart';
+
+/// 买入记录页面控制器
 class BuyRecordsController extends GetxController {
-  // 状态变量
-  final RxList<Map<String, dynamic>> buyRecords = <Map<String, dynamic>>[].obs;
-  final RxBool isLoading = false.obs;
-  final RxString errorMessage = ''.obs;
-  final RxDouble currentPrice = 0.0.obs;
-  final RxString currentCurrency = 'btc'.obs; // 当前选择的币种
+  /// 状态管理
+  final BuyRecordsState state = BuyRecordsState();
 
   @override
   void onInit() {
     super.onInit();
-    fetchBuyRecords();
-    fetchCurrentPrice();
+    _initializeData();
   }
 
-  // 获取当前价格
-  Future<void> fetchCurrentPrice() async {
+  /// 初始化数据，确保两个接口都完成后再进行计算
+  Future<void> _initializeData() async {
     try {
-      final symbol = currentCurrency.value == 'btc' ? 'BTCUSDT' : 'ETHUSDT';
+      // 同时执行两个异步操作
+      await Future.wait([
+        _fetchBuyRecords(),
+        _fetchCurrentPrice(),
+      ]);
+    } catch (e) {
+      debugPrint('初始化数据失败: $e');
+      // 即使有错误，也要更新UI显示错误状态
+    } finally {
+      // 无论成功还是失败，都要触发UI更新
+      update();
+    }
+  }
+
+  /// 获取当前价格
+  Future<void> _fetchCurrentPrice() async {
+    try {
+      final symbol = state.currentCurrency == 'btc' ? 'BTCUSDT' : 'ETHUSDT';
       final response = await http.get(
         Uri.parse('https://api.binance.com/api/v3/ticker/price?symbol=$symbol'),
         headers: {
@@ -35,137 +52,226 @@ class BuyRecordsController extends GetxController {
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         if (data is Map && data['price'] != null) {
-          currentPrice.value = double.parse(data['price'].toString());
-          print(
-              '当前${currentCurrency.value.toUpperCase()}价格: ${currentPrice.value}');
+          state.currentPrice = double.parse(data['price'].toString());
+          debugPrint('当前${state.currentCurrency.toUpperCase()}价格: ${state.currentPrice}');
+        } else {
+          debugPrint('价格数据格式错误');
         }
+      } else {
+        debugPrint('获取价格失败，状态码: ${response.statusCode}');
       }
     } catch (e) {
-      print('获取当前价格失败: $e');
+      debugPrint('获取当前价格失败: $e');
+      // 价格获取失败不影响主要功能，只是无法显示收益统计
     }
   }
 
-  // 获取买入记录
-  Future<void> fetchBuyRecords() async {
-    isLoading.value = true;
-    errorMessage.value = '';
+  /// 获取买入记录数据
+  Future<void> _fetchBuyRecords() async {
+    state.isLoading = true;
+    state.errorMessage = null;
 
     try {
       final response = await http.get(
-        Uri.parse('http://localhost:8080/api/buy-records'),
+        Uri.parse('${Api.baseUrl}${Api.buyRecords}?currency=${state.currentCurrency}'),
         headers: {
-          'Content-Type': 'application/json',
           'User-Agent':
-              'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36',
+              'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+          'Accept': 'application/json',
+          'Accept-Language': 'en-US,en;q=0.9',
         },
       ).timeout(const Duration(seconds: 30));
 
+      debugPrint('请求URL: ${response.request?.url}');
+      debugPrint('响应状态码: ${response.statusCode}');
+      debugPrint('响应头: ${response.headers}');
+
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        if (data is Map && data['data'] is List) {
-          final List<dynamic> records = data['data'];
-          buyRecords.value = records.cast<Map<String, dynamic>>();
-          print('成功获取 ${buyRecords.length} 条买入记录');
+        debugPrint('买入记录API返回数据: $data');
+
+        if (data is Map && data['code'] == 1) {
+          if (data['data'] != null) {
+            final dataList = data['data'] as List;
+            state.buyRecords = List<Map<String, dynamic>>.from(dataList);
+          } else {
+            // data为null时，显示暂无购买
+            state.buyRecords = [];
+          }
+        } else if (data is List) {
+          state.buyRecords = List<Map<String, dynamic>>.from(data);
         } else {
-          errorMessage.value = '数据格式错误';
+          state.errorMessage = '数据格式错误: ${data['msg'] ?? '未知错误'}';
         }
       } else {
-        errorMessage.value = '获取数据失败: HTTP ${response.statusCode}';
+        state.errorMessage = '获取数据失败: ${response.statusCode}';
       }
     } catch (e) {
-      print('获取买入记录失败: $e');
-      errorMessage.value = '网络错误，请检查网络连接';
+      state.errorMessage = '请求失败: $e';
+      debugPrint('获取买入记录失败: $e');
     } finally {
-      isLoading.value = false;
+      state.isLoading = false;
     }
   }
 
-  // 刷新数据
-  Future<void> refreshData() async {
-    await Future.wait([
-      fetchBuyRecords(),
-      fetchCurrentPrice(),
-    ]);
-  }
-
-  // 切换币种
-  void changeCurrency(String currency) {
-    currentCurrency.value = currency;
-    fetchCurrentPrice();
-  }
-
-  // 计算盈亏
-  double calculateProfitLoss(Map<String, dynamic> record) {
-    if (currentPrice.value == 0) return 0.0;
-
-    final buyPrice = record['buy_price']?.toDouble() ?? 0.0;
-    final quantity = record['quantity']?.toDouble() ?? 0.0;
-
-    if (buyPrice == 0 || quantity == 0) return 0.0;
-
-    final currentValue = currentPrice.value * quantity;
-    final buyValue = buyPrice * quantity;
-
-    return currentValue - buyValue;
-  }
-
-  // 计算盈亏率
-  double calculateProfitLossPercentage(Map<String, dynamic> record) {
-    if (currentPrice.value == 0) return 0.0;
-
-    final buyPrice = record['buy_price']?.toDouble() ?? 0.0;
-
-    if (buyPrice == 0) return 0.0;
-
-    return ((currentPrice.value - buyPrice) / buyPrice) * 100;
-  }
-
-  // 格式化货币显示
-  String formatCurrency(double amount, {bool isPrice = false}) {
-    if (isPrice) {
-      return amount.toStringAsFixed(2);
+  /// 格式化价格
+  String formatPrice(dynamic price) {
+    try {
+      if (price is num) {
+        return '\$${price.toStringAsFixed(2)}';
+      }
+      return price.toString();
+    } catch (e) {
+      return price.toString();
     }
-    return amount.toStringAsFixed(8);
   }
 
-  // 格式化百分比
-  String formatPercentage(double percentage) {
-    final sign = percentage >= 0 ? '+' : '';
-    return '$sign${percentage.toStringAsFixed(2)}%';
+  /// 格式化价格 (保留四位小数)
+  String formatPriceWithDecimals(dynamic price) {
+    try {
+      if (price is num) {
+        return '\$${price.toStringAsFixed(4)}';
+      }
+      return price.toString();
+    } catch (e) {
+      return price.toString();
+    }
   }
 
-  // 获取当前币种显示名称
-  String get currentCurrencyDisplayName {
-    return currentCurrency.value.toUpperCase();
+  /// 格式化价格 (整数，无小数)
+  String formatPriceInteger(dynamic price) {
+    try {
+      if (price is num) {
+        return '\$${price.toInt()}';
+      }
+      return price.toString();
+    } catch (e) {
+      return price.toString();
+    }
   }
 
-  // 计算总投资
-  double get totalInvestment {
-    return buyRecords.fold(0.0, (sum, record) {
-      final buyPrice = record['buy_price']?.toDouble() ?? 0.0;
-      final quantity = record['quantity']?.toDouble() ?? 0.0;
-      return sum + (buyPrice * quantity);
-    });
+  /// 格式化价格 (保留两位小数)
+  String formatPriceTwoDecimals(dynamic price) {
+    try {
+      if (price is num) {
+        return '\$${price.toStringAsFixed(2)}';
+      }
+      return price.toString();
+    } catch (e) {
+      return price.toString();
+    }
   }
 
-  // 计算总当前价值
-  double get totalCurrentValue {
-    if (currentPrice.value == 0) return 0.0;
-
-    return buyRecords.fold(0.0, (sum, record) {
-      final quantity = record['quantity']?.toDouble() ?? 0.0;
-      return sum + (currentPrice.value * quantity);
-    });
+  /// 格式化价格 (保留四位小数)
+  String formatPriceFourDecimals(dynamic price) {
+    try {
+      if (price is num) {
+        return '\$${price.toStringAsFixed(4)}';
+      }
+      return price.toString();
+    } catch (e) {
+      return price.toString();
+    }
   }
 
-  // 计算总盈亏
-  double get totalProfitLoss {
-    return totalCurrentValue - totalInvestment;
+  /// 计算累计统计信息 (到第n笔记录为止)
+  Map<String, dynamic> calculateCumulativeStats(int recordCount) {
+    if (state.buyRecords.isEmpty || recordCount <= 0) {
+      return {};
+    }
+
+    double totalCost = 0;
+    double totalQuantity = 0;
+
+    // 只计算前n笔记录
+    for (int i = 0; i < recordCount && i < state.buyRecords.length; i++) {
+      final record = state.buyRecords[i];
+      final price = record['buy_price'] as num?;
+      final amount = record['buy_amount'] as num?;
+
+      if (price != null && amount != null) {
+        totalCost += amount; // 累计投入美元金额
+        totalQuantity += amount / price; // 累计BTC数量 = 美元金额 ÷ BTC价格
+      }
+    }
+
+    if (totalQuantity == 0) return {};
+
+    // 均价 = 总成本 ÷ 总数量
+    final averagePrice = totalCost / totalQuantity;
+
+    debugPrint('累计统计调试 (前$recordCount笔):');
+    debugPrint('总成本: $totalCost USDT');
+    debugPrint('总数量: $totalQuantity BTC');
+    debugPrint('均价: $averagePrice USDT/BTC');
+
+    return {'totalCost': totalCost, 'totalQuantity': totalQuantity, 'averagePrice': averagePrice};
   }
 
-  // 计算总盈亏率
-  double get totalProfitLossPercentage {
-    if (totalInvestment == 0) return 0.0;
-    return (totalProfitLoss / totalInvestment) * 100;
+  /// 计算累计收益统计 (基于当前实时价格)
+  Map<String, dynamic> calculateCurrentProfitStats(int recordIndex) {
+    if (state.buyRecords.isEmpty ||
+        state.currentPrice == null ||
+        recordIndex < 0 ||
+        recordIndex >= state.buyRecords.length) {
+      return {};
+    }
+
+    // 计算累计的买入金额和BTC数量
+    double totalBuyAmount = 0;
+    double totalBtcQuantity = 0;
+
+    for (int i = 0; i <= recordIndex; i++) {
+      final record = state.buyRecords[i];
+      final buyPrice = record['buy_price'] as num?;
+      final buyAmount = record['buy_amount'] as num?;
+
+      if (buyPrice != null && buyAmount != null) {
+        totalBuyAmount += buyAmount;
+        totalBtcQuantity += buyAmount / buyPrice;
+      }
+    }
+
+    if (totalBtcQuantity == 0) return {};
+
+    // 累计当前价值
+    final currentValue = totalBtcQuantity * state.currentPrice!;
+
+    // 累计收益
+    final profit = currentValue - totalBuyAmount;
+
+    // 累计收益率
+    final profitPercentage = (profit / totalBuyAmount) * 100;
+
+    debugPrint('累计收益调试 (前${recordIndex + 1}笔):');
+    debugPrint('累计买入金额: $totalBuyAmount');
+    debugPrint('累计BTC数量: $totalBtcQuantity');
+    debugPrint('当前价格: ${state.currentPrice}');
+    debugPrint('累计当前价值: $currentValue');
+    debugPrint('累计收益: $profit');
+    debugPrint('累计收益率: ${profitPercentage.toStringAsFixed(2)}%');
+
+    return {
+      'totalBuyAmount': totalBuyAmount,
+      'totalBtcQuantity': totalBtcQuantity,
+      'currentValue': currentValue,
+      'profit': profit,
+      'profitPercentage': profitPercentage
+    };
+  }
+
+  /// 切换币种
+  void switchCurrency(String currency) {
+    if (state.currentCurrency != currency) {
+      state.currentCurrency = currency;
+      // 切换币种后重新获取数据，确保两个接口都完成后再更新UI
+      _initializeData();
+    }
+  }
+
+  /// 刷新所有数据
+  Future<void> refreshAllData() async {
+    // 使用统一的初始化方法，确保两个接口都完成后再更新UI
+    await _initializeData();
   }
 }
