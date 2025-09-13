@@ -1,3 +1,5 @@
+// ignore_for_file: prefer_const_constructors
+
 import 'dart:io';
 
 import 'package:easy_refresh/easy_refresh.dart';
@@ -410,18 +412,21 @@ class GameHomePage extends GetView<GameHomeController> {
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
                                   Text(
-                                    '   ',
+                                    int.tryParse(controller.state.totalValue[11]) != null &&
+                                            int.parse(controller.state.totalValue[11]) > 6
+                                        ? ' ${controller.state.totalValue[11]}长龙 '
+                                        : '   ',
                                     style: TextStyle(
-                                      fontSize: 14,
+                                      fontSize: 15,
                                       fontWeight: FontWeight.bold,
                                       color: Colors.grey.shade700,
                                     ),
                                   ),
                                   Row(
                                     children: [
-                                      _buildLegendItem('输', Colors.blue),
+                                      _buildLegendItem('L', '输', Colors.blue),
                                       const SizedBox(width: 2),
-                                      _buildLegendItem('赢', Colors.red),
+                                      _buildLegendItem('W', '赢', Colors.red),
                                       const SizedBox(width: 4),
                                     ],
                                   ),
@@ -721,7 +726,7 @@ class GameHomePage extends GetView<GameHomeController> {
       );
 
   // 构建图例项
-  Widget _buildLegendItem(String label, Color color) {
+  Widget _buildLegendItem(String label1, String label, Color color) {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -732,6 +737,14 @@ class GameHomePage extends GetView<GameHomeController> {
             color: color,
             shape: BoxShape.circle,
           ),
+          child: Text(label1,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 10,
+                height: 1.0,
+                fontWeight: FontWeight.bold,
+              )),
         ),
         const SizedBox(width: 4),
         Text(

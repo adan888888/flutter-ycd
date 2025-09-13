@@ -125,7 +125,7 @@ class BaccaratBigRoadWidget extends StatelessWidget {
           text,
           style: const TextStyle(
             color: Colors.white,
-            fontSize: 10,
+            fontSize: 8,
             fontWeight: FontWeight.bold,
             height: 1.0,
           ),
