@@ -6,6 +6,22 @@ import 'buy_records_controller.dart';
 class BuyRecordsView extends StatelessWidget {
   const BuyRecordsView({super.key});
 
+  // 使用 getter 替代 late final（兼容 const 构造函数）
+  double get _defaultPadding => 16.0;
+  double get _smallPadding => 8.0;
+  double get _cardPadding => 10.0;
+  double get _currencyCardHeight => 80.0;
+  double get _iconSize => 64.0;
+  double get _currencyIconSize => 24.0;
+
+  // 样式 getter
+  TextStyle get _titleStyle => const TextStyle(fontSize: 14, fontWeight: FontWeight.bold);
+  TextStyle get _recordNumberStyle => const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.blue);
+  TextStyle get _labelStyle => const TextStyle(fontSize: 11, color: Colors.grey);
+  TextStyle get _valueStyle => const TextStyle(fontSize: 12, fontWeight: FontWeight.w800);
+  TextStyle get _smallLabelStyle => const TextStyle(fontSize: 10, color: Colors.grey);
+  TextStyle get _smallValueStyle => const TextStyle(fontSize: 10, fontWeight: FontWeight.w800);
+
   @override
   Widget build(BuildContext context) {
     return GetBuilder<BuyRecordsController>(
@@ -30,102 +46,116 @@ class BuyRecordsView extends StatelessWidget {
 
   Widget _buildBody(BuyRecordsController controller) {
     if (controller.state.isLoading) {
-      return const Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            CircularProgressIndicator(),
-            SizedBox(height: 16),
-            Text('正在加载买入记录...'),
-          ],
-        ),
-      );
+      return _buildLoadingState();
     }
 
     if (controller.state.errorMessage != null) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.error_outline, size: 64, color: Colors.red[300]),
-            const SizedBox(height: 16),
-            Text(
-              controller.state.errorMessage!,
-              style: const TextStyle(fontSize: 16, color: Colors.red),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: () => controller.refreshAllData(),
-              child: const Text('重试'),
-            ),
-          ],
-        ),
-      );
+      return _buildErrorState(controller);
     }
 
+    return _buildContent(controller);
+  }
+
+  Widget _buildLoadingState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const CircularProgressIndicator(),
+          SizedBox(height: _defaultPadding),
+          const Text('正在加载买入记录...'),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildErrorState(BuyRecordsController controller) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.error_outline, size: _iconSize, color: Colors.red[300]),
+          SizedBox(height: _defaultPadding),
+          Text(
+            controller.state.errorMessage!,
+            style: const TextStyle(fontSize: 16, color: Colors.red),
+            textAlign: TextAlign.center,
+          ),
+          SizedBox(height: _defaultPadding),
+          ElevatedButton(
+            onPressed: () => controller.refreshAllData(),
+            child: const Text('重试'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildContent(BuyRecordsController controller) {
     return RefreshIndicator(
       onRefresh: controller.refreshAllData,
       child: ListView(
-        padding: const EdgeInsets.all(16),
+        padding: EdgeInsets.all(_defaultPadding),
         children: [
-          // 币种切换区域
           _buildCurrencySelector(controller),
-          const SizedBox(height: 16),
-          // 买入记录列表区域
-          if (controller.state.buyRecords.isEmpty)
-            // 没有记录时显示提示
-            const Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.inbox_outlined, size: 64, color: Colors.grey),
-                  SizedBox(height: 16),
-                  Text('暂无买入记录', style: TextStyle(fontSize: 16, color: Colors.grey)),
-                ],
-              ),
-            )
-          else
-            // 有记录时显示列表
-            ...List.generate(controller.state.buyRecords.length, (index) {
-              final recordIndex = controller.state.buyRecords.length - 1 - index; // 倒序索引
-              final record = controller.state.buyRecords[recordIndex];
-              return _buildRecordCard(controller, record, recordIndex);
-            }),
+          SizedBox(height: _defaultPadding),
+          _buildRecordsList(controller),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRecordsList(BuyRecordsController controller) {
+    if (controller.state.buyRecords.isEmpty) {
+      return _buildEmptyState();
+    }
+
+    return Column(
+      children: List.generate(controller.state.buyRecords.length, (index) {
+        final recordIndex = controller.state.buyRecords.length - 1 - index;
+        final record = controller.state.buyRecords[recordIndex];
+        return _buildRecordCard(controller, record, recordIndex);
+      }),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.inbox_outlined, size: _iconSize, color: Colors.grey),
+          SizedBox(height: _defaultPadding),
+          const Text('暂无买入记录', style: TextStyle(fontSize: 16, color: Colors.grey)),
         ],
       ),
     );
   }
 
   Widget _buildRecordCard(BuyRecordsController controller, Map<String, dynamic> record, int index) {
+    final isLastRecord = index == controller.state.buyRecords.length - 1;
+    final hasCurrentPrice = controller.state.currentPrice != null;
+
     return Card(
       child: Padding(
-        padding: const EdgeInsets.only(left: 10, right: 10, top: 0, bottom: 10),
+        padding: EdgeInsets.only(
+          left: _cardPadding,
+          right: _cardPadding,
+          top: 0,
+          bottom: _cardPadding,
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 只有最后一条记录才显示与当前价格的比较，并且只在有内容时才显示分隔线
-            if (controller.state.currentPrice != null && index == controller.state.buyRecords.length - 1) ...[
+            // 只有最后一条记录才显示收益统计
+            if (hasCurrentPrice && isLastRecord) ...[
               _buildCurrentProfitStats(controller, index),
               const Divider(height: 6),
-              const SizedBox(height: 16),
+              SizedBox(height: _defaultPadding),
             ],
 
-            Row(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                Text(
-                  '第${index + 1}笔',
-                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.blue),
-                ),
-                const SizedBox(width: 16),
-                _buildStatItemX('累计购买数量 ',
-                    controller.calculateCumulativeStats(index + 1)['totalQuantity'].toStringAsFixed(8), Colors.grey),
-              ],
-            ),
-
+            _buildRecordHeader(controller, index),
             _buildCompactRecordDetails(controller, record),
-            // 累计投资统计 (前N笔)
             _buildCumulativeStats(controller, index + 1),
           ],
         ),
@@ -133,19 +163,34 @@ class BuyRecordsView extends StatelessWidget {
     );
   }
 
+  Widget _buildRecordHeader(BuyRecordsController controller, int index) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.start,
+      children: [
+        Text('第${index + 1}笔', style: _recordNumberStyle),
+        SizedBox(width: _defaultPadding),
+        _buildStatItemX(
+          '累计购买数量 ',
+          controller.calculateCumulativeStats(index + 1)['totalQuantity'].toStringAsFixed(8),
+          Colors.grey,
+        ),
+      ],
+    );
+  }
+
   Widget _buildCompactRecordDetails(BuyRecordsController controller, Map<String, dynamic> record) {
     return Row(
       children: [
-        const Text('购买价格:', style: TextStyle(fontSize: 11, color: Colors.grey)),
+        Text('购买价格:', style: _labelStyle),
         Text(
           controller.formatPriceWithDecimals(record['buy_price']),
-          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w800),
+          style: _valueStyle,
         ),
-        const SizedBox(width: 8),
-        const Text('购买金额', style: TextStyle(fontSize: 11, color: Colors.grey)),
+        SizedBox(width: _smallPadding),
+        Text('购买金额', style: _labelStyle),
         Text(
-          record['buy_amount']!.toString().isEmpty ? '未知' : "\$${record['buy_amount']}",
-          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w800),
+          record['buy_amount']?.toString().isEmpty == true ? '未知' : "\$${record['buy_amount']}",
+          style: _valueStyle,
         ),
       ],
     );
@@ -154,9 +199,9 @@ class BuyRecordsView extends StatelessWidget {
   Widget _buildStatItem(String label, String value, Color color) {
     return Row(
       children: [
-        Text(label, style: const TextStyle(fontSize: 11, color: Colors.grey)),
-        Text(value, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: color)),
-        const SizedBox(width: 8), // 添加右侧间距
+        Text(label, style: _labelStyle),
+        Text(value, style: _valueStyle.copyWith(color: color)),
+        SizedBox(width: _smallPadding),
       ],
     );
   }
@@ -164,9 +209,9 @@ class BuyRecordsView extends StatelessWidget {
   Widget _buildStatItemX(String label, String value, Color color) {
     return Row(
       children: [
-        Text(label, style: const TextStyle(fontSize: 10, color: Colors.grey)),
-        Text(value, style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: color)),
-        const SizedBox(width: 8), // 添加右侧间距
+        Text(label, style: _smallLabelStyle),
+        Text(value, style: _smallValueStyle.copyWith(color: color)),
+        SizedBox(width: _smallPadding),
       ],
     );
   }
@@ -195,6 +240,7 @@ class BuyRecordsView extends StatelessWidget {
 
     final profit = profitStats['profit'] as double;
     final isProfit = profit >= 0;
+    final profitColor = isProfit ? Colors.green : Colors.red;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -206,12 +252,12 @@ class BuyRecordsView extends StatelessWidget {
             _buildStatItem(
               '收益率    ',
               '${profitStats['profitPercentage'].toStringAsFixed(2)}%',
-              isProfit ? Colors.green : Colors.red,
+              profitColor,
             ),
             _buildStatItem(
               '累计收益',
               controller.formatPriceFourDecimals(profit),
-              isProfit ? Colors.green : Colors.red,
+              profitColor,
             ),
           ],
         ),
@@ -221,19 +267,18 @@ class BuyRecordsView extends StatelessWidget {
     );
   }
 
-  // 构建币种选择器
   Widget _buildCurrencySelector(BuyRecordsController controller) {
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: EdgeInsets.all(_defaultPadding),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               '选择币种',
-              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.grey[700]),
+              style: _titleStyle.copyWith(color: Colors.grey[700]),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: _defaultPadding),
             Row(
               children: [
                 _buildCurrencyCard(controller, 'btc', 'BTC', Colors.orange),
@@ -249,14 +294,14 @@ class BuyRecordsView extends StatelessWidget {
     );
   }
 
-  // 构建币种选择卡片
   Widget _buildCurrencyCard(BuyRecordsController controller, String currency, String label, Color color) {
     final isSelected = controller.state.currentCurrency == currency;
+
     return Expanded(
       child: InkWell(
         onTap: () => controller.switchCurrency(currency),
         child: Container(
-          height: 80,
+          height: _currencyCardHeight,
           decoration: BoxDecoration(
             color: isSelected ? color.withValues(alpha: 0.1) : Colors.grey[120],
             border: Border.all(
@@ -279,7 +324,7 @@ class BuyRecordsView extends StatelessWidget {
               const SizedBox(height: 4),
               Icon(
                 Icons.attach_money,
-                size: 24,
+                size: _currencyIconSize,
                 color: isSelected ? color : Colors.grey[600],
               ),
             ],
