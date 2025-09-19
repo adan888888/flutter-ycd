@@ -11,115 +11,127 @@ class HomePage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('投资分析工具🔧'),
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
         centerTitle: true,
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 14.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: [
-            const Text(
-              '⚡️',
-              style: TextStyle(
-                fontSize: 80,
-                color: Color.fromARGB(150, 104, 57, 88),
+      // 让 body 扩展到 AppBar 背后
+      extendBodyBehindAppBar: true,
+      body: Container(
+        decoration: const BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage('assets/images/home_bg.png'),
+            fit: BoxFit.cover,
+          ),
+        ),
+        child: SingleChildScrollView(
+          padding: EdgeInsets.only(
+            top: MediaQuery.of(context).padding.top + kToolbarHeight, // 动态获取 AppBar 高度
+            left: 14.0,
+            right: 14.0,
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              const Text(
+                '⚡️',
+                style: TextStyle(
+                  fontSize: 80,
+                  color: Color.fromARGB(150, 104, 57, 88),
+                ),
               ),
-            ),
-            const Text(
-              '选择您需要的功能',
-              style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.deepPurple),
-            ),
+              const Text(
+                '选择您需要的功能',
+                style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.deepPurple),
+              ),
 
-            const SizedBox(height: 20),
+              const SizedBox(height: 20),
 
-            // 投资计算器选项
-            _buildOptionCard(
-              context,
-              icon: Icons.calculate,
-              title: '复利投资计算器',
-              subtitle: '计算复利收益',
-              color: Colors.blue,
-              onTap: () => Get.toNamed(AppRoutes.investmentCalculator),
-            ),
+              // 投资计算器选项
+              _buildOptionCard(
+                context,
+                icon: Icons.calculate,
+                title: '复利投资计算器',
+                subtitle: '计算复利收益',
+                color: Colors.blue,
+                onTap: () => Get.toNamed(AppRoutes.investmentCalculator),
+              ),
 
-            const SizedBox(height: 4),
-            // RSI分析选项
-            _buildOptionCard(
-              context,
-              icon: Icons.trending_up,
-              title: '多币种 RSI 分析',
-              subtitle: '分析相对强弱指数',
-              color: Colors.green,
-              onTap: () => Get.toNamed(AppRoutes.rsiAnalysis),
-            ),
+              const SizedBox(height: 4),
+              // RSI分析选项
+              _buildOptionCard(
+                context,
+                icon: Icons.trending_up,
+                title: '多币种 RSI 分析',
+                subtitle: '分析相对强弱指数',
+                color: Colors.green,
+                onTap: () => Get.toNamed(AppRoutes.rsiAnalysis),
+              ),
 
-            const SizedBox(height: 4),
+              const SizedBox(height: 4),
 
-            // 每周定投回测选项
-            _buildOptionCard(
-              context,
-              icon: Icons.schedule,
-              title: '每周定投回测',
-              subtitle: '回测定投策略',
-              color: Colors.orange,
-              onTap: () => Get.toNamed(AppRoutes.rsiStrategyBacktest),
-            ),
+              // 每周定投回测选项
+              _buildOptionCard(
+                context,
+                icon: Icons.schedule,
+                title: '每周定投回测',
+                subtitle: '回测定投策略',
+                color: Colors.orange,
+                onTap: () => Get.toNamed(AppRoutes.rsiStrategyBacktest),
+              ),
 
-            const SizedBox(height: 4),
+              const SizedBox(height: 4),
 
-            // 买入记录选项
-            _buildOptionCard(
-              context,
-              icon: Icons.receipt_long,
-              title: '持币记录分析',
-              subtitle: '查看历史买入记录',
-              color: Colors.purple,
-              onTap: () => Get.toNamed(AppRoutes.buyRecords),
-            ),
+              // 买入记录选项
+              _buildOptionCard(
+                context,
+                icon: Icons.receipt_long,
+                title: '持币记录分析',
+                subtitle: '查看历史买入记录',
+                color: Colors.purple,
+                onTap: () => Get.toNamed(AppRoutes.buyRecords),
+              ),
 
-            const SizedBox(height: 4),
+              const SizedBox(height: 4),
 
-            // 汇率换算选项
-            _buildOptionCard(
-              context,
-              icon: Icons.currency_exchange,
-              title: '汇率换算',
-              subtitle: '实时汇率换算工具',
-              color: Colors.teal,
-              onTap: () => Get.toNamed(AppRoutes.currencyConverter),
-            ),
+              // 汇率换算选项
+              _buildOptionCard(
+                context,
+                icon: Icons.currency_exchange,
+                title: '汇率换算',
+                subtitle: '实时汇率换算工具',
+                color: Colors.teal,
+                onTap: () => Get.toNamed(AppRoutes.currencyConverter),
+              ),
 
-            const SizedBox(height: 4),
+              const SizedBox(height: 4),
 
-            // 百家乐开奖模拟选项 - 倒数第二
-            _buildOptionCard(
-              context,
-              icon: Icons.casino,
-              title: '百家乐开奖模拟',
-              subtitle: '模拟真实的开奖过程',
-              color: Colors.amber,
-              onTap: () => Get.toNamed(AppRoutes.baccaratSimulation),
-            ),
+              // 百家乐开奖模拟选项 - 倒数第二
+              _buildOptionCard(
+                context,
+                icon: Icons.casino,
+                title: '百家乐开奖模拟',
+                subtitle: '模拟真实的开奖过程',
+                color: Colors.amber,
+                onTap: () => Get.toNamed(AppRoutes.baccaratSimulation),
+              ),
 
-            const SizedBox(height: 4),
+              const SizedBox(height: 4),
 
-            // 百家乐游戏选项 - 最后面
-            _buildOptionCard(
-              context,
-              icon: Icons.games,
-              imagePath: 'assets/images/temp_dice.png',
-              title: '百家乐游戏',
-              subtitle: '体验真实的游戏乐趣',
-              color: Colors.red,
-              onTap: () => Get.toNamed(AppRoutes.login),
-            ),
+              // 百家乐游戏选项 - 最后面
+              _buildOptionCard(
+                context,
+                icon: Icons.games,
+                imagePath: 'assets/images/temp_dice.png',
+                title: '百家乐游戏',
+                subtitle: '体验真实的游戏乐趣',
+                color: Colors.red,
+                onTap: () => Get.toNamed(AppRoutes.login),
+              ),
 
-            const SizedBox(height: 20), // 底部留白
-          ],
+              const SizedBox(height: 20), // 底部留白
+            ],
+          ),
         ),
       ),
     );
