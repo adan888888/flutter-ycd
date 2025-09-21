@@ -6,6 +6,7 @@ import 'package:ycd/login/login_viw_widget/login_view.dart';
 import 'package:ycd/pages/baccarat_simulation/index.dart';
 import 'package:ycd/pages/buy_records/index.dart';
 import 'package:ycd/pages/currency_converter/index.dart';
+import 'package:ycd/pages/digital_password_book/index.dart';
 import 'package:ycd/pages/home_page.dart';
 import 'package:ycd/pages/investment_calculator/index.dart';
 import 'package:ycd/pages/rsi_analysis/index.dart';
@@ -29,6 +30,7 @@ class AppRoutes {
   static const String rsiStrategyBacktest = '/rsi-strategy-backtest';
   static const String buyRecords = '/buy-records';
   static const String currencyConverter = '/currency-converter';
+  static const String digitalPasswordBook = '/digital-password-book';
 
   // 游戏相关
   static const String baccaratSimulation = '/baccarat-simulation';
@@ -85,6 +87,11 @@ class AppPages {
       name: AppRoutes.currencyConverter,
       page: () => const CurrencyConverterView(),
       binding: CurrencyConverterBinding(),
+    ),
+    GetPage(
+      name: AppRoutes.digitalPasswordBook,
+      page: () => const DigitalPasswordBookView(),
+      binding: DigitalPasswordBookBinding(),
     ),
 
     // 百家乐开奖模拟页面

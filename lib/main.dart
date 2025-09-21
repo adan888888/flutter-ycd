@@ -6,10 +6,25 @@ import 'package:hive_flutter/adapters.dart';
 import 'package:ycd/utils/local_util.dart';
 import 'package:ycd/utils/network/get_store.dart';
 import 'package:ycd/utils/storage_util.dart';
+
 import 'routes/app_routes.dart'; // 导入新的路由配置文件
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // 添加全局错误处理，忽略键盘相关的已知错误
+  FlutterError.onError = (FlutterErrorDetails details) {
+    // 忽略硬件键盘相关的错误
+    if (details.exception.toString().contains('HardwareKeyboard') ||
+        details.exception.toString().contains('KeyUpEvent') ||
+        details.exception.toString().contains('_pressedKeys.containsKey')) {
+      // 这些是已知的 Flutter 框架问题，不影响应用功能
+      return;
+    }
+    // 其他错误正常处理
+    FlutterError.presentError(details);
+  };
+
   // 初始化 Hive Flutter
   await Hive.initFlutter();
   //初始化存储器

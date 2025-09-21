@@ -128,8 +128,9 @@ class GameHomePage extends GetView<GameHomeController> {
                                       4,
                                       (index) => GestureDetector(
                                             onTap: () {
-                                              if (index == 2)
+                                              if (index == 2) {
                                                 controller.juBuPingHeng(-1, v: controller.state.totalValue[30]);
+                                              }
                                             },
                                             child: Center(
                                               child: Text(
@@ -484,7 +485,7 @@ class GameHomePage extends GetView<GameHomeController> {
                                   })(),
                                   getDrawingHorizontalLine: (value) {
                                     return FlLine(
-                                      color: Colors.white.withOpacity(0.3),
+                                      color: Colors.white.withValues(alpha: 0.3),
                                       strokeWidth: 1,
                                       dashArray: [5, 5], // 虚线样式
                                     );

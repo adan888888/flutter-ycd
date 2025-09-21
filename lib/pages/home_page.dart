@@ -106,6 +106,18 @@ class HomePage extends StatelessWidget {
 
               const SizedBox(height: 4),
 
+              // 数字密码本选项
+              _buildOptionCard(
+                context,
+                icon: Icons.lock,
+                title: '数字密码本',
+                subtitle: '安全存储和管理密码',
+                color: Colors.indigo,
+                onTap: () => Get.toNamed(AppRoutes.digitalPasswordBook),
+              ),
+
+              const SizedBox(height: 4),
+
               // 百家乐开奖模拟选项 - 倒数第二
               _buildOptionCard(
                 context,
