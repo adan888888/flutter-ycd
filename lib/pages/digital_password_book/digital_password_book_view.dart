@@ -28,7 +28,7 @@ class DigitalPasswordBookView extends GetView<DigitalPasswordBookController> {
               _buildSearchBar(),
               // 密码列表
               Expanded(
-                child: Obx(() => _buildPasswordList()),
+                child: _buildPasswordList(),
               ),
               Obx(() => Text(controller.searchPd)),
               const SizedBox(height: 20),
@@ -54,7 +54,7 @@ class DigitalPasswordBookView extends GetView<DigitalPasswordBookController> {
       child: TextField(
         onChanged: (value) {
           try {
-            controller.state.searchKeyword.value = value;
+            controller.searchPasswords(value);
           } catch (e) {
             // 忽略键盘相关的错误
             if (!e.toString().contains('HardwareKeyboard') && !e.toString().contains('KeyUpEvent')) {
@@ -76,49 +76,57 @@ class DigitalPasswordBookView extends GetView<DigitalPasswordBookController> {
 
   // 构建密码列表
   Widget _buildPasswordList() {
-    final filteredList = controller.filteredPasswordList;
+    return Obx(() {
+      if (controller.state.isLoading.value) {
+        return const Center(
+          child: CircularProgressIndicator(),
+        );
+      }
 
-    if (filteredList.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.lock_outline,
-              size: 64,
-              color: Colors.grey[400],
-            ),
-            const SizedBox(height: 16),
-            Text(
-              controller.state.searchKeyword.value.isEmpty ? '暂无密码记录' : '未找到匹配的密码',
-              style: TextStyle(
-                fontSize: 16,
-                color: Colors.grey[600],
+      final filteredList = controller.filteredPasswordList;
+
+      if (filteredList.isEmpty) {
+        return Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.lock_outline,
+                size: 64,
+                color: Colors.grey[400],
               ),
-            ),
-            if (controller.state.searchKeyword.value.isEmpty) ...[
-              const SizedBox(height: 8),
+              const SizedBox(height: 16),
               Text(
-                '点击右下角按钮添加第一个密码',
+                controller.state.searchKeyword.value.isEmpty ? '暂无密码记录' : '未找到匹配的密码',
                 style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.grey[500],
+                  fontSize: 16,
+                  color: Colors.grey[600],
                 ),
               ),
+              if (controller.state.searchKeyword.value.isEmpty) ...[
+                const SizedBox(height: 8),
+                Text(
+                  '点击右下角按钮添加第一个密码',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey[500],
+                  ),
+                ),
+              ],
             ],
-          ],
-        ),
-      );
-    }
+          ),
+        );
+      }
 
-    return ListView.builder(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      itemCount: filteredList.length,
-      itemBuilder: (context, index) {
-        final item = filteredList[index];
-        return _buildPasswordCard(item);
-      },
-    );
+      return ListView.builder(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        itemCount: filteredList.length,
+        itemBuilder: (context, index) {
+          final item = filteredList[index];
+          return _buildPasswordCard(item);
+        },
+      );
+    });
   }
 
   // 构建密码卡片
@@ -130,9 +138,10 @@ class DigitalPasswordBookView extends GetView<DigitalPasswordBookController> {
         onTap: () => controller.editPassword(item),
         borderRadius: BorderRadius.circular(12),
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.symmetric(horizontal: 10),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
             children: [
               // 标题和操作按钮
               Row(
@@ -182,7 +191,6 @@ class DigitalPasswordBookView extends GetView<DigitalPasswordBookController> {
                   ),
                 ],
               ),
-              const SizedBox(height: 8),
 
               // 用户名
               _buildInfoRow(
@@ -191,10 +199,8 @@ class DigitalPasswordBookView extends GetView<DigitalPasswordBookController> {
                 value: item.username,
                 onCopy: () => controller.copyUsername(item.username),
               ),
-
               // 密码
               _buildPasswordRow(item),
-
               // 网站
               if (item.website.isNotEmpty)
                 _buildInfoRow(
@@ -210,16 +216,7 @@ class DigitalPasswordBookView extends GetView<DigitalPasswordBookController> {
                   label: '备注',
                   value: item.notes,
                 ),
-
-              // 时间信息
               const SizedBox(height: 8),
-              Text(
-                '创建于: ${_formatDateTime(item.createdAt)}',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.grey[600],
-                ),
-              ),
             ],
           ),
         ),
@@ -234,8 +231,8 @@ class DigitalPasswordBookView extends GetView<DigitalPasswordBookController> {
     required String value,
     VoidCallback? onCopy,
   }) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
+    return SizedBox(
+      height: 24,
       child: Row(
         children: [
           Icon(icon, size: 16, color: Colors.grey[600]),
@@ -269,8 +266,8 @@ class DigitalPasswordBookView extends GetView<DigitalPasswordBookController> {
   Widget _buildPasswordRow(item) {
     return Obx(() {
       final isVisible = controller.state.showPassword[item.id] ?? false;
-      return Padding(
-        padding: const EdgeInsets.only(bottom: 8),
+      return SizedBox(
+        height: 24,
         child: Row(
           children: [
             Icon(Icons.lock, size: 16, color: Colors.grey[600]),

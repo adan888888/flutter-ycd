@@ -73,4 +73,10 @@ class Api {
   static String cleanDataD = "/ycd/cleanDataD";
 
   static String buyRecords = "/buyRecords";
+
+  // 密码本相关API
+  static String passwordBook = "/password-book";
+  static String passwordBookList = "/password-book";
+  static String passwordBookItem = "/password-book";
+  static String passwordBookBatchDelete = "/password-book/batch-delete";
 }

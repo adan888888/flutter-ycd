@@ -2,7 +2,8 @@ import 'package:get/get.dart';
 
 class DigitalPasswordBookState {
   // 密码本数据
-  var passwordList = <PasswordItem>[];
+  var passwordList = <PasswordItem>[].obs;
+  var isLoading = false.obs;
   var randomSequence = <int>[
     18,
     5,
@@ -35,19 +36,19 @@ class DigitalPasswordBookState {
     'RA',
     'EB',
     'VC',
-    'JD',
+    'ID',
     'AE',
     'NF',
     'YG',
     'GH',
-    'II',
+    'KI',
     'BJ',
     'TK',
     'OL',
     'CM',
     'SN',
     'XO',
-    'KP',
+    'JP',
     'FQ',
     'WR',
     'LS',
@@ -130,10 +131,10 @@ class PasswordItem {
       title: json['title'],
       username: json['username'],
       password: json['password'],
-      website: json['website'],
-      notes: json['notes'],
-      createdAt: DateTime.parse(json['createdAt']),
-      updatedAt: DateTime.parse(json['updatedAt']),
+      website: json['website'] ?? '',
+      notes: json['notes'] ?? '',
+      createdAt: DateTime.parse(json['created_at']),
+      updatedAt: DateTime.parse(json['updated_at']),
     );
   }
 

@@ -1,9 +1,8 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
-import 'package:ycd/utils/storage_util.dart';
+import 'package:ycd/utils/network/api.dart';
+import 'package:ycd/utils/network/http_mgr.dart';
 
 import 'digital_password_book_state.dart';
 
@@ -17,37 +16,36 @@ class DigitalPasswordBookController extends GetxController {
   }
 
   // 加载密码列表
-  void loadPasswordList() {
-    try {
-      final savedPasswords = StorageUtil.getStringList('digital_password_book') ?? [];
-      state.passwordList.clear();
+  void loadPasswordList({String? keyword}) {
+    Map<String, dynamic>? params;
+    if (keyword != null && keyword.isNotEmpty) {
+      params = {'keyword': keyword};
+    }
 
-      for (final passwordJson in savedPasswords) {
-        try {
-          // 解析JSON字符串
-          final Map<String, dynamic> jsonData = jsonDecode(passwordJson);
-          final passwordItem = PasswordItem.fromJson(jsonData);
-          state.passwordList.add(passwordItem);
-        } catch (e) {
-          debugPrint('解析密码项失败: $e');
+    BXGet<PasswordItem>(
+      Api.passwordBookList,
+      params: params,
+      success: (isSuccess, code, message, results) {
+        debugPrint('API调用成功: isSuccess=$isSuccess, code=$code, message=$message');
+        debugPrint('返回结果数量: ${results.length}');
+        if (results.isNotEmpty) {
+          debugPrint('第一个结果: ${results.first.toJson()}');
         }
-      }
-
-      // 按更新时间倒序排列
-      state.passwordList.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
-    } catch (e) {
-      debugPrint('加载密码列表失败: $e');
-    }
-  }
-
-  // 保存密码列表
-  void savePasswordList() {
-    try {
-      final passwordJsonList = state.passwordList.map((item) => jsonEncode(item.toJson())).toList();
-      StorageUtil.saveStringList('digital_password_book', passwordJsonList);
-    } catch (e) {
-      debugPrint('保存密码列表失败: $e');
-    }
+        if (isSuccess) {
+          state.passwordList.clear();
+          state.passwordList.addAll(results);
+          debugPrint('密码列表更新后长度: ${state.passwordList.length}');
+        } else {
+          Get.snackbar('错误', '加载密码列表失败: $message');
+        }
+      },
+      failed: (error, baseModel) {
+        Get.snackbar('错误', '加载密码列表失败: $error');
+      },
+      onModel: (json) => PasswordItem.fromJson(json),
+      isShowLoading: true,
+      showError: true,
+    );
   }
 
   // 添加新密码
@@ -67,28 +65,37 @@ class DigitalPasswordBookController extends GetxController {
       return;
     }
 
-    final newId =
-        state.passwordList.isEmpty ? 1 : state.passwordList.map((e) => e.id).reduce((a, b) => a > b ? a : b) + 1;
+    final passwordData = {
+      'title': state.newTitle.value,
+      'username': state.newUsername.value,
+      'password': state.newPassword.value,
+      'website': state.newWebsite.value,
+      'notes': state.newNotes.value,
+    };
 
-    final newPasswordItem = PasswordItem(
-      id: newId,
-      title: state.newTitle.value,
-      username: state.newUsername.value,
-      password: state.newPassword.value,
-      website: state.newWebsite.value,
-      notes: state.newNotes.value,
-      createdAt: DateTime.now(),
-      updatedAt: DateTime.now(),
+    BXPost<PasswordItem>(
+      Api.passwordBook,
+      params: passwordData,
+      success: (isSuccess, code, message, results) {
+        if (isSuccess && results.isNotEmpty) {
+          state.passwordList.insert(0, results.first);
+
+          // 清空表单
+          clearAddForm();
+          state.showAddDialog.value = false;
+
+          Get.snackbar('成功', '密码已添加');
+        } else {
+          Get.snackbar('错误', '添加密码失败: $message');
+        }
+      },
+      failed: (error, baseModel) {
+        Get.snackbar('错误', '添加密码失败: $error');
+      },
+      onModel: (json) => PasswordItem.fromJson(json),
+      isShowLoading: true,
+      showError: true,
     );
-
-    state.passwordList.insert(0, newPasswordItem);
-    savePasswordList();
-
-    // 清空表单
-    clearAddForm();
-    state.showAddDialog.value = false;
-
-    Get.snackbar('成功', '密码已添加');
   }
 
   // 编辑密码
@@ -122,22 +129,37 @@ class DigitalPasswordBookController extends GetxController {
       return;
     }
 
-    final updatedItem = selectedItem.copyWith(
-      title: state.editTitle.value,
-      username: state.editUsername.value,
-      password: state.editPassword.value,
-      website: state.editWebsite.value,
-      notes: state.editNotes.value,
-      updatedAt: DateTime.now(),
-    );
+    final passwordData = {
+      'title': state.editTitle.value,
+      'username': state.editUsername.value,
+      'password': state.editPassword.value,
+      'website': state.editWebsite.value,
+      'notes': state.editNotes.value,
+    };
 
-    final index = state.passwordList.indexWhere((item) => item.id == selectedItem.id);
-    if (index != -1) {
-      state.passwordList[index] = updatedItem;
-      savePasswordList();
-      state.showEditDialog.value = false;
-      Get.snackbar('成功', '密码已更新');
-    }
+    BXPut<PasswordItem>(
+      '${Api.passwordBookItem}/${selectedItem.id}',
+      params: passwordData,
+      success: (isSuccess, code, message, results) {
+        if (isSuccess && results.isNotEmpty) {
+          final updatedItem = results.first;
+          final index = state.passwordList.indexWhere((item) => item.id == selectedItem.id);
+          if (index != -1) {
+            state.passwordList[index] = updatedItem;
+            state.showEditDialog.value = false;
+            Get.snackbar('成功', '密码已更新');
+          }
+        } else {
+          Get.snackbar('错误', '更新密码失败: $message');
+        }
+      },
+      failed: (error, baseModel) {
+        Get.snackbar('错误', '更新密码失败: $error');
+      },
+      onModel: (json) => PasswordItem.fromJson(json),
+      isShowLoading: true,
+      showError: true,
+    );
   }
 
   // 删除密码
@@ -153,10 +175,23 @@ class DigitalPasswordBookController extends GetxController {
           ),
           TextButton(
             onPressed: () {
-              state.passwordList.removeWhere((e) => e.id == item.id);
-              savePasswordList();
-              Get.back();
-              Get.snackbar('成功', '密码已删除');
+              BXDelete<dynamic>(
+                '${Api.passwordBookItem}/${item.id}',
+                success: (isSuccess, code, message, results) {
+                  if (isSuccess) {
+                    state.passwordList.removeWhere((e) => e.id == item.id);
+                    Get.back();
+                    Get.snackbar('成功', '密码已删除');
+                  } else {
+                    Get.snackbar('错误', '删除失败: $message');
+                  }
+                },
+                failed: (error, baseModel) {
+                  Get.snackbar('错误', '删除密码失败: $error');
+                },
+                isShowLoading: true,
+                showError: true,
+              );
             },
             child: const Text('删除', style: TextStyle(color: Colors.red)),
           ),
@@ -203,23 +238,13 @@ class DigitalPasswordBookController extends GetxController {
 
   // 获取过滤后的密码列表
   List<PasswordItem> get filteredPasswordList {
-    if (state.searchKeyword.value.isEmpty) {
-      return state.passwordList;
-    }
+    return state.passwordList;
+  }
 
-    ///getter 的优势就是让 GetX 能够自动追踪依赖关系！
-    // 这里 state.passwordList 是普通 List，不是 RxList，所以它本身的变化不会自动通知界面刷新。
-    // 但 filteredPasswordList 是 get 的属性（getter），而界面用 Obx 包裹了 _buildPasswordList()，
-    // searchKeyword 虽然是 .obs，但在 _buildPasswordList 里只是作为过滤条件参与判断，
-    // 实际上 filteredPasswordList getter 依赖了 searchKeyword.value，
-    // 所以每当 searchKeyword 变化时，Obx 包裹的 _buildPasswordList() 会自动刷新。
-    return state.passwordList.where((item) {
-      final keyword = state.searchKeyword.value.toLowerCase();
-      return item.title.toLowerCase().contains(keyword) ||
-          item.username.toLowerCase().contains(keyword) ||
-          item.website.toLowerCase().contains(keyword) ||
-          item.notes.toLowerCase().contains(keyword);
-    }).toList();
+  // 搜索密码
+  void searchPasswords(String keyword) {
+    state.searchKeyword.value = keyword;
+    loadPasswordList(keyword: keyword.isEmpty ? null : keyword);
   }
 
   // 获取搜索相关的状态
