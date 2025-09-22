@@ -12,11 +12,11 @@ class DigitalPasswordBookController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    loadPasswordList();
+    loadPasswordList(); // 异步调用，不等待结果
   }
 
   // 加载密码列表
-  void loadPasswordList({String? keyword}) {
+  void loadPasswordList({String? keyword, VoidCallback? onSuccess, Function(String)? onError}) {
     Map<String, dynamic>? params;
     if (keyword != null && keyword.isNotEmpty) {
       params = {'keyword': keyword};
@@ -35,12 +35,16 @@ class DigitalPasswordBookController extends GetxController {
           state.passwordList.clear();
           state.passwordList.addAll(results);
           debugPrint('密码列表更新后长度: ${state.passwordList.length}');
+          // 调用成功回调
+          onSuccess?.call();
         } else {
           Get.snackbar('错误', '加载密码列表失败: $message');
+          onError?.call(message);
         }
       },
       failed: (error, baseModel) {
         Get.snackbar('错误', '加载密码列表失败: $error');
+        onError?.call(error);
       },
       onModel: (json) => PasswordItem.fromJson(json),
       isShowLoading: true,
@@ -244,7 +248,7 @@ class DigitalPasswordBookController extends GetxController {
   // 搜索密码
   void searchPasswords(String keyword) {
     state.searchKeyword.value = keyword;
-    loadPasswordList(keyword: keyword.isEmpty ? null : keyword);
+    loadPasswordList(keyword: keyword.isEmpty ? null : keyword); // 异步调用，不等待结果
   }
 
   // 获取搜索相关的状态
@@ -277,5 +281,41 @@ class DigitalPasswordBookController extends GetxController {
   void hideEditPasswordDialog() {
     state.showEditDialog.value = false;
     clearEditForm();
+  }
+
+  // 刷新密码列表
+  void refreshPasswordList() {
+    debugPrint('开始刷新密码列表...');
+    state.isLoading.value = true;
+
+    // 重新加载密码列表，在回调中处理成功提示
+    loadPasswordList(
+      onSuccess: () {
+        // 显示刷新成功提示
+        Get.snackbar(
+          '刷新成功',
+          '密码列表已更新',
+          snackPosition: SnackPosition.TOP,
+          duration: const Duration(seconds: 2),
+          backgroundColor: Colors.green.withValues(alpha: 0.8),
+          colorText: Colors.white,
+          icon: const Icon(Icons.refresh, color: Colors.white),
+        );
+        state.isLoading.value = false;
+      },
+      onError: (error) {
+        debugPrint('刷新密码列表失败: $error');
+        Get.snackbar(
+          '刷新失败',
+          '无法更新密码列表: $error',
+          snackPosition: SnackPosition.TOP,
+          duration: const Duration(seconds: 3),
+          backgroundColor: Colors.red.withValues(alpha: 0.8),
+          colorText: Colors.white,
+          icon: const Icon(Icons.error, color: Colors.white),
+        );
+        state.isLoading.value = false;
+      },
+    );
   }
 }

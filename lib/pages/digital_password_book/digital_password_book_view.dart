@@ -15,8 +15,16 @@ class DigitalPasswordBookView extends GetView<DigitalPasswordBookController> {
         centerTitle: true,
         actions: [
           IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: () {
+              controller.refreshPasswordList();
+            },
+            tooltip: '刷新密码列表',
+          ),
+          IconButton(
             icon: const Icon(Icons.add),
             onPressed: controller.showAddPasswordDialog,
+            tooltip: '添加密码',
           ),
         ],
       ),
@@ -86,45 +94,73 @@ class DigitalPasswordBookView extends GetView<DigitalPasswordBookController> {
       final filteredList = controller.filteredPasswordList;
 
       if (filteredList.isEmpty) {
-        return Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                Icons.lock_outline,
-                size: 64,
-                color: Colors.grey[400],
-              ),
-              const SizedBox(height: 16),
-              Text(
-                controller.state.searchKeyword.value.isEmpty ? '暂无密码记录' : '未找到匹配的密码',
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Colors.grey[600],
+        return RefreshIndicator(
+          onRefresh: () async {
+            controller.refreshPasswordList();
+            // 等待一段时间让用户看到刷新效果
+            await Future.delayed(const Duration(milliseconds: 500));
+          },
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            child: SizedBox(
+              height: MediaQuery.of(Get.context!).size.height * 0.6,
+              child: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.lock_outline,
+                      size: 64,
+                      color: Colors.grey[400],
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      controller.state.searchKeyword.value.isEmpty ? '暂无密码记录' : '未找到匹配的密码',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.grey[600],
+                      ),
+                    ),
+                    if (controller.state.searchKeyword.value.isEmpty) ...[
+                      const SizedBox(height: 8),
+                      Text(
+                        '点击右下角按钮添加第一个密码',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.grey[500],
+                        ),
+                      ),
+                    ],
+                    const SizedBox(height: 16),
+                    Text(
+                      '下拉刷新',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey[400],
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              if (controller.state.searchKeyword.value.isEmpty) ...[
-                const SizedBox(height: 8),
-                Text(
-                  '点击右下角按钮添加第一个密码',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey[500],
-                  ),
-                ),
-              ],
-            ],
+            ),
           ),
         );
       }
 
-      return ListView.builder(
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        itemCount: filteredList.length,
-        itemBuilder: (context, index) {
-          final item = filteredList[index];
-          return _buildPasswordCard(item);
+      return RefreshIndicator(
+        onRefresh: () async {
+          controller.refreshPasswordList();
+          // 等待一段时间让用户看到刷新效果
+          await Future.delayed(const Duration(milliseconds: 500));
         },
+        child: ListView.builder(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          itemCount: filteredList.length,
+          itemBuilder: (context, index) {
+            final item = filteredList[index];
+            return _buildPasswordCard(item);
+          },
+        ),
       );
     });
   }
@@ -134,91 +170,87 @@ class DigitalPasswordBookView extends GetView<DigitalPasswordBookController> {
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       elevation: 2,
-      child: InkWell(
-        onTap: () => controller.editPassword(item),
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 10),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // 标题和操作按钮
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      item.title,
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 10),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // 标题和操作按钮
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    item.title,
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
-                  PopupMenuButton<String>(
-                    onSelected: (value) {
-                      switch (value) {
-                        case 'edit':
-                          controller.editPassword(item);
-                          break;
-                        case 'delete':
-                          controller.deletePassword(item);
-                          break;
-                      }
-                    },
-                    itemBuilder: (context) => [
-                      const PopupMenuItem(
-                        value: 'edit',
-                        child: Row(
-                          children: [
-                            Icon(Icons.edit, size: 20),
-                            SizedBox(width: 8),
-                            Text('编辑'),
-                          ],
-                        ),
+                ),
+                PopupMenuButton<String>(
+                  onSelected: (value) {
+                    switch (value) {
+                      case 'edit':
+                        controller.editPassword(item);
+                        break;
+                      case 'delete':
+                        controller.deletePassword(item);
+                        break;
+                    }
+                  },
+                  itemBuilder: (context) => [
+                    const PopupMenuItem(
+                      value: 'edit',
+                      child: Row(
+                        children: [
+                          Icon(Icons.edit, size: 20),
+                          SizedBox(width: 8),
+                          Text('编辑'),
+                        ],
                       ),
-                      const PopupMenuItem(
-                        value: 'delete',
-                        child: Row(
-                          children: [
-                            Icon(Icons.delete, size: 20, color: Colors.red),
-                            SizedBox(width: 8),
-                            Text('删除', style: TextStyle(color: Colors.red)),
-                          ],
-                        ),
+                    ),
+                    const PopupMenuItem(
+                      value: 'delete',
+                      child: Row(
+                        children: [
+                          Icon(Icons.delete, size: 20, color: Colors.red),
+                          SizedBox(width: 8),
+                          Text('删除', style: TextStyle(color: Colors.red)),
+                        ],
                       ),
-                    ],
-                  ),
-                ],
-              ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
 
-              // 用户名
+            // 用户名
+            _buildInfoRow(
+              icon: Icons.person,
+              label: '用户名',
+              value: item.username,
+              onCopy: () => controller.copyUsername(item.username),
+            ),
+            // 密码
+            _buildPasswordRow(item),
+            // 网站
+            if (item.website.isNotEmpty)
               _buildInfoRow(
-                icon: Icons.person,
-                label: '用户名',
-                value: item.username,
-                onCopy: () => controller.copyUsername(item.username),
+                icon: Icons.language,
+                label: '网站',
+                value: item.website,
               ),
-              // 密码
-              _buildPasswordRow(item),
-              // 网站
-              if (item.website.isNotEmpty)
-                _buildInfoRow(
-                  icon: Icons.language,
-                  label: '网站',
-                  value: item.website,
-                ),
 
-              // 备注
-              if (item.notes.isNotEmpty)
-                _buildInfoRow(
-                  icon: Icons.note,
-                  label: '备注',
-                  value: item.notes,
-                ),
-              const SizedBox(height: 8),
-            ],
-          ),
+            // 备注
+            if (item.notes.isNotEmpty)
+              _buildInfoRow(
+                icon: Icons.note,
+                label: '备注',
+                value: item.notes,
+              ),
+            const SizedBox(height: 8),
+          ],
         ),
       ),
     );
@@ -304,11 +336,6 @@ class DigitalPasswordBookView extends GetView<DigitalPasswordBookController> {
         ),
       );
     });
-  }
-
-  // 格式化日期时间
-  String _formatDateTime(DateTime dateTime) {
-    return '${dateTime.year}-${dateTime.month.toString().padLeft(2, '0')}-${dateTime.day.toString().padLeft(2, '0')} ${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
   }
 }
 
