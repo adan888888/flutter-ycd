@@ -79,4 +79,7 @@ class Api {
   static String passwordBookList = "/password-book";
   static String passwordBookItem = "/password-book";
   static String passwordBookBatchDelete = "/password-book/batch-delete";
+
+  // 备份相关API
+  static String backupManual = "/backup/manual";
 }

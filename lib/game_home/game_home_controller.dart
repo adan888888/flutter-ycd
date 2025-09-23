@@ -702,17 +702,44 @@ class GameHomeController extends GetxController {
         break;
       case 6: //备份数据
         Loading.show();
-        final Directory documentsDirectory = await getApplicationDocumentsDirectory();
-        final Directory tempDir = await getTemporaryDirectory();
-        final Directory? downloadsDir = await getDownloadsDirectory();
-        debugPrint(documentsDirectory.path);
-        debugPrint(tempDir.path);
-        debugPrint(downloadsDir?.path);
-
-        _instance?.then((db) => db.query(DbHelper.table1)).then((value1) => _instance
-            ?.then((db) => db.query(DbHelper.table2))
-            .then((value2) => saveString('${jsonEncode(value1)}\n${jsonEncode(value2)}')));
-
+        BXPost(
+          Api.backupManual,
+          success: (isSuccess, code, message, results) {
+            debugPrint('=====备份完成===== ${results.first}');
+            Loading.dismiss();
+            if (isSuccess) {
+              Get.snackbar(
+                '备份成功',
+                '数据库备份已完成',
+                snackPosition: SnackPosition.TOP,
+                backgroundColor: Colors.green,
+                colorText: Colors.white,
+                duration: const Duration(seconds: 3),
+              );
+            } else {
+              Get.snackbar(
+                '备份失败',
+                message,
+                snackPosition: SnackPosition.TOP,
+                backgroundColor: Colors.red,
+                colorText: Colors.white,
+                duration: const Duration(seconds: 3),
+              );
+            }
+          },
+          failed: (error, model) {
+            Loading.dismiss();
+            Get.snackbar(
+              '备份失败',
+              '网络错误：$error',
+              snackPosition: SnackPosition.TOP,
+              backgroundColor: Colors.red,
+              colorText: Colors.white,
+              duration: const Duration(seconds: 3),
+            );
+          },
+          isShowLoading: false, // 使用自定义的Loading
+        );
         break;
       case 7:
         // Get.defaultDialog(
