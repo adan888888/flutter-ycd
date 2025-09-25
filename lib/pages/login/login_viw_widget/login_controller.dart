@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../../routes/app_routes.dart'; // 导入新的路由配置
-import '../../model/user_model.dart';
-import '../../utils/network/api.dart';
-import '../../utils/network/get_store.dart';
-import '../../utils/network/http_mgr.dart';
+import 'package:ycd/model/user_model.dart';
+import 'package:ycd/routes/app_routes.dart';
+import 'package:ycd/utils/network/api.dart';
+import 'package:ycd/utils/network/get_store.dart';
+import 'package:ycd/utils/network/http_mgr.dart';
+
 import 'login_state.dart';
 
 class LoginController extends GetxController {

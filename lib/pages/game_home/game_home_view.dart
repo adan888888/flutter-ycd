@@ -10,11 +10,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:get/get.dart';
-import 'package:ycd/game_home/game_home_state.dart';
+import 'package:ycd/my_widget/baccarat_big_road_widget.dart';
 import 'package:ycd/utils/network/get_store.dart';
 
-import '../my_widget/baccarat_big_road_widget.dart';
 import 'game_home_controller.dart';
+import 'game_home_state.dart';
 
 class GameHomePage extends GetView<GameHomeController> {
   const GameHomePage({super.key, required this.title});

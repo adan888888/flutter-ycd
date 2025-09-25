@@ -1,9 +1,7 @@
 // ignore_for_file: constant_identifier_names
-
 import 'package:flutter/material.dart';
-
-import '../my_db/table1_model.dart';
-import '../my_db/table2_model.dart';
+import 'package:ycd/my_db/table1_model.dart';
+import 'package:ycd/my_db/table2_model.dart';
 
 class GameState {
   static const OFFSET8431 = 8431; //庄闲占比是 庄60% 闲40%
@@ -61,12 +59,14 @@ class GameState {
 
   /// 本局获胜者（闲家/庄家/和局）
   String winner = '';
+
   // ***********== 历史记录和路子图 ***********==
   /// 游戏历史记录列表（最多保存20局）
   List<Map<String, dynamic>> gameHistory = [];
 
   /// 大路图数据（58行${bigRoadCols}列的二维数组）
   List<List<String>> bigRoad = [];
+
   // ***********== 大路图状态 ***********==
   /// 当前大路图行位置（0-5）
   int currentRow = 0;

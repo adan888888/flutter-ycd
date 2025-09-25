@@ -13,14 +13,14 @@ import 'package:sqflite/sqflite.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 import 'package:ycd/my_db/db_helper.dart';
 import 'package:ycd/my_db/table1_model.dart';
+import 'package:ycd/my_db/table2_model.dart';
+import 'package:ycd/routes/app_routes.dart';
+import 'package:ycd/utils/bx_loading.dart';
 import 'package:ycd/utils/loading.dart';
+import 'package:ycd/utils/network/api.dart';
 import 'package:ycd/utils/network/get_store.dart';
+import 'package:ycd/utils/network/http_mgr.dart';
 
-import '../my_db/table2_model.dart';
-import '../routes/app_routes.dart';
-import '../utils/bx_loading.dart';
-import '../utils/network/api.dart';
-import '../utils/network/http_mgr.dart';
 import 'game_home_state.dart';
 import 'game_home_view.dart';
 
@@ -478,9 +478,6 @@ class GameHomeController extends GetxController {
   }
 
   void updateLists(int index) {
-    // _instance?.then((db) => db.update(DbHelper.table2, state.table2List[index].toJson()..update("colmun_shuyingzhi_d", (value) => "") /*具体更新的数据*/,
-    //     where: "table2Id =?", //通过id查找需要更新的数据
-    //     whereArgs: [index])).then((value) => _queryAllTable2());
     BXLoading.show();
     BXPost(
       Api.xiaoshu,
@@ -499,24 +496,6 @@ class GameHomeController extends GetxController {
   }
 
   void reStart() {
-    // _instance?.then((_db) => _db.query(DbHelper.table1).then((value) => _instance?.then((db) {
-    //       //重启时，清除消数列数据
-    //       for (int i = 0; i < state.table2List.length; i++) {
-    //         db.update(DbHelper.table2, state.table2List[i].toJson()..update('colmun_shuyingzhi_d', (value) => ''),
-    //             where: 'table2Id =?', whereArgs: [state.table2List[i].table2Id]);
-    //       }
-    //       return db
-    //           .insert(
-    //               DbHelper.table1,
-    //               Table1Model(
-    //                 columnBenjin: value.last['column_benjin'].toString(),
-    //                 columnYongJin: value.last['column_yongJin'].toString(),
-    //                 columnMean: value.last['column_mean'].toString(),
-    //                 columnRestartIndex: "${state.table2List.length}",
-    //                 columnLiushuiIndex: value.last['column_liushui_index'].toString(),
-    //               ).toJson())
-    //           .then((value) => queryAll());
-    //     })));
     BXPost<Table1Model>(
       Api.restart,
       params: {"index": state.table2ListX.first.id},
@@ -534,17 +513,6 @@ class GameHomeController extends GetxController {
   }
 
   void updateBenJin(String b) {
-    // _instance?.then((db) => db.query(DbHelper.table1).then((value) => _instance?.then((db) => db
-    //     .insert(
-    //         DbHelper.table1,
-    //         Table1Model(
-    //           columnBenjin: b,
-    //           columnYongJin: value.last['column_yongJin'].toString(),
-    //           columnMean: value.last['column_mean'].toString(),
-    //           columnRestartIndex: value.last['column_restart_index'].toString(),
-    //           columnLiushuiIndex: value.last['column_liushui_index'].toString(),
-    //         ).toJson())
-    //     .then((value) => queryAll()))));
     BXPost<Table1Model>(
       Api.updateBenjin,
       params: {"benjin": b},
@@ -589,21 +557,6 @@ class GameHomeController extends GetxController {
     switch (i) {
       case 0: //排列数据
         Loading.show();
-        // var list =
-        //     state.table2List.map((element) => element.colmunShuyingzhiD.toString().isEmpty ? 0.0 : double.parse(element.colmunShuyingzhiD.toString())).toList()
-        //       ..removeWhere((element) => element == 0.0)
-        //       ..sort();
-        // _instance?.then((db) {
-        //   var x = 0;
-        //   for (int i = state.table2List.length - 1; i >= state.table2List.length - list.length; i--) {
-        //     x++;
-        //     if (x > list.length) {
-        //       break;
-        //     }
-        //     db.update(DbHelper.table2, state.table2List[i].toJson()..update('colmun_shuyingzhi_d', (value) => '${list[list.length - x]}'),
-        //         where: 'table2Id =?', whereArgs: [state.table2List[i].table2Id]);
-        //   }
-        // }).then((value) => _queryAllTable2());
         //改成接口
         BXPost(Api.sortxiaoshu, success: (isSuccess, code, message, results) {
           if (isSuccess) {
@@ -623,14 +576,6 @@ class GameHomeController extends GetxController {
         });
         break;
       case 1: //清除数据（消数列数据全部清除）
-        // Loading.show();
-        // _instance?.then((db) {
-        //   for (int i = 0; i < state.table2List.length; i++) {
-        //     if (state.table2List[i].colmunShuyingzhiD!.isEmpty) continue;
-        //     db.update(DbHelper.table2, state.table2List[i].toJson()..update('colmun_shuyingzhi_d', (value) => ''),
-        //         where: 'table2Id =?', whereArgs: [state.table2List[i].id]);
-        //   }
-        // }).then((value) => queryAll());
         int count = 0;
         for (var _ in state.table2ListX) {
           state.table2ListX[count].colmunShuyingzhiD = "";
