@@ -1,5 +1,4 @@
 // ignore_for_file: prefer_const_constructors
-
 import 'dart:io';
 
 import 'package:easy_refresh/easy_refresh.dart';
@@ -73,7 +72,7 @@ class GameView extends GetView<GameController> {
               mainAxisAlignment: MainAxisAlignment.start,
               children: <Widget>[
                 //图表区
-                buildChats(),
+                _buildLineChats(),
                 //表格区统计区
                 GetBuilder<GameController>(
                     builder: (controller) => Table(
@@ -114,7 +113,7 @@ class GameView extends GetView<GameController> {
                                                       height: 1.1,
                                                       //相当于padding
                                                       wordSpacing: 0,
-                                                      fontSize: fontSize(i, index),
+                                                      fontSize: _getFontSize(i, index),
                                                       fontWeight: FontWeight.w300,
                                                       color: ((i * 4 + index) == 26 || (i * 4 + index) == 27)
                                                           ? Colors.green
@@ -133,15 +132,15 @@ class GameView extends GetView<GameController> {
                   height: 35,
                   child: Row(
                     children: [
-                      divier2(Colors.black, 38),
-                      buildButton(Colors.red, "P", 1),
-                      divier2(Colors.black, 38),
-                      buildButton(Colors.red, "B", 2),
-                      divier2(Colors.black, 38),
-                      buildButton(Colors.green, "P", 3),
-                      divier2(Colors.black, 38),
-                      buildButton(Colors.green, "B", 4),
-                      divier2(Colors.black, 38),
+                      _divier2(Colors.black, 38),
+                      _buildButton(Colors.red, "P", 1),
+                      _divier2(Colors.black, 38),
+                      _buildButton(Colors.red, "B", 2),
+                      _divier2(Colors.black, 38),
+                      _buildButton(Colors.green, "P", 3),
+                      _divier2(Colors.black, 38),
+                      _buildButton(Colors.green, "B", 4),
+                      _divier2(Colors.black, 38),
                       GestureDetector(
                           onTap: () {
                             controller.deleteLast();
@@ -170,7 +169,7 @@ class GameView extends GetView<GameController> {
                                     padding: const EdgeInsets.only(left: 6, right: 2),
                                     controller: controller.scrollController,
                                     itemCount: controller.state.table2ListX.length,
-                                    itemBuilder: (BuildContext context, int index) => buildItem(index),
+                                    itemBuilder: (BuildContext context, int index) => _buildItem(index),
                                     separatorBuilder: (BuildContext context, int index) => Divider(
                                         height: 2,
                                         indent: 5,
@@ -224,7 +223,7 @@ class GameView extends GetView<GameController> {
     );
   }
 
-  double fontSize(int i, int index) => (i * 4 + index) == 15 ||
+  _getFontSize(int i, int index) => (i * 4 + index) == 15 ||
           (i * 4 + index) == 3 ||
           (i * 4 + index) == 20 ||
           (i * 4 + index) == 24 ||
@@ -232,7 +231,7 @@ class GameView extends GetView<GameController> {
       ? 10
       : 14;
 
-  buildItem(int index) => SizedBox(
+  _buildItem(int index) => SizedBox(
         height: 30,
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -292,12 +291,12 @@ class GameView extends GetView<GameController> {
               child: Text("${controller.state.table2ListX[index].columnXiazhujine}"),
             ),
             //胜负路
-            sflContainer(index),
+            _sflContainer(index),
           ],
         ),
       );
 
-  Container sflContainer(int index) => controller.state.table2ListX[index].colmunShengfulu == '正打'
+  _sflContainer(int index) => controller.state.table2ListX[index].colmunShengfulu == '正打'
       ? (controller.state.table2ListX[index].colmunRemark!.startsWith('-')
           ? Container(
               color: Colors.transparent,
@@ -305,15 +304,15 @@ class GameView extends GetView<GameController> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  divier(Colors.grey.withValues(alpha: 0.5), 15),
+                  _divier(Colors.grey.withValues(alpha: 0.5), 15),
                   const SizedBox(width: 2),
                   const Text("1", style: TextStyle(color: Colors.green)),
                   const SizedBox(width: 8),
-                  divier(Colors.grey.withValues(alpha: 0.5), 15),
+                  _divier(Colors.grey.withValues(alpha: 0.5), 15),
                   const SizedBox(width: 8),
                   const Text("1", style: TextStyle(color: Colors.green)),
                   const SizedBox(width: 2),
-                  divier(Colors.grey.withValues(alpha: 0.5), 15),
+                  _divier(Colors.grey.withValues(alpha: 0.5), 15),
                 ],
               ),
             )
@@ -323,13 +322,13 @@ class GameView extends GetView<GameController> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  divier(Colors.grey.withValues(alpha: 0.5), 15),
+                  _divier(Colors.grey.withValues(alpha: 0.5), 15),
                   const Text("1", style: TextStyle(color: Colors.red)),
                   const SizedBox(width: 8),
-                  divier(Colors.grey.withValues(alpha: 0.5), 15),
+                  _divier(Colors.grey.withValues(alpha: 0.5), 15),
                   const SizedBox(width: 8),
                   const Text("1", style: TextStyle(color: Colors.red)),
-                  divier(Colors.grey.withValues(alpha: 0.5), 15),
+                  _divier(Colors.grey.withValues(alpha: 0.5), 15),
                 ],
               ),
             ))
@@ -340,13 +339,13 @@ class GameView extends GetView<GameController> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  divier(Colors.grey.withValues(alpha: 0.5), 15),
+                  _divier(Colors.grey.withValues(alpha: 0.5), 15),
                   const Text("1", style: TextStyle(color: Colors.green)),
                   const SizedBox(width: 8),
-                  divier(Colors.grey.withValues(alpha: 0.5), 15),
+                  _divier(Colors.grey.withValues(alpha: 0.5), 15),
                   const SizedBox(width: 8),
                   const Text("1", style: TextStyle(color: Colors.red)),
-                  divier(Colors.grey.withValues(alpha: 0.5), 15),
+                  _divier(Colors.grey.withValues(alpha: 0.5), 15),
                 ],
               ),
             )
@@ -356,18 +355,18 @@ class GameView extends GetView<GameController> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  divier(Colors.grey.withValues(alpha: 0.5), 15),
+                  _divier(Colors.grey.withValues(alpha: 0.5), 15),
                   const Text("1", style: TextStyle(color: Colors.red)),
                   const SizedBox(width: 8),
-                  divier(Colors.grey.withValues(alpha: 0.5), 15),
+                  _divier(Colors.grey.withValues(alpha: 0.5), 15),
                   const SizedBox(width: 8),
                   const Text("1", style: TextStyle(color: Colors.green)),
-                  divier(Colors.grey.withValues(alpha: 0.5), 15),
+                  _divier(Colors.grey.withValues(alpha: 0.5), 15),
                 ],
               ),
             );
 
-  buildChats() => GetBuilder<GameController>(
+  _buildLineChats() => GetBuilder<GameController>(
         builder: (controller) => controller.state.isBigRoad
             ? (controller.state.hasBigRoadData
                 //大路子图
@@ -601,9 +600,9 @@ class GameView extends GetView<GameController> {
                                           final change = currentValue - previousValue;
 
                                           if (change > 0) {
-                                            dotColor = const Color(0xFF10B981); // 绿色 - 资金增加
+                                            dotColor = controller.state.bgColor; // 红色 - 资金增加
                                           } else if (change < 0) {
-                                            dotColor = const Color(0xFFEF4444); // 红色 - 资金减少
+                                            dotColor = const Color(0xFF10B981); // 绿色 - 资金减少
                                           } else {
                                             dotColor = const Color(0xFF6B7280); // 灰色 - 无变化
                                           }
@@ -627,15 +626,15 @@ class GameView extends GetView<GameController> {
                 : const Text('data')),
       );
 
-  Container divier(Color color, double height) => Container(height: height, width: 1, color: color);
+  _divier(Color color, double height) => Container(height: height, width: 1, color: color);
 
-  Container divier2(Color color, double height) => Container(height: height, width: 5, color: Colors.transparent);
+  _divier2(Color color, double height) => Container(height: height, width: 5, color: Colors.transparent);
 
-  buildButton(Color bg, String str, int i) => Expanded(
+  _buildButton(Color bg, String str, int i) => Expanded(
         child: SizedBox(
           height: 32,
           child: TextButton(
-            style: buildButtonStyle(bg),
+            style: _buildButtonStyle(bg),
             onLongPress: () {
               switch (i) {
                 case 1:
@@ -677,7 +676,7 @@ class GameView extends GetView<GameController> {
         ),
       );
 
-  String _formatValue(double value) {
+  _formatValue(double value) {
     final absValue = value.abs();
     if (absValue >= 1000) {
       final formatted = (value / 1000).toStringAsFixed(1);
@@ -691,7 +690,7 @@ class GameView extends GetView<GameController> {
     }
   }
 
-  buildButtonStyle(Color bg) => ButtonStyle(
+  _buildButtonStyle(Color bg) => ButtonStyle(
         backgroundColor: WidgetStateProperty.all(bg),
         overlayColor: WidgetStateProperty.all(Colors.red.shade100),
         padding: WidgetStateProperty.all(EdgeInsetsGeometry.lerp(EdgeInsets.zero, EdgeInsets.zero, 0)),
@@ -703,7 +702,7 @@ class GameView extends GetView<GameController> {
       );
 
   // 构建图例项
-  Widget _buildLegendItem(String label1, String label, Color color) {
+  _buildLegendItem(String label1, String label, Color color) {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -732,71 +731,6 @@ class GameView extends GetView<GameController> {
           ),
         ),
       ],
-    );
-  }
-}
-
-// Expanded(child: Container(height: double.infinity, color:controller.state.bgColor, child: Text(text, textAlign: TextAlign.center)));
-
-class SinglePicker extends StatefulWidget {
-  const SinglePicker({super.key});
-
-  @override
-  State<StatefulWidget> createState() => _SinglePickerState();
-}
-
-class _SinglePickerState extends State<SinglePicker> {
-  final controller = Get.find<GameController>();
-  int selectIndex = 0;
-
-  @override
-  void initState() {
-    selectIndex = controller.state.selectIndex;
-    super.initState();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: 300,
-      color: Colors.white,
-      child: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              TextButton(
-                onPressed: () {
-                  Get.back();
-                  controller.functionConfirm(selectIndex);
-                },
-                style: ButtonStyle(backgroundColor: WidgetStateProperty.all(Colors.transparent)),
-                child: const Text(
-                  "确定",
-                  style: TextStyle(color: Colors.redAccent, fontSize: 20),
-                ),
-              ),
-            ],
-          ),
-          GetBuilder<GameController>(
-              builder: (controller) => Expanded(
-                    child: CupertinoPicker(
-                        scrollController: controller.fixedExtentScrollController,
-                        itemExtent: 50, // 每个选项的高度
-                        onSelectedItemChanged: (int index) {
-                          // 处理选中项的变化
-                          selectIndex = index;
-                        },
-                        children: List.generate(
-                          controller.state.functionTypes.length,
-                          (index) => Align(
-                            alignment: Alignment.center,
-                            child: Text(controller.state.functionTypes[index].toString()),
-                          ),
-                        )),
-                  ))
-        ],
-      ),
     );
   }
 }
