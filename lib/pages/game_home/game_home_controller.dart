@@ -72,7 +72,7 @@ class GameHomeController extends GetxController {
     //1。查询表一数据
     _queryMysqlTable1();
     //2。起始要拿到统计区数据
-    _getStatisticalAreasData(1); //传的有数据就是从传的数据的行开始计算
+    _getStatisticalAreasData(-2);
     //3。启始先查66条数据
     BXGet<Table2Model>(Api.loadMore,
         params: {"last_id": -1, "uid": GetStore.getInstance().userModel.userId, "c": 66}, //"c"每页多少个数据
@@ -188,6 +188,11 @@ class GameHomeController extends GetxController {
     });
   }
 
+  /// *
+  ///  tempIndex  1 传的有数据就是从传的数据的行开始计算
+  ///  tempIndex -2 不计算局部平衡的值
+  ///  tempIndex >1 局部平衡
+  ///
   void _getStatisticalAreasData(int? tempIndex) {
     BXGet<dynamic>(
       Api.getStatisticalAreasData,
@@ -687,17 +692,8 @@ class GameHomeController extends GetxController {
         );
         break;
       case 7:
-        // Get.defaultDialog(
-        //   barrierDismissible: false,
-        //   title: '警告',
-        //   content: const Text('是否重启'),
-        //   onCancel: () {},
-        //   onConfirm: () {
         Loading.show();
         reStart();
-        Get.back();
-        // },
-        // );
         break;
       case 8: //修改期望值
         if (s.isEmpty) {
