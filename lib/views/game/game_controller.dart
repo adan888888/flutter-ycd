@@ -21,10 +21,10 @@ import 'package:ycd/utils/network/api.dart';
 import 'package:ycd/utils/network/get_store.dart';
 import 'package:ycd/utils/network/http_mgr.dart';
 
-import 'game_home_state.dart';
-import 'game_home_view.dart';
+import 'game_state.dart';
+import 'game_view.dart';
 
-class GameHomeController extends GetxController {
+class GameController extends GetxController {
   EasyRefreshController refreshcontroller = EasyRefreshController(controlFinishRefresh: true, controlFinishLoad: true);
   final GameState state = GameState();
   Future<Database>? _instance;
@@ -45,17 +45,8 @@ class GameHomeController extends GetxController {
     super.onInit();
     WakelockPlus.enable();
     onUserInteraction();
-    // _instance = DbHelper.instance.getDb();
 
     List.generate(32, (index) => state.totalValue.add('$index'));
-    // //创建表
-    // BXPost<Table1Model>(Api.createtables,
-    //     success: (isSuccess, code, message, results) {
-    //       if (isSuccess) queryAll();
-    //       BXLoading.showToast(message);
-    //     },
-    //     failed: (p0, p1) => BXLoading.showToast(p1.msg),
-    //     onModel: (m) => Table1Model.fromJson(m));
     textEditingController.addListener(
       () {
         state.bettingMoney = textEditingController.text;

@@ -3,8 +3,8 @@ import 'package:get/get.dart';
 import 'package:ycd/routes/app_routes.dart';
 
 // 首页选择界面
-class HomePage extends StatelessWidget {
-  const HomePage({super.key});
+class HomeView extends StatelessWidget {
+  const HomeView({super.key});
 
   @override
   Widget build(BuildContext context) {

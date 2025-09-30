@@ -1,17 +1,24 @@
 import 'package:get/get_navigation/src/routes/get_route.dart';
-import 'package:ycd/pages/baccarat_simulation/index.dart';
-import 'package:ycd/pages/buy_records/index.dart';
-import 'package:ycd/pages/currency_converter/index.dart';
-import 'package:ycd/pages/digital_password_book/index.dart';
-import 'package:ycd/pages/game_home/game_home_binding.dart';
-import 'package:ycd/pages/game_home/game_home_view.dart';
-import 'package:ycd/pages/home_page.dart';
-import 'package:ycd/pages/investment_calculator/index.dart';
-import 'package:ycd/pages/login/login_viw_widget/login_binding.dart';
-import 'package:ycd/pages/login/login_viw_widget/login_view.dart';
-import 'package:ycd/pages/rsi_analysis/index.dart';
-import 'package:ycd/pages/rsi_strategy_backtest/index.dart';
 import 'package:ycd/utils/app_middleware.dart';
+import 'package:ycd/views/baccarat_simulation/baccarat_simulation_binding.dart';
+import 'package:ycd/views/baccarat_simulation/baccarat_simulation_view.dart';
+import 'package:ycd/views/buy_records/buy_records_binding.dart';
+import 'package:ycd/views/buy_records/buy_records_view.dart';
+import 'package:ycd/views/currency_converter/currency_converter_binding.dart';
+import 'package:ycd/views/currency_converter/currency_converter_view.dart';
+import 'package:ycd/views/digital_password_book/digital_password_book_binding.dart';
+import 'package:ycd/views/digital_password_book/digital_password_book_view.dart';
+import 'package:ycd/views/game/game_binding.dart';
+import 'package:ycd/views/game/game_view.dart';
+import 'package:ycd/views/home_view.dart';
+import 'package:ycd/views/investment_calculator/investment_calculator_binding.dart';
+import 'package:ycd/views/investment_calculator/investment_calculator_view.dart';
+import 'package:ycd/views/login/login_viw_widget/login_binding.dart';
+import 'package:ycd/views/login/login_viw_widget/login_view.dart';
+import 'package:ycd/views/rsi_analysis/rsi_analysis_binding.dart';
+import "package:ycd/views/rsi_analysis/rsi_analysis_view.dart";
+import 'package:ycd/views/rsi_strategy_backtest/rsi_strategy_backtest_binding.dart';
+import 'package:ycd/views/rsi_strategy_backtest/rsi_strategy_backtest_view.dart';
 
 /// 应用路由配置
 class AppRoutes {
@@ -42,7 +49,7 @@ class AppPages {
     // 主页面
     GetPage(
       name: AppRoutes.home,
-      page: () => const HomePage(),
+      page: () => const HomeView(),
     ),
 
     // 认证页面
@@ -58,8 +65,8 @@ class AppPages {
     // 游戏页面
     GetPage(
       name: AppRoutes.gameHome,
-      page: () => const GameHomePage(title: 'v2.0'),
-      binding: GameHomeBinding(),
+      page: () => const GameView(title: 'v2.0'),
+      binding: GameBinding(),
     ),
 
     // 投资工具页面

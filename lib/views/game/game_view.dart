@@ -13,11 +13,11 @@ import 'package:get/get.dart';
 import 'package:ycd/my_widget/baccarat_big_road_widget.dart';
 import 'package:ycd/utils/network/get_store.dart';
 
-import 'game_home_controller.dart';
-import 'game_home_state.dart';
+import 'game_controller.dart';
+import 'game_state.dart';
 
-class GameHomePage extends GetView<GameHomeController> {
-  const GameHomePage({super.key, required this.title});
+class GameView extends GetView<GameController> {
+  const GameView({super.key, required this.title});
 
   final String title;
 
@@ -39,6 +39,8 @@ class GameHomePage extends GetView<GameHomeController> {
             ),
           ),
           appBar: AppBar(
+              automaticallyImplyLeading: false,
+              // 隐藏返回键
               actions: [
                 GestureDetector(
                     onTap: () => controller.lockScreen(),
@@ -61,9 +63,9 @@ class GameHomePage extends GetView<GameHomeController> {
               elevation: 0,
               toolbarHeight: 20,
               centerTitle: false,
-              backgroundColor: controller.state.chartBgColor,
+              backgroundColor: controller.state.isBigRoad ? controller.state.bgColor : controller.state.chartBgColor,
               title: Text(
-                "$title   ${GetStore.getInstance().userModel.nickname}",
+                "  $title ${GetStore.getInstance().userModel.nickname}",
                 style: const TextStyle(fontSize: 12, color: Colors.white),
               )),
           body: SafeArea(
@@ -73,33 +75,7 @@ class GameHomePage extends GetView<GameHomeController> {
                 //图表区
                 buildChats(),
                 //表格区统计区
-                /* ColoredBox(
-                  color: controller.state.lineColor,
-                  child: SizedBox(
-                    height: ((MediaQuery.of(context).size.width - 3) / 4) / MyState.height * 8 + 4,
-                    width: double.infinity,
-                    child: GetBuilder<GameHomeLogic>(
-                          builder: (controller) => GridView.builder(
-                          gridDelegate:  const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 4,
-                            mainAxisSpacing: 0.5,
-                            crossAxisSpacing: 0.5,
-                            childAspectRatio: MyState.height,
-                          ),
-                          itemCount: controller.state.totalValue.length,
-                          itemBuilder: (context, index) => Container(
-                            alignment: Alignment.center,
-                            color: controller.state.bgColor,
-                            child: ColoredBox(
-                                color: Colors.transparent,
-                                child: Text(controller.state.totalValue[index],
-                                    textAlign: TextAlign.center, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w400, color: controller.state.textColor))),
-                          ),
-                        )),
-                        ),
-                  ),
-                ),*/
-                GetBuilder<GameHomeController>(
+                GetBuilder<GameController>(
                     builder: (controller) => Table(
                           border: TableBorder(
                             //在右上下的边框线
@@ -178,7 +154,7 @@ class GameHomePage extends GetView<GameHomeController> {
                 ),
                 //列表
                 Expanded(
-                  child: GetBuilder<GameHomeController>(
+                  child: GetBuilder<GameController>(
                       builder: (controller) => AbsorbPointer /*NotificationListener 也可以实现（监听滑动的回调）*/ (
                             absorbing: controller.state.isRefreshing,
                             child: GestureDetector(
@@ -391,7 +367,7 @@ class GameHomePage extends GetView<GameHomeController> {
               ),
             );
 
-  buildChats() => GetBuilder<GameHomeController>(
+  buildChats() => GetBuilder<GameController>(
         builder: (controller) => controller.state.isBigRoad
             ? (controller.state.hasBigRoadData
                 //大路子图
@@ -770,7 +746,7 @@ class SinglePicker extends StatefulWidget {
 }
 
 class _SinglePickerState extends State<SinglePicker> {
-  final controller = Get.find<GameHomeController>();
+  final controller = Get.find<GameController>();
   int selectIndex = 0;
 
   @override
@@ -802,7 +778,7 @@ class _SinglePickerState extends State<SinglePicker> {
               ),
             ],
           ),
-          GetBuilder<GameHomeController>(
+          GetBuilder<GameController>(
               builder: (controller) => Expanded(
                     child: CupertinoPicker(
                         scrollController: controller.fixedExtentScrollController,
