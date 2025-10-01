@@ -37,36 +37,42 @@ class GameView extends GetView<GameController> {
               child: Image.asset('assets/images/shai.png'),
             ),
           ),
-          appBar: AppBar(
-              automaticallyImplyLeading: false,
-              // 隐藏返回键
-              actions: [
-                GestureDetector(
-                    onTap: () => controller.lockScreen(),
-                    child: const Icon(
-                      Icons.lock,
-                      size: 20,
-                      color: Colors.white,
-                    )),
-                GestureDetector(
-                    onTap: () => controller.showBottomFunction(),
-                    child: const Icon(
-                      Icons.edit,
-                      size: 20,
-                      color: Colors.white,
-                    )),
-                const SizedBox(
-                  width: 10,
-                )
-              ],
-              elevation: 0,
-              toolbarHeight: 20,
-              centerTitle: false,
-              backgroundColor: controller.state.isBigRoad ? controller.state.bgColor : controller.state.chartBgColor,
-              title: Text(
-                "  $title ${GetStore.getInstance().userModel.nickname}",
-                style: const TextStyle(fontSize: 12, color: Colors.white),
-              )),
+          appBar: PreferredSize(
+            preferredSize: const Size.fromHeight(20),
+            child: GetBuilder<GameController>(
+              builder: (controller) => AppBar(
+                  // 隐藏返回键
+                  automaticallyImplyLeading: false,
+                  actions: [
+                    GestureDetector(
+                        onTap: () => controller.lockScreen(),
+                        child: const Icon(
+                          Icons.lock,
+                          size: 20,
+                          color: Colors.white,
+                        )),
+                    GestureDetector(
+                        onTap: () => controller.showBottomFunction(),
+                        child: const Icon(
+                          Icons.edit,
+                          size: 20,
+                          color: Colors.white,
+                        )),
+                    const SizedBox(
+                      width: 10,
+                    )
+                  ],
+                  elevation: 0,
+                  toolbarHeight: 20,
+                  centerTitle: false,
+                  backgroundColor:
+                      controller.state.isBigRoad ? controller.state.bgColor : controller.state.chartBgColor,
+                  title: Text(
+                    "  $title ${GetStore.getInstance().userModel.nickname}",
+                    style: const TextStyle(fontSize: 12, color: Colors.white),
+                  )),
+            ),
+          ),
           body: SafeArea(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.start,
@@ -488,17 +494,17 @@ class GameView extends GetView<GameController> {
                                   leftTitles: AxisTitles(
                                     sideTitles: SideTitles(
                                       showTitles: true,
-                                      reservedSize: 40,
+                                      reservedSize: 32,
                                       interval: (() {
                                         if (controller.state.chartData.isEmpty) return 1.0;
                                         final minV = controller.state.chartData
                                                 .map((e) => e.sales)
                                                 .reduce((a, b) => a < b ? a : b) *
-                                            0.9;
+                                            0.8;
                                         final maxV = controller.state.chartData
                                                 .map((e) => e.sales)
                                                 .reduce((a, b) => a > b ? a : b) *
-                                            1.1;
+                                            1.2;
                                         final span = maxV - minV;
                                         final step = span / 2.0;
                                         return (step.isFinite && step > 0) ? step : 1.0;
@@ -600,9 +606,9 @@ class GameView extends GetView<GameController> {
                                           final change = currentValue - previousValue;
 
                                           if (change > 0) {
-                                            dotColor = controller.state.bgColor; // 红色 - 资金增加
+                                            dotColor = Colors.red; // 红色 - 资金增加
                                           } else if (change < 0) {
-                                            dotColor = const Color(0xFF10B981); // 绿色 - 资金减少
+                                            dotColor = Colors.green; // 绿色 - 资金减少
                                           } else {
                                             dotColor = const Color(0xFF6B7280); // 灰色 - 无变化
                                           }
