@@ -75,58 +75,58 @@ class GameView extends GetView<GameController> {
                 _buildLineChats(),
                 //表格区统计区
                 GetBuilder<GameController>(
-                    builder: (controller) => Table(
-                          border: TableBorder(
-                            //在右上下的边框线
-                            // top: BorderSide(color: Colors.red),
-                            // left: BorderSide(color: Colors.red),
-                            // right: BorderSide(color: Colors.red),
-                            // bottom: BorderSide(color: Colors.red),
-                            //水平线
-                            horizontalInside: BorderSide(color: controller.state.lineColor, width: 0.5),
-                            //垂直线
-                            verticalInside: BorderSide(color: controller.state.lineColor, width: 0.5),
-                          ),
-                          //单元格的宽， map哪列 ：宽度
-                          columnWidths: const {
-                            1: FlexColumnWidth(1),
-                            0: IntrinsicColumnWidth(), //包裹内容
-                            3: IntrinsicColumnWidth(),
-                            2: FlexColumnWidth(1),
-                          },
-                          defaultVerticalAlignment: TableCellVerticalAlignment.middle, //垂直的位置
-                          children: List.generate(
-                              8,
-                              (i) => TableRow(
-                                  decoration: BoxDecoration(color: controller.state.bgColor),
-                                  children: List.generate(
-                                      4,
-                                      (index) => GestureDetector(
-                                            onTap: () {
-                                              if (index == 2) {
-                                                controller.juBuPingHeng(-1, v: controller.state.totalValue[30]);
-                                              }
-                                            },
-                                            child: Center(
-                                              child: Text(
-                                                  style: TextStyle(
-                                                      height: 1.1,
-                                                      //相当于padding
-                                                      wordSpacing: 0,
-                                                      fontSize: _getFontSize(i, index),
-                                                      fontWeight: FontWeight.w300,
-                                                      color: ((i * 4 + index) == 26 || (i * 4 + index) == 27)
-                                                          ? Colors.green
-                                                          : ((i * 4 + index) == 24 || (i * 4 + index) == 22)
-                                                              ? Colors.red
-                                                              : (i * 4 + index) == 2 &&
-                                                                      controller.state.currentTempIndex != 0
-                                                                  ? Colors.amber
-                                                                  : controller.state.textColor),
-                                                  controller.state.totalValue[i * 4 + index]),
-                                            ),
-                                          )).toList())).toList(),
-                        )),
+                  builder: (controller) => Table(
+                    border: TableBorder(
+                      //在右上下的边框线
+                      // top: BorderSide(color: Colors.red),
+                      // left: BorderSide(color: Colors.red),
+                      // right: BorderSide(color: Colors.red),
+                      // bottom: BorderSide(color: Colors.red),
+                      //水平线
+                      horizontalInside: BorderSide(color: controller.state.lineColor, width: 0.5),
+                      //垂直线
+                      verticalInside: BorderSide(color: controller.state.lineColor, width: 0.5),
+                    ),
+                    //单元格的宽， map哪列 ：宽度
+                    columnWidths: const {
+                      1: FlexColumnWidth(1),
+                      0: IntrinsicColumnWidth(), //包裹内容
+                      3: IntrinsicColumnWidth(),
+                      2: FlexColumnWidth(1),
+                    },
+                    defaultVerticalAlignment: TableCellVerticalAlignment.middle, //垂直的位置
+                    children: List.generate(
+                        8,
+                        (i) => TableRow(
+                            decoration: BoxDecoration(color: controller.state.bgColor),
+                            children: List.generate(
+                                4,
+                                (index) => GestureDetector(
+                                      onTap: () {
+                                        if (index == 2) {
+                                          controller.juBuPingHeng(-1, v: controller.state.totalValue[30]);
+                                        }
+                                      },
+                                      child: Center(
+                                        child: Text(
+                                            style: TextStyle(
+                                                height: 1.1,
+                                                //相当于padding
+                                                wordSpacing: 0,
+                                                fontSize: _getFontSize(i, index),
+                                                fontWeight: FontWeight.w300,
+                                                color: ((i * 4 + index) == 26 || (i * 4 + index) == 27)
+                                                    ? Colors.green
+                                                    : ((i * 4 + index) == 24 || (i * 4 + index) == 22)
+                                                        ? Colors.red
+                                                        : (i * 4 + index) == 2 && controller.state.currentTempIndex != 0
+                                                            ? Colors.amber
+                                                            : controller.state.textColor),
+                                            controller.state.totalValue[i * 4 + index]),
+                                      ),
+                                    )).toList())).toList(),
+                  ),
+                ),
                 //按钮功能区
                 SizedBox(
                   height: 35,
@@ -228,8 +228,8 @@ class GameView extends GetView<GameController> {
           (i * 4 + index) == 20 ||
           (i * 4 + index) == 24 ||
           (i * 4 + index) == 16
-      ? 10
-      : 14;
+      ? 10.0
+      : 14.0;
 
   _buildItem(int index) => SizedBox(
         height: 30,
