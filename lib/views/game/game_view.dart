@@ -406,8 +406,8 @@ class GameView extends GetView<GameController> {
                                   ),
                                   Row(
                                     children: [
-                                      _buildLegendItem('L', '输', Colors.blue),
-                                      const SizedBox(width: 2),
+                                      _buildLegendItem('L', '输', Colors.green),
+                                      const SizedBox(width: 4),
                                       _buildLegendItem('W', '赢', Colors.red),
                                       const SizedBox(width: 4),
                                     ],
@@ -728,7 +728,7 @@ class GameView extends GetView<GameController> {
                 fontWeight: FontWeight.bold,
               )),
         ),
-        const SizedBox(width: 4),
+        const SizedBox(width: 1),
         Text(
           label,
           style: TextStyle(

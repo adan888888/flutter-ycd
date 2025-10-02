@@ -6,6 +6,7 @@ import 'package:ycd/my_db/table2_model.dart';
 class GameState {
   static const OFFSET8431 = 8431; //庄闲占比是 庄60% 闲40%
   static const double height = 16 / 3;
+  int LockScreenTime = 2; //锁屏时间（分钟）
   var isLoading = false;
   var isCanPress = true;
   var randomValue = ''; //随机的出来的庄闲

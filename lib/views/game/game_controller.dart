@@ -833,7 +833,7 @@ class GameController extends GetxController {
     // 取消之前的计时器
     _timer?.cancel();
     // 设置新的计时器，时间设置为你想要的锁屏延时时间
-    _timer = Timer(const Duration(seconds: 60 * 2), () {
+    _timer = Timer(Duration(seconds: 60 * state.LockScreenTime), () {
       lockScreen();
     });
   }
