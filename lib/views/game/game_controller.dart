@@ -56,6 +56,7 @@ class GameController extends GetxController {
 
           ///局部
           state.totalValue[24] = pVal2();
+          update();
         }
       },
     );
