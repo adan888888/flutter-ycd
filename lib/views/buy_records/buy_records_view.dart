@@ -300,6 +300,7 @@ class BuyRecordsView extends StatelessWidget {
     return Expanded(
       child: InkWell(
         onTap: () => controller.switchCurrency(currency),
+        borderRadius: BorderRadius.circular(12),
         child: Container(
           height: _currencyCardHeight,
           decoration: BoxDecoration(
