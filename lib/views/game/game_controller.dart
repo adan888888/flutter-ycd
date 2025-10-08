@@ -72,14 +72,7 @@ class GameController extends GetxController {
           if (isSuccess && results.isNotEmpty) {
             state.table2ListX.clear();
             state.table2ListX = results.reversed.toList();
-            var list = state.table2ListX.reversed
-                .toList()
-                .map((e) => e.colmunShuyingzhi!.startsWith("-") ? "闲家" : "庄家")
-                .toList();
-            debugPrint('-------> $list');
-            for (var value in list) {
-              updateBigRoad(value);
-            }
+            _reloadLuZiTu();
             update();
           }
         },
@@ -181,9 +174,9 @@ class GameController extends GetxController {
   }
 
   /// *
-  ///  tempIndex  1 传的有数据就是从传的数据的行开始计算
-  ///  tempIndex -2 不计算局部平衡的值
-  ///  tempIndex >1 局部平衡
+  ///  tempIndex -1 重启，取消局部平衡
+  ///  tempIndex -2 每次下注后（recordbutton() ，改变数据库里面的值等）-->确保不会破坏局部平衡
+  ///  tempIndex >2 局部平衡
   ///
   void _getStatisticalAreasData(int? tempIndex) {
     BXGet<dynamic>(
@@ -192,6 +185,10 @@ class GameController extends GetxController {
       success: (isSuccess, code, message, results) {
         state.totalValue = results.map((e) => e.toString()).toList();
         state.totalValue[28] = "${state.js1}/${state.js2}";
+        //先用30这个位置的值来判断，现在是不是局部平衡的状态。解决退出这个界面再进来时候的小优化
+        if (state.totalValue[30].toString().isNotEmpty && int.parse(state.totalValue[30]) > 2) {
+          state.currentTempIndex = int.parse(state.totalValue[30]);
+        }
         //预测平均值
         if (textEditingController.text.isNotEmpty) {
           ///总体
@@ -273,7 +270,7 @@ class GameController extends GetxController {
     state.totalValue[28] = "${state.js1}/${state.js2}";
     update();
     // if (next(1, 90485) > 44625 - MyState.OFFSET8431) {
-    if (next(1, 100) <= 50) {
+    if (_next(1, 100) <= 25) {
       //1到100（包含1，100）//<= 70 是 70%庄 30%闲
       state.totalValue[30] = '庄';
       state.randomValue = '庄';
@@ -288,7 +285,7 @@ class GameController extends GetxController {
     update();
   }
 
-  int next(int min, int max) => min + Random().nextInt(max - min + 1);
+  _next(int min, int max) => min + Random().nextInt(max - min + 1);
 
   _queryMysqlTable1() {
     BXGet<Table1Model>(Api.getTable1,
@@ -465,8 +462,9 @@ class GameController extends GetxController {
                 state.js1 = state.js1 - 1;
                 state.totalValue[28] = "${state.js1}/${state.js2}";
                 state.table2ListX.removeAt(0);
-                update();
+                _reloadLuZiTu();
                 Get.back();
+                update();
               },
               onModel: (m) => Table2Model.fromJson(m));
         },
@@ -913,8 +911,18 @@ class GameController extends GetxController {
   }
 
   changeChart() {
+    _reloadLuZiTu();
     state.isBigRoad = !state.isBigRoad;
     update();
+  }
+
+  _reloadLuZiTu() {
+    var list =
+        state.table2ListX.reversed.toList().map((e) => e.colmunShuyingzhi!.startsWith("-") ? "闲家" : "庄家").toList();
+    state.initializeBigRoad();
+    for (var value in list) {
+      updateBigRoad(value);
+    }
   }
 }
 

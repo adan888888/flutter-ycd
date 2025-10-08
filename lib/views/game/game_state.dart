@@ -6,14 +6,14 @@ import 'package:ycd/my_db/table2_model.dart';
 class GameState {
   static const OFFSET8431 = 8431; //庄闲占比是 庄60% 闲40%
   static const double height = 16 / 3;
-  int LockScreenTime = 2; //锁屏时间（分钟）
+  int LockScreenTime = 12; //锁屏时间（分钟）
   var isLoading = false;
   var isCanPress = true;
   var randomValue = ''; //随机的出来的庄闲
   var bettingMoney = '';
   var js1 = 0; //随机总数
   var js2 = 0;
-  int currentTempIndex = 0;
+  int currentTempIndex = 0; //局部平衡的临时变量
   var lineColor = Colors.black87.withValues(alpha: 0.8);
   var listViewColor = const Color(0xFFE9EEDB);
   var bgColor = const Color(0xFFE9EEDB);

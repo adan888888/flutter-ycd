@@ -406,9 +406,9 @@ class GameView extends GetView<GameController> {
                                   ),
                                   Row(
                                     children: [
-                                      _buildLegendItem('L', '输', Colors.green),
-                                      const SizedBox(width: 4),
                                       _buildLegendItem('W', '赢', Colors.red),
+                                      const SizedBox(width: 4),
+                                      _buildLegendItem('L', '输', Colors.green),
                                       const SizedBox(width: 4),
                                     ],
                                   ),
