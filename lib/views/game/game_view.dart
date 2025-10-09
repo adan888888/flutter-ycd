@@ -12,6 +12,7 @@ import 'package:get/get.dart';
 import 'package:ycd/my_widget/baccarat_big_road_widget.dart';
 import 'package:ycd/utils/network/get_store.dart';
 
+import '../../my_widget/vertical_text.dart';
 import 'game_controller.dart';
 import 'game_state.dart';
 
@@ -30,7 +31,7 @@ class GameView extends GetView<GameController> {
         child: Scaffold(
           floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
           floatingActionButton: GestureDetector(
-            onLongPress: () => controller.lockScreen(),
+            // onLongPress: () => controller.lockScreen(),
             child: FloatingActionButton(
               backgroundColor: Colors.transparent,
               onPressed: () => controller.setRandom((int _) => debugPrint(_.toString())),
@@ -378,15 +379,10 @@ class GameView extends GetView<GameController> {
                 //大路子图
                 ? GestureDetector(
                     onTap: () => controller.changeChart(),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                      child: Card(
-                        elevation: 4,
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: Colors.white10,
-                            borderRadius: BorderRadius.circular(12),
-                          ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
@@ -399,7 +395,7 @@ class GameView extends GetView<GameController> {
                                         ? ' ${controller.state.totalValue[11]}长龙 '
                                         : '   ',
                                     style: TextStyle(
-                                      fontSize: 15,
+                                      fontSize: 13,
                                       fontWeight: FontWeight.bold,
                                       color: Colors.grey.shade700,
                                     ),
@@ -428,10 +424,18 @@ class GameView extends GetView<GameController> {
                                 front: "W",
                                 back: "L",
                               ),
+                              SizedBox(height: 2)
                             ],
                           ),
                         ),
-                      ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                          child: VerticalText(
+                            ' 大展鸿图',
+                            style: TextStyle(fontSize: 14, color: Colors.black),
+                          ),
+                        )
+                      ],
                     ),
                   )
                 : const Text('暂无数据📊'))
@@ -614,7 +618,7 @@ class GameView extends GetView<GameController> {
                                           }
                                         }
                                         return FlDotCirclePainter(
-                                          radius: 3,
+                                          radius: 2.3,
                                           color: dotColor,
                                           strokeWidth: 0,
                                         );
@@ -647,7 +651,7 @@ class GameView extends GetView<GameController> {
                   controller.showBottomFunction();
                   break;
                 case 2:
-                  controller.lockScreen();
+                  // controller.lockScreen();
                   break;
               }
             },

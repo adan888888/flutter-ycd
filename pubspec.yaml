@@ -40,6 +40,7 @@ dependencies:
   easy_refresh: ^3.4.0
   hive: ^2.2.3
   hive_flutter: ^1.1.0
+  mongol: ^9.0.0
 
 #dependency_overrides:
 #  win32: ^3.0.0  # 选择一个兼容的版本（解决device_info_plus和package_info_plus不兼容）

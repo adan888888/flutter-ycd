@@ -50,7 +50,7 @@ class GameState {
   static const int bigRoadRows = 6;
 
   /// 大路图列数
-  static const int bigRoadCols = 120;
+  static const int bigRoadCols = 1200;
 
   /// 每个格子的宽度（像素）
   static const double cellWidth = 15.0;

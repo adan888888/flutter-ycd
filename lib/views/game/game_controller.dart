@@ -268,7 +268,6 @@ class GameController extends GetxController {
     state.isCanPress = false;
     state.js2 = state.js2 + 1;
     state.totalValue[28] = "${state.js1}/${state.js2}";
-    update();
     // if (next(1, 90485) > 44625 - MyState.OFFSET8431) {
     if (_next(1, 100) <= 25) {
       //1到100（包含1，100）//<= 70 是 70%庄 30%闲
@@ -278,7 +277,6 @@ class GameController extends GetxController {
       state.totalValue[30] = '闲';
       state.randomValue = '闲';
     }
-    update();
     Get.dialog(NewWidget(state.randomValue),
         barrierDismissible: false, barrierColor: Colors.black.withValues(alpha: 0.18));
     state.isCanPress = true;
