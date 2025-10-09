@@ -415,7 +415,7 @@ class GameController extends GetxController {
   }
 
   getCurrentJin(int i, double playMoney) {
-    var lastJinE = state.table2ListX.isEmpty ? 5000 : double.parse(state.table2ListX.first.columnCurrentJin.toString());
+    var lastJinE = state.table2ListX.isEmpty ? 5000 : double.parse(state.totalValue[4].toString());
     switch (i) {
       case 1:
         return (lastJinE + playMoney);
