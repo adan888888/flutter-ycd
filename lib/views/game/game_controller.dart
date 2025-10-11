@@ -64,7 +64,7 @@ class GameController extends GetxController {
     //1。查询表一数据
     _queryMysqlTable1();
     //2。起始要拿到统计区数据
-    _getStatisticalAreasData(-2);
+    _getStatisticalAreasData(-1);
     //3。启始先查66条数据
     BXGet<Table2Model>(Api.loadMore,
         params: {"last_id": -1, "uid": GetStore.getInstance().userModel.userId, "c": 66}, //"c"每页多少个数据
