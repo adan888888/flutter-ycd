@@ -4,6 +4,7 @@ import 'package:ycd/my_db/table1_model.dart';
 import 'package:ycd/my_db/table2_model.dart';
 
 class GameState {
+  var ratio = 50; //庄闲占比
   static const OFFSET8431 = 8431; //庄闲占比是 庄60% 闲40%
   static const double height = 16 / 3;
   int LockScreenTime = 12; //锁屏时间（分钟）

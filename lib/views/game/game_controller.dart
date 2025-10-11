@@ -269,8 +269,8 @@ class GameController extends GetxController {
     state.js2 = state.js2 + 1;
     state.totalValue[28] = "${state.js1}/${state.js2}";
     // if (next(1, 90485) > 44625 - MyState.OFFSET8431) {
-    if (_next(1, 100) <= 25) {
-      //1到100（包含1，100）//<= 70 是 70%庄 30%闲
+    //1到100（包含1，100）//<= 70 是 70%庄 30%闲
+    if (_next(1, 100) <= state.ratio) {
       state.totalValue[30] = '庄';
       state.randomValue = '庄';
     } else {
@@ -912,6 +912,7 @@ class GameController extends GetxController {
     _reloadLuZiTu();
     state.isBigRoad = !state.isBigRoad;
     update();
+    scrollToCurrentPosition();
   }
 
   _reloadLuZiTu() {

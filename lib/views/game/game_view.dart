@@ -453,10 +453,12 @@ class GameView extends GetView<GameController> {
                               LineChartData(
                                 backgroundColor: Colors.transparent,
                                 borderData: FlBorderData(show: false),
-                                // 无边框
+                                //网格线显示和样式
                                 gridData: FlGridData(
                                   show: true,
+                                  // x轴线（横线）的间隔
                                   horizontalInterval: (() {
+                                    // 动态计算水平网格线间隔
                                     if (controller.state.chartData.isEmpty) return 1.0;
                                     final minV =
                                         controller.state.chartData.map((e) => e.sales).reduce((a, b) => a < b ? a : b) *
@@ -468,15 +470,17 @@ class GameView extends GetView<GameController> {
                                     final step = span / 2.0;
                                     return (step.isFinite && step > 0) ? step : 1.0;
                                   })(),
+                                  // x轴线（横线）的样式
                                   getDrawingHorizontalLine: (value) {
                                     return FlLine(
                                       color: Colors.white.withValues(alpha: 0.3),
                                       strokeWidth: 1,
-                                      dashArray: [5, 5], // 虚线样式
+                                      dashArray: [5, 5], // 虚线样式（线宽，间隔）
                                     );
                                   },
+                                  //y轴竖线 垂直间隔
                                   verticalInterval: 1,
-                                  // 设置一个很小的值，但不显示垂直网格线
+                                  // y轴竖线 垂直设置一个很小的值，但不显示垂直网格线
                                   getDrawingVerticalLine: (value) {
                                     return const FlLine(
                                       color: Colors.transparent, // 透明色，实际上不显示
@@ -484,6 +488,7 @@ class GameView extends GetView<GameController> {
                                     );
                                   },
                                 ),
+                                //左则轴标数据
                                 titlesData: FlTitlesData(
                                   show: true,
                                   rightTitles: const AxisTitles(
@@ -498,26 +503,51 @@ class GameView extends GetView<GameController> {
                                   leftTitles: AxisTitles(
                                     sideTitles: SideTitles(
                                       showTitles: true,
-                                      reservedSize: 32,
+                                      reservedSize: 35, //离左边的距离
                                       interval: (() {
                                         if (controller.state.chartData.isEmpty) return 1.0;
-                                        final minV = controller.state.chartData
-                                                .map((e) => e.sales)
-                                                .reduce((a, b) => a < b ? a : b) *
-                                            0.8;
-                                        final maxV = controller.state.chartData
-                                                .map((e) => e.sales)
-                                                .reduce((a, b) => a > b ? a : b) *
-                                            1.2;
-                                        final span = maxV - minV;
-                                        final step = span / 2.0;
-                                        return (step.isFinite && step > 0) ? step : 1.0;
+
+                                        // 强制只显示3个标签：最小值、中间值、最大值
+                                        // 使用动态间隔来避免标签重叠
+                                        if (controller.state.chartData.isEmpty) return 1.0;
+
+                                        final dataValues = controller.state.chartData.map((e) => e.sales).toList();
+                                        final minValue = dataValues.reduce((a, b) => a < b ? a : b);
+                                        final maxValue = dataValues.reduce((a, b) => a > b ? a : b);
+                                        final span = maxValue - minValue;
+
+                                        // 使用更大的间隔，但不要太大
+                                        final step = span / 1.5; // 使用1.5倍间隔
+                                        const minStep = 300.0; // 最小间隔300
+                                        final finalStep = step > minStep ? step : minStep;
+
+                                        debugPrint("---------------->$finalStep");
+                                        return finalStep;
                                       })(),
                                       getTitlesWidget: (value, meta) {
-                                        // 简单显示所有由fl_chart生成的标签
+                                        // 强制只显示3个标签：最小值、中间值、最大值
+                                        if (controller.state.chartData.isEmpty) {
+                                          return const SizedBox.shrink();
+                                        }
+
+                                        final dataValues = controller.state.chartData.map((e) => e.sales).toList();
+                                        final minValue = dataValues.reduce((a, b) => a < b ? a : b);
+                                        final maxValue = dataValues.reduce((a, b) => a > b ? a : b);
+                                        final midValue = (minValue + maxValue) / 2;
+
+                                        // 只显示最小值、中间值、最大值
+                                        final tolerance = (maxValue - minValue) * 0.3; // 增加容差到30%，确保能匹配到标签
+                                        final isMin = (value - minValue).abs() < tolerance;
+                                        final isMax = (value - maxValue).abs() < tolerance;
+                                        final isMid = (value - midValue).abs() < tolerance;
+
+                                        if (!isMin && !isMax && !isMid) {
+                                          return const SizedBox.shrink(); // 隐藏其他标签
+                                        }
+
                                         return SideTitleWidget(
                                           meta: meta,
-                                          space: 4,
+                                          space: 8,
                                           child: Text(
                                             _formatValue(value),
                                             maxLines: 1,
@@ -526,7 +556,8 @@ class GameView extends GetView<GameController> {
                                             textAlign: TextAlign.right,
                                             style: const TextStyle(
                                               color: Colors.white,
-                                              fontSize: 10,
+                                              fontSize: 9,
+                                              fontWeight: FontWeight.w600,
                                             ),
                                           ),
                                         );
