@@ -79,6 +79,9 @@ class DigitalPasswordBookState {
   // 选中的密码项
   var selectedItem = Rxn<PasswordItem>();
 
+  // 当前选中的密码项（用于键盘操作）
+  var currentSelectedItem = Rxn<PasswordItem>();
+
   // 是否显示编辑对话框
   var showEditDialog = false.obs;
 

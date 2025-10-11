@@ -251,17 +251,49 @@ class DigitalPasswordBookController extends GetxController {
     loadPasswordList(keyword: keyword.isEmpty ? null : keyword); // 异步调用，不等待结果
   }
 
+  // 清空搜索
+  void clearSearch() {
+    state.searchKeyword.value = '';
+    loadPasswordList(); // 重新加载所有密码
+  }
+
   // 获取搜索相关的状态
   String get searchPd {
     if (state.searchKeyword.value.isEmpty) {
       return '';
     } else {
-      // 这里原来的写法是用where过滤后直接取first，如果没有匹配会抛异常
-      // 改为firstWhere，并加上orElse返回空字符串，避免没有匹配时报错
-      return state.randomSequence2.firstWhere(
-        (element) => element.endsWith(state.searchKeyword.value.toUpperCase()),
-        orElse: () => '',
-      );
+      final keyword = state.searchKeyword.value.toUpperCase();
+      final keywordLength = keyword.length;
+
+      // 如果输入长度超过序列长度，返回空字符串
+      if (keywordLength > state.randomSequence2.length) {
+        return '';
+      }
+
+      // 从前面往后匹配，构建结果字符串
+      String result = '';
+      for (int i = 0; i < keywordLength; i++) {
+        final keywordChar = keyword[i];
+        bool found = false;
+
+        // 在整个序列中查找以当前字符开头的项
+        for (int j = 0; j < state.randomSequence2.length; j++) {
+          final sequenceItem = state.randomSequence2[j];
+          if (sequenceItem.startsWith(keywordChar)) {
+            // 取序列项的第二个字符作为结果
+            result += sequenceItem[1];
+            found = true;
+            break;
+          }
+        }
+
+        if (!found) {
+          // 如果不匹配，返回空字符串
+          return '';
+        }
+      }
+
+      return result;
     }
   }
 
@@ -317,5 +349,30 @@ class DigitalPasswordBookController extends GetxController {
         state.isLoading.value = false;
       },
     );
+  }
+
+  // 设置当前选中的密码项
+  void setCurrentSelectedItem(PasswordItem? item) {
+    state.currentSelectedItem.value = item;
+  }
+
+  // 处理键盘快捷键
+  void handleKeyEvent(KeyEvent event) {
+    if (event is KeyDownEvent) {
+      // 处理 Delete 键删除
+      if (event.logicalKey == LogicalKeyboardKey.delete) {
+        final selectedItem = state.currentSelectedItem.value;
+        if (selectedItem != null) {
+          deletePassword(selectedItem);
+        }
+      }
+      // 处理 Enter 键编辑
+      else if (event.logicalKey == LogicalKeyboardKey.enter) {
+        final selectedItem = state.currentSelectedItem.value;
+        if (selectedItem != null) {
+          editPassword(selectedItem);
+        }
+      }
+    }
   }
 }

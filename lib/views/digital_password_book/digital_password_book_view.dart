@@ -8,49 +8,51 @@ class DigitalPasswordBookView extends GetView<DigitalPasswordBookController> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('数字密码本'),
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        centerTitle: true,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: () {
-              controller.refreshPasswordList();
-            },
-            tooltip: '刷新密码列表',
-          ),
-          IconButton(
-            icon: const Icon(Icons.add),
-            onPressed: controller.showAddPasswordDialog,
-            tooltip: '添加密码',
-          ),
-        ],
-      ),
-      body: Stack(
-        children: [
-          Column(
-            children: [
-              // 搜索框
-              _buildSearchBar(),
-              // 密码列表
-              Expanded(
-                child: _buildPasswordList(),
-              ),
-              Obx(() => Text(controller.searchPd)),
-              const SizedBox(height: 20),
-            ],
-          ),
-          // 添加密码对话框
-          const AddPasswordDialog(),
-          // 编辑密码对话框
-          const EditPasswordDialog(),
-        ],
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: controller.showAddPasswordDialog,
-        child: const Icon(Icons.add),
+    return KeyboardListener(
+      focusNode: FocusNode(),
+      onKeyEvent: controller.handleKeyEvent,
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('数字密码本'),
+          backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+          centerTitle: true,
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.refresh),
+              onPressed: () {
+                controller.refreshPasswordList();
+              },
+              tooltip: '刷新密码列表',
+            ),
+            IconButton(
+              icon: const Icon(Icons.add),
+              onPressed: controller.showAddPasswordDialog,
+              tooltip: '添加密码',
+            ),
+          ],
+        ),
+        body: Stack(
+          children: [
+            Column(
+              children: [
+                // 搜索框
+                _buildSearchBar(),
+                // 密码列表
+                Expanded(child: _buildPasswordList()),
+                Obx(() => Text(controller.searchPd.toLowerCase())),
+                const SizedBox(height: 20),
+              ],
+            ),
+            // 添加密码对话框
+            const AddPasswordDialog(),
+            // 编辑密码对话框
+            const EditPasswordDialog(),
+          ],
+        ),
+        floatingActionButton: FloatingActionButton(
+          onPressed: controller.showAddPasswordDialog,
+          child: const Icon(Icons.add),
+        ),
       ),
     );
   }
@@ -59,26 +61,33 @@ class DigitalPasswordBookView extends GetView<DigitalPasswordBookController> {
   Widget _buildSearchBar() {
     return Container(
       padding: const EdgeInsets.all(16),
-      child: TextField(
-        onChanged: (value) {
-          try {
-            controller.searchPasswords(value);
-          } catch (e) {
-            // 忽略键盘相关的错误
-            if (!e.toString().contains('HardwareKeyboard') && !e.toString().contains('KeyUpEvent')) {
-              rethrow;
-            }
-          }
-        },
-        decoration: InputDecoration(
-          hintText: '搜索密码...',
-          prefixIcon: const Icon(Icons.search),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        ),
-      ),
+      child: Obx(() => TextField(
+            onChanged: (value) {
+              try {
+                controller.searchPasswords(value);
+              } catch (e) {
+                // 忽略键盘相关的错误
+                if (!e.toString().contains('HardwareKeyboard') && !e.toString().contains('KeyUpEvent')) {
+                  rethrow;
+                }
+              }
+            },
+            decoration: InputDecoration(
+              hintText: '搜索密码...',
+              prefixIcon: const Icon(Icons.search),
+              suffixIcon: controller.state.searchKeyword.value.isNotEmpty
+                  ? IconButton(
+                      icon: const Icon(Icons.clear),
+                      onPressed: controller.clearSearch,
+                      tooltip: '清空搜索',
+                    )
+                  : null,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            ),
+          )),
     );
   }
 
@@ -167,93 +176,103 @@ class DigitalPasswordBookView extends GetView<DigitalPasswordBookController> {
 
   // 构建密码卡片
   Widget _buildPasswordCard(item) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 12),
-      elevation: 2,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 10),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // 标题和操作按钮
-            Row(
+    return Obx(() {
+      final isSelected = controller.state.currentSelectedItem.value?.id == item.id;
+      return GestureDetector(
+        onTap: () {
+          controller.setCurrentSelectedItem(item);
+        },
+        child: Card(
+          margin: const EdgeInsets.only(bottom: 12),
+          elevation: isSelected ? 4 : 2,
+          color: isSelected ? Colors.blue.withValues(alpha: 0.1) : null,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 10),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
               children: [
-                Expanded(
-                  child: Text(
-                    item.title,
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-                PopupMenuButton<String>(
-                  onSelected: (value) {
-                    switch (value) {
-                      case 'edit':
-                        controller.editPassword(item);
-                        break;
-                      case 'delete':
-                        controller.deletePassword(item);
-                        break;
-                    }
-                  },
-                  itemBuilder: (context) => [
-                    const PopupMenuItem(
-                      value: 'edit',
-                      child: Row(
-                        children: [
-                          Icon(Icons.edit, size: 20),
-                          SizedBox(width: 8),
-                          Text('编辑'),
-                        ],
+                // 标题和操作按钮
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        item.title,
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: isSelected ? Colors.blue : null,
+                        ),
                       ),
                     ),
-                    const PopupMenuItem(
-                      value: 'delete',
-                      child: Row(
-                        children: [
-                          Icon(Icons.delete, size: 20, color: Colors.red),
-                          SizedBox(width: 8),
-                          Text('删除', style: TextStyle(color: Colors.red)),
-                        ],
-                      ),
+                    PopupMenuButton<String>(
+                      onSelected: (value) {
+                        switch (value) {
+                          case 'edit':
+                            controller.editPassword(item);
+                            break;
+                          case 'delete':
+                            controller.deletePassword(item);
+                            break;
+                        }
+                      },
+                      itemBuilder: (context) => [
+                        const PopupMenuItem(
+                          value: 'edit',
+                          child: Row(
+                            children: [
+                              Icon(Icons.edit, size: 20),
+                              SizedBox(width: 8),
+                              Text('编辑'),
+                            ],
+                          ),
+                        ),
+                        const PopupMenuItem(
+                          value: 'delete',
+                          child: Row(
+                            children: [
+                              Icon(Icons.delete, size: 20, color: Colors.red),
+                              SizedBox(width: 8),
+                              Text('删除', style: TextStyle(color: Colors.red)),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
+
+                // 用户名
+                _buildInfoRow(
+                  icon: Icons.person,
+                  label: '用户名',
+                  value: item.username,
+                  onCopy: () => controller.copyUsername(item.username),
+                ),
+                // 密码
+                _buildPasswordRow(item),
+                // 网站
+                if (item.website.isNotEmpty)
+                  _buildInfoRow(
+                    icon: Icons.language,
+                    label: '网站',
+                    value: item.website,
+                  ),
+
+                // 备注
+                if (item.notes.isNotEmpty)
+                  _buildInfoRow(
+                    icon: Icons.note,
+                    label: '备注',
+                    value: item.notes,
+                  ),
+                const SizedBox(height: 8),
               ],
             ),
-
-            // 用户名
-            _buildInfoRow(
-              icon: Icons.person,
-              label: '用户名',
-              value: item.username,
-              onCopy: () => controller.copyUsername(item.username),
-            ),
-            // 密码
-            _buildPasswordRow(item),
-            // 网站
-            if (item.website.isNotEmpty)
-              _buildInfoRow(
-                icon: Icons.language,
-                label: '网站',
-                value: item.website,
-              ),
-
-            // 备注
-            if (item.notes.isNotEmpty)
-              _buildInfoRow(
-                icon: Icons.note,
-                label: '备注',
-                value: item.notes,
-              ),
-            const SizedBox(height: 8),
-          ],
+          ),
         ),
-      ),
-    );
+      );
+    });
   }
 
   // 构建信息行
