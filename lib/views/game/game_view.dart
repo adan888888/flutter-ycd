@@ -96,12 +96,14 @@ class GameView extends GetView<GameController> {
                     ),
                     //单元格的宽， map哪列 ：宽度
                     columnWidths: const {
-                      1: FlexColumnWidth(1),
-                      0: IntrinsicColumnWidth(), //包裹内容
-                      3: IntrinsicColumnWidth(),
-                      2: FlexColumnWidth(1),
+                      1: FlexColumnWidth(1.2),
+                      // 0: IntrinsicColumnWidth(), //包裹内容
+                      0: FlexColumnWidth(1),
+                      3: FlexColumnWidth(1),
+                      2: FlexColumnWidth(1.2),
                     },
-                    defaultVerticalAlignment: TableCellVerticalAlignment.middle, //垂直的位置
+                    //垂直的位置
+                    defaultVerticalAlignment: TableCellVerticalAlignment.middle,
                     children: List.generate(
                         8,
                         (i) => TableRow(
@@ -110,26 +112,27 @@ class GameView extends GetView<GameController> {
                                 4,
                                 (index) => GestureDetector(
                                       onTap: () {
-                                        if (index == 2) {
-                                          controller.juBuPingHeng(-1, v: controller.state.totalValue[30]);
-                                        }
+                                        if (index == 2) controller.juBuPingHeng(-1, v: controller.state.totalValue[30]);
                                       },
                                       child: Center(
-                                        child: Text(
-                                            style: TextStyle(
-                                                height: 1.1,
-                                                //相当于padding
-                                                wordSpacing: 0,
-                                                fontSize: _getFontSize(i, index),
-                                                fontWeight: FontWeight.w300,
-                                                color: ((i * 4 + index) == 26 || (i * 4 + index) == 27)
-                                                    ? Colors.green
-                                                    : ((i * 4 + index) == 24 || (i * 4 + index) == 22)
-                                                        ? Colors.red
-                                                        : (i * 4 + index) == 2 && controller.state.currentTempIndex != 0
-                                                            ? Colors.amber
-                                                            : controller.state.textColor),
-                                            controller.state.totalValue[i * 4 + index]),
+                                        child: FittedBox(
+                                          fit: BoxFit.contain,
+                                          child: Text(
+                                              style: TextStyle(
+                                                  height: 1.1 /*行高间距*/,
+                                                  wordSpacing: 0 /*相当于padding*/,
+                                                  fontSize: 14,
+                                                  fontWeight: FontWeight.w300,
+                                                  color: ((i * 4 + index) == 26 || (i * 4 + index) == 27)
+                                                      ? Colors.green
+                                                      : ((i * 4 + index) == 24 || (i * 4 + index) == 22)
+                                                          ? Colors.red
+                                                          : (i * 4 + index) == 2 &&
+                                                                  controller.state.currentTempIndex != 0
+                                                              ? Colors.amber
+                                                              : controller.state.textColor),
+                                              controller.state.totalValue[i * 4 + index]),
+                                        ),
                                       ),
                                     )).toList())).toList(),
                   ),
@@ -229,14 +232,6 @@ class GameView extends GetView<GameController> {
       ),
     );
   }
-
-  _getFontSize(int i, int index) => (i * 4 + index) == 15 ||
-          (i * 4 + index) == 3 ||
-          (i * 4 + index) == 20 ||
-          (i * 4 + index) == 24 ||
-          (i * 4 + index) == 16
-      ? 10.0
-      : 14.0;
 
   _buildItem(int index) => SizedBox(
         height: 30,
