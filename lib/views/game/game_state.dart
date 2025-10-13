@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:ycd/my_db/table1_model.dart';
 import 'package:ycd/my_db/table2_model.dart';
+import 'package:ycd/model/linechart_data_model.dart';
 
 class GameState {
   var ratio = 50; //庄闲占比
@@ -21,7 +22,7 @@ class GameState {
   var chartBgColor = Colors.black; //图表背景
   var textColor = Colors.black;
   var totalValue /*统计区*/ = <String>[];
-  var chartData /*图表数据*/ = <SalesData>[];
+  var chartData /*图表数据*/ = <LineChartDataModel>[];
 
   // List<SalesData> chartData/*图表数据*/ = List.generate(70, (index) =>SalesData(index.toString(),Random().nextInt(1).toDouble() )).toList().obs;
   var table1List = <Table1Model>[];
@@ -114,17 +115,5 @@ class GameState {
   bool get hasBigRoadData {
     bool hasData = bigRoad.any((row) => row.any((cell) => cell.isNotEmpty));
     return hasData;
-  }
-}
-
-class SalesData {
-  SalesData(this.year, this.sales);
-
-  int year;
-  double sales;
-
-  @override
-  String toString() {
-    return '{$sales}';
   }
 }

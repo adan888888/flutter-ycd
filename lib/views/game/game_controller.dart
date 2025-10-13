@@ -11,6 +11,7 @@ import 'package:get/get.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
+import 'package:ycd/model/linechart_data_model.dart';
 import 'package:ycd/my_db/db_helper.dart';
 import 'package:ycd/my_db/table1_model.dart';
 import 'package:ycd/my_db/table2_model.dart';
@@ -175,8 +176,8 @@ class GameController extends GetxController {
 
   /// *
   ///  tempIndex -1 重启，取消局部平衡
-  ///  tempIndex -2 每次下注后（recordbutton() ，改变数据库里面的值等）-->确保不会破坏局部平衡
-  ///  tempIndex >2 局部平衡
+  ///  tempIndex -2 确保不会破坏局部平衡-->每次下注后（recordbutton() ，改变数据库里面的值等）
+  ///  tempIndex >2 点击进行局部平衡
   ///
   void _getStatisticalAreasData(int? tempIndex) {
     BXGet<dynamic>(
@@ -294,8 +295,9 @@ class GameController extends GetxController {
             state.table1List = value;
             state.totalValue[0] = '${state.table1List.last.columnBenjin}'; //本金
             state.totalValue[19] = '${state.table1List.last.columnMean}'; //期望值
-            state.chartData = List.generate(
-                75, (index) => SalesData(index, double.parse(state.table1List.last.columnBenjin.toString()))).toList();
+            state.chartData = List.generate(75,
+                    (index) => LineChartDataModel(index, double.parse(state.table1List.last.columnBenjin.toString())))
+                .toList();
           }
           state.isRefreshing = false;
           update();
@@ -514,6 +516,7 @@ class GameController extends GetxController {
           BXLoading.showToast("${value.last.columnBenjin}");
           state.totalValue[0] = b;
           state.totalValue[4] = (double.parse(state.totalValue[0]) + double.parse(state.totalValue[17])).toString();
+          _getStatisticalAreasData(-2);
         }
       },
       onModel: (m) => Table1Model.fromJson(m),
@@ -521,18 +524,6 @@ class GameController extends GetxController {
   }
 
   void updateOdds(String b) {
-    // _instance?.then((db) => db.query(DbHelper.table1).then((value) => _instance?.then((db) => db
-    //     .insert(
-    //         DbHelper.table1,
-    //         Table1Model(
-    //           columnBenjin: value.last['column_benjin'].toString(),
-    //           columnYongJin: b,
-    //           columnMean: value.last['column_mean'].toString(),
-    //           columnRestartIndex: value.last['column_restart_index'].toString(),
-    //           columnLiushuiIndex: value.last['column_liushui_index'].toString(),
-    //         ).toJson())
-    //     .then((value) => queryAll()))));
-
     BXPost/*<Map<String,dynamic>>*/(Api.updateOdds, params: {"odds": b},
         success: (isSuccess, int code, String message, List<dynamic> results) {
       if (isSuccess) {
