@@ -352,7 +352,8 @@ class GameController extends GetxController {
             id: state.table2ListX.length + 1,
             //mysql数据库下标是从1开始的
             columnXiazhujine: state.bettingMoney,
-            colmunZx: state.randomValue,
+            //记录开出的庄闲
+            colmunZx: (i == 2 || i == 3) ? '庄' : '闲',
             //输（-） 赢 （+）
             colmunRemark: (i == 1 || i == 2) ? "1" : "-1",
             colmunShengfulu:

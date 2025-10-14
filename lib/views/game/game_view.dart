@@ -96,11 +96,11 @@ class GameView extends GetView<GameController> {
                     ),
                     //单元格的宽， map哪列 ：宽度
                     columnWidths: const {
-                      1: FlexColumnWidth(1.2),
+                      1: FlexColumnWidth(1.3),
                       // 0: IntrinsicColumnWidth(), //包裹内容
                       0: FlexColumnWidth(1),
                       3: FlexColumnWidth(1),
-                      2: FlexColumnWidth(1.2),
+                      2: FlexColumnWidth(1.3),
                     },
                     //垂直的位置
                     defaultVerticalAlignment: TableCellVerticalAlignment.middle,
