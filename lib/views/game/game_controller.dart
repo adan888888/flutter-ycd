@@ -199,8 +199,16 @@ class GameController extends GetxController {
           state.totalValue[24] = pVal2();
         }
         state.isCanPress = true;
-        update();
-        getCharts();
+        Future.delayed(const Duration(milliseconds: 1500), () {
+          state.totalValue[30] = state.randomValue;
+          update();
+        });
+
+        if (state.isBigRoad) {
+          _reloadLuZiTu(); //路子图直接在本地的数据处理
+        } else {
+          _getLineCharts(); //折线图，通过网络拿。数据排序等 通过查数据库更好处理。(将来最好从本地处理，因为有一个问题，当切换图表的时候时候，有可能不会调用这个_getStatisticalAreasData方法，导致看不到最后一手画的点)
+        }
       },
     );
   }
@@ -272,14 +280,16 @@ class GameController extends GetxController {
     // if (next(1, 90485) > 44625 - MyState.OFFSET8431) {
     //1到100（包含1，100）//<= 70 是 70%庄 30%闲
     if (_next(1, 100) <= state.ratio) {
-      state.totalValue[30] = '庄';
-      state.randomValue = '庄';
+      state.randomValue = state.totalValue[30] = '庄';
     } else {
-      state.totalValue[30] = '闲';
-      state.randomValue = '闲';
+      state.randomValue = state.totalValue[30] = '闲';
     }
-    Get.dialog(NewWidget(state.randomValue),
-        barrierDismissible: false, barrierColor: Colors.black.withValues(alpha: 0.18));
+
+    Get.dialog(
+      NewWidget(state.randomValue),
+      barrierDismissible: false,
+      barrierColor: Colors.black.withValues(alpha: 0.18),
+    );
     state.isCanPress = true;
     update();
   }
@@ -311,10 +321,6 @@ class GameController extends GetxController {
   }
 
   recordButton(int i, String tableName, {Table1Model? table1, Table2Model? table2}) {
-    // getDeviceId().then((value) {
-    //   debugPrint('测试=》${value}');
-    // });
-
     if (state.randomValue.isEmpty) {
       Get.snackbar("温馨提示", '请摇塞子',
           duration: const Duration(seconds: 2),
@@ -387,16 +393,13 @@ class GameController extends GetxController {
           success: (isSuccess, code, message, results) {
             _getStatisticalAreasData(-2); //重新计算
             state.table2ListX.insert(0, results.first); //打一手 记录一笔
-            updateBigRoad(state.table2ListX[0].colmunShuyingzhi!.startsWith("-") ? "闲家" : "庄家");
-            // 自动滚动到当前位置
-            scrollToCurrentPosition();
           },
           failed: (p0, p1) => state.isCanPress = true,
           onModel: (m) => Table2Model.fromJson(m));
     }
   }
 
-  getCharts() {
+  _getLineCharts() {
     var z = 0;
     BXGet<dynamic>(
       Api.getLinechartData,
@@ -407,12 +410,13 @@ class GameController extends GetxController {
           }
           z++;
         }
+        update();
         //解决外面的点跑，里面的线不动
-        var removeLast = state.chartData.removeLast();
-        Future.delayed(const Duration(milliseconds: 300), () {
-          state.chartData.add(removeLast);
-          update();
-        });
+        // var removeLast = state.chartData.removeLast();
+        // Future.delayed(const Duration(milliseconds: 300), () {
+        //   state.chartData.add(removeLast);
+        //   update();
+        // });
       },
     );
   }
@@ -596,12 +600,6 @@ class GameController extends GetxController {
         Loading.dismiss();
         break;
       case 4: //删除本页
-
-        // _instance?.then((db) {
-        //   db.rawQuery('DELETE FROM ${DbHelper.table1}');
-        //   return db.rawQuery('DELETE FROM ${DbHelper.table2}');
-        // }).then((value) => dropAll());
-
         Get.defaultDialog(
           barrierDismissible: false,
           title: '警告',
@@ -866,10 +864,6 @@ class GameController extends GetxController {
     }
     update();
     if (state.table2ListX.isNotEmpty) _getStatisticalAreasData(index);
-    Future.delayed(const Duration(milliseconds: 1000), () {
-      state.totalValue[30] = v.toString();
-      update();
-    });
   }
 
   //下拉刷新
@@ -904,9 +898,9 @@ class GameController extends GetxController {
     _reloadLuZiTu();
     state.isBigRoad = !state.isBigRoad;
     update();
-    scrollToCurrentPosition();
   }
 
+  //重新加载路子图
   _reloadLuZiTu() {
     var list =
         state.table2ListX.reversed.toList().map((e) => e.colmunShuyingzhi!.startsWith("-") ? "闲家" : "庄家").toList();
@@ -914,6 +908,7 @@ class GameController extends GetxController {
     for (var value in list) {
       updateBigRoad(value);
     }
+    scrollToCurrentPosition();
   }
 }
 
