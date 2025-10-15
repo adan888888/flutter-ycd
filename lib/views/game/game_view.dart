@@ -236,7 +236,7 @@ class GameView extends GetView<GameController> {
   _buildItem(int index) => SizedBox(
         height: 30,
         child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             //序号
             // GestureDetector(
@@ -268,7 +268,7 @@ class GameView extends GetView<GameController> {
             ),
             //消数
             SizedBox(
-                width: 100,
+                width: 90,
                 child: Row(mainAxisAlignment: MainAxisAlignment.end, children: [
                   Text(
                     "${controller.state.table2ListX[index].colmunShuyingzhiD}",
@@ -278,7 +278,7 @@ class GameView extends GetView<GameController> {
                           : Colors.redAccent,
                     ),
                   ),
-                  const SizedBox(width: 5),
+                  const SizedBox(width: 1),
                   Visibility(
                     visible: controller.state.table2ListX[index].colmunShuyingzhiD!.isNotEmpty,
                     child: GestureDetector(

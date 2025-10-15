@@ -199,18 +199,23 @@ class GameController extends GetxController {
           state.totalValue[24] = pVal2();
         }
         state.isCanPress = true;
-        Future.delayed(const Duration(milliseconds: 1500), () {
-          state.totalValue[30] = state.randomValue;
-          update();
-        });
+        _delayedTask(); //必须要提一个方法放出去，不然会会卡下面的代码
 
         if (state.isBigRoad) {
           _reloadLuZiTu(); //路子图直接在本地的数据处理
+          update();
         } else {
           _getLineCharts(); //折线图，通过网络拿。数据排序等 通过查数据库更好处理。(将来最好从本地处理，因为有一个问题，当切换图表的时候时候，有可能不会调用这个_getStatisticalAreasData方法，导致看不到最后一手画的点)
         }
       },
     );
+  }
+
+  Future<void> _delayedTask() async {
+    Future.delayed(const Duration(milliseconds: 1500), () {
+      state.totalValue[30] = state.randomValue;
+      update();
+    });
   }
 
   showBottomFunction() {

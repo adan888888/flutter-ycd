@@ -8,18 +8,28 @@ class BuyRecordsView extends StatelessWidget {
 
   // 使用 getter 替代 late final（兼容 const 构造函数）
   double get _defaultPadding => 16.0;
+
   double get _smallPadding => 8.0;
+
   double get _cardPadding => 10.0;
+
   double get _currencyCardHeight => 80.0;
+
   double get _iconSize => 64.0;
+
   double get _currencyIconSize => 24.0;
 
   // 样式 getter
   TextStyle get _titleStyle => const TextStyle(fontSize: 14, fontWeight: FontWeight.bold);
+
   TextStyle get _recordNumberStyle => const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.blue);
+
   TextStyle get _labelStyle => const TextStyle(fontSize: 11, color: Colors.grey);
+
   TextStyle get _valueStyle => const TextStyle(fontSize: 12, fontWeight: FontWeight.w800);
+
   TextStyle get _smallLabelStyle => const TextStyle(fontSize: 10, color: Colors.grey);
+
   TextStyle get _smallValueStyle => const TextStyle(fontSize: 10, fontWeight: FontWeight.w800);
 
   @override
@@ -170,7 +180,7 @@ class BuyRecordsView extends StatelessWidget {
         Text('第${index + 1}笔', style: _recordNumberStyle),
         SizedBox(width: _defaultPadding),
         _buildStatItemX(
-          '累计购买数量 ',
+          '累计成交数量 ',
           controller.calculateCumulativeStats(index + 1)['totalQuantity'].toStringAsFixed(8),
           Colors.grey,
         ),
@@ -181,13 +191,13 @@ class BuyRecordsView extends StatelessWidget {
   Widget _buildCompactRecordDetails(BuyRecordsController controller, Map<String, dynamic> record) {
     return Row(
       children: [
-        Text('购买价格:', style: _labelStyle),
+        Text('成交价格', style: _labelStyle),
         Text(
           controller.formatPriceWithDecimals(record['buy_price']),
           style: _valueStyle,
         ),
         SizedBox(width: _smallPadding),
-        Text('购买金额', style: _labelStyle),
+        Text('成交金额', style: _labelStyle),
         Text(
           record['buy_amount']?.toString().isEmpty == true ? '未知' : "\$${record['buy_amount']}",
           style: _valueStyle,
@@ -226,8 +236,8 @@ class BuyRecordsView extends StatelessWidget {
         const SizedBox(height: 2),
         Row(
           children: [
-            _buildStatItem('购买均价:', controller.formatPriceTwoDecimals(stats['averagePrice']), Colors.black),
-            _buildStatItem('累计成本', controller.formatPriceInteger(stats['totalCost']), Colors.black),
+            _buildStatItem('成交均价', controller.formatPriceTwoDecimals(stats['averagePrice']), Colors.black),
+            _buildStatItem('累计金额', controller.formatPriceInteger(stats['totalCost']), Colors.black),
           ],
         ),
       ],
