@@ -1,11 +1,11 @@
 // ignore_for_file: constant_identifier_names
 import 'package:flutter/material.dart';
+import 'package:ycd/model/linechart_data_model.dart';
 import 'package:ycd/my_db/table1_model.dart';
 import 'package:ycd/my_db/table2_model.dart';
-import 'package:ycd/model/linechart_data_model.dart';
 
 class GameState {
-  var ratio = 50; //庄闲占比
+  var ratio = 50; //庄闲占比(50=50%庄 50%闲；70=70%庄 30%闲，)
   static const OFFSET8431 = 8431; //庄闲占比是 庄60% 闲40%
   static const double height = 16 / 3;
   int LockScreenTime = 12; //锁屏时间（分钟）

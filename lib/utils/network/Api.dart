@@ -72,6 +72,9 @@ class Api {
   //清除数据（消数列数据全部清除）
   static String cleanDataD = "/ycd/cleanDataD";
 
+  //随机庄闲接口
+  static String randomBankerPlayer = "/ycd/randomBankerPlayer";
+
   static String buyRecords = "/buyRecords";
 
   // 密码本相关API

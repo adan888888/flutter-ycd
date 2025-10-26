@@ -199,7 +199,6 @@ class GameController extends GetxController {
           state.totalValue[24] = pVal2();
         }
         state.isCanPress = true;
-        _delayedTask(); //必须要提一个方法放出去，不然会会卡下面的代码
 
         if (state.isBigRoad) {
           _reloadLuZiTu(); //路子图直接在本地的数据处理
@@ -207,12 +206,13 @@ class GameController extends GetxController {
         } else {
           _getLineCharts(); //折线图，通过网络拿。数据排序等 通过查数据库更好处理。(将来最好从本地处理，因为有一个问题，当切换图表的时候时候，有可能不会调用这个_getStatisticalAreasData方法，导致看不到最后一手画的点)
         }
+        _delayedTask(); //必须要提一个方法放出去，不然会会卡下面的代码
       },
     );
   }
 
   Future<void> _delayedTask() async {
-    Future.delayed(const Duration(milliseconds: 1500), () {
+    Future.delayed(const Duration(milliseconds: 300), () {
       state.totalValue[30] = state.randomValue;
       update();
     });
@@ -282,21 +282,32 @@ class GameController extends GetxController {
     state.isCanPress = false;
     state.js2 = state.js2 + 1;
     state.totalValue[28] = "${state.js1}/${state.js2}";
-    // if (next(1, 90485) > 44625 - MyState.OFFSET8431) {
-    //1到100（包含1，100）//<= 70 是 70%庄 30%闲
-    if (_next(1, 100) <= state.ratio) {
-      state.randomValue = state.totalValue[30] = '庄';
-    } else {
-      state.randomValue = state.totalValue[30] = '闲';
-    }
+    BXGet(
+      Api.randomBankerPlayer,
+      success: (isSuccess, code, message, results) {
+        var result = (results.first as Map)["result"].toString();
 
-    Get.dialog(
-      NewWidget(state.randomValue),
-      barrierDismissible: false,
-      barrierColor: Colors.black.withValues(alpha: 0.18),
+        if (result.isNotEmpty) {
+          state.randomValue = state.totalValue[30] = result;
+        } else {
+          // if (next(1, 90485) > 44625 - MyState.OFFSET8431) {
+          //1到100（包含1，100）//<= 70 是 70%庄 30%闲
+          if (_next(1, 100) <= state.ratio) {
+            state.randomValue = state.totalValue[30] = '庄';
+          } else {
+            state.randomValue = state.totalValue[30] = '闲';
+          }
+        }
+        Get.dialog(
+          NewWidget(state.randomValue),
+          barrierDismissible: false,
+          barrierColor: Colors.black.withValues(alpha: 0.18),
+        );
+        state.isCanPress = true;
+        update();
+      },
+      isShowLoading: false, // 使用自定义的Loading
     );
-    state.isCanPress = true;
-    update();
   }
 
   _next(int min, int max) => min + Random().nextInt(max - min + 1);
@@ -564,8 +575,8 @@ class GameController extends GetxController {
               ..sort();
             for (int i = 1; i <= list.length; i++) {
               state.table2ListX[i - 1].colmunShuyingzhiD = list[list.length - i].toString();
-              update(); //调用了list里面的对象一定要用refresh()要不然不会刷新
             }
+            update();
           }
         });
         break;

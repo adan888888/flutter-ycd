@@ -29,7 +29,8 @@ class GameView extends GetView<GameController> {
         onPointerDown: (PointerDownEvent event) => controller.onUserInteraction(),
         onPointerMove: (event) => controller.onUserInteraction(),
         child: Scaffold(
-          floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+          floatingActionButtonLocation: FloatingActionButtonLocation.endDocked,
+          floatingActionButtonAnimator: FloatingActionButtonAnimator.scaling,
           floatingActionButton: GestureDetector(
             // onLongPress: () => controller.lockScreen(),
             child: FloatingActionButton(
