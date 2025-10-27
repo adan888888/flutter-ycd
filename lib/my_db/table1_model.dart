@@ -7,8 +7,16 @@ class Table1Model {
   String? columnMean;
   String? columnRestartIndex;
   String? columnLiushuiIndex;
+  String? tempIndex; //存储局部平衡的位置
 
-  Table1Model({this.id, this.columnBenjin, this.columnYongJin, this.columnMean, this.columnRestartIndex, this.columnLiushuiIndex});
+  Table1Model(
+      {this.id,
+      this.columnBenjin,
+      this.columnYongJin,
+      this.columnMean,
+      this.columnRestartIndex,
+      this.columnLiushuiIndex,
+      this.tempIndex});
 
   Table1Model.fromJson(Map<String, dynamic> json) {
     id = bxGetInt(json['id']);
@@ -17,6 +25,7 @@ class Table1Model {
     columnMean = bxGetString(json['column_mean']);
     columnRestartIndex = bxGetString(json['column_restart_index']);
     columnLiushuiIndex = bxGetString(json['column_liushui_index']);
+    tempIndex = bxGetString(json['temp_index']);
   }
 
   Map<String, dynamic> toJson() {
@@ -27,6 +36,7 @@ class Table1Model {
     data['column_mean'] = columnMean;
     data['column_restart_index'] = columnRestartIndex;
     data['column_liushui_index'] = columnLiushuiIndex;
+    data['temp_index'] = tempIndex;
     return data;
   }
 }

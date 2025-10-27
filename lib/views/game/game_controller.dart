@@ -65,7 +65,7 @@ class GameController extends GetxController {
     //1。查询表一数据
     _queryMysqlTable1();
     //2。起始要拿到统计区数据
-    _getStatisticalAreasData(-1);
+    _getStatisticalAreasData(-10000);
     //3。启始先查66条数据
     BXGet<Table2Model>(Api.loadMore,
         params: {"last_id": -1, "uid": GetStore.getInstance().userModel.userId, "c": 66}, //"c"每页多少个数据
@@ -175,8 +175,9 @@ class GameController extends GetxController {
   }
 
   /// *
-  ///  tempIndex -1 重启，取消局部平衡
-  ///  tempIndex -2 确保不会破坏局部平衡-->每次下注后（recordbutton() ，改变数据库里面的值等）
+  ///  tempIndex -10000 app第一次进来
+  ///  tempIndex -1 取消局部平衡（重启...）
+  ///  tempIndex -2 确保不会破坏局部平衡-->每次下注后（recordbutton() ，改变数据库里面的值等 ...）
   ///  tempIndex >2 点击进行局部平衡
   ///
   void _getStatisticalAreasData(int? tempIndex) {
