@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:math';
 import 'package:flutter/foundation.dart'; // Added for debugPrint
+import 'package:ycd/utils/my_character.dart';
 
 //测试十三层缆
 void main() {
@@ -146,7 +147,7 @@ void main() {
   debugPrint('流水返利: ${runningWater * 0.0078}');
   debugPrint('最终盈利: ${totalProfit.toStringAsFixed(2)}');
 
-  debugPrint(removeChineseCharacters("可负20x8".split("x")[0]));
+  debugPrint(MyCharacter.removeChineseCharacters("可负20x8".split("x")[0]));
 
   // 移除未使用的变量 ssss
   final user = User("john", 1000)
@@ -164,9 +165,6 @@ void main() {
 
 int next(int min, int max) => min + Random().nextInt(max - min + 1);
 
-String removeChineseCharacters(String input) {
-  return input.replaceAll(RegExp('[\u4e00-\u9fa5]'), '');
-}
 
 class User {
   String? name;

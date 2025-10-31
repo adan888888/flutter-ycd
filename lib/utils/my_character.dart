@@ -111,4 +111,14 @@ class MyCharacter {
     // 将解压缩后的数据转换为字符串
     return jsonString;
   }
+
+  /// 移除字符串中的中文字符
+  ///
+  /// 示例：
+  /// ```dart
+  /// MyCharacter.removeChineseCharacters("可负20x8") // 返回 "20x8"
+  /// ```
+  static String removeChineseCharacters(String input) {
+    return input.replaceAll(RegExp('[\u4e00-\u9fa5]'), '');
+  }
 }

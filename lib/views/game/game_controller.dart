@@ -16,9 +16,11 @@ import 'package:ycd/my_db/db_helper.dart';
 import 'package:ycd/my_db/table1_model.dart';
 import 'package:ycd/my_db/table2_model.dart';
 import 'package:ycd/my_widget/single_picker.dart';
+import 'package:ycd/my_widget/custom_dialog.dart';
 import 'package:ycd/routes/app_routes.dart';
 import 'package:ycd/utils/bx_loading.dart';
 import 'package:ycd/utils/loading.dart';
+import 'package:ycd/utils/my_character.dart';
 import 'package:ycd/utils/network/api.dart';
 import 'package:ycd/utils/network/get_store.dart';
 import 'package:ycd/utils/network/http_mgr.dart';
@@ -229,8 +231,8 @@ class GameController extends GetxController {
     if (state.bettingMoney.isEmpty || !state.bettingMoney.isNum) return '';
     var x = double.parse(state.totalValue[18]); //总输赢
     var y = double.parse(state.bettingMoney); //输入框下注额
-    var z = double.parse(removeChineseCharacters(state.totalValue[14])); //净胜
-    var z1 = double.parse(removeChineseCharacters(state.totalValue[14])).abs(); //净胜绝对值
+    var z = double.parse(MyCharacter.removeChineseCharacters(state.totalValue[14])); //净胜
+    var z1 = double.parse(MyCharacter.removeChineseCharacters(state.totalValue[14])).abs(); //净胜绝对值
     if (z == 0) {
       return "回合结束";
     } else if (z > 0) /*赢>输的情况*/ {
@@ -250,8 +252,8 @@ class GameController extends GetxController {
     if (state.bettingMoney.isEmpty || !state.bettingMoney.isNum) return '';
     var x = double.parse(state.totalValue[17]); //总输赢
     var y = double.parse(state.bettingMoney); //输入框下注额
-    var z = double.parse(removeChineseCharacters(state.totalValue[13])); //净胜
-    var z1 = double.parse(removeChineseCharacters(state.totalValue[13])).abs(); //净胜绝对值
+    var z = double.parse(MyCharacter.removeChineseCharacters(state.totalValue[13])); //净胜
+    var z1 = double.parse(MyCharacter.removeChineseCharacters(state.totalValue[13])).abs(); //净胜绝对值
     if (z == 0) {
       return "回合结束";
     } else if (z > 0) /*赢>输的情况*/ {
@@ -300,7 +302,7 @@ class GameController extends GetxController {
           }
         }
         Get.dialog(
-          NewWidget(state.randomValue),
+          ZhuangXianDialog(state.randomValue),
           barrierDismissible: false,
           barrierColor: Colors.black.withValues(alpha: 0.18),
         );
@@ -929,39 +931,3 @@ class GameController extends GetxController {
   }
 }
 
-class NewWidget extends StatefulWidget {
-  final String title;
-
-  const NewWidget(
-    this.title, {
-    super.key,
-  });
-
-  @override
-  State<NewWidget> createState() => _NewWidgetState();
-}
-
-class _NewWidgetState extends State<NewWidget> {
-  Timer? timer;
-
-  @override
-  Widget build(BuildContext context) {
-    timer ??= Timer.periodic(const Duration(milliseconds: 500), (timer) => setState(() => Get.back()));
-    return Center(
-      child: Text(
-        widget.title,
-        style: const TextStyle(fontSize: 90),
-      ),
-    );
-  }
-
-  @override
-  void dispose() {
-    timer?.cancel();
-    super.dispose();
-  }
-}
-
-String removeChineseCharacters(String input) {
-  return input.replaceAll(RegExp('[\u4e00-\u9fa5]'), '');
-}
