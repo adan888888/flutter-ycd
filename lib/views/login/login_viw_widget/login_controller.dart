@@ -22,6 +22,14 @@ class LoginController extends GetxController {
   }
 
   Future<void> login() async {
+    /*
+    formKey.currentState!.validate()
+    验证：
+    用户名不能为空
+    密码不能为空
+    密码长度至少 2 位
+    只有以上三项都通过，validate() 才返回 true，登录流程才会继续。
+     */
     if (formKey.currentState!.validate()) {
       // 设置加载状态
       state.isLoading.value = true;
