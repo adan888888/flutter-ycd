@@ -19,6 +19,8 @@ import 'package:ycd/views/rsi_analysis/rsi_analysis_binding.dart';
 import "package:ycd/views/rsi_analysis/rsi_analysis_view.dart";
 import 'package:ycd/views/rsi_strategy_backtest/rsi_strategy_backtest_binding.dart';
 import 'package:ycd/views/rsi_strategy_backtest/rsi_strategy_backtest_view.dart';
+import 'package:ycd/views/aes_encrypt/aes_encrypt_binding.dart';
+import 'package:ycd/views/aes_encrypt/aes_encrypt_view.dart';
 
 /// 应用路由配置
 class AppRoutes {
@@ -38,6 +40,7 @@ class AppRoutes {
   static const String buyRecords = '/buy-records';
   static const String currencyConverter = '/currency-converter';
   static const String digitalPasswordBook = '/digital-password-book';
+  static const String aesEncrypt = '/aes-encrypt';
 
   // 游戏相关
   static const String baccaratSimulation = '/baccarat-simulation';
@@ -99,6 +102,11 @@ class AppPages {
       name: AppRoutes.digitalPasswordBook,
       page: () => const DigitalPasswordBookView(),
       binding: DigitalPasswordBookBinding(),
+    ),
+    GetPage(
+      name: AppRoutes.aesEncrypt,
+      page: () => const AesEncryptView(),
+      binding: AesEncryptBinding(),
     ),
 
     // 百家乐开奖模拟页面

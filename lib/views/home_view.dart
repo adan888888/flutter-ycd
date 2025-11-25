@@ -106,6 +106,18 @@ class HomeView extends StatelessWidget {
 
               const SizedBox(height: 4),
 
+              // AES加解密工具选项
+              _buildOptionCard(
+                context,
+                icon: Icons.vpn_key,
+                title: 'AES加解密工具',
+                subtitle: 'AES加密和解密工具',
+                color: Colors.deepOrange,
+                onTap: () => Get.toNamed(AppRoutes.aesEncrypt),
+              ),
+
+              const SizedBox(height: 4),
+
               // 数字密码本选项
               _buildOptionCard(
                 context,
