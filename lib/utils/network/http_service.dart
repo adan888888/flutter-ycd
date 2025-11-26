@@ -230,7 +230,7 @@ class HttpService {
           // 检查当前是否已经在登录页面
           if (Get.currentRoute != AppRoutes.login) {
             log('🔄 跳转到登录页面，当前路由: ${Get.currentRoute}');
-            Get.offAllNamed(AppRoutes.login);
+            Get.offAndToNamed(AppRoutes.login);
           } else {
             log('ℹ️ 当前已在登录页面，无需跳转');
           }
