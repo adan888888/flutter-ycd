@@ -236,7 +236,7 @@ class BuyRecordsView extends StatelessWidget {
         const SizedBox(height: 2),
         Row(
           children: [
-            _buildStatItem('成交均价', controller.formatPriceTwoDecimals(stats['averagePrice']), Colors.black),
+            _buildStatItem('成本价', controller.formatPriceTwoDecimals(stats['averagePrice']), Colors.black),
             _buildStatItem('累计金额', controller.formatPriceInteger(stats['totalCost']), Colors.black),
           ],
         ),
@@ -265,7 +265,7 @@ class BuyRecordsView extends StatelessWidget {
               profitColor,
             ),
             _buildStatItem(
-              '累计收益',
+              '浮动盈亏',
               controller.formatPriceFourDecimals(profit),
               profitColor,
             ),

@@ -15,8 +15,8 @@ import 'package:ycd/model/linechart_data_model.dart';
 import 'package:ycd/my_db/db_helper.dart';
 import 'package:ycd/my_db/table1_model.dart';
 import 'package:ycd/my_db/table2_model.dart';
-import 'package:ycd/my_widget/single_picker.dart';
 import 'package:ycd/my_widget/custom_dialog.dart';
+import 'package:ycd/my_widget/single_picker.dart';
 import 'package:ycd/routes/app_routes.dart';
 import 'package:ycd/utils/bx_loading.dart';
 import 'package:ycd/utils/loading.dart';
@@ -515,19 +515,29 @@ class GameController extends GetxController {
   }
 
   void reStart() {
-    BXPost<Table1Model>(
-      Api.restart,
-      params: {"index": state.table2ListX.first.id},
-      success: (isSuccess, code, message, value) {
-        if (isSuccess) {
-          // BXLoading.showToast("${value.last.columnRestartIndex}");
-          state.table1List = value;
-          state.table2ListX = state.table2ListX.map((element) => element..colmunShuyingzhiD = "").toList();
-          _getStatisticalAreasData(-1);
-          state.currentTempIndex = 0;
-        }
+    Get.defaultDialog(
+      barrierDismissible: false,
+      title: '警告',
+      content: const Text('是否重启局部数据'),
+      onCancel: () {},
+      onConfirm: () {
+        Loading.show();
+        BXPost<Table1Model>(
+          Api.restart,
+          params: {"index": state.table2ListX.first.id},
+          success: (isSuccess, code, message, value) {
+            if (isSuccess) {
+              // BXLoading.showToast("${value.last.columnRestartIndex}");
+              state.table1List = value;
+              state.table2ListX = state.table2ListX.map((element) => element..colmunShuyingzhiD = "").toList();
+              _getStatisticalAreasData(-1);
+              state.currentTempIndex = 0;
+            }
+          },
+          onModel: (m) => Table1Model.fromJson(m),
+        );
+        Get.back();
       },
-      onModel: (m) => Table1Model.fromJson(m),
     );
   }
 
@@ -689,7 +699,6 @@ class GameController extends GetxController {
         );
         break;
       case 7:
-        Loading.show();
         reStart();
         break;
       case 8: //修改期望值
@@ -930,4 +939,3 @@ class GameController extends GetxController {
     scrollToCurrentPosition();
   }
 }
-

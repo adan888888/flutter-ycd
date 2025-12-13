@@ -156,9 +156,23 @@ class GameView extends GetView<GameController> {
                           onTap: () {
                             controller.deleteLast();
                           },
-                          child: SizedBox(
-                              width: 65, child: Image.asset('assets/images/delete.png', width: 35, height: 35))),
+                          child: Icon(
+                            Icons.delete_forever,
+                            size: 35,
+                            color: Colors.black45,
+                          )),
                       Container(height: 25, width: 0.5, color: Colors.black),
+                      GestureDetector(
+                        onTap: controller.reStart,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                          child: Icon(
+                            Icons.reset_tv_rounded,
+                            size: 35,
+                            color: Colors.red,
+                          ),
+                        ),
+                      )
                     ],
                   ),
                 ),

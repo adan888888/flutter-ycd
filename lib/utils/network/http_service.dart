@@ -26,8 +26,7 @@ class HttpService {
   Future<void> get<T>(
     String api, {
     Map<String, dynamic>? params,
-    required Function(bool isSuccess, int code, String message, List<T> results)
-        success,
+    required Function(bool isSuccess, int code, String message, List<T> results) success,
     Function(String, BaseModel)? failed,
     Function(dynamic)? onModel,
     bool isShowLoading = true,
@@ -49,8 +48,7 @@ class HttpService {
   Future<void> post<T>(
     String api, {
     Map<String, dynamic>? params,
-    required Function(bool isSuccess, int code, String message, List<T> results)
-        success,
+    required Function(bool isSuccess, int code, String message, List<T> results) success,
     Function(String, BaseModel)? failed,
     Function(dynamic)? onModel,
     bool isShowLoading = true,
@@ -72,8 +70,7 @@ class HttpService {
   Future<void> put<T>(
     String api, {
     Map<String, dynamic>? params,
-    required Function(bool isSuccess, int code, String message, List<T> results)
-        success,
+    required Function(bool isSuccess, int code, String message, List<T> results) success,
     Function(String, BaseModel)? failed,
     Function(dynamic)? onModel,
     bool isShowLoading = true,
@@ -95,8 +92,7 @@ class HttpService {
   Future<void> delete<T>(
     String api, {
     Map<String, dynamic>? params,
-    required Function(bool isSuccess, int code, String message, List<T> results)
-        success,
+    required Function(bool isSuccess, int code, String message, List<T> results) success,
     Function(String, BaseModel)? failed,
     Function(dynamic)? onModel,
     bool isShowLoading = true,
@@ -118,8 +114,7 @@ class HttpService {
     String api, {
     required String method,
     Map<String, dynamic>? params,
-    required Function(bool isSuccess, int code, String message, List<T> results)
-        success,
+    required Function(bool isSuccess, int code, String message, List<T> results) success,
     Function(String, BaseModel)? failed,
     Function(dynamic)? onModel,
     bool isShowLoading = true,
@@ -281,8 +276,7 @@ class HttpService {
       case dio.DioExceptionType.connectionError:
         // 断网或网络不可达的情况
         if (error.message?.contains('Network is unreachable') == true ||
-            error.message?.contains('No address associated with hostname') ==
-                true) {
+            error.message?.contains('No address associated with hostname') == true) {
           return '网络不可达，请检查网络连接';
         }
         return '网络连接失败，请检查网络连接';
