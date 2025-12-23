@@ -575,19 +575,18 @@ class GameController extends GetxController {
     switch (i) {
       case 0: //排列数据
         Loading.show();
-        //改成接口
+        //改成接口，不用model接收值
         BXPost(Api.sortxiaoshu, success: (isSuccess, code, message, results) {
           if (isSuccess) {
             BXLoading.showToast(message);
-            var list = state.table2ListX
-                .map((element) => element.colmunShuyingzhiD.toString().isEmpty
-                    ? 0.0
-                    : double.parse(element.colmunShuyingzhiD.toString()))
-                .toList()
-              ..removeWhere((element) => element == 0.0)
-              ..sort();
-            for (int i = 1; i <= list.length; i++) {
-              state.table2ListX[i - 1].colmunShuyingzhiD = list[list.length - i].toString();
+            var list = (results.first as Map<String, dynamic>)["sorted_sequence"];
+            for (int i = 0; i < state.table2ListX.length; i++) {
+              int reverseIndex = list.length - i - 1;
+              if (reverseIndex < 0 || reverseIndex >= list.length) {
+                state.table2ListX[i].colmunShuyingzhiD = '';
+                continue; // ✅ 跳过当前循环，不执行下面的代码
+              }
+              state.table2ListX[i].colmunShuyingzhiD = list[reverseIndex];
             }
             update();
           }
