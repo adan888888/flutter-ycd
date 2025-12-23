@@ -211,32 +211,43 @@ class GameView extends GetView<GameController> {
                   bottom: true,
                   child: SizedBox(
                     height: 40,
-                    child: TextField(
-                      focusNode: controller.focusNode,
-                      autofocus: false,
-                      controller: controller.textEditingController,
-                      onChanged: (value) {},
-                      //表示基础类型是数字键盘，主要用于输入数字, decimal设置为 true 时，允许输入小数
-                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                      // ignorePointers: false,//是否可以用虚拟键盘
-                      //过滤（仅只能输入数字，不能小数点.）
-                      // inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                      //限制只能输入数字
-                      textInputAction: TextInputAction.done,
-                      // 通过输入格式化器限制只能输入数字和小数点
-                      inputFormatters: [
-                        // 允许 0-9 数字和小数点（.）
-                        FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),
+                    child: Row(
+                      children: [
+                        SizedBox(width: 3),
+                        GestureDetector(
+                          onTap: () => controller.sort(),
+                          child: Icon(CupertinoIcons.ant_fill),
+                        ),
+                        SizedBox(width: 5),
+                        Expanded(
+                          child: TextField(
+                            focusNode: controller.focusNode,
+                            autofocus: false,
+                            controller: controller.textEditingController,
+                            onChanged: (value) {},
+                            //表示基础类型是数字键盘，主要用于输入数字, decimal设置为 true 时，允许输入小数
+                            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                            // ignorePointers: false,//是否可以用虚拟键盘
+                            //过滤（仅只能输入数字，不能小数点.）
+                            // inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                            //限制只能输入数字
+                            textInputAction: TextInputAction.done,
+                            // 通过输入格式化器限制只能输入数字和小数点
+                            inputFormatters: [
+                              // 允许 0-9 数字和小数点（.）
+                              FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),
+                            ],
+                            decoration: const InputDecoration(
+                              contentPadding: EdgeInsets.only(bottom: 7),
+                              focusedBorder: UnderlineInputBorder(borderSide: BorderSide(width: 1, color: Colors.blue)),
+                              // border: OutlineInputBorder(borderSide: BorderSide(width: 5, color: Colors.red)),
+                              // focusedBorder: OutlineInputBorder(borderSide: BorderSide(width: 1, color: Colors.blue)),
+                              hintText: "请输入下注金额",
+                              hintStyle: TextStyle(fontSize: 12),
+                            ),
+                          ),
+                        ),
                       ],
-                      decoration: const InputDecoration(
-                        icon: Icon(CupertinoIcons.ant_fill),
-                        contentPadding: EdgeInsets.only(bottom: 7),
-                        focusedBorder: UnderlineInputBorder(borderSide: BorderSide(width: 1, color: Colors.blue)),
-                        // border: OutlineInputBorder(borderSide: BorderSide(width: 5, color: Colors.red)),
-                        // focusedBorder: OutlineInputBorder(borderSide: BorderSide(width: 1, color: Colors.blue)),
-                        hintText: "请输入下注金额",
-                        hintStyle: TextStyle(fontSize: 12),
-                      ),
                     ),
                   ),
                 )

@@ -576,21 +576,7 @@ class GameController extends GetxController {
       case 0: //排列数据
         Loading.show();
         //改成接口，不用model接收值
-        BXPost(Api.sortxiaoshu, success: (isSuccess, code, message, results) {
-          if (isSuccess) {
-            BXLoading.showToast(message);
-            var list = (results.first as Map<String, dynamic>)["sorted_sequence"];
-            for (int i = 0; i < state.table2ListX.length; i++) {
-              int reverseIndex = list.length - i - 1;
-              if (reverseIndex < 0 || reverseIndex >= list.length) {
-                state.table2ListX[i].colmunShuyingzhiD = '';
-                continue; // ✅ 跳过当前循环，不执行下面的代码
-              }
-              state.table2ListX[i].colmunShuyingzhiD = list[reverseIndex];
-            }
-            update();
-          }
-        });
+        sort();
         break;
       case 1: //清除数据（消数列数据全部清除）
         int count = 0;
@@ -732,6 +718,25 @@ class GameController extends GetxController {
         Get.offAndToNamed(AppRoutes.login);
         break;
     }
+  }
+
+  sort() {
+    //改成接口，不用model接收值
+    BXPost(Api.sortxiaoshu, success: (isSuccess, code, message, results) {
+      if (isSuccess) {
+        // BXLoading.showToast(message);
+        var list = (results.first as Map<String, dynamic>)["sorted_sequence"];
+        for (int i = 0; i < state.table2ListX.length; i++) {
+          int reverseIndex = list.length - i - 1;
+          if (reverseIndex < 0 || reverseIndex >= list.length) {
+            state.table2ListX[i].colmunShuyingzhiD = '';
+            continue; // ✅ 跳过当前循环，不执行下面的代码
+          }
+          state.table2ListX[i].colmunShuyingzhiD = list[reverseIndex];
+        }
+        update();
+      }
+    });
   }
 
   void dropAll() {
