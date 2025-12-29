@@ -866,6 +866,12 @@ class GameController extends GetxController {
         }
       });
 
+  /// 切换暗黑主题
+  void toggleDarkMode() {
+    state.isDarkMode = !state.isDarkMode;
+    update();
+  }
+
   Future<String?> getDeviceId() async {
     DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
     String? deviceId;

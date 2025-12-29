@@ -17,10 +17,35 @@ class GameState {
   var js2 = 0;
   int currentTempIndex = 0; //局部平衡的临时变量
   var lineColor = Colors.black87.withValues(alpha: 0.8);
-  var listViewColor = const Color(0xFFE9EEDB);
+  var listViewColor = const Color(0xFFE8F5E9); // 浅绿豆沙色
   var bgColor = const Color(0xFFE9EEDB);
-  var chartBgColor = Colors.black; //图表背景
+  var chartBgColor = const Color(0xFFE8F5E9); //图表背景（浅绿豆沙色）
   var textColor = Colors.black;
+
+  // 暗黑主题标志
+  var isDarkMode = false;
+
+  // 暗黑主题颜色
+  Color get darkLineColor => Colors.white.withValues(alpha: 0.3);
+
+  Color get darkListViewColor => const Color(0xFF1E1E1E);
+
+  Color get darkBgColor => const Color(0xFF2D2D2D);
+
+  Color get darkChartBgColor => const Color(0xFF121212);
+
+  Color get darkTextColor => Colors.white;
+
+  // 根据主题获取颜色
+  Color get currentLineColor => isDarkMode ? darkLineColor : lineColor;
+
+  Color get currentListViewColor => isDarkMode ? darkListViewColor : listViewColor;
+
+  Color get currentBgColor => isDarkMode ? darkBgColor : bgColor;
+
+  Color get currentChartBgColor => isDarkMode ? darkChartBgColor : chartBgColor;
+
+  Color get currentTextColor => isDarkMode ? darkTextColor : textColor;
   var totalValue /*统计区*/ = <String>[];
   var chartData /*图表数据*/ = <LineChartDataModel>[];
 
