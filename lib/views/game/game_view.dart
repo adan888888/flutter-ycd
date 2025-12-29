@@ -131,14 +131,14 @@ class GameView extends GetView<GameController> {
                                             fit: BoxFit.contain,
                                             child: Text(
                                                 style: TextStyle(
-                                                    height: 1.25 /*行高间距*/,
+                                                    height: 1.3 /*行高间距*/,
                                                     wordSpacing: 0 /*相当于padding*/,
-                                                    fontSize: 14,
-                                                    fontWeight: FontWeight.w300,
+                                                    fontSize: 12.5,
+                                                    fontWeight: FontWeight.bold,
                                                     color: ((i * 4 + index) == 26 || (i * 4 + index) == 27)
                                                         ? Colors.green
                                                         : ((i * 4 + index) == 24 || (i * 4 + index) == 22)
-                                                            ? Colors.red
+                                                            ? (controller.state.isDarkMode ? Colors.orange : Colors.red)
                                                             : (i * 4 + index) == 2 &&
                                                                     controller.state.currentTempIndex != 0
                                                                 ? Colors.amber
@@ -155,13 +155,13 @@ class GameView extends GetView<GameController> {
                     child: Row(
                       children: [
                         _divier2(controller.state.currentTextColor, 38),
-                        _buildButton(const Color(0xFF2D4F5A).withValues(alpha: 0.3), "P+", 1), // 深蓝绿色
+                        _buildButton(const Color(0xFF2D4F5A), "P+", 1), // 深蓝绿色
                         _divier2(controller.state.currentTextColor, 38),
-                        _buildButton(const Color(0xFF2D4F5A).withValues(alpha: 0.3), "B+", 2), // 深蓝绿色
+                        _buildButton(const Color(0xFF2D4F5A), "B+", 2), // 深蓝绿色
                         _divier2(controller.state.currentTextColor, 38),
-                        _buildButton(const Color(0xFF4F4A4A).withValues(alpha: 0.3), "P-", 3), // 深棕灰色
+                        _buildButton(const Color(0xFF4F4A4A), "P-", 3), // 深棕灰色
                         _divier2(controller.state.currentTextColor, 38),
-                        _buildButton(const Color(0xFF4F4A4A).withValues(alpha: 0.3), "B-", 4), // 深棕灰色
+                        _buildButton(const Color(0xFF4F4A4A), "B-", 4), // 深棕灰色
                         _divier2(controller.state.currentTextColor, 38),
                         GestureDetector(
                             onTap: () {
@@ -202,7 +202,7 @@ class GameView extends GetView<GameController> {
                                     onLoad: () async => controller.onLoadMore(), //不要onLoad就没有上拉加载更多
                                     child: ListView.builder(
                                       reverse: true,
-                                      padding: const EdgeInsets.only(left: 6, right: 2),
+                                      padding: const EdgeInsets.all(12),
                                       controller: controller.scrollController,
                                       itemCount: controller.state.table2ListX.length,
                                       itemBuilder: (BuildContext context, int index) => _buildItem(index),
@@ -285,10 +285,10 @@ class GameView extends GetView<GameController> {
           // 根据index的奇偶性设置不同的背景色
           final backgroundColor = actualIndex % 2 == 0
               ? (controller.state.isDarkMode
-                  ? const Color(0xFF2A2D3A) // 深蓝灰色
+                  ? const Color(0xFF243447) // 深蓝灰色（稍浅）
                   : const Color(0xFFF1F8F4)) // 浅绿豆沙色（稍深）
               : (controller.state.isDarkMode
-                  ? const Color(0xFF1E2128) // 更深的蓝灰色
+                  ? const Color(0xFF1E2A3A) // 深蓝色（与背景色一致）
                   : const Color(0xFFE8F5E9)); // 浅绿豆沙色（稍浅）
 
           return Container(
@@ -318,9 +318,11 @@ class GameView extends GetView<GameController> {
                     child: Text(
                       controller.state.table2ListX[index].colmunShuyingzhi.toString(),
                       style: TextStyle(
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.bold,
                         color: controller.state.table2ListX[index].colmunShuyingzhi.toString().startsWith('-')
                             ? Colors.green
-                            : Colors.redAccent,
+                            : (controller.state.isDarkMode ? Colors.orange : Colors.redAccent),
                       ),
                     ),
                   ),
@@ -332,9 +334,11 @@ class GameView extends GetView<GameController> {
                       Text(
                         "${controller.state.table2ListX[index].colmunShuyingzhiD}",
                         style: TextStyle(
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.bold,
                           color: controller.state.table2ListX[index].colmunShuyingzhiD.toString().startsWith('-')
                               ? Colors.green
-                              : Colors.redAccent,
+                              : (controller.state.isDarkMode ? Colors.orange : Colors.redAccent),
                         ),
                       ),
                       const SizedBox(width: 1),
@@ -351,7 +355,11 @@ class GameView extends GetView<GameController> {
                   alignment: Alignment.centerRight,
                   child: Text(
                     "${controller.state.table2ListX[index].columnXiazhujine}",
-                    style: TextStyle(color: controller.state.currentTextColor),
+                    style: TextStyle(
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.bold,
+                      color: controller.state.currentTextColor,
+                    ),
                   ),
                 ),
                 //胜负路
@@ -396,11 +404,11 @@ class GameView extends GetView<GameController> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     _divier(dividerColor, 15),
-                    const Text("1", style: TextStyle(color: Colors.red)),
+                    Text("1", style: TextStyle(color: controller.state.isDarkMode ? Colors.orange : Colors.red)),
                     const SizedBox(width: 8),
                     _divier(dividerColor, 15),
                     const SizedBox(width: 8),
-                    const Text("1", style: TextStyle(color: Colors.red)),
+                    Text("1", style: TextStyle(color: controller.state.isDarkMode ? Colors.orange : Colors.red)),
                     _divier(dividerColor, 15),
                   ],
                 ),
@@ -419,7 +427,7 @@ class GameView extends GetView<GameController> {
                     const SizedBox(width: 8),
                     _divier(dividerColor, 15),
                     const SizedBox(width: 8),
-                    const Text("1", style: TextStyle(color: Colors.red)),
+                    Text("1", style: TextStyle(color: controller.state.isDarkMode ? Colors.orange : Colors.red)),
                     _divier(dividerColor, 15),
                   ],
                 ),
@@ -432,7 +440,7 @@ class GameView extends GetView<GameController> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     _divier(dividerColor, 15),
-                    const Text("1", style: TextStyle(color: Colors.red)),
+                    Text("1", style: TextStyle(color: controller.state.isDarkMode ? Colors.orange : Colors.red)),
                     const SizedBox(width: 8),
                     _divier(dividerColor, 15),
                     const SizedBox(width: 8),
@@ -492,7 +500,7 @@ class GameView extends GetView<GameController> {
                                 scrollController: controller.roadMapScrollController,
                                 borderColor: controller.state.isDarkMode ? Colors.white24 : Colors.grey.shade300,
                                 backgroundColor:
-                                    controller.state.isDarkMode ? const Color(0xFF1E1E1E) : const Color(0xFFE8F5E9),
+                                    controller.state.isDarkMode ? const Color(0xFF1E2A3A) : const Color(0xFFE8F5E9),
                                 borderRadius: 0.0,
                                 showBorder: true,
                                 front: "W",
@@ -783,8 +791,10 @@ class GameView extends GetView<GameController> {
                 ? const CupertinoActivityIndicator()
                 : Text(
                     str,
-                    style: const TextStyle(
-                      color: Colors.white,
+                    style: TextStyle(
+                      color: (i == 1 || i == 2)
+                          ? (controller.state.isDarkMode ? Colors.orange : Colors.red) // P+ 和 B+ 使用橙色（暗黑）或红色（亮色）
+                          : (controller.state.isDarkMode ? Colors.green : Colors.green), // P- 和 B- 使用绿色（两种模式都是绿色）
                       fontWeight: FontWeight.bold,
                       height: 0,
                       fontSize: 16,

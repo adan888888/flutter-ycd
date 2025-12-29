@@ -25,16 +25,16 @@ class GameState {
   // 暗黑主题标志
   var isDarkMode = false;
 
-  // 暗黑主题颜色
-  Color get darkLineColor => Colors.white.withValues(alpha: 0.3);
+  // 暗黑主题颜色（深蓝色调风格）
+  Color get darkLineColor => Colors.white.withValues(alpha: 0.2);
 
-  Color get darkListViewColor => const Color(0xFF1E1E1E);
+  Color get darkListViewColor => const Color(0xFF1A2332); // 深蓝灰色
 
-  Color get darkBgColor => const Color(0xFF2D2D2D);
+  Color get darkBgColor => const Color(0xFF1E2A3A); // 深蓝色
 
-  Color get darkChartBgColor => const Color(0xFF121212);
+  Color get darkChartBgColor => const Color(0xFF15202B); // 深蓝黑色
 
-  Color get darkTextColor => Colors.white;
+  Color get darkTextColor => Colors.white; // 暗黑模式下使用纯白色文字
 
   // 根据主题获取颜色
   Color get currentLineColor => isDarkMode ? darkLineColor : lineColor;
