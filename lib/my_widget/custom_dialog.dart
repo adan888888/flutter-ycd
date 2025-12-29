@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:ycd/views/game/game_controller.dart';
 
 /// 庄闲对话框
 ///
@@ -23,10 +24,14 @@ class _ZhuangXianDialogState extends State<ZhuangXianDialog> {
   @override
   Widget build(BuildContext context) {
     timer ??= Timer.periodic(const Duration(milliseconds: 500), (timer) => setState(() => Get.back()));
+    final gameController = Get.find<GameController>();
     return Center(
       child: Text(
         widget.title,
-        style: const TextStyle(fontSize: 90),
+        style: TextStyle(
+          fontSize: 90,
+          color: gameController.state.isDarkMode ? Colors.white : Colors.black,
+        ),
       ),
     );
   }

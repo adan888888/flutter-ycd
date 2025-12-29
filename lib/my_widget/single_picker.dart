@@ -24,7 +24,7 @@ class _SinglePickerState extends State<SinglePicker> {
   Widget build(BuildContext context) {
     return Container(
       height: 300,
-      color: Colors.white,
+      color: controller.state.isDarkMode ? const Color(0xFF1E2A3A) : Colors.white,
       child: Column(
         children: [
           Row(
@@ -36,9 +36,12 @@ class _SinglePickerState extends State<SinglePicker> {
                   controller.functionConfirm(selectIndex);
                 },
                 style: ButtonStyle(backgroundColor: WidgetStateProperty.all(Colors.transparent)),
-                child: const Text(
+                child: Text(
                   "确定",
-                  style: TextStyle(color: Colors.redAccent, fontSize: 20),
+                  style: TextStyle(
+                    color: controller.state.isDarkMode ? Colors.orange : Colors.redAccent,
+                    fontSize: 20,
+                  ),
                 ),
               ),
             ],
@@ -56,7 +59,12 @@ class _SinglePickerState extends State<SinglePicker> {
                           controller.state.functionTypes.length,
                           (index) => Align(
                             alignment: Alignment.center,
-                            child: Text(controller.state.functionTypes[index].toString()),
+                            child: Text(
+                              controller.state.functionTypes[index].toString(),
+                              style: TextStyle(
+                                color: controller.state.isDarkMode ? Colors.white : Colors.black,
+                              ),
+                            ),
                           ),
                         )),
                   ))

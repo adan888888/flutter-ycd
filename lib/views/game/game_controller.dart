@@ -476,8 +476,14 @@ class GameController extends GetxController {
     if (state.table2ListX.isNotEmpty) {
       Get.defaultDialog(
         barrierDismissible: false,
+        backgroundColor: state.isDarkMode ? const Color(0xFF1E2A3A) : Colors.white,
         title: '警告',
-        content: const Text('确定删除最后一行数据？'),
+        content: Text(
+          '确定删除最后一行数据？',
+          style: TextStyle(color: state.isDarkMode ? Colors.white : Colors.black),
+        ),
+        titleStyle: TextStyle(color: state.isDarkMode ? Colors.white : Colors.black),
+        contentPadding: const EdgeInsets.all(20),
         onCancel: () {},
         onConfirm: () {
           BXDelete<Table2Model>(Api.deletelast,
@@ -517,8 +523,14 @@ class GameController extends GetxController {
   void reStart() {
     Get.defaultDialog(
       barrierDismissible: false,
+      backgroundColor: state.isDarkMode ? const Color(0xFF1E2A3A) : Colors.white,
       title: '警告',
-      content: const Text('是否重启局部数据'),
+      content: Text(
+        '是否重启局部数据',
+        style: TextStyle(color: state.isDarkMode ? Colors.white : Colors.black),
+      ),
+      titleStyle: TextStyle(color: state.isDarkMode ? Colors.white : Colors.black),
+      contentPadding: const EdgeInsets.all(20),
       onCancel: () {},
       onConfirm: () {
         Loading.show();
@@ -616,8 +628,14 @@ class GameController extends GetxController {
       case 4: //删除本页
         Get.defaultDialog(
           barrierDismissible: false,
+          backgroundColor: state.isDarkMode ? const Color(0xFF1E2A3A) : Colors.white,
           title: '警告',
-          content: const Text('是否删除全部数据'),
+          content: Text(
+            '是否删除全部数据',
+            style: TextStyle(color: state.isDarkMode ? Colors.white : Colors.black),
+          ),
+          titleStyle: TextStyle(color: state.isDarkMode ? Colors.white : Colors.black),
+          contentPadding: const EdgeInsets.all(20),
           onCancel: () {},
           onConfirm: () {
             Loading.show();

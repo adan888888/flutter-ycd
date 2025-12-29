@@ -62,10 +62,12 @@ class BaccaratBigRoadWidget extends StatelessWidget {
                       width: cellWidth,
                       height: cellHeight,
                       decoration: BoxDecoration(
-                        border: Border.all(
-                          color: borderColor.withValues(alpha: 0.3),
-                          width: 0.5,
-                        ),
+                        border: showBorder
+                            ? Border.all(
+                                color: borderColor.withValues(alpha: 0.3),
+                                width: 0.5,
+                              )
+                            : null,
                       ),
                       child: Center(
                         child: cell.isEmpty ? null : _buildBigRoadItem(cell, front, back),

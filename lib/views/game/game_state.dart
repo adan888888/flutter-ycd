@@ -26,7 +26,7 @@ class GameState {
   var isDarkMode = false;
 
   // 暗黑主题颜色（深蓝色调风格）
-  Color get darkLineColor => Colors.white.withValues(alpha: 0.2);
+  Color get darkLineColor => Colors.white.withValues(alpha: 0.6);
 
   Color get darkListViewColor => const Color(0xFF1A2332); // 深蓝灰色
 

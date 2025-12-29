@@ -103,7 +103,7 @@ class GameView extends GetView<GameController> {
                         //水平线
                         horizontalInside: BorderSide(color: controller.state.currentLineColor, width: 0.1),
                         //垂直线
-                        verticalInside: BorderSide(color: controller.state.currentLineColor, width: 0.5),
+                        verticalInside: BorderSide(color: controller.state.currentLineColor, width: 1),
                       ),
                       //单元格的宽， map哪列 ：宽度
                       columnWidths: const {
@@ -502,7 +502,7 @@ class GameView extends GetView<GameController> {
                                 backgroundColor:
                                     controller.state.isDarkMode ? const Color(0xFF1E2A3A) : const Color(0xFFE8F5E9),
                                 borderRadius: 0.0,
-                                showBorder: true,
+                                showBorder: false,
                                 front: "W",
                                 back: "L",
                               ),
