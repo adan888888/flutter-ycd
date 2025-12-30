@@ -91,6 +91,7 @@ class GameView extends GetView<GameController> {
                 children: <Widget>[
                   //图表区
                   _buildLineChats(),
+                  SizedBox(height: 5),
                   //表格区统计区
                   GetBuilder<GameController>(
                     builder: (controller) => Table(
@@ -134,7 +135,7 @@ class GameView extends GetView<GameController> {
                                                     height: 1.3 /*行高间距*/,
                                                     wordSpacing: 0 /*相当于padding*/,
                                                     fontSize: 12.5,
-                                                    fontWeight: FontWeight.bold,
+                                                    fontWeight: FontWeight.w600,
                                                     color: ((i * 4 + index) == 26 || (i * 4 + index) == 27)
                                                         ? Colors.green
                                                         : ((i * 4 + index) == 24 || (i * 4 + index) == 22)
@@ -319,7 +320,7 @@ class GameView extends GetView<GameController> {
                       controller.state.table2ListX[index].colmunShuyingzhi.toString(),
                       style: TextStyle(
                         fontSize: 12.5,
-                        fontWeight: FontWeight.bold,
+                        fontWeight: FontWeight.w600,
                         color: controller.state.table2ListX[index].colmunShuyingzhi.toString().startsWith('-')
                             ? Colors.green
                             : (controller.state.isDarkMode ? Colors.orange : Colors.redAccent),
@@ -335,7 +336,7 @@ class GameView extends GetView<GameController> {
                         "${controller.state.table2ListX[index].colmunShuyingzhiD}",
                         style: TextStyle(
                           fontSize: 12.5,
-                          fontWeight: FontWeight.bold,
+                          fontWeight: FontWeight.w600,
                           color: controller.state.table2ListX[index].colmunShuyingzhiD.toString().startsWith('-')
                               ? Colors.green
                               : (controller.state.isDarkMode ? Colors.orange : Colors.redAccent),
@@ -357,7 +358,7 @@ class GameView extends GetView<GameController> {
                     "${controller.state.table2ListX[index].columnXiazhujine}",
                     style: TextStyle(
                       fontSize: 12.5,
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w600,
                       color: controller.state.currentTextColor,
                     ),
                   ),
@@ -526,7 +527,7 @@ class GameView extends GetView<GameController> {
                 : const Text('暂无数据📊'))
             : (controller.state.chartData.isNotEmpty
                 ? SizedBox(
-                    height: 100,
+                    height: 120,
                     child: GestureDetector(
                       onTap: () => controller.changeChart(),
                       child: Container(

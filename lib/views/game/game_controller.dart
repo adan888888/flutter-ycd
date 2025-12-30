@@ -178,7 +178,7 @@ class GameController extends GetxController {
 
   /// *
   ///  tempIndex -10000 app第一次进来
-  ///  tempIndex -1 取消局部平衡（重启...）
+  ///  tempIndex -1 取消局部平衡/重启...
   ///  tempIndex -2 确保不会破坏局部平衡-->每次下注后（recordbutton() ，改变数据库里面的值等 ...）
   ///  tempIndex >2 点击进行局部平衡
   ///
@@ -912,8 +912,13 @@ class GameController extends GetxController {
     return deviceId;
   }
 
+  //(取消)局部平衡
   juBuPingHeng(int index, {v}) {
+    //-1 取消局部平衡
     if (index == -1) {
+      if (state.currentTempIndex == 0) {
+        return;
+      }
       state.currentTempIndex = 0;
     } else {
       state.currentTempIndex = index;
