@@ -25,6 +25,9 @@ class GameState {
   // 暗黑主题标志
   var isDarkMode = false;
 
+  // 图表显示标志
+  var isChartVisible = true;
+
   // 暗黑主题颜色（深蓝色调风格）
   var darkLineColor = Colors.white.withValues(alpha: 0.6);
   var darkListViewColor = const Color(0xFF1A2332); // 深蓝灰色

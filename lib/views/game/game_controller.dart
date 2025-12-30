@@ -890,6 +890,12 @@ class GameController extends GetxController {
     update();
   }
 
+  /// 切换图表显示/隐藏
+  void toggleChartVisibility() {
+    state.isChartVisible = !state.isChartVisible;
+    update();
+  }
+
   Future<String?> getDeviceId() async {
     DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
     String? deviceId;

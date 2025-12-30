@@ -86,191 +86,265 @@ class GameView extends GetView<GameController> {
               ),
             ),
             body: SafeArea(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: <Widget>[
-                  //图表区
-                  _buildLineChats(),
-                  SizedBox(height: 5),
-                  //表格区统计区
-                  GetBuilder<GameController>(
-                    builder: (controller) => Table(
-                      border: TableBorder(
-                        //在右上下的边框线
-                        // top: BorderSide(color: Colors.red),
-                        // left: BorderSide(color: Colors.red),
-                        // right: BorderSide(color: Colors.red),
-                        // bottom: BorderSide(color: Colors.red),
-                        //水平线
-                        horizontalInside: BorderSide(color: controller.state.currentLineColor, width: 0.1),
-                        //垂直线
-                        verticalInside: BorderSide(color: controller.state.currentLineColor, width: 1),
-                      ),
-                      //单元格的宽， map哪列 ：宽度
-                      columnWidths: const {
-                        1: FlexColumnWidth(1.3),
-                        // 0: IntrinsicColumnWidth(), //包裹内容
-                        0: FlexColumnWidth(1),
-                        3: FlexColumnWidth(1),
-                        2: FlexColumnWidth(1.3),
-                      },
-                      //垂直的位置
-                      defaultVerticalAlignment: TableCellVerticalAlignment.middle,
-                      children: List.generate(
-                          8,
-                          (i) => TableRow(
-                              decoration: BoxDecoration(color: controller.state.currentBgColor),
-                              children: List.generate(
-                                  4,
-                                  (index) => GestureDetector(
-                                        onTap: () {
-                                          if (index == 2)
-                                            controller.juBuPingHeng(-1, v: controller.state.totalValue[30]);
-                                        },
-                                        child: Center(
-                                          child: FittedBox(
-                                            fit: BoxFit.contain,
-                                            child: Text(
-                                                style: TextStyle(
-                                                    height: 1.3 /*行高间距*/,
-                                                    wordSpacing: 0 /*相当于padding*/,
-                                                    fontSize: 12.5,
-                                                    fontWeight: FontWeight.w600,
-                                                    color: ((i * 4 + index) == 26 || (i * 4 + index) == 27)
-                                                        ? Colors.green
-                                                        : ((i * 4 + index) == 24 || (i * 4 + index) == 22)
-                                                            ? (controller.state.isDarkMode ? Colors.orange : Colors.red)
-                                                            : (i * 4 + index) == 2 &&
-                                                                    controller.state.currentTempIndex != 0
-                                                                ? Colors.amber
-                                                                : controller.state.currentTextColor),
-                                                controller.state.totalValue[i * 4 + index]),
+              child: GetBuilder<GameController>(
+                builder: (controller) => LayoutBuilder(
+                  builder: (context, constraints) {
+                    // 获取图表区域的高度（如果显示）
+                    double? chartHeight;
+                    if (controller.state.isChartVisible) {
+                      // 折线图固定高度120，大路图需要动态计算
+                      chartHeight = controller.state.isBigRoad ? null : 120.0;
+                    }
+
+                    return Stack(
+                      children: [
+                        Column(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: <Widget>[
+                            //图表区
+                            controller.state.isChartVisible ? _buildLineChats() : const SizedBox.shrink(),
+                            SizedBox(height: 5),
+                            //表格区统计区
+                            GetBuilder<GameController>(
+                              builder: (controller) => Table(
+                                border: TableBorder(
+                                  //在右上下的边框线
+                                  // top: BorderSide(color: Colors.red),
+                                  // left: BorderSide(color: Colors.red),
+                                  // right: BorderSide(color: Colors.red),
+                                  // bottom: BorderSide(color: Colors.red),
+                                  //水平线
+                                  horizontalInside: BorderSide(color: controller.state.currentLineColor, width: 0.1),
+                                  //垂直线
+                                  verticalInside: BorderSide(color: controller.state.currentLineColor, width: 1),
+                                ),
+                                //单元格的宽， map哪列 ：宽度
+                                columnWidths: const {
+                                  1: FlexColumnWidth(1.3),
+                                  // 0: IntrinsicColumnWidth(), //包裹内容
+                                  0: FlexColumnWidth(1),
+                                  3: FlexColumnWidth(1),
+                                  2: FlexColumnWidth(1.3),
+                                },
+                                //垂直的位置
+                                defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+                                children: List.generate(
+                                    8,
+                                    (i) => TableRow(
+                                        decoration: BoxDecoration(color: controller.state.currentBgColor),
+                                        children: List.generate(
+                                            4,
+                                            (index) => GestureDetector(
+                                                  onTap: () {
+                                                    if (index == 2)
+                                                      controller.juBuPingHeng(-1, v: controller.state.totalValue[30]);
+                                                  },
+                                                  child: Center(
+                                                    child: FittedBox(
+                                                      fit: BoxFit.contain,
+                                                      child: Text(
+                                                          style: TextStyle(
+                                                              height: 1.3 /*行高间距*/,
+                                                              wordSpacing: 0 /*相当于padding*/,
+                                                              fontSize: 12.5,
+                                                              fontWeight: FontWeight.w500,
+                                                              color: ((i * 4 + index) == 26 || (i * 4 + index) == 27)
+                                                                  ? Colors.green
+                                                                  : ((i * 4 + index) == 24 || (i * 4 + index) == 22)
+                                                                      ? (controller.state.isDarkMode
+                                                                          ? Colors.orange
+                                                                          : Colors.red)
+                                                                      : (i * 4 + index) == 2 &&
+                                                                              controller.state.currentTempIndex != 0
+                                                                          ? Colors.amber
+                                                                          : controller.state.currentTextColor),
+                                                          controller.state.totalValue[i * 4 + index]),
+                                                    ),
+                                                  ),
+                                                )).toList())).toList(),
+                              ),
+                            ),
+                            //按钮功能区
+                            SizedBox(
+                              height: 35,
+                              child: Row(
+                                children: [
+                                  _divier2(controller.state.currentTextColor, 38),
+                                  _buildButton(const Color(0xFF2D4F5A), "P+", 1), // 深蓝绿色
+                                  _divier2(controller.state.currentTextColor, 38),
+                                  _buildButton(const Color(0xFF2D4F5A), "B+", 2), // 深蓝绿色
+                                  _divier2(controller.state.currentTextColor, 38),
+                                  _buildButton(const Color(0xFF4F4A4A), "P-", 3), // 深棕灰色
+                                  _divier2(controller.state.currentTextColor, 38),
+                                  _buildButton(const Color(0xFF4F4A4A), "B-", 4), // 深棕灰色
+                                  _divier2(controller.state.currentTextColor, 38),
+                                  GestureDetector(
+                                      onTap: () {
+                                        controller.deleteLast();
+                                      },
+                                      child: Icon(
+                                        Icons.delete_forever,
+                                        size: 35,
+                                        color: controller.state.isDarkMode ? Colors.white70 : Colors.black45,
+                                      )),
+                                  Container(height: 25, width: 0.5, color: controller.state.currentTextColor),
+                                  GestureDetector(
+                                    onTap: controller.reStart,
+                                    child: Padding(
+                                      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                                      child: Icon(
+                                        Icons.reset_tv_rounded,
+                                        size: 35,
+                                        color: Colors.red,
+                                      ),
+                                    ),
+                                  )
+                                ],
+                              ),
+                            ),
+                            //列表
+                            Expanded(
+                              child: GetBuilder<GameController>(
+                                  builder: (controller) => AbsorbPointer /*NotificationListener 也可以实现（监听滑动的回调）*/ (
+                                        absorbing: controller.state.isRefreshing,
+                                        child: GestureDetector(
+                                          // onLongPress: () => controller.lockScreen(),
+                                          child: ColoredBox(
+                                            color: controller.state.currentListViewColor,
+                                            child: EasyRefresh(
+                                              controller: controller.refreshcontroller,
+                                              // onRefresh: () async => controller.onRefresh(),
+                                              onLoad: () async => controller.onLoadMore(), //不要onLoad就没有上拉加载更多
+                                              child: ListView.builder(
+                                                reverse: true,
+                                                padding: const EdgeInsets.all(12),
+                                                controller: controller.scrollController,
+                                                itemCount: controller.state.table2ListX.length,
+                                                itemBuilder: (BuildContext context, int index) => _buildItem(index),
+                                              ),
+                                            ),
                                           ),
                                         ),
-                                      )).toList())).toList(),
-                    ),
-                  ),
-                  //按钮功能区
-                  SizedBox(
-                    height: 35,
-                    child: Row(
-                      children: [
-                        _divier2(controller.state.currentTextColor, 38),
-                        _buildButton(const Color(0xFF2D4F5A), "P+", 1), // 深蓝绿色
-                        _divier2(controller.state.currentTextColor, 38),
-                        _buildButton(const Color(0xFF2D4F5A), "B+", 2), // 深蓝绿色
-                        _divier2(controller.state.currentTextColor, 38),
-                        _buildButton(const Color(0xFF4F4A4A), "P-", 3), // 深棕灰色
-                        _divier2(controller.state.currentTextColor, 38),
-                        _buildButton(const Color(0xFF4F4A4A), "B-", 4), // 深棕灰色
-                        _divier2(controller.state.currentTextColor, 38),
-                        GestureDetector(
-                            onTap: () {
-                              controller.deleteLast();
-                            },
-                            child: Icon(
-                              Icons.delete_forever,
-                              size: 35,
-                              color: controller.state.isDarkMode ? Colors.white70 : Colors.black45,
-                            )),
-                        Container(height: 25, width: 0.5, color: controller.state.currentTextColor),
-                        GestureDetector(
-                          onTap: controller.reStart,
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                            child: Icon(
-                              Icons.reset_tv_rounded,
-                              size: 35,
-                              color: Colors.red,
+                                      )),
                             ),
-                          ),
-                        )
-                      ],
-                    ),
-                  ),
-                  //列表
-                  Expanded(
-                    child: GetBuilder<GameController>(
-                        builder: (controller) => AbsorbPointer /*NotificationListener 也可以实现（监听滑动的回调）*/ (
-                              absorbing: controller.state.isRefreshing,
-                              child: GestureDetector(
-                                // onLongPress: () => controller.lockScreen(),
-                                child: ColoredBox(
-                                  color: controller.state.currentListViewColor,
-                                  child: EasyRefresh(
-                                    controller: controller.refreshcontroller,
-                                    // onRefresh: () async => controller.onRefresh(),
-                                    onLoad: () async => controller.onLoadMore(), //不要onLoad就没有上拉加载更多
-                                    child: ListView.builder(
-                                      reverse: true,
-                                      padding: const EdgeInsets.all(12),
-                                      controller: controller.scrollController,
-                                      itemCount: controller.state.table2ListX.length,
-                                      itemBuilder: (BuildContext context, int index) => _buildItem(index),
+                            //输入金额
+                            SafeArea(
+                              bottom: true,
+                              child: SizedBox(
+                                height: 40,
+                                child: Row(
+                                  children: [
+                                    SizedBox(width: 3),
+                                    GestureDetector(
+                                      onTap: () => controller.sort(),
+                                      child: Icon(
+                                        CupertinoIcons.ant_fill,
+                                        color: controller.state.currentTextColor,
+                                      ),
                                     ),
+                                    SizedBox(width: 5),
+                                    Expanded(
+                                      child: TextField(
+                                        focusNode: controller.focusNode,
+                                        autofocus: false,
+                                        controller: controller.textEditingController,
+                                        onChanged: (value) {},
+                                        //表示基础类型是数字键盘，主要用于输入数字, decimal设置为 true 时，允许输入小数
+                                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                                        // ignorePointers: false,//是否可以用虚拟键盘
+                                        //过滤（仅只能输入数字，不能小数点.）
+                                        // inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                                        //限制只能输入数字
+                                        textInputAction: TextInputAction.done,
+                                        // 通过输入格式化器限制只能输入数字和小数点
+                                        inputFormatters: [
+                                          // 允许 0-9 数字和小数点（.）
+                                          FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),
+                                        ],
+                                        style: TextStyle(color: controller.state.currentTextColor),
+                                        decoration: InputDecoration(
+                                          contentPadding: const EdgeInsets.only(bottom: 7),
+                                          focusedBorder: UnderlineInputBorder(
+                                              borderSide: BorderSide(width: 1, color: Colors.blue)),
+                                          enabledBorder: UnderlineInputBorder(
+                                            borderSide: BorderSide(
+                                              width: 1,
+                                              color: controller.state.isDarkMode ? Colors.white24 : Colors.grey,
+                                            ),
+                                          ),
+                                          hintText: "请输入下注金额",
+                                          hintStyle: TextStyle(
+                                            fontSize: 12,
+                                            color: controller.state.isDarkMode ? Colors.white54 : Colors.grey,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            )
+                          ],
+                        ),
+                        // 悬浮按钮：切换图表显示/隐藏（叠加在图表和统计区之间）
+                        if (controller.state.isChartVisible)
+                          Positioned(
+                            top: chartHeight != null
+                                ? chartHeight - 20 // 折线图：图表高度120，按钮高度40，居中在图表底部
+                                : 80 - 20, // 大路图：估算高度80（标题行约30px + 大路图约50px），按钮居中在图表底部
+                            left: 0,
+                            right: 0,
+                            child: Center(
+                              child: GestureDetector(
+                                onTap: () => controller.toggleChartVisibility(),
+                                child: Container(
+                                  width: 40,
+                                  height: 40,
+                                  decoration: BoxDecoration(
+                                    color: controller.state.isDarkMode
+                                        ? Colors.white.withValues(alpha: 0.2)
+                                        : Colors.black.withValues(alpha: 0.2),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: Icon(
+                                    Icons.keyboard_arrow_up,
+                                    color: controller.state.isDarkMode ? Colors.white : Colors.black,
+                                    size: 24,
                                   ),
                                 ),
                               ),
-                            )),
-                  ),
-                  //输入金额
-                  SafeArea(
-                    bottom: true,
-                    child: SizedBox(
-                      height: 40,
-                      child: Row(
-                        children: [
-                          SizedBox(width: 3),
-                          GestureDetector(
-                            onTap: () => controller.sort(),
-                            child: Icon(
-                              CupertinoIcons.ant_fill,
-                              color: controller.state.currentTextColor,
                             ),
-                          ),
-                          SizedBox(width: 5),
-                          Expanded(
-                            child: TextField(
-                              focusNode: controller.focusNode,
-                              autofocus: false,
-                              controller: controller.textEditingController,
-                              onChanged: (value) {},
-                              //表示基础类型是数字键盘，主要用于输入数字, decimal设置为 true 时，允许输入小数
-                              keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                              // ignorePointers: false,//是否可以用虚拟键盘
-                              //过滤（仅只能输入数字，不能小数点.）
-                              // inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                              //限制只能输入数字
-                              textInputAction: TextInputAction.done,
-                              // 通过输入格式化器限制只能输入数字和小数点
-                              inputFormatters: [
-                                // 允许 0-9 数字和小数点（.）
-                                FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),
-                              ],
-                              style: TextStyle(color: controller.state.currentTextColor),
-                              decoration: InputDecoration(
-                                contentPadding: const EdgeInsets.only(bottom: 7),
-                                focusedBorder:
-                                    UnderlineInputBorder(borderSide: BorderSide(width: 1, color: Colors.blue)),
-                                enabledBorder: UnderlineInputBorder(
-                                  borderSide: BorderSide(
-                                    width: 1,
-                                    color: controller.state.isDarkMode ? Colors.white24 : Colors.grey,
+                          )
+                        else
+                          Positioned(
+                            top: 0,
+                            left: 0,
+                            right: 0,
+                            child: Center(
+                              child: GestureDetector(
+                                onTap: () => controller.toggleChartVisibility(),
+                                child: Container(
+                                  width: 40,
+                                  height: 40,
+                                  decoration: BoxDecoration(
+                                    color: controller.state.isDarkMode
+                                        ? Colors.white.withValues(alpha: 0.2)
+                                        : Colors.black.withValues(alpha: 0.2),
+                                    shape: BoxShape.circle,
                                   ),
-                                ),
-                                hintText: "请输入下注金额",
-                                hintStyle: TextStyle(
-                                  fontSize: 12,
-                                  color: controller.state.isDarkMode ? Colors.white54 : Colors.grey,
+                                  child: Icon(
+                                    Icons.keyboard_arrow_down,
+                                    color: controller.state.isDarkMode ? Colors.white : Colors.black,
+                                    size: 24,
+                                  ),
                                 ),
                               ),
                             ),
                           ),
-                        ],
-                      ),
-                    ),
-                  )
-                ],
+                      ],
+                    );
+                  },
+                ),
               ),
             ),
           ),
@@ -320,7 +394,7 @@ class GameView extends GetView<GameController> {
                       controller.state.table2ListX[index].colmunShuyingzhi.toString(),
                       style: TextStyle(
                         fontSize: 12.5,
-                        fontWeight: FontWeight.w600,
+                        fontWeight: FontWeight.w500,
                         color: controller.state.table2ListX[index].colmunShuyingzhi.toString().startsWith('-')
                             ? Colors.green
                             : (controller.state.isDarkMode ? Colors.orange : Colors.redAccent),
@@ -330,13 +404,13 @@ class GameView extends GetView<GameController> {
                 ),
                 //消数
                 SizedBox(
-                    width: 90,
+                    width: 89,
                     child: Row(mainAxisAlignment: MainAxisAlignment.end, children: [
                       Text(
                         "${controller.state.table2ListX[index].colmunShuyingzhiD}",
                         style: TextStyle(
                           fontSize: 12.5,
-                          fontWeight: FontWeight.w600,
+                          fontWeight: FontWeight.w500,
                           color: controller.state.table2ListX[index].colmunShuyingzhiD.toString().startsWith('-')
                               ? Colors.green
                               : (controller.state.isDarkMode ? Colors.orange : Colors.redAccent),
@@ -352,13 +426,13 @@ class GameView extends GetView<GameController> {
                     ])),
                 //下注值
                 Container(
-                  width: 55,
+                  width: 48,
                   alignment: Alignment.centerRight,
                   child: Text(
                     "${controller.state.table2ListX[index].columnXiazhujine}",
                     style: TextStyle(
                       fontSize: 12.5,
-                      fontWeight: FontWeight.w600,
+                      fontWeight: FontWeight.w500,
                       color: controller.state.currentTextColor,
                     ),
                   ),
@@ -376,41 +450,46 @@ class GameView extends GetView<GameController> {
           final isZhengDa = controller.state.table2ListX[index].colmunShengfulu == '正打';
           final isLose = controller.state.table2ListX[index].colmunRemark!.startsWith('-');
           final dividerColor = controller.state.isDarkMode ? Colors.white24 : Colors.grey.withValues(alpha: 0.5);
+          const width = 35.0;
 
           if (isZhengDa) {
             if (isLose) {
               return Container(
                 color: Colors.transparent,
-                width: 50,
+                width: width,
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                      child: Text("1", style: TextStyle(color: Colors.green)),
+                    ),
                     _divier(dividerColor, 15),
-                    const SizedBox(width: 2),
-                    const Text("1", style: TextStyle(color: Colors.green)),
-                    const SizedBox(width: 8),
-                    _divier(dividerColor, 15),
-                    const SizedBox(width: 8),
-                    const Text("1", style: TextStyle(color: Colors.green)),
-                    const SizedBox(width: 2),
-                    _divier(dividerColor, 15),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                      child: Text("1", style: TextStyle(color: Colors.green)),
+                    ),
                   ],
                 ),
               );
             } else {
               return Container(
                 color: Colors.transparent,
-                width: 50,
+                width: width,
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                      child:
+                          Text("1", style: TextStyle(color: controller.state.isDarkMode ? Colors.orange : Colors.red)),
+                    ),
                     _divier(dividerColor, 15),
-                    Text("1", style: TextStyle(color: controller.state.isDarkMode ? Colors.orange : Colors.red)),
-                    const SizedBox(width: 8),
-                    _divier(dividerColor, 15),
-                    const SizedBox(width: 8),
-                    Text("1", style: TextStyle(color: controller.state.isDarkMode ? Colors.orange : Colors.red)),
-                    _divier(dividerColor, 15),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                      child:
+                          Text("1", style: TextStyle(color: controller.state.isDarkMode ? Colors.orange : Colors.red)),
+                    ),
                   ],
                 ),
               );
@@ -419,34 +498,40 @@ class GameView extends GetView<GameController> {
             if (isLose) {
               return Container(
                 color: Colors.transparent,
-                width: 50,
+                width: width,
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                      child: Text("1", style: TextStyle(color: Colors.green)),
+                    ),
                     _divier(dividerColor, 15),
-                    const Text("1", style: TextStyle(color: Colors.green)),
-                    const SizedBox(width: 8),
-                    _divier(dividerColor, 15),
-                    const SizedBox(width: 8),
-                    Text("1", style: TextStyle(color: controller.state.isDarkMode ? Colors.orange : Colors.red)),
-                    _divier(dividerColor, 15),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                      child:
+                          Text("1", style: TextStyle(color: controller.state.isDarkMode ? Colors.orange : Colors.red)),
+                    ),
                   ],
                 ),
               );
             } else {
               return Container(
                 color: Colors.transparent,
-                width: 50,
+                width: width,
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                      child:
+                          Text("1", style: TextStyle(color: controller.state.isDarkMode ? Colors.orange : Colors.red)),
+                    ),
                     _divier(dividerColor, 15),
-                    Text("1", style: TextStyle(color: controller.state.isDarkMode ? Colors.orange : Colors.red)),
-                    const SizedBox(width: 8),
-                    _divier(dividerColor, 15),
-                    const SizedBox(width: 8),
-                    const Text("1", style: TextStyle(color: Colors.green)),
-                    _divier(dividerColor, 15),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                      child: Text("1", style: TextStyle(color: Colors.green)),
+                    ),
                   ],
                 ),
               );
