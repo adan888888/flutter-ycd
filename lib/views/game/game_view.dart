@@ -33,12 +33,15 @@ class GameView extends GetView<GameController> {
             backgroundColor: controller.state.currentBgColor,
             floatingActionButtonLocation: FloatingActionButtonLocation.endDocked,
             floatingActionButtonAnimator: FloatingActionButtonAnimator.scaling,
-            floatingActionButton: GestureDetector(
-              // onLongPress: () => controller.lockScreen(),
-              child: FloatingActionButton(
-                backgroundColor: Colors.transparent,
-                onPressed: () => controller.setRandom((int _) => debugPrint(_.toString())),
-                child: Image.asset('assets/images/shai.png'),
+            floatingActionButton: Transform.scale(
+              scale: 0.7,
+              child: GestureDetector(
+                // onLongPress: () => controller.lockScreen(),
+                child: FloatingActionButton(
+                  backgroundColor: Colors.transparent,
+                  onPressed: () => controller.setRandom((int _) => debugPrint(_.toString())),
+                  child: Image.asset('assets/images/shai.png'),
+                ),
               ),
             ),
             appBar: PreferredSize(
@@ -298,8 +301,8 @@ class GameView extends GetView<GameController> {
                               child: GestureDetector(
                                 onTap: () => controller.toggleChartVisibility(),
                                 child: Container(
-                                  width: 40,
-                                  height: 40,
+                                  width: 30,
+                                  height: 30,
                                   decoration: BoxDecoration(
                                     color: controller.state.isDarkMode
                                         ? Colors.white.withValues(alpha: 0.2)
@@ -308,8 +311,10 @@ class GameView extends GetView<GameController> {
                                   ),
                                   child: Icon(
                                     Icons.keyboard_arrow_up,
-                                    color: controller.state.isDarkMode ? Colors.white : Colors.black,
-                                    size: 24,
+                                    color: controller.state.isDarkMode
+                                        ? Colors.white.withValues(alpha: 0.4)
+                                        : Colors.black.withValues(alpha: 0.4),
+                                    size: 20,
                                   ),
                                 ),
                               ),
@@ -324,8 +329,8 @@ class GameView extends GetView<GameController> {
                               child: GestureDetector(
                                 onTap: () => controller.toggleChartVisibility(),
                                 child: Container(
-                                  width: 40,
-                                  height: 40,
+                                  width: 30,
+                                  height: 30,
                                   decoration: BoxDecoration(
                                     color: controller.state.isDarkMode
                                         ? Colors.white.withValues(alpha: 0.2)
@@ -334,8 +339,10 @@ class GameView extends GetView<GameController> {
                                   ),
                                   child: Icon(
                                     Icons.keyboard_arrow_down,
-                                    color: controller.state.isDarkMode ? Colors.white : Colors.black,
-                                    size: 24,
+                                    color: controller.state.isDarkMode
+                                        ? Colors.white.withValues(alpha: 0.4)
+                                        : Colors.black.withValues(alpha: 0.4),
+                                    size: 20,
                                   ),
                                 ),
                               ),
