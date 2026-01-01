@@ -12,6 +12,7 @@ class GameState {
   var isLoading = false;
   var isCanPress = true;
   var randomValue = ''; //随机的出来的庄闲
+  var floatButtonScale = 1.0; // 浮动按钮缩放比例，用于点击动画
   var bettingMoney = '';
   var js1 = 0; //随机总数
   var js2 = 0;
@@ -23,7 +24,7 @@ class GameState {
   var textColor = Colors.black;
 
   // 暗黑主题标志
-  var isDarkMode = false;
+  var isDarkMode = true;
 
   // 图表显示标志
   var isChartVisible = true;

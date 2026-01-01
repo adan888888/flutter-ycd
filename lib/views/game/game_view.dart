@@ -35,13 +35,29 @@ class GameView extends GetView<GameController> {
             floatingActionButtonAnimator: FloatingActionButtonAnimator.scaling,
             floatingActionButton: Transform.scale(
               scale: 0.7,
-              child: GestureDetector(
-                // onLongPress: () => controller.lockScreen(),
-                child: FloatingActionButton(
-                  backgroundColor: Colors.transparent,
-                  onPressed: () => controller.setRandom((int _) => debugPrint(_.toString())),
-                  child: Image.asset('assets/images/shai.png'),
-                ),
+              child: GetBuilder<GameController>(
+                builder: (controller) {
+                  return AnimatedScale(
+                    scale: controller.state.floatButtonScale,
+                    duration: const Duration(milliseconds: 300),
+                    curve: Curves.easeInOut,
+                    child: FloatingActionButton(
+                      backgroundColor: Colors.transparent,
+                      onPressed: () {
+                        // 触发点击动画：放大1.5倍再缩小
+                        controller.state.floatButtonScale = 1.5;
+                        controller.update();
+                        Future.delayed(const Duration(milliseconds: 300), () {
+                          controller.state.floatButtonScale = 1.0;
+                          controller.update();
+                        });
+                        // 执行随机逻辑
+                        controller.setRandom((int _) => debugPrint(_.toString()));
+                      },
+                      child: Image.asset('assets/images/shai.png'),
+                    ),
+                  );
+                },
               ),
             ),
             appBar: PreferredSize(
@@ -247,38 +263,53 @@ class GameView extends GetView<GameController> {
                                     ),
                                     SizedBox(width: 5),
                                     Expanded(
-                                      child: TextField(
-                                        focusNode: controller.focusNode,
-                                        autofocus: false,
-                                        controller: controller.textEditingController,
-                                        onChanged: (value) {},
-                                        //表示基础类型是数字键盘，主要用于输入数字, decimal设置为 true 时，允许输入小数
-                                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                                        // ignorePointers: false,//是否可以用虚拟键盘
-                                        //过滤（仅只能输入数字，不能小数点.）
-                                        // inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                                        //限制只能输入数字
-                                        textInputAction: TextInputAction.done,
-                                        // 通过输入格式化器限制只能输入数字和小数点
-                                        inputFormatters: [
-                                          // 允许 0-9 数字和小数点（.）
-                                          FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),
-                                        ],
-                                        style: TextStyle(color: controller.state.currentTextColor),
-                                        decoration: InputDecoration(
-                                          contentPadding: const EdgeInsets.only(bottom: 7),
-                                          focusedBorder: UnderlineInputBorder(
-                                              borderSide: BorderSide(width: 1, color: Colors.blue)),
-                                          enabledBorder: UnderlineInputBorder(
-                                            borderSide: BorderSide(
-                                              width: 1,
-                                              color: controller.state.isDarkMode ? Colors.white24 : Colors.grey,
-                                            ),
+                                      child: Theme(
+                                        data: Theme.of(context).copyWith(
+                                          textSelectionTheme: TextSelectionThemeData(
+                                            selectionColor: controller.state.isDarkMode
+                                                ? Colors.white.withValues(alpha: 0.4) // 暗色模式：更亮的半透明白色选中背景
+                                                : Colors.blue.withValues(alpha: 0.3), // 亮色模式：半透明蓝色选中背景
+                                            selectionHandleColor: controller.state.isDarkMode
+                                                ? Colors.white // 暗色模式：白色选择手柄
+                                                : Colors.blue, // 亮色模式：蓝色选择手柄
                                           ),
-                                          hintText: "请输入下注金额",
-                                          hintStyle: TextStyle(
-                                            fontSize: 12,
-                                            color: controller.state.isDarkMode ? Colors.white54 : Colors.grey,
+                                        ),
+                                        child: TextField(
+                                          focusNode: controller.focusNode,
+                                          autofocus: false,
+                                          controller: controller.textEditingController,
+                                          onChanged: (value) {},
+                                          //表示基础类型是数字键盘，主要用于输入数字, decimal设置为 true 时，允许输入小数
+                                          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                                          // ignorePointers: false,//是否可以用虚拟键盘
+                                          //过滤（仅只能输入数字，不能小数点.）
+                                          // inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                                          //限制只能输入数字
+                                          textInputAction: TextInputAction.done,
+                                          // 通过输入格式化器限制只能输入数字和小数点
+                                          inputFormatters: [
+                                            // 允许 0-9 数字和小数点（.）
+                                            FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),
+                                          ],
+                                          cursorColor: controller.state.isDarkMode
+                                              ? Colors.white
+                                              : Colors.blue, // 暗色模式：白色光标，亮色模式：蓝色光标
+                                          style: TextStyle(color: controller.state.currentTextColor),
+                                          decoration: InputDecoration(
+                                            contentPadding: const EdgeInsets.only(bottom: 7),
+                                            focusedBorder: UnderlineInputBorder(
+                                                borderSide: BorderSide(width: 1, color: Colors.blue)),
+                                            enabledBorder: UnderlineInputBorder(
+                                              borderSide: BorderSide(
+                                                width: 1,
+                                                color: controller.state.isDarkMode ? Colors.white24 : Colors.grey,
+                                              ),
+                                            ),
+                                            hintText: "请输入下注金额",
+                                            hintStyle: TextStyle(
+                                              fontSize: 12,
+                                              color: controller.state.isDarkMode ? Colors.white54 : Colors.grey,
+                                            ),
                                           ),
                                         ),
                                       ),
