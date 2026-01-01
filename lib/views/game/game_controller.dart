@@ -73,8 +73,8 @@ class GameController extends GetxController {
         params: {"last_id": -1, "uid": GetStore.getInstance().userModel.userId, "c": 66}, //"c"每页多少个数据
         success: (isSuccess, code, message, results) {
           if (isSuccess && results.isNotEmpty) {
-            state.table2ListX.clear();
-            state.table2ListX = results.reversed.toList();
+            state.table2List.clear();
+            state.table2List = results.reversed.toList();
             _reloadLuZiTu();
             update();
           }
@@ -374,7 +374,7 @@ class GameController extends GetxController {
     state.js1 = state.js1 + 1;
     final table = tableName == 'table2'
         ? Table2Model(
-            id: state.table2ListX.length + 1,
+            id: state.table2List.length + 1,
             //mysql数据库下标是从1开始的
             columnXiazhujine: state.bettingMoney,
             //记录开出的庄闲
@@ -411,7 +411,7 @@ class GameController extends GetxController {
             ..addAll({"UserID": int.parse(GetStore.getInstance().userModel.userId)}),
           success: (isSuccess, code, message, results) {
             _getStatisticalAreasData(-2); //重新计算
-            state.table2ListX.insert(0, results.first); //打一手 记录一笔
+            state.table2List.insert(0, results.first); //打一手 记录一笔
           },
           failed: (p0, p1) => state.isCanPress = true,
           onModel: (m) => Table2Model.fromJson(m));
@@ -441,7 +441,7 @@ class GameController extends GetxController {
   }
 
   getCurrentJin(int i, double playMoney) {
-    var lastJinE = state.table2ListX.isEmpty ? 5000 : double.parse(state.totalValue[4].toString());
+    var lastJinE = state.table2List.isEmpty ? 5000 : double.parse(state.totalValue[4].toString());
     switch (i) {
       case 1:
         return (lastJinE + playMoney);
@@ -473,7 +473,7 @@ class GameController extends GetxController {
   }
 
   void deleteLast() {
-    if (state.table2ListX.isNotEmpty) {
+    if (state.table2List.isNotEmpty) {
       Get.defaultDialog(
         barrierDismissible: false,
         backgroundColor: state.isDarkMode ? const Color(0xFF1E2A3A) : Colors.white,
@@ -491,7 +491,7 @@ class GameController extends GetxController {
                 _getStatisticalAreasData(-2);
                 state.js1 = state.js1 - 1;
                 state.totalValue[28] = "${state.js1}/${state.js2}";
-                state.table2ListX.removeAt(0);
+                state.table2List.removeAt(0);
                 _reloadLuZiTu();
                 Get.back();
                 update();
@@ -507,10 +507,10 @@ class GameController extends GetxController {
     BXPost(
       Api.xiaoshu,
       isShowLoading: false,
-      params: state.table2ListX[index].toJson()..update("colmun_shuyingzhi_d", (value) => ""),
+      params: state.table2List[index].toJson()..update("colmun_shuyingzhi_d", (value) => ""),
       success: (isSuccess, code, message, results) {
         if (isSuccess) {
-          state.table2ListX[index].colmunShuyingzhiD = "";
+          state.table2List[index].colmunShuyingzhiD = "";
           Future.delayed(const Duration(milliseconds: 500), () {
             BXLoading.dismiss();
             update();
@@ -536,12 +536,12 @@ class GameController extends GetxController {
         Loading.show();
         BXPost<Table1Model>(
           Api.restart,
-          params: {"index": state.table2ListX.first.id},
+          params: {"index": state.table2List.first.id},
           success: (isSuccess, code, message, value) {
             if (isSuccess) {
               // BXLoading.showToast("${value.last.columnRestartIndex}");
               state.table1List = value;
-              state.table2ListX = state.table2ListX.map((element) => element..colmunShuyingzhiD = "").toList();
+              state.table2List = state.table2List.map((element) => element..colmunShuyingzhiD = "").toList();
               _getStatisticalAreasData(-1);
               state.currentTempIndex = 0;
             }
@@ -592,8 +592,8 @@ class GameController extends GetxController {
         break;
       case 1: //清除数据（消数列数据全部清除）
         int count = 0;
-        for (var _ in state.table2ListX) {
-          state.table2ListX[count].colmunShuyingzhiD = "";
+        for (var _ in state.table2List) {
+          state.table2List[count].colmunShuyingzhiD = "";
           update();
           count++;
         }
@@ -643,7 +643,7 @@ class GameController extends GetxController {
               if (isSuccess) {
                 BXLoading.showToast(message);
                 state.table1List.clear();
-                state.table2ListX.clear();
+                state.table2List.clear();
                 state.randomValue = '';
                 List.generate(32, (index) => state.totalValue[index] = index.toString());
                 _getStatisticalAreasData(-1);
@@ -656,7 +656,7 @@ class GameController extends GetxController {
       case 5: //重置流水
         BXPost(
           Api.resetliushui,
-          params: {"resetIndex": (state.table2ListX.first.id)},
+          params: {"resetIndex": (state.table2List.first.id)},
           success: (bool isSuccess, int code, String message, List<dynamic> results) {},
         );
         break;
@@ -744,13 +744,13 @@ class GameController extends GetxController {
       if (isSuccess) {
         // BXLoading.showToast(message);
         var list = (results.first as Map<String, dynamic>)["sorted_sequence"];
-        for (int i = 0; i < state.table2ListX.length; i++) {
+        for (int i = 0; i < state.table2List.length; i++) {
           int reverseIndex = list.length - i - 1;
           if (reverseIndex < 0 || reverseIndex >= list.length) {
-            state.table2ListX[i].colmunShuyingzhiD = '';
+            state.table2List[i].colmunShuyingzhiD = '';
             continue; // ✅ 跳过当前循环，不执行下面的代码
           }
-          state.table2ListX[i].colmunShuyingzhiD = list[reverseIndex];
+          state.table2List[i].colmunShuyingzhiD = list[reverseIndex];
         }
         update();
       }
@@ -758,7 +758,7 @@ class GameController extends GetxController {
   }
 
   void dropAll() {
-    state.table2ListX.clear();
+    state.table2List.clear();
     state.randomValue = '';
     List.generate(32, (index) => state.totalValue[index] = index.toString());
     _instance
@@ -930,7 +930,7 @@ class GameController extends GetxController {
       state.currentTempIndex = index;
     }
     update();
-    if (state.table2ListX.isNotEmpty) _getStatisticalAreasData(index);
+    if (state.table2List.isNotEmpty) _getStatisticalAreasData(index);
   }
 
   //下拉刷新
@@ -943,7 +943,7 @@ class GameController extends GetxController {
   void onLoadMore() {
     BXGet<Table2Model>(Api.loadMore,
         params: {
-          "last_id": state.table2ListX.last.id,
+          "last_id": state.table2List.last.id,
           "uid": GetStore.getInstance().userModel.userId,
           "c": 10
         }, //"c"每页多少个数据
@@ -951,9 +951,9 @@ class GameController extends GetxController {
           if (isSuccess && results.isNotEmpty) {
             var temp = <Table2Model>[];
             temp.addAll(results);
-            temp.addAll(state.table2ListX.reversed.toList());
-            state.table2ListX.clear();
-            state.table2ListX = temp.reversed.toList();
+            temp.addAll(state.table2List.reversed.toList());
+            state.table2List.clear();
+            state.table2List = temp.reversed.toList();
             update();
           }
           refreshcontroller.finishLoad(IndicatorResult.success, isSuccess);
@@ -970,7 +970,7 @@ class GameController extends GetxController {
   //重新加载路子图
   _reloadLuZiTu() {
     var list =
-        state.table2ListX.reversed.toList().map((e) => e.colmunShuyingzhi!.startsWith("-") ? "闲家" : "庄家").toList();
+        state.table2List.reversed.toList().map((e) => e.colmunShuyingzhi!.startsWith("-") ? "闲家" : "庄家").toList();
     state.initializeBigRoad();
     for (var value in list) {
       updateBigRoad(value);

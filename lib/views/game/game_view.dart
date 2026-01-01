@@ -173,13 +173,13 @@ class GameView extends GetView<GameController> {
                               child: Row(
                                 children: [
                                   _divier2(controller.state.currentTextColor, 38),
-                                  _buildButton(const Color(0xFF2D4F5A), "P+", 1), // 深蓝绿色
+                                  _buildButton(controller.state.buttonPositiveBgColor, "P+", 1),
                                   _divier2(controller.state.currentTextColor, 38),
-                                  _buildButton(const Color(0xFF2D4F5A), "B+", 2), // 深蓝绿色
+                                  _buildButton(controller.state.buttonPositiveBgColor, "B+", 2),
                                   _divier2(controller.state.currentTextColor, 38),
-                                  _buildButton(const Color(0xFF4F4A4A), "P-", 3), // 深棕灰色
+                                  _buildButton(controller.state.buttonNegativeBgColor, "P-", 3),
                                   _divier2(controller.state.currentTextColor, 38),
-                                  _buildButton(const Color(0xFF4F4A4A), "B-", 4), // 深棕灰色
+                                  _buildButton(controller.state.buttonNegativeBgColor, "B-", 4),
                                   _divier2(controller.state.currentTextColor, 38),
                                   GestureDetector(
                                       onTap: () {
@@ -222,7 +222,7 @@ class GameView extends GetView<GameController> {
                                                 reverse: true,
                                                 padding: const EdgeInsets.all(12),
                                                 controller: controller.scrollController,
-                                                itemCount: controller.state.table2ListX.length,
+                                                itemCount: controller.state.table2List.length,
                                                 itemBuilder: (BuildContext context, int index) => _buildItem(index),
                                               ),
                                             ),
@@ -363,15 +363,15 @@ class GameView extends GetView<GameController> {
   _buildItem(int index) => GetBuilder<GameController>(
         builder: (controller) {
           // 由于ListView是reverse的，需要转换index来获取正确的交替颜色
-          final actualIndex = controller.state.table2ListX.length - 1 - index;
+          final actualIndex = controller.state.table2List.length - 1 - index;
           // 根据index的奇偶性设置不同的背景色
           final backgroundColor = actualIndex % 2 == 0
               ? (controller.state.isDarkMode
                   ? const Color(0xFF243447) // 深蓝灰色（稍浅）
-                  : const Color(0xFFF1F8F4)) // 浅绿豆沙色（稍深）
+                  : Colors.grey.shade50) // 浅灰白色
               : (controller.state.isDarkMode
                   ? const Color(0xFF1E2A3A) // 深蓝色（与背景色一致）
-                  : const Color(0xFFE8F5E9)); // 浅绿豆沙色（稍浅）
+                  : Colors.grey.shade100); // 稍深一点的浅灰色
 
           return Container(
             height: 30,
@@ -381,30 +381,29 @@ class GameView extends GetView<GameController> {
               children: [
                 //序号
                 // GestureDetector(
-                //   onTap: () => controller.juBuPingHeng(controller.state.table2ListX[index].id!),
+                //   onTap: () => controller.juBuPingHeng(controller.state.table2List[index].id!),
                 //   child: Container(
                 //     color: controller.state.bgColor,
                 //     width: 20,
                 //     alignment: Alignment.centerRight,
-                //     // child: Text("${controller.state.table2ListX[index].id}"),
+                //     // child: Text("${controller.state.table2List[index].id}"),
                 //     child: Text("${int.parse(controller.state.totalValue[1])-index}"),
                 //   ),
                 // ),
                 //输赢
                 GestureDetector(
-                  onTap: () => controller.juBuPingHeng(controller.state.table2ListX[index].id!,
+                  onTap: () => controller.juBuPingHeng(controller.state.table2List[index].id!,
                       v: controller.state.totalValue[30]),
                   child: Container(
                     width: 70,
                     alignment: Alignment.centerRight,
                     child: Text(
-                      controller.state.table2ListX[index].colmunShuyingzhi.toString(),
+                      controller.state.table2List[index].colmunShuyingzhi.toString(),
                       style: TextStyle(
                         fontSize: 12.5,
                         fontWeight: FontWeight.w500,
-                        color: controller.state.table2ListX[index].colmunShuyingzhi.toString().startsWith('-')
-                            ? Colors.green
-                            : (controller.state.isDarkMode ? Colors.orange : Colors.redAccent),
+                        color: controller.state
+                            .getValueColor(controller.state.table2List[index].colmunShuyingzhi.toString()),
                       ),
                     ),
                   ),
@@ -414,18 +413,17 @@ class GameView extends GetView<GameController> {
                     width: 89,
                     child: Row(mainAxisAlignment: MainAxisAlignment.end, children: [
                       Text(
-                        "${controller.state.table2ListX[index].colmunShuyingzhiD}",
+                        "${controller.state.table2List[index].colmunShuyingzhiD}",
                         style: TextStyle(
                           fontSize: 12.5,
                           fontWeight: FontWeight.w500,
-                          color: controller.state.table2ListX[index].colmunShuyingzhiD.toString().startsWith('-')
-                              ? Colors.green
-                              : (controller.state.isDarkMode ? Colors.orange : Colors.redAccent),
+                          color: controller.state
+                              .getValueColor(controller.state.table2List[index].colmunShuyingzhiD.toString()),
                         ),
                       ),
                       const SizedBox(width: 1),
                       Visibility(
-                        visible: controller.state.table2ListX[index].colmunShuyingzhiD!.isNotEmpty,
+                        visible: controller.state.table2List[index].colmunShuyingzhiD!.isNotEmpty,
                         child: GestureDetector(
                             onTap: () => controller.updateLists(index),
                             child: Image.asset(height: 20, 'assets/images/delete.png')),
@@ -436,7 +434,7 @@ class GameView extends GetView<GameController> {
                   width: 48,
                   alignment: Alignment.centerRight,
                   child: Text(
-                    "${controller.state.table2ListX[index].columnXiazhujine}",
+                    "${controller.state.table2List[index].columnXiazhujine}",
                     style: TextStyle(
                       fontSize: 12.5,
                       fontWeight: FontWeight.w500,
@@ -454,8 +452,8 @@ class GameView extends GetView<GameController> {
 
   _sflContainer(int index) => GetBuilder<GameController>(
         builder: (controller) {
-          final isZhengDa = controller.state.table2ListX[index].colmunShengfulu == '正打';
-          final isLose = controller.state.table2ListX[index].colmunRemark!.startsWith('-');
+          final isZhengDa = controller.state.table2List[index].colmunShengfulu == '正打';
+          final isLose = controller.state.table2List[index].colmunRemark!.startsWith('-');
           final dividerColor = controller.state.isDarkMode ? Colors.white24 : Colors.grey.withValues(alpha: 0.5);
           const width = 35.0;
 
@@ -469,12 +467,12 @@ class GameView extends GetView<GameController> {
                   children: [
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 4.0),
-                      child: Text("1", style: TextStyle(color: Colors.green)),
+                      child: Text("1", style: TextStyle(color: controller.state.negativeColor)),
                     ),
                     _divier(dividerColor, 15),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 4.0),
-                      child: Text("1", style: TextStyle(color: Colors.green)),
+                      child: Text("1", style: TextStyle(color: controller.state.negativeColor)),
                     ),
                   ],
                 ),
@@ -488,14 +486,12 @@ class GameView extends GetView<GameController> {
                   children: [
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 4.0),
-                      child:
-                          Text("1", style: TextStyle(color: controller.state.isDarkMode ? Colors.orange : Colors.red)),
+                      child: Text("1", style: TextStyle(color: controller.state.positiveColor)),
                     ),
                     _divier(dividerColor, 15),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 4.0),
-                      child:
-                          Text("1", style: TextStyle(color: controller.state.isDarkMode ? Colors.orange : Colors.red)),
+                      child: Text("1", style: TextStyle(color: controller.state.positiveColor)),
                     ),
                   ],
                 ),
@@ -511,13 +507,12 @@ class GameView extends GetView<GameController> {
                   children: [
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 4.0),
-                      child: Text("1", style: TextStyle(color: Colors.green)),
+                      child: Text("1", style: TextStyle(color: controller.state.negativeColor)),
                     ),
                     _divier(dividerColor, 15),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 4.0),
-                      child:
-                          Text("1", style: TextStyle(color: controller.state.isDarkMode ? Colors.orange : Colors.red)),
+                      child: Text("1", style: TextStyle(color: controller.state.positiveColor)),
                     ),
                   ],
                 ),
@@ -531,13 +526,12 @@ class GameView extends GetView<GameController> {
                   children: [
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 4.0),
-                      child:
-                          Text("1", style: TextStyle(color: controller.state.isDarkMode ? Colors.orange : Colors.red)),
+                      child: Text("1", style: TextStyle(color: controller.state.positiveColor)),
                     ),
                     _divier(dividerColor, 15),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 4.0),
-                      child: Text("1", style: TextStyle(color: Colors.green)),
+                      child: Text("1", style: TextStyle(color: controller.state.negativeColor)),
                     ),
                   ],
                 ),
@@ -593,7 +587,7 @@ class GameView extends GetView<GameController> {
                                 scrollController: controller.roadMapScrollController,
                                 borderColor: controller.state.isDarkMode ? Colors.white24 : Colors.grey.shade300,
                                 backgroundColor:
-                                    controller.state.isDarkMode ? const Color(0xFF1E2A3A) : const Color(0xFFE8F5E9),
+                                    controller.state.isDarkMode ? const Color(0xFF1E2A3A) : Colors.grey.shade50,
                                 borderRadius: 0.0,
                                 showBorder: false,
                                 front: "W",

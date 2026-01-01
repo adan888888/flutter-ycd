@@ -8,7 +8,7 @@ class GameState {
   var ratio = 50; //庄闲占比(50=50%庄 50%闲；70=70%庄 30%闲，)
   static const OFFSET8431 = 8431; //庄闲占比是 庄60% 闲40%
   static const double height = 16 / 3;
-  int LockScreenTime = 12; //锁屏时间（分钟）
+  int LockScreenTime = 5; //锁屏时间（分钟）
   var isLoading = false;
   var isCanPress = true;
   var randomValue = ''; //随机的出来的庄闲
@@ -17,9 +17,9 @@ class GameState {
   var js2 = 0;
   int currentTempIndex = 0; //局部平衡的临时变量
   var lineColor = Colors.black87.withValues(alpha: 0.8);
-  var listViewColor = const Color(0xFFE8F5E9); // 浅绿豆沙色
-  var bgColor = const Color(0xFFE9EEDB);
-  var chartBgColor = const Color(0xFFE8F5E9); //图表背景（浅绿豆沙色）
+  var listViewColor = Colors.grey.shade50; // 浅灰白色
+  var bgColor = Colors.grey.shade50; // 浅灰白色
+  var chartBgColor = Colors.grey.shade50; // 图表背景（浅灰白色）
   var textColor = Colors.black;
 
   // 暗黑主题标志
@@ -45,14 +45,37 @@ class GameState {
   Color get currentChartBgColor => isDarkMode ? darkChartBgColor : chartBgColor;
 
   Color get currentTextColor => isDarkMode ? darkTextColor : textColor;
+
+  // 列表列颜色（输赢值、消数值、胜负路共用）
+  /// 负数/输的字体颜色（白天模式：绿色，暗黑模式：0xFF69B6AD）
+  Color get negativeColor => isDarkMode ? const Color(0xFF69B6AD) : Colors.green;
+
+  /// 正数/赢的字体颜色（白天模式：红色，暗黑模式：橙色）
+  Color get positiveColor => isDarkMode ? Colors.orange : Colors.red;
+
+  /// 根据值判断字体颜色（负数返回绿色/0xFF69B6AD，正数返回红色/橙色）
+  Color getValueColor(String value) {
+    return value.startsWith('-') ? negativeColor : positiveColor;
+  }
+
+  // 按钮颜色（P+/B+ 和 P-/B-）
+  /// P+ 和 B+ 按钮背景颜色（暗黑模式：深蓝绿色，白色模式：稍深的蓝绿色）
+  Color get buttonPositiveBgColor => isDarkMode
+      ? const Color(0xFF2D4F5A) // 暗黑模式：深蓝绿色
+      : const Color(0xFF9FC4C9); // 白色模式：稍深的蓝绿色
+
+  /// P- 和 B- 按钮背景颜色（暗黑模式：深棕灰色，白色模式：稍深的棕灰色）
+  Color get buttonNegativeBgColor => isDarkMode
+      ? const Color(0xFF4F4A4A) // 暗黑模式：深棕灰色
+      : const Color(0xFFC0BCBC); // 白色模式：稍深的棕灰色
+
   var totalValue /*统计区*/ = <String>[];
   var chartData /*图表数据*/ = <LineChartDataModel>[];
 
   // List<SalesData> chartData/*图表数据*/ = List.generate(70, (index) =>SalesData(index.toString(),Random().nextInt(1).toDouble() )).toList().obs;
   var table1List = <Table1Model>[];
 
-  // var table2List = <Table2Model>[];
-  var table2ListX = <Table2Model>[];
+  var table2List = <Table2Model>[];
   var selectIndex = 7;
   var functionTypes = [
     '1.排列数据',
