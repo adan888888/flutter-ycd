@@ -79,6 +79,7 @@ class GameController extends GetxController {
             update();
           }
         },
+        isShowLoading: false, // 第二个接口不显示loading，避免重复显示
         onModel: (m) => Table2Model.fromJson(m));
   }
 
@@ -406,6 +407,7 @@ class GameController extends GetxController {
           onModel: (m) => Table1Model.fromJson(m));
     } else {
       BXPut<Table2Model>(Api.inserttable2,
+          isShowLoading: false,
           params: (table as Table2Model).toJson()
             ..remove("table2Id")
             ..addAll({"UserID": int.parse(GetStore.getInstance().userModel.userId)}),
@@ -437,6 +439,7 @@ class GameController extends GetxController {
         //   update();
         // });
       },
+      isShowLoading: false, // 第二个接口不显示loading，避免重复显示
     );
   }
 
