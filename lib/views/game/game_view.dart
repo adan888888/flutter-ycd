@@ -291,9 +291,8 @@ class GameView extends GetView<GameController> {
                                             // 允许 0-9 数字和小数点（.）
                                             FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),
                                           ],
-                                          cursorColor: controller.state.isDarkMode
-                                              ? Colors.white
-                                              : Colors.blue, // 暗色模式：白色光标，亮色模式：蓝色光标
+                                          cursorColor: controller.state.isDarkMode ? Colors.white : Colors.blue,
+                                          // 暗色模式：白色光标，亮色模式：蓝色光标
                                           style: TextStyle(color: controller.state.currentTextColor),
                                           decoration: InputDecoration(
                                             contentPadding: const EdgeInsets.only(bottom: 7),
@@ -415,10 +414,9 @@ class GameView extends GetView<GameController> {
                 //   onTap: () => controller.juBuPingHeng(controller.state.table2List[index].id!),
                 //   child: Container(
                 //     color: controller.state.bgColor,
-                //     width: 20,
+                //     width: 45,
                 //     alignment: Alignment.centerRight,
-                //     // child: Text("${controller.state.table2List[index].id}"),
-                //     child: Text("${int.parse(controller.state.totalValue[1])-index}"),
+                //     child: Text("${controller.state.table2List[index].seq}"),
                 //   ),
                 // ),
                 //输赢

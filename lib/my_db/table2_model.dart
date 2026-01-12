@@ -1,5 +1,6 @@
 class Table2Model {
   int? id;
+  int? seq; // 每个用户自己的序号（后端计算的行号）
   String? columnXiazhujine; //下注金额
   String? colmunShuyingzhi; //输赢值
   String? colmunShuyingzhiD; //输赢值(消数列的)
@@ -10,6 +11,7 @@ class Table2Model {
 
   Table2Model({
     required this.id,
+    this.seq,
     this.columnXiazhujine,
     this.colmunShuyingzhi,
     this.colmunShuyingzhiD,
@@ -21,6 +23,7 @@ class Table2Model {
 
   Table2Model.fromJson(Map<String, dynamic> json) {
     id = json['id'];
+    seq = json['seq'];
     columnXiazhujine = json['column_xiazhujine'];
     colmunShuyingzhi = json['colmun_shuyingzhi'];
     colmunShuyingzhiD = json['colmun_shuyingzhi_d'];
@@ -33,6 +36,7 @@ class Table2Model {
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = <String, dynamic>{};
     data['id'] = id;
+    data['seq'] = seq;
     data['column_xiazhujine'] = columnXiazhujine;
     data['colmun_shuyingzhi'] = colmunShuyingzhi;
     data['colmun_shuyingzhi_d'] = colmunShuyingzhiD;
