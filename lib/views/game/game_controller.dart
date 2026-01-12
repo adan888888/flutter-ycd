@@ -784,6 +784,8 @@ class GameController extends GetxController {
         BXLoading.showToast(message);
         debugPrint("期望值是=${(results[0]["mean"])}");
         state.totalValue[19] = (results[0]["mean"]).toString();
+        // 修改期望值后，重新刷新统计区数据，保持界面数据和后台一致
+        _getStatisticalAreasData(-2);
       }
     });
   }
