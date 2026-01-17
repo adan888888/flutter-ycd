@@ -210,12 +210,8 @@ class GameView extends GetView<GameController> {
                                   GestureDetector(
                                     onTap: controller.reStart,
                                     child: Padding(
-                                      padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                                      child: Icon(
-                                        Icons.reset_tv_rounded,
-                                        size: 35,
-                                        color: Colors.red,
-                                      ),
+                                      padding: const EdgeInsets.symmetric(vertical: 2.0, horizontal: 8.0),
+                                      child: Image.asset(height: 35, width: 35, 'assets/images/restart3.png'),
                                     ),
                                   )
                                 ],
