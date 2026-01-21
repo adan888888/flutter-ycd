@@ -39,7 +39,7 @@ class DigitalPasswordBookView extends GetView<DigitalPasswordBookController> {
                 _buildSearchBar(),
                 // 密码列表
                 Expanded(child: _buildPasswordList()),
-                Obx(() => Text(controller.searchPd.toLowerCase())),
+                Obx(() => Text(controller.state.searchPd.value.toLowerCase())),
                 const SizedBox(height: 20),
               ],
             ),
@@ -61,32 +61,45 @@ class DigitalPasswordBookView extends GetView<DigitalPasswordBookController> {
   Widget _buildSearchBar() {
     return Container(
       padding: const EdgeInsets.all(16),
-      child: Obx(() => TextField(
-            onChanged: (value) {
-              try {
-                controller.searchPasswords(value);
-              } catch (e) {
-                // 忽略键盘相关的错误
-                if (!e.toString().contains('HardwareKeyboard') && !e.toString().contains('KeyUpEvent')) {
-                  rethrow;
-                }
-              }
-            },
-            decoration: InputDecoration(
-              hintText: '搜索密码...',
-              prefixIcon: const Icon(Icons.search),
-              suffixIcon: controller.state.searchKeyword.value.isNotEmpty
-                  ? IconButton(
-                      icon: const Icon(Icons.clear),
-                      onPressed: controller.clearSearch,
-                      tooltip: '清空搜索',
-                    )
-                  : null,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
+      child: Obx(() => Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  onChanged: (value) {
+                    try {
+                      controller.searchPasswords(value);
+                    } catch (e) {
+                      // 忽略键盘相关的错误
+                      if (!e.toString().contains('HardwareKeyboard') && !e.toString().contains('KeyUpEvent')) {
+                        rethrow;
+                      }
+                    }
+                  },
+                  decoration: InputDecoration(
+                    hintText: '搜索密码...',
+                    prefixIcon: const Icon(Icons.search),
+                    suffixIcon: controller.state.searchKeyword.value.isNotEmpty
+                        ? IconButton(
+                            icon: const Icon(Icons.clear),
+                            onPressed: controller.clearSearch,
+                            tooltip: '清空搜索',
+                          )
+                        : null,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  ),
+                ),
               ),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            ),
+              const SizedBox(width: 8),
+              Switch(
+                value: controller.state.isReverseMatch.value,
+                onChanged: (value) {
+                  controller.toggleMatchDirection();
+                },
+              ),
+            ],
           )),
     );
   }

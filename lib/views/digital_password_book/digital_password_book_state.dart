@@ -60,8 +60,15 @@ class DigitalPasswordBookState {
     'PY',
     'ZZ',
   ];
+
   // 搜索关键词
   var searchKeyword = ''.obs;
+
+  // 匹配方向：false = 从前面往后匹配，true = 从后面往前面匹配
+  var isReverseMatch = false.obs;
+
+  // 搜索转换结果
+  var searchPd = ''.obs;
 
   // 是否显示添加密码对话框
   var showAddDialog = false.obs;

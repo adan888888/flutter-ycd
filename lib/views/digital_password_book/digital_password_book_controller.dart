@@ -26,15 +26,9 @@ class DigitalPasswordBookController extends GetxController {
       Api.passwordBookList,
       params: params,
       success: (isSuccess, code, message, results) {
-        debugPrint('API调用成功: isSuccess=$isSuccess, code=$code, message=$message');
-        debugPrint('返回结果数量: ${results.length}');
-        if (results.isNotEmpty) {
-          debugPrint('第一个结果: ${results.first.toJson()}');
-        }
         if (isSuccess) {
           state.passwordList.clear();
           state.passwordList.addAll(results);
-          debugPrint('密码列表更新后长度: ${state.passwordList.length}');
           // 调用成功回调
           onSuccess?.call();
         } else {
@@ -249,52 +243,104 @@ class DigitalPasswordBookController extends GetxController {
   void searchPasswords(String keyword) {
     state.searchKeyword.value = keyword;
     loadPasswordList(keyword: keyword.isEmpty ? null : keyword); // 异步调用，不等待结果
+    _updateSearchPd(); // 更新搜索转换结果
   }
 
   // 清空搜索
   void clearSearch() {
     state.searchKeyword.value = '';
     loadPasswordList(); // 重新加载所有密码
+    _updateSearchPd(); // 更新搜索转换结果
   }
 
-  // 获取搜索相关的状态
-  String get searchPd {
+  // 切换匹配方向
+  void toggleMatchDirection() {
+    state.isReverseMatch.value = !state.isReverseMatch.value;
+    _updateSearchPd(); // 更新搜索转换结果
+  }
+
+  // 更新搜索转换结果
+  void _updateSearchPd() {
     if (state.searchKeyword.value.isEmpty) {
-      return '';
+      state.searchPd.value = '';
     } else {
       final keyword = state.searchKeyword.value.toUpperCase();
       final keywordLength = keyword.length;
 
       // 如果输入长度超过序列长度，返回空字符串
       if (keywordLength > state.randomSequence2.length) {
+        state.searchPd.value = '';
+        return;
+      }
+
+      if (state.isReverseMatch.value) {
+        // 从后面往前面匹配
+        state.searchPd.value = _searchFromReverse(keyword);
+      } else {
+        // 从前面往后匹配
+        state.searchPd.value = _searchFromForward(keyword);
+      }
+    }
+  }
+
+  // 从前面往后匹配
+  String _searchFromForward(String keyword) {
+    String result = '';
+    int currentIndex = 0; // 当前在序列中的查找起始位置
+
+    for (int i = 0; i < keyword.length; i++) {
+      final keywordChar = keyword[i];
+      bool found = false;
+
+      // 从当前位置开始查找以当前字符开头的项
+      for (int j = currentIndex; j < state.randomSequence2.length; j++) {
+        final sequenceItem = state.randomSequence2[j];
+        if (sequenceItem.startsWith(keywordChar)) {
+          // 取序列项的第二个字符作为结果
+          result += sequenceItem[1];
+          currentIndex = j + 1; // 更新查找起始位置为该项之后
+          found = true;
+          break;
+        }
+      }
+
+      if (!found) {
+        // 如果不匹配，返回空字符串
         return '';
       }
+    }
 
-      // 从前面往后匹配，构建结果字符串
-      String result = '';
-      for (int i = 0; i < keywordLength; i++) {
-        final keywordChar = keyword[i];
-        bool found = false;
+    return result;
+  }
 
-        // 在整个序列中查找以当前字符开头的项
-        for (int j = 0; j < state.randomSequence2.length; j++) {
-          final sequenceItem = state.randomSequence2[j];
-          if (sequenceItem.startsWith(keywordChar)) {
-            // 取序列项的第二个字符作为结果
-            result += sequenceItem[1];
-            found = true;
-            break;
-          }
-        }
+  // 从后面往前面匹配（输入第二个字符，返回第一个字符）
+  String _searchFromReverse(String keyword) {
+    String result = '';
+    int currentIndex = state.randomSequence2.length - 1; // 当前在序列中的查找起始位置（从末尾开始）
 
-        if (!found) {
-          // 如果不匹配，返回空字符串
-          return '';
+    for (int i = 0; i < keyword.length; i++) {
+      final keywordChar = keyword[i];
+      bool found = false;
+
+      // 从当前位置往前查找以当前字符结尾的项
+      for (int j = currentIndex; j >= 0; j--) {
+        final sequenceItem = state.randomSequence2[j];
+        if (sequenceItem.endsWith(keywordChar)) {
+          // 取序列项的第一个字符作为结果
+          result += sequenceItem[0];
+          currentIndex = j - 1; // 更新查找起始位置为该项之前
+          found = true;
+          break;
         }
       }
 
-      return result;
+      if (!found) {
+        // 如果不匹配，返回空字符串
+        return '';
+      }
     }
+
+    return result;
   }
 
   // 显示添加密码对话框
@@ -317,7 +363,6 @@ class DigitalPasswordBookController extends GetxController {
 
   // 刷新密码列表
   void refreshPasswordList() {
-    debugPrint('开始刷新密码列表...');
     state.isLoading.value = true;
 
     // 重新加载密码列表，在回调中处理成功提示
@@ -336,7 +381,6 @@ class DigitalPasswordBookController extends GetxController {
         state.isLoading.value = false;
       },
       onError: (error) {
-        debugPrint('刷新密码列表失败: $error');
         Get.snackbar(
           '刷新失败',
           '无法更新密码列表: $error',
