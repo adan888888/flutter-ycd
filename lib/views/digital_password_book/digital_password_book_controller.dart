@@ -283,61 +283,53 @@ class DigitalPasswordBookController extends GetxController {
     }
   }
 
-  // 从前面往后匹配
+  // 从前面往后匹配（每个关键词字符在序列中找未使用的、首字母匹配的项，取第二字）
   String _searchFromForward(String keyword) {
     String result = '';
-    int currentIndex = 0; // 当前在序列中的查找起始位置
+    final usedIndices = <int>{};
 
     for (int i = 0; i < keyword.length; i++) {
       final keywordChar = keyword[i];
       bool found = false;
 
-      // 从当前位置开始查找以当前字符开头的项
-      for (int j = currentIndex; j < state.randomSequence2.length; j++) {
+      for (int j = 0; j < state.randomSequence2.length; j++) {
+        if (usedIndices.contains(j)) continue;
         final sequenceItem = state.randomSequence2[j];
         if (sequenceItem.startsWith(keywordChar)) {
-          // 取序列项的第二个字符作为结果
           result += sequenceItem[1];
-          currentIndex = j + 1; // 更新查找起始位置为该项之后
+          usedIndices.add(j);
           found = true;
           break;
         }
       }
 
-      if (!found) {
-        // 如果不匹配，返回空字符串
-        return '';
-      }
+      if (!found) return '';
     }
 
     return result;
   }
 
-  // 从后面往前面匹配（输入第二个字符，返回第一个字符）
+  // 从后面往前面匹配（输入第二字，在序列中找未使用的、尾字匹配的项，取第一字）
   String _searchFromReverse(String keyword) {
     String result = '';
-    int currentIndex = state.randomSequence2.length - 1; // 当前在序列中的查找起始位置（从末尾开始）
+    final usedIndices = <int>{};
 
     for (int i = 0; i < keyword.length; i++) {
       final keywordChar = keyword[i];
       bool found = false;
 
-      // 从当前位置往前查找以当前字符结尾的项
-      for (int j = currentIndex; j >= 0; j--) {
+      for (int j = 0; j < state.randomSequence2.length; j++) {
+        if (usedIndices.contains(j)) continue;
         final sequenceItem = state.randomSequence2[j];
         if (sequenceItem.endsWith(keywordChar)) {
-          // 取序列项的第一个字符作为结果
           result += sequenceItem[0];
-          currentIndex = j - 1; // 更新查找起始位置为该项之前
+          usedIndices.add(j);
           found = true;
           break;
         }
       }
 
-      if (!found) {
-        // 如果不匹配，返回空字符串
-        return '';
-      }
+      if (!found) return '';
     }
 
     return result;

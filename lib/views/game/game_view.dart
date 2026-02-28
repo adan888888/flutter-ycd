@@ -8,6 +8,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:ycd/my_widget/baccarat_big_road_widget.dart';
 import 'package:ycd/utils/network/get_store.dart';
@@ -151,36 +152,47 @@ class GameView extends GetView<GameController> {
                                     8,
                                     (i) => TableRow(
                                         decoration: BoxDecoration(color: controller.state.currentBgColor),
-                                        children: List.generate(
-                                            4,
-                                            (index) => GestureDetector(
-                                                  onTap: () {
-                                                    if (index == 2)
-                                                      controller.juBuPingHeng(-1, v: controller.state.totalValue[30]);
-                                                  },
-                                                  child: Center(
-                                                    child: FittedBox(
-                                                      fit: BoxFit.contain,
-                                                      child: Text(
-                                                          style: TextStyle(
-                                                              height: 1.3 /*行高间距*/,
-                                                              wordSpacing: 0 /*相当于padding*/,
-                                                              fontSize: 12.5,
-                                                              fontWeight: FontWeight.w500,
-                                                              color: ((i * 4 + index) == 26 || (i * 4 + index) == 27)
-                                                                  ? Colors.green
-                                                                  : ((i * 4 + index) == 24 || (i * 4 + index) == 22)
-                                                                      ? (controller.state.isDarkMode
-                                                                          ? Colors.orange
-                                                                          : Colors.red)
-                                                                      : (i * 4 + index) == 2 &&
-                                                                              controller.state.currentTempIndex != 0
-                                                                          ? Colors.amber
-                                                                          : controller.state.currentTextColor),
-                                                          controller.state.totalValue[i * 4 + index]),
-                                                    ),
-                                                  ),
-                                                )).toList())).toList(),
+                                        children: List.generate(4, (index) {
+                                          final cellIndex = i * 4 + index;
+                                          final cellWidget = GestureDetector(
+                                            onTap: () {
+                                              if (index == 2)
+                                                controller.juBuPingHeng(-1, v: controller.state.totalValue[30]);
+                                            },
+                                            child: Center(
+                                              child: FittedBox(
+                                                fit: BoxFit.contain,
+                                                child: Text(
+                                                    style: TextStyle(
+                                                        height: 1.3 /*行高间距*/,
+                                                        wordSpacing: 0 /*相当于padding*/,
+                                                        fontSize: 12.5,
+                                                        fontWeight: FontWeight.w500,
+                                                        color: ((i * 4 + index) == 26 || (i * 4 + index) == 27)
+                                                            ? Colors.green
+                                                            : ((i * 4 + index) == 24 || (i * 4 + index) == 22)
+                                                                ? (controller.state.isDarkMode
+                                                                    ? Colors.orange
+                                                                    : Colors.red)
+                                                                : (i * 4 + index) == 2 &&
+                                                                        controller.state.currentTempIndex != 0
+                                                                    ? Colors.amber
+                                                                    : controller.state.currentTextColor),
+                                                    controller.state.totalValue[i * 4 + index]),
+                                              ),
+                                            ),
+                                          );
+                                          // 第30个方格（索引29）添加 Tooltip
+                                          if (cellIndex == 29) {
+                                            return Tooltip(
+                                              message: "10/30/50",
+                                              preferBelow: false, // 提示信息显示在上方
+                                              verticalOffset: 5, // 向上偏移10像素
+                                              child: cellWidget,
+                                            );
+                                          }
+                                          return cellWidget;
+                                        }).toList())).toList(),
                               ),
                             ),
                             //按钮功能区
@@ -188,6 +200,7 @@ class GameView extends GetView<GameController> {
                               height: 35,
                               child: Row(
                                 children: [
+                                  SizedBox(width: 2),
                                   _divier2(controller.state.currentTextColor, 38),
                                   _buildButton(controller.state.buttonPositiveBgColor, "P+", 1),
                                   _divier2(controller.state.currentTextColor, 38),
@@ -197,15 +210,16 @@ class GameView extends GetView<GameController> {
                                   _divier2(controller.state.currentTextColor, 38),
                                   _buildButton(controller.state.buttonNegativeBgColor, "B-", 4),
                                   _divier2(controller.state.currentTextColor, 38),
-                                  GestureDetector(
-                                      onTap: () {
-                                        controller.deleteLast();
-                                      },
-                                      child: Icon(
-                                        Icons.delete_forever,
-                                        size: 35,
+                                  TextButton(
+                                    onPressed: () => controller.deleteLast(),
+                                    child: Text(
+                                      "Delete",
+                                      style: TextStyle(
+                                        fontSize: 18.sp,
                                         color: controller.state.isDarkMode ? Colors.white70 : Colors.black45,
-                                      )),
+                                      ),
+                                    ),
+                                  ),
                                   Container(height: 25, width: 0.5, color: controller.state.currentTextColor),
                                   GestureDetector(
                                     onTap: controller.reStart,
@@ -232,7 +246,7 @@ class GameView extends GetView<GameController> {
                                               onLoad: () async => controller.onLoadMore(), //不要onLoad就没有上拉加载更多
                                               child: ListView.builder(
                                                 reverse: true,
-                                                padding: const EdgeInsets.all(12),
+                                                padding: const EdgeInsets.all(10),
                                                 controller: controller.scrollController,
                                                 itemCount: controller.state.table2List.length,
                                                 itemBuilder: (BuildContext context, int index) => _buildItem(index),
