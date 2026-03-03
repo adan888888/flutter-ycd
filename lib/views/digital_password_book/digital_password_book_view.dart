@@ -65,6 +65,7 @@ class DigitalPasswordBookView extends GetView<DigitalPasswordBookController> {
             children: [
               Expanded(
                 child: TextField(
+                  controller: controller.searchTextController, // 绑定 TextEditingController
                   onChanged: (value) {
                     try {
                       controller.searchPasswords(value);

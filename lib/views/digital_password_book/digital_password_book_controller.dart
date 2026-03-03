@@ -8,11 +8,18 @@ import 'digital_password_book_state.dart';
 
 class DigitalPasswordBookController extends GetxController {
   final state = DigitalPasswordBookState();
+  final searchTextController = TextEditingController(); // 搜索输入框控制器
 
   @override
   void onInit() {
     super.onInit();
     loadPasswordList(); // 异步调用，不等待结果
+  }
+
+  @override
+  void onClose() {
+    searchTextController.dispose(); // 释放资源
+    super.onClose();
   }
 
   // 加载密码列表
@@ -249,6 +256,7 @@ class DigitalPasswordBookController extends GetxController {
   // 清空搜索
   void clearSearch() {
     state.searchKeyword.value = '';
+    searchTextController.clear(); // 清空输入框内容
     loadPasswordList(); // 重新加载所有密码
     _updateSearchPd(); // 更新搜索转换结果
   }
