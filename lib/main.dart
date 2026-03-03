@@ -1,8 +1,12 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get_navigation/src/root/get_material_app.dart';
 import 'package:hive_flutter/adapters.dart';
+import 'package:path/path.dart' as path;
+import 'package:path_provider/path_provider.dart';
 import 'package:ycd/utils/local_util.dart';
 import 'package:ycd/utils/network/get_store.dart';
 import 'package:ycd/utils/storage_util.dart';
@@ -25,9 +29,14 @@ Future<void> main() async {
     FlutterError.presentError(details);
   };
 
-  // 初始化 Hive Flutter
-  await Hive.initFlutter();
-  //初始化存储器
+  // 每个实例使用独立 Hive 路径，支持多开
+  final baseDir = await getApplicationDocumentsDirectory();
+  final hivePath = path.join(
+    baseDir.path,
+    'hive_${DateTime.now().millisecondsSinceEpoch}_${Random().nextInt(999999)}',
+  );
+  Hive.init(hivePath);
+  // 初始化存储器
   await StorageUtil.init();
   //检查登录状态
   GetStore.getInstance().checkLoginStatus();
