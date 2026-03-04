@@ -9,7 +9,7 @@ class CurrencyConverterController extends GetxController {
   final TextEditingController amountController = TextEditingController();
 
   // 状态变量
-  final RxString fromCurrency = 'USD'.obs;
+  final RxString fromCurrency = 'JPY'.obs; // 默认日元兑人民币
   final RxString toCurrency = 'CNY'.obs;
   final RxDouble convertedAmount = 0.0.obs;
   final RxDouble exchangeRate = 0.0.obs;

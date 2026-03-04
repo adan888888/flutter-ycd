@@ -1,2 +1,4 @@
 #include "../../Flutter/Flutter-Release.xcconfig"
 #include "Warnings.xcconfig"
+// M3 仅 arm64，避免 universal 构建和 multiple destinations 警告
+ARCHS = arm64
