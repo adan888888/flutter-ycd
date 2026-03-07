@@ -193,7 +193,7 @@ class BuyRecordsView extends StatelessWidget {
       children: [
         Text('成交价格', style: _labelStyle),
         Text(
-          controller.formatPriceWithDecimals(record['buy_price']),
+          controller.formatTransactionPrice(record['buy_price']),
           style: _valueStyle,
         ),
         SizedBox(width: _smallPadding),
@@ -236,7 +236,7 @@ class BuyRecordsView extends StatelessWidget {
         const SizedBox(height: 2),
         Row(
           children: [
-            _buildStatItem('成本价', controller.formatPriceTwoDecimals(stats['averagePrice']), Colors.black),
+            _buildStatItem('成本价', controller.formatCostPrice(stats['averagePrice']), Colors.black),
             _buildStatItem('累计金额', controller.formatPriceInteger(stats['totalCost']), Colors.black),
           ],
         ),
@@ -271,7 +271,7 @@ class BuyRecordsView extends StatelessWidget {
             ),
           ],
         ),
-        _buildStatItem('当前价格', controller.formatPrice(controller.state.currentPrice!), Colors.blue),
+        _buildStatItem('当前价格', controller.formatCurrentPrice(controller.state.currentPrice!), Colors.blue),
         const SizedBox(height: 10),
       ],
     );
@@ -296,6 +296,8 @@ class BuyRecordsView extends StatelessWidget {
                 _buildCurrencyCard(controller, 'eth', 'ETH', Colors.blue),
                 const SizedBox(width: 12),
                 _buildCurrencyCard(controller, 'ada', 'ADA', Colors.green),
+                const SizedBox(width: 12),
+                _buildCurrencyCard(controller, 'trx', 'TRX', Colors.red),
               ],
             ),
           ],
@@ -314,7 +316,7 @@ class BuyRecordsView extends StatelessWidget {
         child: Container(
           height: _currencyCardHeight,
           decoration: BoxDecoration(
-            color: isSelected ? color.withValues(alpha: 0.1) : Colors.grey[120],
+            color: isSelected ? color.withValues(alpha: 0.1) : Colors.grey[100],
             border: Border.all(
               color: isSelected ? color : Colors.grey[300]!,
               width: isSelected ? 2 : 1,

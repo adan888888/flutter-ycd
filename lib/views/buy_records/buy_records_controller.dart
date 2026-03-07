@@ -38,7 +38,13 @@ class BuyRecordsController extends GetxController {
   /// 获取当前价格
   Future<void> _fetchCurrentPrice() async {
     try {
-      final symbol = state.currentCurrency == 'btc' ? 'BTCUSDT' : 'ETHUSDT';
+      final symbol = switch (state.currentCurrency) {
+        'btc' => 'BTCUSDT',
+        'eth' => 'ETHUSDT',
+        'ada' => 'ADAUSDT',
+        'trx' => 'TRXUSDT',
+        _ => 'BTCUSDT',
+      };
       final response = await http.get(
         Uri.parse('https://api.binance.com/api/v3/ticker/price?symbol=$symbol'),
         headers: {
@@ -114,11 +120,50 @@ class BuyRecordsController extends GetxController {
     }
   }
 
+  /// 格式化成本价（TRX 保留五位小数，其他三位）
+  String formatCostPrice(dynamic price) {
+    try {
+      if (price is num) {
+        final decimals = state.currentCurrency == 'trx' ? 5 : 3;
+        return '\$${price.toStringAsFixed(decimals)}';
+      }
+      return price.toString();
+    } catch (e) {
+      return price.toString();
+    }
+  }
+
+  /// 格式化当前价格（TRX 保留四位小数，其他两位）
+  String formatCurrentPrice(dynamic price) {
+    try {
+      if (price is num) {
+        final decimals = state.currentCurrency == 'trx' ? 4 : 2;
+        return '\$${price.toStringAsFixed(decimals)}';
+      }
+      return price.toString();
+    } catch (e) {
+      return price.toString();
+    }
+  }
+
   /// 格式化价格
   String formatPrice(dynamic price) {
     try {
       if (price is num) {
         return '\$${price.toStringAsFixed(2)}';
+      }
+      return price.toString();
+    } catch (e) {
+      return price.toString();
+    }
+  }
+
+  /// 格式化成交价格（TRX 保留五位小数，其他三位）
+  String formatTransactionPrice(dynamic price) {
+    try {
+      if (price is num) {
+        final decimals = state.currentCurrency == 'trx' ? 5 : 3;
+        return '\$${price.toStringAsFixed(decimals)}';
       }
       return price.toString();
     } catch (e) {
