@@ -98,7 +98,7 @@ class BuyRecordsController extends GetxController {
 
         if (data is Map && data['code'] == 1) {
           if (data['data'] != null) {
-            final dataList = data['data'] as List;
+            final dataList = (data['data'] as List).reversed;
             state.buyRecords = List<Map<String, dynamic>>.from(dataList);
           } else {
             // data为null时，显示暂无购买
