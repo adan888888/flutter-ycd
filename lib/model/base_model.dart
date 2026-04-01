@@ -1,12 +1,20 @@
-
-
 class BaseModel {
   int code = 0;
   String msg = "";
   dynamic data;
-  BaseModel.fromJson(Map<String,dynamic> map){
+
+  BaseModel.fromJson(Map<String, dynamic> map) {
     code = map["code"]?.toInt();
     msg = map["msg"] ?? "";
-    data = (map["data"] is Map) ? [map["data"]] : (map["data"] is List ? map["data"] : map["data"]);
+    final raw = map["data"];
+    if (raw == null) {
+      data = <dynamic>[];
+    } else if (raw is Map) {
+      data = raw.isEmpty ? <dynamic>[] : <dynamic>[raw];
+    } else if (raw is List) {
+      data = raw;
+    } else {
+      data = raw;
+    }
   }
 }

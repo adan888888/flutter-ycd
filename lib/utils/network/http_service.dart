@@ -157,15 +157,16 @@ class HttpService {
           BaseModel model = BaseModel.fromJson(data);
 
           if (model.code == 0) {
-            var result = model.data ?? [];
+            final dynamic d = model.data;
+            final listResult = d is List ? List<dynamic>.from(d) : <dynamic>[];
             if (onModel == null) {
-              success(true, model.code, model.msg, result);
+              success(true, model.code, model.msg, List<T>.from(listResult));
             } else {
-              List<T> values = [];
-              if ((result as List).isEmpty) {
-                success(true, model.code, "数据为空", []);
+              if (listResult.isEmpty) {
+                success(true, model.code, "数据为空", <T>[]);
               } else {
-                for (var element in result) {
+                final values = <T>[];
+                for (final element in listResult) {
                   values.add(onModel(element));
                 }
                 success(true, model.code, model.msg, values);

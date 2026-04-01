@@ -449,25 +449,26 @@ class GameView extends GetView<GameController> {
                 ),
                 //消数
                 SizedBox(
-                    width: 89,
-                    child: Row(mainAxisAlignment: MainAxisAlignment.end, children: [
-                      Text(
-                        "${controller.state.table2List[index].colmunShuyingzhiD}",
-                        style: TextStyle(
-                          fontSize: 12.5,
-                          fontWeight: FontWeight.w500,
-                          color: controller.state
-                              .getValueColor(controller.state.table2List[index].colmunShuyingzhiD.toString()),
-                        ),
+                  width: 89,
+                  child: Row(mainAxisAlignment: MainAxisAlignment.end, children: [
+                    Text(
+                      "${controller.state.table2List[index].colmunShuyingzhiD}",
+                      style: TextStyle(
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w500,
+                        color: controller.state
+                            .getValueColor(controller.state.table2List[index].colmunShuyingzhiD.toString()),
                       ),
-                      const SizedBox(width: 1),
-                      Visibility(
-                        visible: controller.state.table2List[index].colmunShuyingzhiD!.isNotEmpty,
-                        child: GestureDetector(
-                            onTap: () => controller.updateLists(index),
-                            child: Image.asset(height: 20, 'assets/images/delete.png')),
-                      )
-                    ])),
+                    ),
+                    const SizedBox(width: 1),
+                    Visibility(
+                      visible: (controller.state.table2List[index].colmunShuyingzhiD ?? '').isNotEmpty,
+                      child: GestureDetector(
+                          onTap: () => controller.updateLists(index),
+                          child: Image.asset(height: 20, 'assets/images/delete.png')),
+                    )
+                  ]),
+                ),
                 //下注值
                 Container(
                   width: 48,
@@ -492,7 +493,7 @@ class GameView extends GetView<GameController> {
   _sflContainer(int index) => GetBuilder<GameController>(
         builder: (controller) {
           final isZhengDa = controller.state.table2List[index].colmunShengfulu == '正打';
-          final isLose = controller.state.table2List[index].colmunRemark!.startsWith('-');
+          final isLose = controller.state.table2List[index].colmunRemark?.startsWith('-') ?? false;
           final dividerColor = controller.state.isDarkMode ? Colors.white24 : Colors.grey.withValues(alpha: 0.5);
           const width = 35.0;
 

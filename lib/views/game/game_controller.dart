@@ -946,9 +946,13 @@ class GameController extends GetxController {
 
   //加载更多
   void onLoadMore() {
+    // last.id 为 null 时 Dio 会发出 last_id= 无值，后端会走错分支；空列表应用 -1 与首屏一致
+    final anchorId = state.table2List.isEmpty
+        ? -1
+        : (state.table2List.last.id ?? -1);
     BXGet<Table2Model>(Api.loadMore,
         params: {
-          "last_id": state.table2List.last.id,
+          "last_id": anchorId,
           "uid": GetStore.getInstance().userModel.userId,
           "c": 10
         }, //"c"每页多少个数据
