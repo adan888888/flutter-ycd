@@ -1,20 +1,25 @@
 import 'package:flutter/foundation.dart';
 
 class Api {
-  // static String baseUrl = "https://zsapi.cach.xyz/api/";
-
-  // 根据平台动态选择baseUrl
+  /// **真机 / 另一台电脑访问本机后端**：`localhost` 指向设备自己，必然连不上。
+  /// 请把电脑与手机连同一 WiFi，查电脑局域网 IP（如 macOS：`ifconfig | grep inet`），然后：
+  ///
+  /// ```bash
+  /// flutter run --dart-define=API_BASE_URL=http://192.168.1.5:3000/api
+  /// ```
+  /// **macOS 打包**：`scripts/build_macos_app.sh both|all|1|2|3 [API_BASE_URL]`（第二参数为可选地址；`all` 会打 计数器1/2/3）。
   static String get baseUrl {
-    if (kIsWeb) {
-      // Web平台使用代理服务器解决CORS问题
-      return "http://localhost:3001/api";
-    } else {
-      // 移动端直接连接后端
-      return "http://localhost:3000/api";
+    const fromEnv = String.fromEnvironment('API_BASE_URL', defaultValue: '');
+    if (fromEnv.isNotEmpty) {
+      var s = fromEnv.trim();
+      if (s.endsWith('/')) s = s.substring(0, s.length - 1);
+      return s;
     }
+    if (kIsWeb) {
+      return "http://localhost:3001/api";
+    }
+    return "http://localhost:3000/api";
   }
-
-  // static String baseUrl = "http://192.168.32.154:3000/api";
 
   static String config = "/tenant/get";
 
