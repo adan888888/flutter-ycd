@@ -119,6 +119,18 @@ class CurrencyConverterController extends GetxController {
     }
   }
 
+  /// 是否匹配搜索（代码不区分大小写；名称支持子串）
+  static bool currencyMatchesQuery(Map<String, dynamic> c, String rawQuery) {
+    final q = rawQuery.trim();
+    if (q.isEmpty) return true;
+    final code = (c['code'] as String).toUpperCase();
+    final name = c['name'] as String;
+    final qu = q.toUpperCase();
+    if (code.contains(qu)) return true;
+    if (name.contains(q)) return true;
+    return false;
+  }
+
   // 格式化金额显示
   String formatAmount(double amount) {
     if (amount == 0) return '0.0000';

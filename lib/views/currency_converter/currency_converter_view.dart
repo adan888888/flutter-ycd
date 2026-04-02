@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import 'currency_converter_controller.dart';
+import 'currency_picker_page.dart';
 
 class CurrencyConverterView extends GetView<CurrencyConverterController> {
   const CurrencyConverterView({super.key});
@@ -14,15 +15,15 @@ class CurrencyConverterView extends GetView<CurrencyConverterController> {
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         centerTitle: true,
       ),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(8.0),
         child: Column(
           children: [
             // 输入金额
             _buildAmountInputCard(),
             const SizedBox(height: 8),
-            // 货币选择
-            _buildCurrencySelectionCard(),
+            // 货币选择（点选进入全屏币种页，页内可搜索）
+            _buildCurrencySelectionCard(context),
             const SizedBox(height: 8),
             // 转换结果
             _buildResultCard(),
@@ -74,23 +75,23 @@ class CurrencyConverterView extends GetView<CurrencyConverterController> {
   }
 
   // 构建货币选择卡片
-  Widget _buildCurrencySelectionCard() {
+  Widget _buildCurrencySelectionCard(BuildContext context) {
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(8.0),
         child: Column(
           children: [
-            // 从货币
             Obx(() => _buildCurrencySelector(
-                  '从',
-                  controller.fromCurrency.value,
-                  (currency) {
+                  context,
+                  label: '从',
+                  selectedCurrency: controller.fromCurrency.value,
+                  pickerTitle: '选择币种（从）',
+                  onChanged: (currency) {
                     controller.fromCurrency.value = currency;
                     controller.fetchExchangeRate();
                   },
                 )),
             const SizedBox(height: 8),
-            // 交换按钮
             Center(
               child: IconButton(
                 onPressed: controller.swapCurrencies,
@@ -105,11 +106,12 @@ class CurrencyConverterView extends GetView<CurrencyConverterController> {
               ),
             ),
             const SizedBox(height: 8),
-            // 到货币
             Obx(() => _buildCurrencySelector(
-                  '到',
-                  controller.toCurrency.value,
-                  (currency) {
+                  context,
+                  label: '到',
+                  selectedCurrency: controller.toCurrency.value,
+                  pickerTitle: '选择币种（到）',
+                  onChanged: (currency) {
                     controller.toCurrency.value = currency;
                     controller.fetchExchangeRate();
                   },
@@ -120,41 +122,63 @@ class CurrencyConverterView extends GetView<CurrencyConverterController> {
     );
   }
 
-  // 构建货币选择器
-  Widget _buildCurrencySelector(String label, String selectedCurrency, Function(String) onChanged) {
+  /// 外观类似原下拉框，点击后底部弹窗选币（带搜索）
+  Widget _buildCurrencySelector(
+    BuildContext context, {
+    required String label,
+    required String selectedCurrency,
+    required String pickerTitle,
+    required void Function(String) onChanged,
+  }) {
+    final info = controller.getCurrencyInfo(selectedCurrency);
     return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Text(label, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
         const SizedBox(width: 8),
         Expanded(
-          child: DropdownButtonFormField<String>(
-            value: selectedCurrency,
-            decoration: InputDecoration(
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-              filled: true,
-              fillColor: Colors.grey[50],
-            ),
-            items: controller.currencies.map((currency) {
-              return DropdownMenuItem<String>(
-                value: currency['code'],
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              borderRadius: BorderRadius.circular(8),
+              onTap: () async {
+                final code = await CurrencyPickerSheet.show(
+                  context,
+                  currencies: controller.currencies,
+                  selectedCode: selectedCurrency,
+                  title: pickerTitle,
+                );
+                if (code != null && code.isNotEmpty) {
+                  onChanged(code);
+                }
+              },
+              child: InputDecorator(
+                decoration: InputDecoration(
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                  filled: true,
+                  fillColor: Colors.grey[50],
+                  suffixIcon: const Icon(Icons.expand_more),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                ),
                 child: Row(
                   children: [
-                    Text(currency['flag'], style: const TextStyle(fontSize: 16)),
-                    const SizedBox(width: 8),
-                    Text(currency['code'], style: const TextStyle(fontWeight: FontWeight.bold)),
-                    const SizedBox(width: 4),
-                    Text(currency['name'], style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                    Text('${info?['flag'] ?? ''} ', style: const TextStyle(fontSize: 16)),
+                    Text(
+                      '${info?['code'] ?? selectedCurrency}',
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                    ),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(
+                        '${info?['name'] ?? ''}',
+                        style: const TextStyle(fontSize: 12, color: Colors.grey),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
                   ],
                 ),
-              );
-            }).toList(),
-            onChanged: (value) {
-              if (value != null) {
-                onChanged(value);
-              }
-            },
+              ),
+            ),
           ),
         ),
       ],

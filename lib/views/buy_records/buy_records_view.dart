@@ -32,6 +32,9 @@ class BuyRecordsView extends StatelessWidget {
 
   TextStyle get _smallValueStyle => const TextStyle(fontSize: 10, fontWeight: FontWeight.w800);
 
+  /// 「统计信息」区块底色（与外层 Card 区分）
+  Color get _statsPanelBackground => const Color(0xFFE8EEF4);
+
   @override
   Widget build(BuildContext context) {
     return GetBuilder<BuyRecordsController>(
@@ -120,11 +123,11 @@ class BuyRecordsView extends StatelessWidget {
       return _buildEmptyState();
     }
 
+    // state 已为 [最新…最旧]，从上到下直接按序展示
     return Column(
       children: List.generate(controller.state.buyRecords.length, (index) {
-        final recordIndex = controller.state.buyRecords.length - 1 - index;
-        final record = controller.state.buyRecords[recordIndex];
-        return _buildRecordCard(controller, record, recordIndex);
+        final record = controller.state.buyRecords[index];
+        return _buildRecordCard(controller, record, index);
       }),
     );
   }
@@ -143,7 +146,8 @@ class BuyRecordsView extends StatelessWidget {
   }
 
   Widget _buildRecordCard(BuyRecordsController controller, Map<String, dynamic> record, int index) {
-    final isLastRecord = index == controller.state.buyRecords.length - 1;
+    // 最新一笔在列表最上方（index == 0），统计信息只在这一行展示
+    final isLastRecord = index == 0;
     final hasCurrentPrice = controller.state.currentPrice != null;
 
     return Card(
@@ -160,13 +164,12 @@ class BuyRecordsView extends StatelessWidget {
             // 只有最后一条记录才显示收益统计
             if (hasCurrentPrice && isLastRecord) ...[
               _buildCurrentProfitStats(controller, index),
-              const Divider(height: 6),
               SizedBox(height: _defaultPadding),
             ],
 
             _buildRecordHeader(controller, index),
             _buildCompactRecordDetails(controller, record),
-            _buildCumulativeStats(controller, index + 1),
+            _buildCumulativeStats(controller, index),
           ],
         ),
       ),
@@ -174,14 +177,18 @@ class BuyRecordsView extends StatelessWidget {
   }
 
   Widget _buildRecordHeader(BuyRecordsController controller, int index) {
+    final n = controller.state.buyRecords.length;
+    // index 0 = 时间上最后一笔（最新），笔号从最早为第1笔计起
+    final purchaseNo = n - index;
+    final qty = controller.calculateCumulativeStatsForRow(index)['totalQuantity'];
     return Row(
       mainAxisAlignment: MainAxisAlignment.start,
       children: [
-        Text('第${index + 1}笔', style: _recordNumberStyle),
+        Text('第$purchaseNo笔', style: _recordNumberStyle),
         SizedBox(width: _defaultPadding),
         _buildStatItemX(
           '累计成交数量 ',
-          controller.calculateCumulativeStats(index + 1)['totalQuantity'].toStringAsFixed(8),
+          qty == null ? '—' : (qty as num).toStringAsFixed(8),
           Colors.grey,
         ),
       ],
@@ -226,8 +233,8 @@ class BuyRecordsView extends StatelessWidget {
     );
   }
 
-  Widget _buildCumulativeStats(BuyRecordsController controller, int recordCount) {
-    final stats = controller.calculateCumulativeStats(recordCount);
+  Widget _buildCumulativeStats(BuyRecordsController controller, int reversedIndex) {
+    final stats = controller.calculateCumulativeStatsForRow(reversedIndex);
     if (stats.isEmpty) return const SizedBox.shrink();
 
     return Column(
@@ -245,35 +252,42 @@ class BuyRecordsView extends StatelessWidget {
   }
 
   Widget _buildCurrentProfitStats(BuyRecordsController controller, int index) {
-    final profitStats = controller.calculateCurrentProfitStats(index);
+    final profitStats = controller.calculateCurrentProfitStatsForRow(index);
     if (profitStats.isEmpty) return const SizedBox.shrink();
 
     final profit = profitStats['profit'] as double;
     final isProfit = profit >= 0;
     final profitColor = isProfit ? Colors.green : Colors.red;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text('统计信息', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.purple)),
-        const SizedBox(height: 2),
-        Column(
-          children: [
-            _buildStatItem(
-              '收益率    ',
-              '${profitStats['profitPercentage'].toStringAsFixed(2)}%',
-              profitColor,
-            ),
-            _buildStatItem(
-              '浮动盈亏',
-              controller.formatPriceFourDecimals(profit),
-              profitColor,
-            ),
-          ],
-        ),
-        _buildStatItem('当前价格', controller.formatCurrentPrice(controller.state.currentPrice!), Colors.blue),
-        const SizedBox(height: 10),
-      ],
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(10, 8, 10, 10),
+      decoration: BoxDecoration(
+        color: _statsPanelBackground,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text('统计信息', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.purple)),
+          const SizedBox(height: 6),
+          Column(
+            children: [
+              _buildStatItem(
+                '收益率    ',
+                '${profitStats['profitPercentage'].toStringAsFixed(2)}%',
+                profitColor,
+              ),
+              _buildStatItem(
+                '浮动盈亏',
+                controller.formatPriceFourDecimals(profit),
+                profitColor,
+              ),
+            ],
+          ),
+          _buildStatItem('当前价格', controller.formatCurrentPrice(controller.state.currentPrice!), Colors.blue),
+        ],
+      ),
     );
   }
 

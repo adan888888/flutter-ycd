@@ -98,14 +98,17 @@ class BuyRecordsController extends GetxController {
 
         if (data is Map && data['code'] == 1) {
           if (data['data'] != null) {
-            final dataList = (data['data'] as List).reversed;
-            state.buyRecords = List<Map<String, dynamic>>.from(dataList);
+            // 接口 created_at 升序 [最旧…最新]，倒置后 state 为 [最新…最旧]，列表从上到下即最新在上。
+            state.buyRecords = List<Map<String, dynamic>>.from(
+              (data['data'] as List).reversed,
+            );
           } else {
             // data为null时，显示暂无购买
             state.buyRecords = [];
           }
         } else if (data is List) {
-          state.buyRecords = List<Map<String, dynamic>>.from(data);
+          state.buyRecords =
+              List<Map<String, dynamic>>.from(data.reversed);
         } else {
           state.errorMessage = '数据格式错误: ${data['msg'] ?? '未知错误'}';
         }
@@ -219,33 +222,34 @@ class BuyRecordsController extends GetxController {
     }
   }
 
-  /// 计算累计统计信息 (到第n笔记录为止)
-  Map<String, dynamic> calculateCumulativeStats(int recordCount) {
-    if (state.buyRecords.isEmpty || recordCount <= 0) {
+  /// 累计统计：列表为 [最新…最旧]，[reversedIndex] 对应该行；
+  /// 按时间从最早到该行（含）累计（即下标 reversedIndex…length-1）。
+  Map<String, dynamic> calculateCumulativeStatsForRow(int reversedIndex) {
+    if (state.buyRecords.isEmpty ||
+        reversedIndex < 0 ||
+        reversedIndex >= state.buyRecords.length) {
       return {};
     }
 
     double totalCost = 0;
     double totalQuantity = 0;
 
-    // 只计算前n笔记录
-    for (int i = 0; i < recordCount && i < state.buyRecords.length; i++) {
-      final record = state.buyRecords[i];
+    for (int j = reversedIndex; j < state.buyRecords.length; j++) {
+      final record = state.buyRecords[j];
       final price = record['buy_price'] as num?;
       final amount = record['buy_amount'] as num?;
 
       if (price != null && amount != null) {
-        totalCost += amount; // 累计投入美元金额
-        totalQuantity += amount / price; // 累计BTC数量 = 美元金额 ÷ BTC价格
+        totalCost += amount;
+        totalQuantity += amount / price;
       }
     }
 
     if (totalQuantity == 0) return {};
 
-    // 均价 = 总成本 ÷ 总数量
     final averagePrice = totalCost / totalQuantity;
-
-    debugPrint('累计统计调试 (前$recordCount笔):');
+    final n = state.buyRecords.length - reversedIndex;
+    debugPrint('累计统计调试 (时间最早起共$n笔到当前行):');
     debugPrint('总成本: $totalCost USDT');
     debugPrint('总数量: $totalQuantity BTC');
     debugPrint('均价: $averagePrice USDT/BTC');
@@ -253,21 +257,20 @@ class BuyRecordsController extends GetxController {
     return {'totalCost': totalCost, 'totalQuantity': totalQuantity, 'averagePrice': averagePrice};
   }
 
-  /// 计算累计收益统计 (基于当前实时价格)
-  Map<String, dynamic> calculateCurrentProfitStats(int recordIndex) {
+  /// 累计收益：时间顺序同上，从最早买入累加到当前行（含）。
+  Map<String, dynamic> calculateCurrentProfitStatsForRow(int reversedIndex) {
     if (state.buyRecords.isEmpty ||
         state.currentPrice == null ||
-        recordIndex < 0 ||
-        recordIndex >= state.buyRecords.length) {
+        reversedIndex < 0 ||
+        reversedIndex >= state.buyRecords.length) {
       return {};
     }
 
-    // 计算累计的买入金额和BTC数量
     double totalBuyAmount = 0;
     double totalBtcQuantity = 0;
 
-    for (int i = 0; i <= recordIndex; i++) {
-      final record = state.buyRecords[i];
+    for (int j = reversedIndex; j < state.buyRecords.length; j++) {
+      final record = state.buyRecords[j];
       final buyPrice = record['buy_price'] as num?;
       final buyAmount = record['buy_amount'] as num?;
 
@@ -279,16 +282,12 @@ class BuyRecordsController extends GetxController {
 
     if (totalBtcQuantity == 0) return {};
 
-    // 累计当前价值
     final currentValue = totalBtcQuantity * state.currentPrice!;
-
-    // 累计收益
     final profit = currentValue - totalBuyAmount;
-
-    // 累计收益率
     final profitPercentage = (profit / totalBuyAmount) * 100;
+    final n = state.buyRecords.length - reversedIndex;
 
-    debugPrint('累计收益调试 (前${recordIndex + 1}笔):');
+    debugPrint('累计收益调试 (时间最早起共$n笔到当前行):');
     debugPrint('累计买入金额: $totalBuyAmount');
     debugPrint('累计BTC数量: $totalBtcQuantity');
     debugPrint('当前价格: ${state.currentPrice}');
@@ -304,6 +303,14 @@ class BuyRecordsController extends GetxController {
       'profitPercentage': profitPercentage
     };
   }
+
+  /// 与 [calculateCumulativeStatsForRow] 相同（参数为「最新在前」时的行下标），兼容旧视图方法名。
+  Map<String, dynamic> calculateCumulativeStats(int reversedIndex) =>
+      calculateCumulativeStatsForRow(reversedIndex);
+
+  /// 与 [calculateCurrentProfitStatsForRow] 相同，兼容旧视图方法名。
+  Map<String, dynamic> calculateCurrentProfitStats(int reversedIndex) =>
+      calculateCurrentProfitStatsForRow(reversedIndex);
 
   /// 切换币种
   void switchCurrency(String currency) {
