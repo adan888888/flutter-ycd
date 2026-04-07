@@ -150,14 +150,14 @@ class GameView extends GetView<GameController> {
                                 defaultVerticalAlignment: TableCellVerticalAlignment.middle,
                                 children: List.generate(
                                     8,
-                                    (i) => TableRow(
+                                    (row) => TableRow(
                                         decoration: BoxDecoration(color: controller.state.currentBgColor),
-                                        children: List.generate(4, (index) {
-                                          final cellIndex = i * 4 + index;
+                                        children: List.generate(4, (column) {
                                           final cellWidget = GestureDetector(
                                             onTap: () {
-                                              if (index == 2)
+                                              if (column == 2) {
                                                 controller.juBuPingHeng(-1, v: controller.state.totalValue[30]);
+                                              }
                                             },
                                             child: Center(
                                               child: FittedBox(
@@ -168,30 +168,26 @@ class GameView extends GetView<GameController> {
                                                         wordSpacing: 0 /*相当于padding*/,
                                                         fontSize: 12.5,
                                                         fontWeight: FontWeight.w500,
-                                                        color: ((i * 4 + index) == 26 || (i * 4 + index) == 27)
+                                                        color: ((row * 4 + column) == 26 || (row * 4 + column) == 27)
                                                             ? Colors.green
-                                                            : ((i * 4 + index) == 24 || (i * 4 + index) == 22)
+                                                            : ((row * 4 + column) == 24 || (row * 4 + column) == 22)
                                                                 ? (controller.state.isDarkMode
                                                                     ? Colors.orange
                                                                     : Colors.red)
-                                                                : (i * 4 + index) == 2 &&
+                                                                : (row * 4 + column) == 2 &&
                                                                         controller.state.currentTempIndex != 0
                                                                     ? Colors.amber
                                                                     : controller.state.currentTextColor),
-                                                    controller.state.totalValue[i * 4 + index]),
+                                                    controller.state.totalValue[row * 4 + column]),
                                               ),
                                             ),
                                           );
-                                          // 第30个方格（索引29）添加 Tooltip
-                                          if (cellIndex == 29) {
-                                            return Tooltip(
-                                              message: "10/30/50",
-                                              preferBelow: false, // 提示信息显示在上方
-                                              verticalOffset: 5, // 向上偏移10像素
-                                              child: cellWidget,
-                                            );
-                                          }
-                                          return cellWidget;
+                                          return Tooltip(
+                                            message: controller.state.description[row].elementAt(column),
+                                            preferBelow: true,
+                                            verticalOffset: 10,
+                                            child: cellWidget,
+                                          );
                                         }).toList())).toList(),
                               ),
                             ),
