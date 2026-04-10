@@ -463,16 +463,21 @@ class GameController extends GetxController {
     switch (i) {
       case 1: //闲
         return state.bettingMoney;
-      case 2: //庄赢
+      case 2: //庄赢：下注×赔率（不含加回本金）。注意不可用 toStringAsFixed(2)，否则 0.095 会变成 0.10
         double parse = double.parse(state.bettingMoney);
-        var xx = parse *
+        final xx = parse *
             double.parse(state.totalValue[31] == "31" || state.totalValue[31] == "" ? "0.95" : state.totalValue[31]);
-        String syz /*庄赢值*/ = xx.toStringAsFixed(2); //四舍五入保留两位小数
-        return syz;
+        return _formatZhuangYingShuying(xx);
       case 3:
       case 4:
         return '-${state.bettingMoney}';
     }
+  }
+
+  /// 庄赢输赢字符串：去掉末尾多余 0，避免 0.095 被格式化成与 0.1 混淆。
+  String _formatZhuangYingShuying(double value) {
+    final s = value.toStringAsFixed(8); //四舍五入到8位小数
+    return s.replaceAll(RegExp(r'0+$'), '').replaceAll(RegExp(r'\.$'), '');
   }
 
   void deleteLast() {
@@ -947,15 +952,9 @@ class GameController extends GetxController {
   //加载更多
   void onLoadMore() {
     // last.id 为 null 时 Dio 会发出 last_id= 无值，后端会走错分支；空列表应用 -1 与首屏一致
-    final anchorId = state.table2List.isEmpty
-        ? -1
-        : (state.table2List.last.id ?? -1);
+    final anchorId = state.table2List.isEmpty ? -1 : (state.table2List.last.id ?? -1);
     BXGet<Table2Model>(Api.loadMore,
-        params: {
-          "last_id": anchorId,
-          "uid": GetStore.getInstance().userModel.userId,
-          "c": 10
-        }, //"c"每页多少个数据
+        params: {"last_id": anchorId, "uid": GetStore.getInstance().userModel.userId, "c": 10}, //"c"每页多少个数据
         success: (isSuccess, code, message, results) {
           if (isSuccess && results.isNotEmpty) {
             var temp = <Table2Model>[];
