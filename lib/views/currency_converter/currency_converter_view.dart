@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
 import 'currency_converter_controller.dart';
@@ -26,7 +27,7 @@ class CurrencyConverterView extends GetView<CurrencyConverterController> {
             _buildCurrencySelectionCard(context),
             const SizedBox(height: 8),
             // 转换结果
-            _buildResultCard(),
+            _buildResultCard(context),
             const SizedBox(height: 8),
             // 操作按钮
             _buildActionButtons(),
@@ -186,7 +187,7 @@ class CurrencyConverterView extends GetView<CurrencyConverterController> {
   }
 
   // 构建结果卡片
-  Widget _buildResultCard() {
+  Widget _buildResultCard(BuildContext context) {
     return Obx(() {
       if (controller.isLoading.value) {
         return Card(
@@ -234,9 +235,45 @@ class CurrencyConverterView extends GetView<CurrencyConverterController> {
                   style: const TextStyle(fontSize: 16, color: Colors.grey),
                 ),
                 const SizedBox(height: 8),
-                Text(
-                  '${toCurrencyInfo?['flag']} ${controller.formatAmount(controller.convertedAmount.value)} ${controller.toCurrency.value}',
-                  style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                InkWell(
+                  onTap: () {
+                    final text = controller.formatAmount(controller.convertedAmount.value);
+                    Clipboard.setData(ClipboardData(text: text));
+                    final cs = Theme.of(context).colorScheme;
+                    Get.snackbar(
+                      '已复制',
+                      text,
+                      snackPosition: SnackPosition.TOP,
+                      duration: const Duration(milliseconds: 1200),
+                      backgroundColor: cs.inverseSurface.withValues(alpha: 0.3),
+                      colorText: cs.onInverseSurface,
+                      margin: EdgeInsets.only(
+                        top: MediaQuery.paddingOf(context).top + 8,
+                        left: 16,
+                        right: 16,
+                      ),
+                      borderRadius: 18,
+                      overlayColor: Colors.black.withValues(alpha: 0.15),
+                    );
+                  },
+                  borderRadius: BorderRadius.circular(8),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Flexible(
+                          child: Text(
+                            '${toCurrencyInfo?['flag']} ${controller.formatAmount(controller.convertedAmount.value)} ${controller.toCurrency.value}',
+                            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        Icon(Icons.copy_rounded, size: 20, color: Colors.grey.shade600),
+                      ],
+                    ),
+                  ),
                 ),
                 const SizedBox(height: 8),
                 Text(
