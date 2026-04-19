@@ -16,7 +16,7 @@ class GameState {
   var bettingMoney = '';
   var js1 = 0; //随机总数
   var js2 = 0;
-  int currentTempIndex = 0; //局部平衡的临时变量
+  int currentTempIndex = 0; //局部平衡的临时变量（与列表左侧眼睛标记为同一行 id）
   var lineColor = Colors.black87.withValues(alpha: 0.8);
   var listViewColor = Colors.grey.shade50; // 浅灰白色
   var bgColor = Colors.grey.shade50; // 浅灰白色

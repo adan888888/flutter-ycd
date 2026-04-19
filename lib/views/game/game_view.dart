@@ -155,7 +155,8 @@ class GameView extends GetView<GameController> {
                                         children: List.generate(4, (column) {
                                           final cellWidget = GestureDetector(
                                             onTap: () {
-                                              if (column == 2) {
+                                              // 仅第一行第三列可点：取消局部平衡（currentTempIndex 置 0，眼睛同步消失）
+                                              if (row == 0 && column == 2) {
                                                 controller.juBuPingHeng(-1, v: controller.state.totalValue[30]);
                                               }
                                             },
@@ -186,6 +187,7 @@ class GameView extends GetView<GameController> {
                                             message: controller.state.description[row].elementAt(column),
                                             preferBelow: true,
                                             verticalOffset: 10,
+                                            waitDuration: const Duration(seconds: 3),
                                             child: cellWidget,
                                           );
                                         }).toList())).toList(),
@@ -415,16 +417,21 @@ class GameView extends GetView<GameController> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                //序号
-                // GestureDetector(
-                //   onTap: () => controller.juBuPingHeng(controller.state.table2List[index].id!),
-                //   child: Container(
-                //     color: controller.state.bgColor,
-                //     width: 45,
-                //     alignment: Alignment.centerRight,
-                //     child: Text("${controller.state.table2List[index].seq}"),
-                //   ),
-                // ),
+                // 标记列：当前被选为局部平衡参考的行显示睁眼图标
+                SizedBox(
+                  width: 25,
+                  child: Align(
+                    alignment: Alignment.centerRight,
+                    child: controller.state.table2List[index].id != null &&
+                            controller.state.table2List[index].id == controller.state.currentTempIndex
+                        ? Icon(
+                            Icons.visibility,
+                            size: 16,
+                            color: controller.state.isDarkMode ? Colors.amber.shade200 : Colors.amber.shade800,
+                          )
+                        : const SizedBox.shrink(),
+                  ),
+                ),
                 //输赢
                 GestureDetector(
                   onTap: () => controller.juBuPingHeng(controller.state.table2List[index].id!,
