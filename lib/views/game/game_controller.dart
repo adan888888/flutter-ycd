@@ -340,7 +340,7 @@ class GameController extends GetxController {
         onModel: (m) => Table1Model.fromJson(m));
   }
 
-  recordButton(int i, String tableName, {Table1Model? table1, Table2Model? table2}) {
+  betBecordButton(int i, String tableName, {Table1Model? table1, Table2Model? table2}) {
     if (state.randomValue.isEmpty) {
       Get.snackbar("温馨提示", '请摇塞子',
           duration: const Duration(seconds: 2),
@@ -413,7 +413,7 @@ class GameController extends GetxController {
             ..addAll({"UserID": int.parse(GetStore.getInstance().userModel.userId)}),
           success: (isSuccess, code, message, results) {
             _getStatisticalAreasData(-2); //重新计算
-            state.table2List.insert(0, results.first); //打一手 记录一笔
+            state.table2List.insert(0, results.first..seq = state.table2List.length + 1); //打一手 记录一笔
           },
           failed: (p0, p1) => state.isCanPress = true,
           onModel: (m) => Table2Model.fromJson(m));

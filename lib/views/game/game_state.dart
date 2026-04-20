@@ -17,6 +17,13 @@ class GameState {
   var js1 = 0; //随机总数
   var js2 = 0;
   int currentTempIndex = 0; //局部平衡的临时变量（与列表左侧眼睛标记为同一行 id）
+
+  /// 列表各列固定宽度（game_view 投注记录行；过长用 FittedBox 缩小字体）
+  static const double seqColMaxWidth = 34; // 序号+眼睛，约 4 个数字
+  static const double sflColWidth = 32; // 胜负路固定宽
+  /// 下注列：约 5 个数字宽度；超出时用 FittedBox 缩小字体（同统计区）
+  static const double betColWidth = 45;
+
   var lineColor = Colors.black87.withValues(alpha: 0.8);
   var listViewColor = Colors.grey.shade50; // 浅灰白色
   var bgColor = Colors.grey.shade50; // 浅灰白色

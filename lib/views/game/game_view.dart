@@ -415,73 +415,130 @@ class GameView extends GetView<GameController> {
             height: 30,
             color: backgroundColor,
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                // 标记列：当前被选为局部平衡参考的行显示睁眼图标
-                SizedBox(
-                  width: 25,
-                  child: Align(
-                    alignment: Alignment.centerRight,
-                    child: controller.state.table2List[index].id != null &&
-                            controller.state.table2List[index].id == controller.state.currentTempIndex
-                        ? Icon(
-                            Icons.visibility,
-                            size: 16,
-                            color: controller.state.isDarkMode ? Colors.amber.shade200 : Colors.amber.shade800,
-                          )
-                        : const SizedBox.shrink(),
-                  ),
+                // 标记+序号：固定列宽；数字过长时缩小字体（与下注列一致）
+                GestureDetector(
+                  onTap: () => controller.juBuPingHeng(controller.state.table2List[index].id!),
+                  child: controller.state.table2List[index].id != null &&
+                          controller.state.table2List[index].id == controller.state.currentTempIndex
+                      ? SizedBox(
+                          width: GameState.seqColMaxWidth,
+                          child: Center(
+                            child: Icon(
+                              Icons.visibility,
+                              size: 16,
+                              color: controller.state.isDarkMode ? Colors.amber.shade200 : Colors.amber.shade800,
+                            ),
+                          ),
+                        )
+                      : SizedBox(
+                          width: GameState.seqColMaxWidth,
+                          child: Center(
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              alignment: Alignment.center,
+                              child: Text(
+                                "${controller.state.table2List[index].seq}",
+                                maxLines: 1,
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontSize: 12.5,
+                                  fontWeight: FontWeight.w500,
+                                  color: controller.state
+                                      .getValueColor(controller.state.table2List[index].colmunShuyingzhi.toString()),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
                 ),
-                //输赢
+
+                // 输赢列：固定列宽；过长缩小字体
                 GestureDetector(
                   onTap: () => controller.juBuPingHeng(controller.state.table2List[index].id!,
                       v: controller.state.totalValue[30]),
-                  child: Container(
-                    width: 70,
-                    alignment: Alignment.centerRight,
-                    child: Text(
-                      controller.state.table2List[index].colmunShuyingzhi.toString(),
-                      style: TextStyle(
-                        fontSize: 12.5,
-                        fontWeight: FontWeight.w500,
-                        color: controller.state
-                            .getValueColor(controller.state.table2List[index].colmunShuyingzhi.toString()),
+                  child: SizedBox(
+                    width: GameState.betColWidth,
+                    child: Align(
+                      alignment: Alignment.centerRight,
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        alignment: Alignment.centerRight,
+                        child: Text(
+                          controller.state.table2List[index].colmunShuyingzhi.toString(),
+                          maxLines: 1,
+                          textAlign: TextAlign.right,
+                          style: TextStyle(
+                            fontSize: 12.5,
+                            fontWeight: FontWeight.w500,
+                            color: controller.state
+                                .getValueColor(controller.state.table2List[index].colmunShuyingzhi.toString()),
+                          ),
+                        ),
                       ),
                     ),
                   ),
                 ),
-                //消数
+                // 消数列：固定列宽；数字区过长缩小字体，右侧保留删除图标
                 SizedBox(
-                  width: 89,
-                  child: Row(mainAxisAlignment: MainAxisAlignment.end, children: [
-                    Text(
-                      "${controller.state.table2List[index].colmunShuyingzhiD}",
-                      style: TextStyle(
-                        fontSize: 12.5,
-                        fontWeight: FontWeight.w500,
-                        color: controller.state
-                            .getValueColor(controller.state.table2List[index].colmunShuyingzhiD.toString()),
+                  width: GameState.betColWidth,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Expanded(
+                        child: Align(
+                          alignment: Alignment.centerRight,
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            alignment: Alignment.centerRight,
+                            child: Text(
+                              "${controller.state.table2List[index].colmunShuyingzhiD}",
+                              maxLines: 1,
+                              textAlign: TextAlign.right,
+                              style: TextStyle(
+                                fontSize: 12.5,
+                                fontWeight: FontWeight.w500,
+                                color: controller.state
+                                    .getValueColor(controller.state.table2List[index].colmunShuyingzhiD.toString()),
+                              ),
+                            ),
+                          ),
+                        ),
                       ),
-                    ),
-                    const SizedBox(width: 1),
-                    Visibility(
-                      visible: (controller.state.table2List[index].colmunShuyingzhiD ?? '').isNotEmpty,
-                      child: GestureDetector(
+                      Visibility(
+                        visible: (controller.state.table2List[index].colmunShuyingzhiD ?? '').isNotEmpty,
+                        child: GestureDetector(
                           onTap: () => controller.updateLists(index),
-                          child: Image.asset(height: 20, 'assets/images/delete.png')),
-                    )
-                  ]),
+                          child: Icon(
+                            Icons.close,
+                            size: 16,
+                            color: controller.state.currentTextColor.withValues(alpha: 0.75),
+                          ),
+                        ),
+                      )
+                    ],
+                  ),
                 ),
-                //下注值
-                Container(
-                  width: 48,
-                  alignment: Alignment.centerRight,
-                  child: Text(
-                    "${controller.state.table2List[index].columnXiazhujine}",
-                    style: TextStyle(
-                      fontSize: 12.5,
-                      fontWeight: FontWeight.w500,
-                      color: controller.state.currentTextColor,
+                //下注值列：宽约 5 个数字；过长时整体缩小字体（与统计区 FittedBox 一致）
+                SizedBox(
+                  width: GameState.betColWidth,
+                  child: Align(
+                    alignment: Alignment.centerRight,
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: Alignment.centerRight,
+                      child: Text(
+                        "${controller.state.table2List[index].columnXiazhujine}",
+                        maxLines: 1,
+                        textAlign: TextAlign.right,
+                        style: TextStyle(
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.w500,
+                          color: controller.state.currentTextColor,
+                        ),
+                      ),
                     ),
                   ),
                 ),
@@ -498,23 +555,22 @@ class GameView extends GetView<GameController> {
           final isZhengDa = controller.state.table2List[index].colmunShengfulu == '正打';
           final isLose = controller.state.table2List[index].colmunRemark?.startsWith('-') ?? false;
           final dividerColor = controller.state.isDarkMode ? Colors.white24 : Colors.grey.withValues(alpha: 0.5);
-          const width = 35.0;
 
           if (isZhengDa) {
             if (isLose) {
               return Container(
                 color: Colors.transparent,
-                width: width,
+                width: GameState.sflColWidth,
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                      padding: const EdgeInsets.symmetric(horizontal: 1.0),
                       child: Text("1", style: TextStyle(color: controller.state.negativeColor)),
                     ),
                     _divier(dividerColor, 15),
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                      padding: const EdgeInsets.symmetric(horizontal: 1.0),
                       child: Text("1", style: TextStyle(color: controller.state.negativeColor)),
                     ),
                   ],
@@ -523,17 +579,17 @@ class GameView extends GetView<GameController> {
             } else {
               return Container(
                 color: Colors.transparent,
-                width: width,
+                width: GameState.sflColWidth,
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                      padding: const EdgeInsets.symmetric(horizontal: 1.0),
                       child: Text("1", style: TextStyle(color: controller.state.positiveColor)),
                     ),
                     _divier(dividerColor, 15),
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                      padding: const EdgeInsets.symmetric(horizontal: 1.0),
                       child: Text("1", style: TextStyle(color: controller.state.positiveColor)),
                     ),
                   ],
@@ -544,17 +600,17 @@ class GameView extends GetView<GameController> {
             if (isLose) {
               return Container(
                 color: Colors.transparent,
-                width: width,
+                width: GameState.sflColWidth,
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                      padding: const EdgeInsets.symmetric(horizontal: 1.0),
                       child: Text("1", style: TextStyle(color: controller.state.negativeColor)),
                     ),
                     _divier(dividerColor, 15),
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                      padding: const EdgeInsets.symmetric(horizontal: 1.0),
                       child: Text("1", style: TextStyle(color: controller.state.positiveColor)),
                     ),
                   ],
@@ -563,17 +619,17 @@ class GameView extends GetView<GameController> {
             } else {
               return Container(
                 color: Colors.transparent,
-                width: width,
+                width: GameState.sflColWidth,
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                      padding: const EdgeInsets.symmetric(horizontal: 1.0),
                       child: Text("1", style: TextStyle(color: controller.state.positiveColor)),
                     ),
                     _divier(dividerColor, 15),
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                      padding: const EdgeInsets.symmetric(horizontal: 1.0),
                       child: Text("1", style: TextStyle(color: controller.state.negativeColor)),
                     ),
                   ],
@@ -904,16 +960,16 @@ class GameView extends GetView<GameController> {
             onPressed: () {
               switch (i) {
                 case 1: //闲赢
-                  controller.recordButton(1, 'table2');
+                  controller.betBecordButton(1, 'table2');
                   break;
                 case 2: //庄赢
-                  controller.recordButton(2, 'table2');
+                  controller.betBecordButton(2, 'table2');
                   break;
                 case 3: //闲输
-                  controller.recordButton(3, 'table2');
+                  controller.betBecordButton(3, 'table2');
                   break;
                 case 4: //庄输
-                  controller.recordButton(4, 'table2');
+                  controller.betBecordButton(4, 'table2');
                   break;
               }
             },
