@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:get/get.dart';
+
 import 'login_controller.dart';
 
 class LoginWidget extends GetView<LoginController> {
@@ -11,53 +12,51 @@ class LoginWidget extends GetView<LoginController> {
     final controller = Get.find<LoginController>();
 
     return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              Colors.deepPurple.shade100,
-              Colors.deepPurple.shade200,
-              Colors.deepPurple.shade50,
-            ],
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          Positioned.fill(
+            child: Image.asset(
+              'assets/images/game_backgroud.jpg',
+              fit: BoxFit.cover,
+            ),
           ),
-        ),
-        child: SafeArea(
-          child: Column(
-            children: [
-              // 返回按钮区域
-              _buildBackButton(),
+          SafeArea(
+            child: Column(
+              children: [
+                // 返回按钮区域
+                _buildBackButton(),
 
-              // 主要内容区域
-              Expanded(
-                child: SingleChildScrollView(
-                  child: Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 24.w),
-                    child: Column(
-                      children: [
-                        // Logo和标题区域
-                        _buildHeader(),
+                // 主要内容区域
+                Expanded(
+                  child: SingleChildScrollView(
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 24.w),
+                      child: Column(
+                        children: [
+                          // Logo和标题区域
+                          _buildHeader(),
 
-                        SizedBox(height: 10.h),
+                          SizedBox(height: 10.h),
 
-                        // 登录表单
-                        _buildLoginForm(controller),
+                          // 登录表单
+                          _buildLoginForm(controller),
 
-                        SizedBox(height: 40.h),
+                          SizedBox(height: 40.h),
 
-                        // 登录按钮
-                        _buildLoginButton(controller),
+                          // 登录按钮
+                          _buildLoginButton(controller),
 
-                        SizedBox(height: 300.h),
-                      ],
+                          SizedBox(height: 300.h),
+                        ],
+                      ),
                     ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
+        ],
       ),
     );
   }
@@ -115,8 +114,8 @@ class LoginWidget extends GetView<LoginController> {
               children: [
                 // Logo
                 Container(
-                  width: 40.w,
-                  height: 40.w,
+                  width: 80.w,
+                  height: 80.w,
                   decoration: BoxDecoration(
                     color: Colors.white.withValues(alpha: 0.2),
                     shape: BoxShape.circle,
@@ -139,22 +138,8 @@ class LoginWidget extends GetView<LoginController> {
                   ),
                 ),
 
-                SizedBox(height: 24.h),
+                SizedBox(height: 30.h),
 
-                // 标题
-                Text(
-                  '百家乐模拟器',
-                  style: TextStyle(
-                    fontSize: 32.sp,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                    letterSpacing: 1.2,
-                  ),
-                ),
-
-                SizedBox(height: 8.h),
-
-                // 副标题
                 Text(
                   '体验真实的游戏乐趣',
                   style: TextStyle(
@@ -188,7 +173,18 @@ class LoginWidget extends GetView<LoginController> {
                   _buildTextField(
                     controller: controller.userNameController,
                     labelText: '用户名',
-                    prefixIcon: Icons.person_outline,
+                    prefix: SizedBox(
+                      width: 22.w,
+                      height: 22.w,
+                      child: Center(
+                        child: Image.asset(
+                          'assets/images/look_outline.png',
+                          width: 18.w,
+                          height: 18.w,
+                          fit: BoxFit.contain,
+                        ),
+                      ),
+                    ),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
                         return '请输入用户名';
@@ -203,14 +199,23 @@ class LoginWidget extends GetView<LoginController> {
                   Obx(() => _buildTextField(
                         controller: controller.passwordController,
                         labelText: '密码',
-                        prefixIcon: Icons.lock_outline,
+                        prefix: SizedBox(
+                          width: 22.w,
+                          height: 22.w,
+                          child: Center(
+                            child: Image.asset(
+                              'assets/images/lock_outline.png',
+                              width: 18.w,
+                              height: 18.w,
+                              fit: BoxFit.contain,
+                            ),
+                          ),
+                        ),
                         obscureText: controller.state.isPasswordVisible.value,
                         //为true时 看不见的
                         suffixIcon: IconButton(
                           icon: Icon(
-                            controller.state.isPasswordVisible.value
-                                ? Icons.visibility_off
-                                : Icons.visibility,
+                            controller.state.isPasswordVisible.value ? Icons.visibility_off : Icons.visibility,
                             color: Colors.white.withValues(alpha: 0.7),
                           ),
                           onPressed: controller.togglePasswordVisibility,
@@ -236,7 +241,7 @@ class LoginWidget extends GetView<LoginController> {
   Widget _buildTextField({
     required TextEditingController controller,
     required String labelText,
-    required IconData prefixIcon,
+    required Widget prefix,
     bool obscureText = false,
     Widget? suffixIcon,
     String? Function(String?)? validator,
@@ -248,59 +253,60 @@ class LoginWidget extends GetView<LoginController> {
       cursorColor: Colors.orange,
       cursorHeight: 15.h,
       style: TextStyle(
-        color: Colors.black87,
+        color: Colors.white,
         fontSize: 16.sp,
       ),
       decoration: InputDecoration(
         labelText: labelText,
         labelStyle: TextStyle(
-          color: Colors.black87,
+          color: Colors.white,
           fontSize: 17.sp,
           fontWeight: FontWeight.w500,
         ),
-        prefixIcon: Icon(
-          prefixIcon,
-          color: Colors.black54,
-          size: 22.w,
+        floatingLabelStyle: TextStyle(
+          color: Colors.white,
+          fontSize: 15.sp,
+          fontWeight: FontWeight.w500,
         ),
+        prefixIcon: prefix,
         suffixIcon: suffixIcon,
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16.r),
+          borderRadius: BorderRadius.circular(10.r),
           borderSide: const BorderSide(
             color: Colors.black26,
             width: 1.2,
           ),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16.r),
+          borderRadius: BorderRadius.circular(10.r),
           borderSide: const BorderSide(
             color: Colors.black26,
             width: 1.2,
           ),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16.r),
+          borderRadius: BorderRadius.circular(10.r),
           borderSide: BorderSide(
             color: Colors.deepPurple.shade400.withValues(alpha: 0.8),
             width: 2.2,
           ),
         ),
         errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16.r),
+          borderRadius: BorderRadius.circular(10.r),
           borderSide: BorderSide(
             color: Colors.red.shade400,
             width: 1.2,
           ),
         ),
         focusedErrorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16.r),
+          borderRadius: BorderRadius.circular(10.r),
           borderSide: BorderSide(
             color: Colors.red.shade400,
             width: 2.2,
           ),
         ),
         filled: true,
-        fillColor: Colors.white.withValues(alpha: 0.8),
+        fillColor: const Color(0x4D5D5F95), // #5D5F954D
         contentPadding: EdgeInsets.symmetric(
           horizontal: 16.w,
           vertical: 12.h,
@@ -309,9 +315,8 @@ class LoginWidget extends GetView<LoginController> {
           color: Colors.red.shade400,
           fontSize: 13.sp,
         ),
-        // 优化：增加hintStyle
         hintStyle: TextStyle(
-          color: Colors.black54,
+          color: Colors.white.withValues(alpha: 0.55),
           fontSize: 15.sp,
         ),
       ),
@@ -327,57 +332,42 @@ class LoginWidget extends GetView<LoginController> {
           offset: Offset(0, 30 * (1 - value)),
           child: Opacity(
             opacity: value,
-            child: Obx(() => Container(
-                  width: double.infinity,
-                  height: 46.h,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(16.r),
-                    gradient: LinearGradient(
-                      colors: [
-                        Colors.deepPurple.shade200,
-                        Colors.deepPurple.shade300,
-                      ],
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.deepPurple.withValues(alpha: 0.3),
-                        blurRadius: 15,
-                        offset: const Offset(0, 8),
+            child: Obx(
+              () => Material(
+                color: Colors.transparent,
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    InkWell(
+                      onTap: controller.state.isLoading.value ? null : controller.login,
+                      child: Image.asset(
+                        'assets/images/denglu_button.png',
+                        width: double.infinity,
+                        fit: BoxFit.contain,
                       ),
-                    ],
-                  ),
-                  child: Material(
-                    color: Colors.transparent,
-                    child: InkWell(
-                      borderRadius: BorderRadius.circular(16.r),
-                      onTap: controller.state.isLoading.value
-                          ? null
-                          : controller.login,
-                      child: Container(
-                        alignment: Alignment.center,
-                        child: controller.state.isLoading.value
-                            ? SizedBox(
-                                width: 24.w,
-                                height: 24.w,
-                                child: const CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  valueColor: AlwaysStoppedAnimation<Color>(
-                                      Colors.white),
-                                ),
-                              )
-                            : Text(
-                                '登 录',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 18.sp,
-                                  fontWeight: FontWeight.bold,
-                                  letterSpacing: 1,
+                    ),
+                    if (controller.state.isLoading.value)
+                      Positioned.fill(
+                        child: Material(
+                          color: Colors.black.withValues(alpha: 0.35),
+                          child: Center(
+                            child: SizedBox(
+                              width: 28.w,
+                              height: 28.w,
+                              child: const CircularProgressIndicator(
+                                strokeWidth: 2.5,
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                  Colors.white,
                                 ),
                               ),
+                            ),
+                          ),
+                        ),
                       ),
-                    ),
-                  ),
-                )),
+                  ],
+                ),
+              ),
+            ),
           ),
         );
       },

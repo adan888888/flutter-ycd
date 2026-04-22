@@ -96,7 +96,7 @@ class BuyRecordsController extends GetxController {
         final data = json.decode(response.body);
         debugPrint('买入记录API返回数据: $data');
 
-        if (data is Map && data['code'] == 1) {
+        if (data is Map && data['code'] == 0) {
           if (data['data'] != null) {
             // 接口 created_at 升序 [最旧…最新]，倒置后 state 为 [最新…最旧]，列表从上到下即最新在上。
             state.buyRecords = List<Map<String, dynamic>>.from(

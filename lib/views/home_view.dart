@@ -33,21 +33,12 @@ class HomeView extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
-              const Text(
-                '⚡️',
-                style: TextStyle(
-                  fontSize: 80,
-                  color: Color.fromARGB(150, 104, 57, 88),
-                ),
+              Image.asset(
+                'assets/images/polyline.png',
+                width: 150,
+                height: 80,
+                fit: BoxFit.cover,
               ),
-              const Text(
-                '选择您需要的功能',
-                style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.deepPurple),
-              ),
-
-              const SizedBox(height: 20),
-
-              // 投资计算器选项
               _buildOptionCard(
                 context,
                 icon: Icons.calculate,
