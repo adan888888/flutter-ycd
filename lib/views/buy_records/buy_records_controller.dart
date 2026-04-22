@@ -12,6 +12,21 @@ class BuyRecordsController extends GetxController {
   /// 状态管理
   final BuyRecordsState state = BuyRecordsState();
 
+  Map<String, String> get _marketHeaders => const {
+    'User-Agent':
+        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+    'Accept': 'application/json',
+    'Accept-Language': 'en-US,en;q=0.9',
+  };
+
+  String get _currentSymbol => switch (state.currentCurrency) {
+        'btc' => 'BTCUSDT',
+        'eth' => 'ETHUSDT',
+        'ada' => 'ADAUSDT',
+        'trx' => 'TRXUSDT',
+        _ => 'BTCUSDT',
+      };
+
   @override
   void onInit() {
     super.onInit();
@@ -38,25 +53,26 @@ class BuyRecordsController extends GetxController {
   /// 获取当前价格
   Future<void> _fetchCurrentPrice() async {
     try {
-      final symbol = switch (state.currentCurrency) {
-        'btc' => 'BTCUSDT',
-        'eth' => 'ETHUSDT',
-        'ada' => 'ADAUSDT',
-        'trx' => 'TRXUSDT',
-        _ => 'BTCUSDT',
-      };
-      final response = await http.get(
-        Uri.parse('https://api.binance.com/api/v3/ticker/price?symbol=$symbol'),
-        headers: {
-          'User-Agent':
-              'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-          'Accept': 'application/json',
-          'Accept-Language': 'en-US,en;q=0.9',
-        },
-      ).timeout(const Duration(seconds: 30));
+      state.ema200 = null;
+      final symbol = _currentSymbol;
+      final responses = await Future.wait([
+        http
+            .get(
+              Uri.parse('https://api.binance.com/api/v3/ticker/price?symbol=$symbol'),
+              headers: _marketHeaders,
+            )
+            .timeout(const Duration(seconds: 30)),
+        http
+            .get(
+              Uri.parse('https://api.binance.com/api/v3/klines?symbol=$symbol&interval=1d&limit=250'),
+              headers: _marketHeaders,
+            )
+            .timeout(const Duration(seconds: 30)),
+      ]);
 
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
+      final priceResponse = responses[0];
+      if (priceResponse.statusCode == 200) {
+        final data = json.decode(priceResponse.body);
         if (data is Map && data['price'] != null) {
           state.currentPrice = double.parse(data['price'].toString());
           debugPrint('当前${state.currentCurrency.toUpperCase()}价格: ${state.currentPrice}');
@@ -64,12 +80,52 @@ class BuyRecordsController extends GetxController {
           debugPrint('价格数据格式错误');
         }
       } else {
-        debugPrint('获取价格失败，状态码: ${response.statusCode}');
+        debugPrint('获取价格失败，状态码: ${priceResponse.statusCode}');
+      }
+
+      final klineResponse = responses[1];
+      if (klineResponse.statusCode == 200) {
+        final data = json.decode(klineResponse.body);
+        if (data is List && data.length >= 200) {
+          final closes = data
+              .map<double?>((item) {
+                if (item is List && item.length > 4) {
+                  return double.tryParse(item[4].toString());
+                }
+                return null;
+              })
+              .whereType<double>()
+              .toList();
+
+          if (closes.length >= 200) {
+            state.ema200 = _calculateEma(closes, 200);
+            debugPrint('当前${state.currentCurrency.toUpperCase()} EMA200: ${state.ema200}');
+          }
+        }
+      } else {
+        debugPrint('获取K线失败，状态码: ${klineResponse.statusCode}');
       }
     } catch (e) {
       debugPrint('获取当前价格失败: $e');
       // 价格获取失败不影响主要功能，只是无法显示收益统计
     }
+  }
+
+  double _calculateEma(List<double> values, int period) {
+    assert(values.length >= period);
+    final multiplier = 2 / (period + 1);
+    double ema = values.take(period).reduce((a, b) => a + b) / period;
+    for (int i = period; i < values.length; i++) {
+      ema = ((values[i] - ema) * multiplier) + ema;
+    }
+    return ema;
+  }
+
+  double? get ema200DeviationPercent {
+    final current = state.currentPrice;
+    final ema = state.ema200;
+    if (current == null || ema == null || ema == 0) return null;
+    return ((current - ema) / ema) * 100;
   }
 
   /// 获取买入记录数据
@@ -138,6 +194,19 @@ class BuyRecordsController extends GetxController {
 
   /// 格式化当前价格（TRX 保留四位小数，其他两位）
   String formatCurrentPrice(dynamic price) {
+    try {
+      if (price is num) {
+        final decimals = state.currentCurrency == 'trx' ? 4 : 2;
+        return '\$${price.toStringAsFixed(decimals)}';
+      }
+      return price.toString();
+    } catch (e) {
+      return price.toString();
+    }
+  }
+
+  /// 格式化 EMA200（TRX 保留四位小数，其他两位）
+  String formatEmaPrice(dynamic price) {
     try {
       if (price is num) {
         final decimals = state.currentCurrency == 'trx' ? 4 : 2;

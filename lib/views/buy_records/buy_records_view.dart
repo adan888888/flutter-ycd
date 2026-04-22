@@ -107,28 +107,45 @@ class BuyRecordsView extends StatelessWidget {
   Widget _buildContent(BuyRecordsController controller) {
     return RefreshIndicator(
       onRefresh: controller.refreshAllData,
-      child: ListView(
-        padding: EdgeInsets.all(_defaultPadding),
-        children: [
-          _buildCurrencySelector(controller),
-          SizedBox(height: _defaultPadding),
-          _buildRecordsList(controller),
+      child: CustomScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        slivers: [
+          SliverPadding(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+            sliver: SliverToBoxAdapter(
+              child: _buildCurrencySelector(controller),
+            ),
+          ),
+          SliverPadding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+            sliver: _buildStickyStatsSliver(controller),
+          ),
+          _buildRecordsSliver(controller),
         ],
       ),
     );
   }
 
-  Widget _buildRecordsList(BuyRecordsController controller) {
+  Widget _buildRecordsSliver(BuyRecordsController controller) {
     if (controller.state.buyRecords.isEmpty) {
-      return _buildEmptyState();
+      return SliverFillRemaining(
+        hasScrollBody: false,
+        child: Padding(
+          padding: EdgeInsets.symmetric(horizontal: _defaultPadding),
+          child: _buildEmptyState(),
+        ),
+      );
     }
 
-    // state 已为 [最新…最旧]，从上到下直接按序展示
-    return Column(
-      children: List.generate(controller.state.buyRecords.length, (index) {
-        final record = controller.state.buyRecords[index];
-        return _buildRecordCard(controller, record, index);
-      }),
+    return SliverPadding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+      sliver: SliverList.builder(
+        itemCount: controller.state.buyRecords.length,
+        itemBuilder: (context, index) {
+          final record = controller.state.buyRecords[index];
+          return _buildRecordCard(controller, record, index);
+        },
+      ),
     );
   }
 
@@ -146,11 +163,8 @@ class BuyRecordsView extends StatelessWidget {
   }
 
   Widget _buildRecordCard(BuyRecordsController controller, Map<String, dynamic> record, int index) {
-    // 最新一笔在列表最上方（index == 0），统计信息只在这一行展示
-    final isLastRecord = index == 0;
-    final hasCurrentPrice = controller.state.currentPrice != null;
-
     return Card(
+      margin: const EdgeInsets.only(bottom: 8),
       child: Padding(
         padding: EdgeInsets.only(
           left: _cardPadding,
@@ -161,16 +175,40 @@ class BuyRecordsView extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 只有最后一条记录才显示收益统计
-            if (hasCurrentPrice && isLastRecord) ...[
-              _buildCurrentProfitStats(controller, index),
-              SizedBox(height: _defaultPadding),
-            ],
-
             _buildRecordHeader(controller, index),
             _buildCompactRecordDetails(controller, record),
             _buildCumulativeStats(controller, index),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTopStatsPanel(BuyRecordsController controller) {
+    if (controller.state.buyRecords.isEmpty || controller.state.currentPrice == null) {
+      return const SizedBox.shrink();
+    }
+
+    // 列表已按 [最新...最旧] 排序，统计信息展示顶部最新一笔对应的累计结果。
+    return _buildCurrentProfitStats(controller, 0);
+  }
+
+  Widget _buildStickyStatsSliver(BuyRecordsController controller) {
+    final statsPanel = _buildTopStatsPanel(controller);
+    if (statsPanel is SizedBox) {
+      return const SliverToBoxAdapter(child: SizedBox.shrink());
+    }
+
+    return SliverPersistentHeader(
+      pinned: true,
+      delegate: _StatsHeaderDelegate(
+        extent: 92,
+        child: ColoredBox(
+          color: Theme.of(Get.context!).scaffoldBackgroundColor,
+          child: Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: statsPanel,
+          ),
         ),
       ),
     );
@@ -198,7 +236,7 @@ class BuyRecordsView extends StatelessWidget {
   Widget _buildCompactRecordDetails(BuyRecordsController controller, Map<String, dynamic> record) {
     return Row(
       children: [
-        Text('成交价格', style: _labelStyle),
+        Text('成交价', style: _labelStyle),
         Text(
           controller.formatTransactionPrice(record['buy_price']),
           style: _valueStyle,
@@ -258,6 +296,9 @@ class BuyRecordsView extends StatelessWidget {
     final profit = profitStats['profit'] as double;
     final isProfit = profit >= 0;
     final profitColor = isProfit ? Colors.green : Colors.red;
+    final emaDeviation = controller.ema200DeviationPercent;
+    final emaColor = emaDeviation == null ? Colors.grey : (emaDeviation >= 0 ? Colors.green : Colors.red);
+    final emaText = emaDeviation == null ? '—' : '${emaDeviation >= 0 ? '+' : ''}${emaDeviation.toStringAsFixed(2)}%';
 
     return Container(
       width: double.infinity,
@@ -269,23 +310,78 @@ class BuyRecordsView extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('统计信息', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.purple)),
-          const SizedBox(height: 6),
-          Column(
+          Row(
             children: [
-              _buildStatItem(
-                '收益率    ',
-                '${profitStats['profitPercentage'].toStringAsFixed(2)}%',
-                profitColor,
+              const Text(
+                '统计信息',
+                style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.purple),
               ),
-              _buildStatItem(
-                '浮动盈亏',
-                controller.formatPriceFourDecimals(profit),
-                profitColor,
+              const SizedBox(width: 10),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.9),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Color(0x22000000),
+                      blurRadius: 6,
+                      offset: Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text('当前价格', style: _labelStyle),
+                    Text(
+                      controller.formatCurrentPrice(controller.state.currentPrice!),
+                      style: _valueStyle.copyWith(color: Colors.blue),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
-          _buildStatItem('当前价格', controller.formatCurrentPrice(controller.state.currentPrice!), Colors.blue),
+          const SizedBox(height: 6),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildStatItem(
+                      '收益率    ',
+                      '${profitStats['profitPercentage'].toStringAsFixed(2)}%',
+                      profitColor,
+                    ),
+                    _buildStatItem(
+                      '浮动盈亏',
+                      controller.formatPriceFourDecimals(profit),
+                      profitColor,
+                    ),
+                  ],
+                ),
+              ),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildStatItem(
+                      'EMA200',
+                      controller.state.ema200 == null ? '—' : controller.formatEmaPrice(controller.state.ema200!),
+                      Colors.blueGrey,
+                    ),
+                    _buildStatItem(
+                      'EMA200偏离',
+                      emaText,
+                      emaColor,
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ],
       ),
     );
@@ -293,6 +389,7 @@ class BuyRecordsView extends StatelessWidget {
 
   Widget _buildCurrencySelector(BuyRecordsController controller) {
     return Card(
+      margin: EdgeInsets.zero,
       child: Padding(
         padding: EdgeInsets.all(_defaultPadding),
         child: Column(
@@ -359,5 +456,31 @@ class BuyRecordsView extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+class _StatsHeaderDelegate extends SliverPersistentHeaderDelegate {
+  _StatsHeaderDelegate({
+    required this.extent,
+    required this.child,
+  });
+
+  final double extent;
+  final Widget child;
+
+  @override
+  double get minExtent => extent;
+
+  @override
+  double get maxExtent => extent;
+
+  @override
+  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
+    return child;
+  }
+
+  @override
+  bool shouldRebuild(covariant _StatsHeaderDelegate oldDelegate) {
+    return extent != oldDelegate.extent || child != oldDelegate.child;
   }
 }

@@ -12,6 +12,9 @@ class BuyRecordsState {
   /// 当前价格
   double? currentPrice;
 
+  /// 当前币种的 200 日 EMA
+  double? ema200;
+
   /// 当前选择的币种
   String currentCurrency = 'btc';
 }
