@@ -9,6 +9,9 @@ import 'buy_records_state.dart';
 
 /// 买入记录页面控制器
 class BuyRecordsController extends GetxController {
+  static const int _emaPeriod = 21;
+  static const int _emaKlineLimit = 250;
+
   /// 状态管理
   final BuyRecordsState state = BuyRecordsState();
 
@@ -53,7 +56,7 @@ class BuyRecordsController extends GetxController {
   /// 获取当前价格
   Future<void> _fetchCurrentPrice() async {
     try {
-      state.ema200 = null;
+      state.ema21w = null;
       final symbol = _currentSymbol;
       final responses = await Future.wait([
         http
@@ -64,7 +67,9 @@ class BuyRecordsController extends GetxController {
             .timeout(const Duration(seconds: 30)),
         http
             .get(
-              Uri.parse('https://api.binance.com/api/v3/klines?symbol=$symbol&interval=1d&limit=250'),
+              Uri.parse(
+                'https://api.binance.com/api/v3/klines?symbol=$symbol&interval=1w&limit=$_emaKlineLimit',
+              ),
               headers: _marketHeaders,
             )
             .timeout(const Duration(seconds: 30)),
@@ -86,20 +91,14 @@ class BuyRecordsController extends GetxController {
       final klineResponse = responses[1];
       if (klineResponse.statusCode == 200) {
         final data = json.decode(klineResponse.body);
-        if (data is List && data.length >= 200) {
-          final closes = data
-              .map<double?>((item) {
-                if (item is List && item.length > 4) {
-                  return double.tryParse(item[4].toString());
-                }
-                return null;
-              })
-              .whereType<double>()
-              .toList();
+        if (data is List && data.length >= _emaPeriod) {
+          final closes = _extractClosedWeeklyCloses(data);
 
-          if (closes.length >= 200) {
-            state.ema200 = _calculateEma(closes, 200);
-            debugPrint('当前${state.currentCurrency.toUpperCase()} EMA200: ${state.ema200}');
+          if (closes.length >= _emaPeriod) {
+            state.ema21w = _calculateEma(closes, _emaPeriod);
+            debugPrint('当前${state.currentCurrency.toUpperCase()} 21W EMA: ${state.ema21w}');
+          } else {
+            debugPrint('已收盘周K数量不足，无法计算 ${_emaPeriod}W EMA');
           }
         }
       } else {
@@ -121,9 +120,29 @@ class BuyRecordsController extends GetxController {
     return ema;
   }
 
-  double? get ema200DeviationPercent {
+  List<double> _extractClosedWeeklyCloses(List<dynamic> candles) {
+    final nowMs = DateTime.now().millisecondsSinceEpoch;
+    final closes = <double>[];
+
+    for (final item in candles) {
+      if (item is! List || item.length <= 6) continue;
+
+      final closeTime = int.tryParse(item[6].toString());
+      final closePrice = double.tryParse(item[4].toString());
+      if (closeTime == null || closePrice == null) continue;
+
+      // 排除尚未收盘的周线，尽量与常见图表默认展示的周线指标口径一致。
+      if (closeTime > nowMs) continue;
+
+      closes.add(closePrice);
+    }
+
+    return closes;
+  }
+
+  double? get ema21wDeviationPercent {
     final current = state.currentPrice;
-    final ema = state.ema200;
+    final ema = state.ema21w;
     if (current == null || ema == null || ema == 0) return null;
     return ((current - ema) / ema) * 100;
   }
@@ -205,7 +224,7 @@ class BuyRecordsController extends GetxController {
     }
   }
 
-  /// 格式化 EMA200（TRX 保留四位小数，其他两位）
+  /// 格式化 21W EMA（TRX 保留四位小数，其他两位）
   String formatEmaPrice(dynamic price) {
     try {
       if (price is num) {

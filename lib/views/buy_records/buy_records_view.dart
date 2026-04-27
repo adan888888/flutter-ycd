@@ -296,7 +296,7 @@ class BuyRecordsView extends StatelessWidget {
     final profit = profitStats['profit'] as double;
     final isProfit = profit >= 0;
     final profitColor = isProfit ? Colors.green : Colors.red;
-    final emaDeviation = controller.ema200DeviationPercent;
+    final emaDeviation = controller.ema21wDeviationPercent;
     final emaColor = emaDeviation == null ? Colors.grey : (emaDeviation >= 0 ? Colors.green : Colors.red);
     final emaText = emaDeviation == null ? '—' : '${emaDeviation >= 0 ? '+' : ''}${emaDeviation.toStringAsFixed(2)}%';
 
@@ -368,12 +368,12 @@ class BuyRecordsView extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _buildStatItem(
-                      'EMA200',
-                      controller.state.ema200 == null ? '—' : controller.formatEmaPrice(controller.state.ema200!),
+                      '21W EMA',
+                      controller.state.ema21w == null ? '—' : controller.formatEmaPrice(controller.state.ema21w!),
                       Colors.blueGrey,
                     ),
                     _buildStatItem(
-                      'EMA200偏离',
+                      '21W EMA偏离',
                       emaText,
                       emaColor,
                     ),
