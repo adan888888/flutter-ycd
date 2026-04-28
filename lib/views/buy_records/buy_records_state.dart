@@ -12,8 +12,8 @@ class BuyRecordsState {
   /// 当前价格
   double? currentPrice;
 
-  /// 当前币种的 21 周 EMA
-  double? ema21w;
+  /// 当前币种的 200 日 SMA（日线收盘价）
+  double? ma200Daily;
 
   /// 当前选择的币种
   String currentCurrency = 'btc';
