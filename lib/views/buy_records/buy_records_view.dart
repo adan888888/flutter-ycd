@@ -177,7 +177,6 @@ class BuyRecordsView extends StatelessWidget {
           children: [
             _buildRecordHeader(controller, index),
             _buildCompactRecordDetails(controller, record),
-            _buildCumulativeStats(controller, index),
           ],
         ),
       ),
@@ -202,7 +201,7 @@ class BuyRecordsView extends StatelessWidget {
     return SliverPersistentHeader(
       pinned: true,
       delegate: _StatsHeaderDelegate(
-        extent: 92,
+        extent: 100,
         child: ColoredBox(
           color: Theme.of(Get.context!).scaffoldBackgroundColor,
           child: Padding(
@@ -271,30 +270,14 @@ class BuyRecordsView extends StatelessWidget {
     );
   }
 
-  Widget _buildCumulativeStats(BuyRecordsController controller, int reversedIndex) {
-    final stats = controller.calculateCumulativeStatsForRow(reversedIndex);
-    if (stats.isEmpty) return const SizedBox.shrink();
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const SizedBox(height: 2),
-        Row(
-          children: [
-            _buildStatItem('成本价', controller.formatCostPrice(stats['averagePrice']), Colors.black),
-            _buildStatItem('累计金额', controller.formatPriceInteger(stats['totalCost']), Colors.black),
-          ],
-        ),
-      ],
-    );
-  }
-
   Widget _buildCurrentProfitStats(BuyRecordsController controller, int index) {
     final profitStats = controller.calculateCurrentProfitStatsForRow(index);
     if (profitStats.isEmpty) return const SizedBox.shrink();
 
+    final cumulativeStats = controller.calculateCumulativeStatsForRow(index);
     final profit = profitStats['profit'] as double;
     final isProfit = profit >= 0;
+    final profitLabel = isProfit ? '浮盈' : '浮亏';
     final profitColor = isProfit ? Colors.green : Colors.red;
     final maDeviation = controller.ma200DailyDeviationPercent;
     final maColor = maDeviation == null ? Colors.grey : (maDeviation >= 0 ? Colors.green : Colors.red);
@@ -302,7 +285,7 @@ class BuyRecordsView extends StatelessWidget {
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(10, 8, 10, 10),
+      padding: const EdgeInsets.fromLTRB(10, 6, 10, 8),
       decoration: BoxDecoration(
         color: _statsPanelBackground,
         borderRadius: BorderRadius.circular(8),
@@ -342,7 +325,7 @@ class BuyRecordsView extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 4),
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -351,14 +334,25 @@ class BuyRecordsView extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _buildStatItem(
-                      '收益率    ',
+                      '累计金额',
+                      cumulativeStats.isEmpty ? '—' : controller.formatPriceInteger(cumulativeStats['totalCost']),
+                      Colors.black,
+                    ),
+                    _buildStatItem(
+                      '收益      ',
                       '${profitStats['profitPercentage'].toStringAsFixed(2)}%',
                       profitColor,
                     ),
-                    _buildStatItem(
-                      '浮动盈亏',
-                      controller.formatPriceFourDecimals(profit),
-                      profitColor,
+                    Row(
+                      children: [
+                        _buildStatItem(
+                          '200MA',
+                          controller.state.ma200Daily == null
+                              ? '—'
+                              : controller.formatMaPrice(controller.state.ma200Daily!),
+                          Colors.blueGrey,
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -368,12 +362,17 @@ class BuyRecordsView extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _buildStatItem(
-                      '200日均线',
-                      controller.state.ma200Daily == null ? '—' : controller.formatMaPrice(controller.state.ma200Daily!),
-                      Colors.blueGrey,
+                      '成本',
+                      cumulativeStats.isEmpty ? '—' : controller.formatCostPrice(cumulativeStats['averagePrice']),
+                      Colors.black,
                     ),
                     _buildStatItem(
-                      '200日均线偏离',
+                      profitLabel,
+                      controller.formatPriceFourDecimals(profit),
+                      profitColor,
+                    ),
+                    _buildStatItem(
+                      '偏离',
                       maText,
                       maColor,
                     ),
