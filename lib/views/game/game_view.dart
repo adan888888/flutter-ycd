@@ -168,7 +168,7 @@ class GameView extends GetView<GameController> {
                                                         height: 1.3 /*行高间距*/,
                                                         wordSpacing: 0 /*相当于padding*/,
                                                         fontSize: 12.5,
-                                                        fontWeight: FontWeight.w500,
+                                                        fontWeight: FontWeight.w400,
                                                         color: ((row * 4 + column) == 26 || (row * 4 + column) == 27)
                                                             ? Colors.green
                                                             : ((row * 4 + column) == 24 || (row * 4 + column) == 22)
@@ -444,7 +444,7 @@ class GameView extends GetView<GameController> {
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
                                   fontSize: 12.5,
-                                  fontWeight: FontWeight.w500,
+                                  fontWeight: FontWeight.w300,
                                   color: controller.state
                                       .getValueColor(controller.state.table2List[index].colmunShuyingzhi.toString()),
                                 ),
@@ -471,7 +471,7 @@ class GameView extends GetView<GameController> {
                           textAlign: TextAlign.right,
                           style: TextStyle(
                             fontSize: 12.5,
-                            fontWeight: FontWeight.w500,
+                            fontWeight: FontWeight.w400,
                             color: controller.state
                                 .getValueColor(controller.state.table2List[index].colmunShuyingzhi.toString()),
                           ),
@@ -499,7 +499,7 @@ class GameView extends GetView<GameController> {
                               textAlign: TextAlign.right,
                               style: TextStyle(
                                 fontSize: 12.5,
-                                fontWeight: FontWeight.w500,
+                                fontWeight: FontWeight.w200,
                                 color: controller.state
                                     .getValueColor(controller.state.table2List[index].colmunShuyingzhiD.toString()),
                               ),
@@ -535,7 +535,7 @@ class GameView extends GetView<GameController> {
                         textAlign: TextAlign.right,
                         style: TextStyle(
                           fontSize: 12.5,
-                          fontWeight: FontWeight.w500,
+                          fontWeight: FontWeight.w400,
                           color: controller.state.currentTextColor,
                         ),
                       ),
