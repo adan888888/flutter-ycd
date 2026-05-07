@@ -74,9 +74,13 @@ class GameController extends GetxController {
         success: (isSuccess, code, message, results) {
           if (isSuccess && results.isNotEmpty) {
             state.table2List.clear();
-            state.table2List = results.reversed.toList();
+            state.table2List = List<Table2Model>.from(results);
             _reloadLuZiTu();
+            if (!state.isBigRoad) {
+              _getLineCharts(applyStatsTail: true);
+            }
             update();
+            scrollBettingListToBottom();
           }
         },
         isShowLoading: false, // 第二个接口不显示loading，避免重复显示
@@ -177,6 +181,44 @@ class GameController extends GetxController {
     });
   }
 
+  /// 投注列表时间升序（最新在底部）。在下一帧（及再下一帧）滚到底，避免首屏 `maxScrollExtent` 尚未算好。
+  void scrollBettingListToBottom() {
+    void go() {
+      if (!scrollController.hasClients) return;
+      final max = scrollController.position.maxScrollExtent;
+      if (!max.isFinite) return;
+      scrollController.jumpTo(max);
+    }
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      go();
+      WidgetsBinding.instance.addPostFrameCallback((_) => go());
+    });
+  }
+
+  /// 顶部插入历史行后恢复视口：用固定行高累计增量（避免 LazyList / EasyRefresh 回弹时 maxScrollExtent 不准）。
+  /// 下拉刷新时 [keptPixels] 可能为负，按 0 处理。
+  void _schedulePreserveScrollAfterPrepend(double keptPixels, int insertedCount) {
+    if (insertedCount <= 0 || !keptPixels.isFinite) return;
+    final delta = GameState.bettingTableRowHeight * insertedCount;
+    final base = keptPixels < 0 ? 0.0 : keptPixels;
+
+    void apply() {
+      if (!scrollController.hasClients) return;
+      final maxS = scrollController.position.maxScrollExtent;
+      if (!maxS.isFinite) return;
+      scrollController.jumpTo((base + delta).clamp(0.0, maxS));
+    }
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      apply();
+      WidgetsBinding.instance.addPostFrameCallback((_) => apply());
+    });
+    // EasyRefresh 收起头部时还会改一次 offset，晚一点再对齐
+    Future.delayed(const Duration(milliseconds: 320), apply);
+    Future.delayed(const Duration(milliseconds: 560), apply);
+  }
+
   /// *
   ///  tempIndex -10000 app第一次进来
   ///  tempIndex -1 取消局部平衡/重启...
@@ -208,7 +250,8 @@ class GameController extends GetxController {
           _reloadLuZiTu(); //路子图直接在本地的数据处理
           update();
         } else {
-          _getLineCharts(); //折线图，通过网络拿。数据排序等 通过查数据库更好处理。(将来最好从本地处理，因为有一个问题，当切换图表的时候时候，有可能不会调用这个_getStatisticalAreasData方法，导致看不到最后一手画的点)
+          // 统计区 totalValue[4] 由服务端按全表重算，用作折线最右一点，避免与 column_current_jin 漂移（如大输赢后末端不更新）
+          _getLineCharts(applyStatsTail: true);
         }
         _delayedTask(); //必须要提一个方法放出去，不然会会卡下面的代码
       },
@@ -412,35 +455,87 @@ class GameController extends GetxController {
             ..remove("table2Id")
             ..addAll({"UserID": int.parse(GetStore.getInstance().userModel.userId)}),
           success: (isSuccess, code, message, results) {
-            _getStatisticalAreasData(-2); //重新计算
-            state.table2List.insert(0, results.first..seq = state.table2List.length + 1); //打一手 记录一笔
+            if (results.isNotEmpty) {
+              state.table2List.add(results.first..seq = state.table2List.length + 1);
+            }
+            _getStatisticalAreasData(-2); //重新计算（回调里会带 applyStatsTail 刷新折线末端）
+            scrollBettingListToBottom();
           },
           failed: (p0, p1) => state.isCanPress = true,
           onModel: (m) => Table2Model.fromJson(m));
     }
   }
 
-  _getLineCharts() {
-    var z = 0;
+  /// 折线：需要完整 75 个点。
+  /// - 本地已加载 ≥75 条时，用 table2List 末尾 75 条（时间升序，与列表一致）。
+  /// - 否则（如首屏只拉 66 条）走 linechartData 接口，从库中取最近 75 笔（id 降序返回，从尾到头填入）。
+  /// - [applyStatsTail]：在刚从统计接口回填后，将最右一点强制为 [totalValue[4]]（本金+累计输赢），与统计区「当前金额」一致。
+  void _getLineCharts({bool applyStatsTail = false}) {
+    final benjin = state.table1List.isNotEmpty ? double.tryParse(state.table1List.last.columnBenjin.toString()) : null;
+    void resetChartPad(double p) {
+      if (state.chartData.length != 75) {
+        state.chartData = List.generate(75, (index) => LineChartDataModel(index, p));
+      } else {
+        for (var i = 0; i < 75; i++) {
+          state.chartData[i].sales = p;
+        }
+      }
+    }
+
+    final pad = benjin ?? (state.chartData.isNotEmpty ? state.chartData[0].sales : 0.0);
+    resetChartPad(pad);
+
+    final list = state.table2List;
+    if (list.length >= 75) {
+      final n = list.length;
+      final start = n - 75;
+      for (var k = 0; k < 75; k++) {
+        final v = list[start + k].columnCurrentJin;
+        if (v != null && v.isNotEmpty) {
+          final parsed = double.tryParse(v);
+          if (parsed != null) {
+            state.chartData[k].sales = parsed;
+          }
+        }
+      }
+      if (applyStatsTail) {
+        _syncChartLastPointWithTotalValue();
+      }
+      update();
+      return;
+    }
+
     BXGet<dynamic>(
       Api.getLinechartData,
       success: (isSuccess, code, message, results) {
-        for (var i = results.length - 1; i >= 0; i--) {
+        if (!isSuccess) return;
+        resetChartPad(benjin ?? (state.chartData.isNotEmpty ? state.chartData[0].sales : 0.0));
+        var z = 0;
+        for (var i = results.length - 1; i >= 0 && z < state.chartData.length; i--) {
           if (results[i].toString().isNotEmpty) {
-            state.chartData[z].sales = double.parse(results[i]);
+            state.chartData[z].sales = double.parse(results[i].toString());
           }
           z++;
         }
+        if (applyStatsTail) {
+          _syncChartLastPointWithTotalValue();
+        }
         update();
-        //解决外面的点跑，里面的线不动
-        // var removeLast = state.chartData.removeLast();
-        // Future.delayed(const Duration(milliseconds: 300), () {
-        //   state.chartData.add(removeLast);
-        //   update();
-        // });
       },
       isShowLoading: false, // 第二个接口不显示loading，避免重复显示
     );
+  }
+
+  /// 与统计区 [totalValue[4]] 对齐折线最右端（第 75 点），对应服务端「本金 + 全表输赢累计」。
+  void _syncChartLastPointWithTotalValue() {
+    if (state.chartData.length != 75) return;
+    if (state.totalValue.length <= 4) return;
+    final raw = MyCharacter.removeChineseCharacters(state.totalValue[4].toString()).trim();
+    if (raw.isEmpty) return;
+    final v = double.tryParse(raw);
+    if (v != null) {
+      state.chartData[74].sales = v;
+    }
   }
 
   getCurrentJin(int i, double playMoney) {
@@ -499,7 +594,7 @@ class GameController extends GetxController {
                 _getStatisticalAreasData(-2);
                 state.js1 = state.js1 - 1;
                 state.totalValue[28] = "${state.js1}/${state.js2}";
-                state.table2List.removeAt(0);
+                state.table2List.removeLast();
                 _reloadLuZiTu();
                 Get.back();
                 update();
@@ -544,7 +639,7 @@ class GameController extends GetxController {
         Loading.show();
         BXPost<Table1Model>(
           Api.restart,
-          params: {"index": state.table2List.first.id},
+          params: {"index": state.table2List.last.id},
           success: (isSuccess, code, message, value) {
             if (isSuccess) {
               // BXLoading.showToast("${value.last.columnRestartIndex}");
@@ -664,7 +759,7 @@ class GameController extends GetxController {
       case 5: //重置流水
         BXPost(
           Api.resetliushui,
-          params: {"resetIndex": (state.table2List.first.id)},
+          params: {"resetIndex": (state.table2List.last.id)},
           success: (bool isSuccess, int code, String message, List<dynamic> results) {},
         );
         break;
@@ -752,13 +847,15 @@ class GameController extends GetxController {
       if (isSuccess) {
         // BXLoading.showToast(message);
         var list = (results.first as Map<String, dynamic>)["sorted_sequence"];
-        for (int i = 0; i < state.table2List.length; i++) {
-          int reverseIndex = list.length - i - 1;
-          if (reverseIndex < 0 || reverseIndex >= list.length) {
+        final n = state.table2List.length;
+        final m = list.length;
+        for (int i = 0; i < n; i++) {
+          final idx = m - n + i;
+          if (idx < 0 || idx >= m) {
             state.table2List[i].colmunShuyingzhiD = '';
-            continue; // ✅ 跳过当前循环，不执行下面的代码
+            continue;
           }
-          state.table2List[i].colmunShuyingzhiD = list[reverseIndex];
+          state.table2List[i].colmunShuyingzhiD = list[idx];
         }
         update();
       }
@@ -951,20 +1048,37 @@ class GameController extends GetxController {
 
   //加载更多
   void onLoadMore() {
-    // last.id 为 null 时 Dio 会发出 last_id= 无值，后端会走错分支；空列表应用 -1 与首屏一致
-    final anchorId = state.table2List.isEmpty ? -1 : (state.table2List.last.id ?? -1);
+    // id 为 null 时 Dio 会发出 last_id= 无值，后端会走错分支；空列表用 -1。
+    // 与后端 LoadMore 一致：数据为 created_at 升序，分页游标为当前已加载中最旧一条（first）的 id。
+    final anchorId = state.table2List.isEmpty ? -1 : (state.table2List.first.id ?? -1);
     BXGet<Table2Model>(Api.loadMore,
-        params: {"last_id": anchorId, "uid": GetStore.getInstance().userModel.userId, "c": 10}, //"c"每页多少个数据
+        params: {"last_id": anchorId, "uid": GetStore.getInstance().userModel.userId, "c": 40}, //"c"每页多少个数据
         success: (isSuccess, code, message, results) {
-          if (isSuccess && results.isNotEmpty) {
-            var temp = <Table2Model>[];
-            temp.addAll(results);
-            temp.addAll(state.table2List.reversed.toList());
-            state.table2List.clear();
-            state.table2List = temp.reversed.toList();
-            update();
+          if (!isSuccess) {
+            refreshcontroller.finishRefresh(IndicatorResult.fail, true);
+            return;
           }
-          refreshcontroller.finishLoad(IndicatorResult.success, isSuccess);
+
+          if (results.isEmpty) {
+            refreshcontroller.finishRefresh(IndicatorResult.noMore, true);
+            return;
+          }
+
+          if (results.isNotEmpty) {
+            double? keptPixels;
+            if (scrollController.hasClients) {
+              keptPixels = scrollController.position.pixels;
+            }
+            state.table2List.insertAll(0, results);
+            if (!state.isBigRoad) {
+              _getLineCharts(applyStatsTail: true);
+            }
+            update();
+            refreshcontroller.finishRefresh(IndicatorResult.success, true);
+            if (keptPixels != null) {
+              _schedulePreserveScrollAfterPrepend(keptPixels, results.length);
+            }
+          }
         },
         onModel: (m) => Table2Model.fromJson(m));
   }
@@ -972,17 +1086,18 @@ class GameController extends GetxController {
   changeChart() {
     _reloadLuZiTu();
     state.isBigRoad = !state.isBigRoad;
+    if (!state.isBigRoad) {
+      _getLineCharts(applyStatsTail: true);
+    }
     update();
   }
 
   //重新加载路子图
   _reloadLuZiTu() {
-    var list =
-        state.table2List.reversed.toList().map((e) => e.colmunShuyingzhi!.startsWith("-") ? "闲家" : "庄家").toList();
+    var list = state.table2List.map((e) => e.colmunShuyingzhi!.startsWith("-") ? "闲家" : "庄家").toList();
     state.initializeBigRoad();
     for (var value in list) {
       updateBigRoad(value);
     }
-    scrollToCurrentPosition();
   }
 }

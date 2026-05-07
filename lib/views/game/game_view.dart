@@ -73,21 +73,21 @@ class GameView extends GetView<GameController> {
                           child: Icon(
                             controller.state.isDarkMode ? Icons.light_mode : Icons.dark_mode,
                             size: 20,
-                            color: Colors.white,
+                            color: controller.state.isDarkMode ? Colors.white : Colors.black87,
                           )),
                       GestureDetector(
                           onTap: () => controller.lockScreen(),
-                          child: const Icon(
+                          child: Icon(
                             Icons.lock,
                             size: 20,
-                            color: Colors.white,
+                            color: controller.state.isDarkMode ? Colors.white : Colors.black87,
                           )),
                       GestureDetector(
                           onTap: () => controller.showBottomFunction(),
-                          child: const Icon(
+                          child: Icon(
                             Icons.edit,
                             size: 20,
-                            color: Colors.white,
+                            color: controller.state.isDarkMode ? Colors.white : Colors.black87,
                           )),
                       const SizedBox(
                         width: 10,
@@ -101,7 +101,10 @@ class GameView extends GetView<GameController> {
                         : controller.state.currentChartBgColor,
                     title: Text(
                       "  $title ${GetStore.getInstance().userModel.nickname}",
-                      style: const TextStyle(fontSize: 12, color: Colors.white),
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: controller.state.isDarkMode ? Colors.white : Colors.black87,
+                      ),
                     )),
               ),
             ),
@@ -160,26 +163,31 @@ class GameView extends GetView<GameController> {
                                                 controller.juBuPingHeng(-1, v: controller.state.totalValue[30]);
                                               }
                                             },
-                                            child: Center(
+                                            child: Align(
+                                              alignment: Alignment.centerRight,
                                               child: FittedBox(
                                                 fit: BoxFit.contain,
-                                                child: Text(
-                                                    style: TextStyle(
-                                                        height: 1.3 /*行高间距*/,
-                                                        wordSpacing: 0 /*相当于padding*/,
-                                                        fontSize: 12.5,
-                                                        fontWeight: FontWeight.w400,
-                                                        color: ((row * 4 + column) == 26 || (row * 4 + column) == 27)
-                                                            ? Colors.green
-                                                            : ((row * 4 + column) == 24 || (row * 4 + column) == 22)
-                                                                ? (controller.state.isDarkMode
-                                                                    ? Colors.orange
-                                                                    : Colors.red)
-                                                                : (row * 4 + column) == 2 &&
-                                                                        controller.state.currentTempIndex != 0
-                                                                    ? Colors.amber
-                                                                    : controller.state.currentTextColor),
-                                                    controller.state.totalValue[row * 4 + column]),
+                                                child: Padding(
+                                                  padding: const EdgeInsets.only(right: 3.0),
+                                                  child: Text(
+                                                      textAlign: TextAlign.left,
+                                                      style: TextStyle(
+                                                          height: 1.35 /*行高间距*/,
+                                                          wordSpacing: 0 /*相当于padding*/,
+                                                          fontSize: 12.5,
+                                                          fontWeight: FontWeight.w400,
+                                                          color: ((row * 4 + column) == 26 || (row * 4 + column) == 27)
+                                                              ? Colors.green
+                                                              : ((row * 4 + column) == 24 || (row * 4 + column) == 22)
+                                                                  ? (controller.state.isDarkMode
+                                                                      ? Colors.orange
+                                                                      : Colors.red)
+                                                                  : (row * 4 + column) == 2 &&
+                                                                          controller.state.currentTempIndex != 0
+                                                                      ? Colors.amber
+                                                                      : controller.state.currentTextColor),
+                                                      controller.state.totalValue[row * 4 + column]),
+                                                ),
                                               ),
                                             ),
                                           );
@@ -240,10 +248,41 @@ class GameView extends GetView<GameController> {
                                             color: controller.state.currentListViewColor,
                                             child: EasyRefresh(
                                               controller: controller.refreshcontroller,
-                                              // onRefresh: () async => controller.onRefresh(),
-                                              onLoad: () async => controller.onLoadMore(), //不要onLoad就没有上拉加载更多
+                                              header: const ClassicHeader(
+                                                clamping: false,
+                                                infiniteOffset: null,
+                                                triggerWhenReach: false,
+                                                triggerWhenRelease: false,
+                                                dragText: '下拉加载',
+                                                armedText: '松开加载',
+                                                readyText: '加载中...',
+                                                processingText: '加载中...',
+                                                processedText: '加载成功',
+                                                noMoreText: '没有更多了',
+                                                failedText: '加载失败',
+                                                messageText: '更新时间 %T',
+                                                showMessage: true,
+                                              ),
+                                              footer: const ClassicFooter(
+                                                clamping: true /*clamping: true 想要自动回弹收起*/,
+                                                infiniteOffset: null /*想要允许无限/持续展开*/,
+                                                triggerWhenReach: false,
+                                                triggerWhenRelease: true /*松开手：才执行 onLoadMore()*/,
+                                                dragText: '上拉加载',
+                                                armedText: '松开加载',
+                                                readyText: '加载中...',
+                                                processingText: '加载中...',
+                                                processedText: '加载成功',
+                                                noMoreText: '没有更多了',
+                                                failedText: '加载失败',
+                                                messageText: '更新时间 %T',
+                                                showMessage: true,
+                                              ),
+                                              onRefresh: () async => controller.onLoadMore(),
+                                              // reverse: true, 上滑加载更多变成下拉加载更多（历史数据）。
+                                              // onLoad: () async => controller.onLoadMore(),
                                               child: ListView.builder(
-                                                reverse: true,
+                                                reverse: false,
                                                 padding: const EdgeInsets.all(10),
                                                 controller: controller.scrollController,
                                                 itemCount: controller.state.table2List.length,
@@ -412,7 +451,7 @@ class GameView extends GetView<GameController> {
                   : Colors.grey.shade100); // 稍深一点的浅灰色
 
           return Container(
-            height: 30,
+            height: GameState.bettingTableRowHeight,
             color: backgroundColor,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -854,6 +893,8 @@ class GameView extends GetView<GameController> {
                                   enabled: true,
                                   handleBuiltInTouches: true,
                                   touchTooltipData: LineTouchTooltipData(
+                                    fitInsideHorizontally: true,
+                                    fitInsideVertically: true,
                                     getTooltipItems: (touchedSpots) {
                                       return touchedSpots.map((touchedSpot) {
                                         return LineTooltipItem(
@@ -894,8 +935,9 @@ class GameView extends GetView<GameController> {
                                     spots: controller.state.chartData
                                         .map((data) => FlSpot(data.year.toDouble(), data.sales))
                                         .toList(),
-                                    isCurved: true,
-                                    color: Colors.white,
+                                    // false：点与点用直线连接；true 会用曲线拟合，在急升急跌处容易「鼓包」略过中间点
+                                    isCurved: false,
+                                    color: controller.state.isDarkMode ? Colors.grey.shade400 : Colors.grey.shade600,
                                     barWidth: 2,
                                     dotData: FlDotData(
                                       show: true,
