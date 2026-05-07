@@ -1002,16 +1002,16 @@ class GameView extends GetView<GameController> {
             onPressed: () {
               switch (i) {
                 case 1: //闲赢
-                  controller.betBecordButton(1, 'table2');
+                  controller.betRecordButton(1, 'table2');
                   break;
                 case 2: //庄赢
-                  controller.betBecordButton(2, 'table2');
+                  controller.betRecordButton(2, 'table2');
                   break;
                 case 3: //闲输
-                  controller.betBecordButton(3, 'table2');
+                  controller.betRecordButton(3, 'table2');
                   break;
                 case 4: //庄输
-                  controller.betBecordButton(4, 'table2');
+                  controller.betRecordButton(4, 'table2');
                   break;
               }
             },

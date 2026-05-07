@@ -181,19 +181,41 @@ class GameController extends GetxController {
     });
   }
 
-  /// 投注列表时间升序（最新在底部）。在下一帧（及再下一帧）滚到底，避免首屏 `maxScrollExtent` 尚未算好。
+  /// 投注列表时间升序（最新在底部）。多帧 + 延迟重试，避免刚 `update()` 后 extent 未算准、或未挂上 Scrollable。
   void scrollBettingListToBottom() {
-    void go() {
+    void jumpToEnd() {
       if (!scrollController.hasClients) return;
       final max = scrollController.position.maxScrollExtent;
-      if (!max.isFinite) return;
+      if (!max.isFinite || max < 0) return;
       scrollController.jumpTo(max);
     }
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      go();
-      WidgetsBinding.instance.addPostFrameCallback((_) => go());
-    });
+    /// 仍未挂上 Scrollable；或已与底部相差较大：再试。extent 尚为 0 但条数较多时视为未布局完。
+    bool needsAnotherTry() {
+      if (!scrollController.hasClients) return state.table2List.isNotEmpty;
+      if (state.table2List.isEmpty) return false;
+      final pos = scrollController.position;
+      final max = pos.maxScrollExtent;
+      if (!max.isFinite) return true;
+      if (max <= 0.5) {
+        return state.table2List.length > 8;
+      }
+      return max - pos.pixels > 1.5;
+    }
+
+    void scheduleFrames(int left) {
+      if (left <= 0) return;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        jumpToEnd();
+        final more = needsAnotherTry() && left > 1;
+        if (more) scheduleFrames(left - 1);
+      });
+    }
+
+    scheduleFrames(10);
+    Future.delayed(const Duration(milliseconds: 50), jumpToEnd);
+    Future.delayed(const Duration(milliseconds: 180), jumpToEnd);
+    Future.delayed(const Duration(milliseconds: 420), jumpToEnd);
   }
 
   /// 顶部插入历史行后恢复视口：用固定行高累计增量（避免 LazyList / EasyRefresh 回弹时 maxScrollExtent 不准）。
@@ -383,7 +405,7 @@ class GameController extends GetxController {
         onModel: (m) => Table1Model.fromJson(m));
   }
 
-  betBecordButton(int i, String tableName, {Table1Model? table1, Table2Model? table2}) {
+  betRecordButton(int i, String tableName, {Table1Model? table1, Table2Model? table2}) {
     if (state.randomValue.isEmpty) {
       Get.snackbar("温馨提示", '请摇塞子',
           duration: const Duration(seconds: 2),
@@ -458,8 +480,9 @@ class GameController extends GetxController {
             if (results.isNotEmpty) {
               state.table2List.add(results.first..seq = state.table2List.length + 1);
             }
-            _getStatisticalAreasData(-2); //重新计算（回调里会带 applyStatsTail 刷新折线末端）
+            update(); // 先让 ListView 用新 itemCount 布局，再滚到底才准
             scrollBettingListToBottom();
+            _getStatisticalAreasData(-2); //重新计算（回调里会带 applyStatsTail 刷新折线末端）
           },
           failed: (p0, p1) => state.isCanPress = true,
           onModel: (m) => Table2Model.fromJson(m));
