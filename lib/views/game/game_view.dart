@@ -164,7 +164,7 @@ class GameView extends GetView<GameController> {
                                               }
                                             },
                                             child: Align(
-                                              alignment: Alignment.centerRight,
+                                              alignment: Alignment.center,
                                               child: FittedBox(
                                                 fit: BoxFit.contain,
                                                 child: Padding(
