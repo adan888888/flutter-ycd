@@ -129,76 +129,92 @@ class GameView extends GetView<GameController> {
                             SizedBox(height: 5),
                             //表格区统计区
                             GetBuilder<GameController>(
-                              builder: (controller) => Table(
-                                border: TableBorder(
-                                  //在右上下的边框线
-                                  // top: BorderSide(color: Colors.red),
-                                  // left: BorderSide(color: Colors.red),
-                                  // right: BorderSide(color: Colors.red),
-                                  // bottom: BorderSide(color: Colors.red),
-                                  //水平线
-                                  horizontalInside: BorderSide(color: controller.state.currentLineColor, width: 0.1),
-                                  //垂直线
-                                  verticalInside: BorderSide(color: controller.state.currentLineColor, width: 1),
+                              builder: (controller) => SizedBox(
+                                height: 150,
+                                child: RefreshIndicator(
+                                  onRefresh: controller.refreshStatsArea,
+                                  child: ListView(
+                                    padding: EdgeInsets.zero,
+                                    physics: const AlwaysScrollableScrollPhysics(),
+                                    children: [
+                                      Table(
+                                        border: TableBorder(
+                                          //在右上下的边框线
+                                          // top: BorderSide(color: Colors.red),
+                                          // left: BorderSide(color: Colors.red),
+                                          // right: BorderSide(color: Colors.red),
+                                          // bottom: BorderSide(color: Colors.red),
+                                          //水平线
+                                          horizontalInside:
+                                              BorderSide(color: controller.state.currentLineColor, width: 0.1),
+                                          //垂直线
+                                          verticalInside:
+                                              BorderSide(color: controller.state.currentLineColor, width: 1),
+                                        ),
+                                        //单元格的宽， map哪列 ：宽度
+                                        columnWidths: const {
+                                          1: FlexColumnWidth(1.3),
+                                          // 0: IntrinsicColumnWidth(), //包裹内容
+                                          0: FlexColumnWidth(1),
+                                          3: FlexColumnWidth(1),
+                                          2: FlexColumnWidth(1.3),
+                                        },
+                                        //垂直的位置
+                                        defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+                                        children: List.generate(
+                                            8,
+                                            (row) => TableRow(
+                                                decoration: BoxDecoration(color: controller.state.currentBgColor),
+                                                children: List.generate(4, (column) {
+                                                  final cellWidget = GestureDetector(
+                                                    onTap: () {
+                                                      // 仅第一行第三列可点：取消局部平衡（currentTempIndex 置 0，眼睛同步消失）
+                                                      if (row == 0 && column == 2) {
+                                                        controller.juBuPingHeng(-1, v: controller.state.totalValue[30]);
+                                                      }
+                                                    },
+                                                    child: Align(
+                                                      alignment: Alignment.center,
+                                                      child: FittedBox(
+                                                        fit: BoxFit.contain,
+                                                        child: Padding(
+                                                          padding: const EdgeInsets.only(right: 3.0),
+                                                          child: Text(
+                                                              textAlign: TextAlign.left,
+                                                              style: TextStyle(
+                                                                  height: 1.35 /*行高间距*/,
+                                                                  wordSpacing: 0 /*相当于padding*/,
+                                                                  fontSize: 12.5,
+                                                                  fontWeight: FontWeight.w400,
+                                                                  color: ((row * 4 + column) == 26 ||
+                                                                          (row * 4 + column) == 27)
+                                                                      ? Colors.green
+                                                                      : ((row * 4 + column) == 24 ||
+                                                                              (row * 4 + column) == 22)
+                                                                          ? (controller.state.isDarkMode
+                                                                              ? Colors.orange
+                                                                              : Colors.red)
+                                                                          : (row * 4 + column) == 2 &&
+                                                                                  controller.state.currentTempIndex != 0
+                                                                              ? Colors.amber
+                                                                              : controller.state.currentTextColor),
+                                                              controller.state.totalValue[row * 4 + column]),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  );
+                                                  return Tooltip(
+                                                    message: controller.state.description[row].elementAt(column),
+                                                    preferBelow: true,
+                                                    verticalOffset: 10,
+                                                    waitDuration: const Duration(seconds: 3),
+                                                    child: cellWidget,
+                                                  );
+                                                }).toList())).toList(),
+                                      ),
+                                    ],
+                                  ),
                                 ),
-                                //单元格的宽， map哪列 ：宽度
-                                columnWidths: const {
-                                  1: FlexColumnWidth(1.3),
-                                  // 0: IntrinsicColumnWidth(), //包裹内容
-                                  0: FlexColumnWidth(1),
-                                  3: FlexColumnWidth(1),
-                                  2: FlexColumnWidth(1.3),
-                                },
-                                //垂直的位置
-                                defaultVerticalAlignment: TableCellVerticalAlignment.middle,
-                                children: List.generate(
-                                    8,
-                                    (row) => TableRow(
-                                        decoration: BoxDecoration(color: controller.state.currentBgColor),
-                                        children: List.generate(4, (column) {
-                                          final cellWidget = GestureDetector(
-                                            onTap: () {
-                                              // 仅第一行第三列可点：取消局部平衡（currentTempIndex 置 0，眼睛同步消失）
-                                              if (row == 0 && column == 2) {
-                                                controller.juBuPingHeng(-1, v: controller.state.totalValue[30]);
-                                              }
-                                            },
-                                            child: Align(
-                                              alignment: Alignment.center,
-                                              child: FittedBox(
-                                                fit: BoxFit.contain,
-                                                child: Padding(
-                                                  padding: const EdgeInsets.only(right: 3.0),
-                                                  child: Text(
-                                                      textAlign: TextAlign.left,
-                                                      style: TextStyle(
-                                                          height: 1.35 /*行高间距*/,
-                                                          wordSpacing: 0 /*相当于padding*/,
-                                                          fontSize: 12.5,
-                                                          fontWeight: FontWeight.w400,
-                                                          color: ((row * 4 + column) == 26 || (row * 4 + column) == 27)
-                                                              ? Colors.green
-                                                              : ((row * 4 + column) == 24 || (row * 4 + column) == 22)
-                                                                  ? (controller.state.isDarkMode
-                                                                      ? Colors.orange
-                                                                      : Colors.red)
-                                                                  : (row * 4 + column) == 2 &&
-                                                                          controller.state.currentTempIndex != 0
-                                                                      ? Colors.amber
-                                                                      : controller.state.currentTextColor),
-                                                      controller.state.totalValue[row * 4 + column]),
-                                                ),
-                                              ),
-                                            ),
-                                          );
-                                          return Tooltip(
-                                            message: controller.state.description[row].elementAt(column),
-                                            preferBelow: true,
-                                            verticalOffset: 10,
-                                            waitDuration: const Duration(seconds: 3),
-                                            child: cellWidget,
-                                          );
-                                        }).toList())).toList(),
                               ),
                             ),
                             //按钮功能区
@@ -484,8 +500,7 @@ class GameView extends GetView<GameController> {
                                 style: TextStyle(
                                   fontSize: 12.5,
                                   fontWeight: FontWeight.w300,
-                                  color: controller.state
-                                      .getValueColor(controller.state.table2List[index].colmunShuyingzhi.toString()),
+                                  color: controller.state.isDarkMode ? Colors.white70 : Colors.black45,
                                 ),
                               ),
                             ),

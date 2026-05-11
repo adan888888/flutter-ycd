@@ -247,7 +247,8 @@ class GameController extends GetxController {
   ///  tempIndex -2 确保不会破坏局部平衡-->每次下注后（recordbutton() ，改变数据库里面的值等 ...）
   ///  tempIndex >2 点击进行局部平衡
   ///
-  void _getStatisticalAreasData(int? tempIndex) {
+  Future<void> _getStatisticalAreasData(int? tempIndex) {
+    final completer = Completer<void>();
     BXGet<dynamic>(
       Api.getStatisticalAreasData,
       params: {"tempIndex": tempIndex},
@@ -276,8 +277,18 @@ class GameController extends GetxController {
           _getLineCharts(applyStatsTail: true);
         }
         _delayedTask(); //必须要提一个方法放出去，不然会会卡下面的代码
+        if (!completer.isCompleted) {
+          completer.complete();
+        }
+      },
+      failed: (message, _) {
+        state.isCanPress = true;
+        if (!completer.isCompleted) {
+          completer.completeError(message);
+        }
       },
     );
+    return completer.future;
   }
 
   Future<void> _delayedTask() async {
@@ -381,7 +392,8 @@ class GameController extends GetxController {
 
   _next(int min, int max) => min + Random().nextInt(max - min + 1);
 
-  _queryMysqlTable1() {
+  Future<void> _queryMysqlTable1() {
+    final completer = Completer<void>();
     BXGet<Table1Model>(Api.getTable1,
         isShowLoading: false,
         success: (isSuccess, code, message, value) {
@@ -394,15 +406,20 @@ class GameController extends GetxController {
                     (index) => LineChartDataModel(index, double.parse(state.table1List.last.columnBenjin.toString())))
                 .toList();
           }
-          state.isRefreshing = false;
           update();
+          if (!completer.isCompleted) {
+            completer.complete();
+          }
         },
         failed: (p0, p1) {
           refreshcontroller.finishRefresh(IndicatorResult.fail);
           state.isCanPress = true;
-          state.isRefreshing = false;
+          if (!completer.isCompleted) {
+            completer.completeError(p0);
+          }
         },
         onModel: (m) => Table1Model.fromJson(m));
+    return completer.future;
   }
 
   betRecordButton(int i, String tableName, {Table1Model? table1, Table2Model? table2}) {
@@ -478,7 +495,7 @@ class GameController extends GetxController {
             ..addAll({"UserID": int.parse(GetStore.getInstance().userModel.userId)}),
           success: (isSuccess, code, message, results) {
             if (results.isNotEmpty) {
-              state.table2List.add(results.first..seq = state.table2List.length + 1);
+              state.table2List.add(results.first..seq = state.table2List.last.seq! + 1);
             }
             update(); // 先让 ListView 用新 itemCount 布局，再滚到底才准
             scrollBettingListToBottom();
@@ -1063,10 +1080,23 @@ class GameController extends GetxController {
     if (state.table2List.isNotEmpty) _getStatisticalAreasData(index);
   }
 
+  Future<void> refreshStatsArea() async {
+    state.isRefreshing = true;
+    update();
+    try {
+      await _queryMysqlTable1();
+      await _getStatisticalAreasData(-2);
+    } catch (e) {
+      debugPrint('统计区下拉刷新失败: $e');
+    } finally {
+      state.isRefreshing = false;
+      update();
+    }
+  }
+
   //下拉刷新
   void onRefresh() {
-    state.isRefreshing = true;
-    _queryMysqlTable1();
+    refreshStatsArea();
   }
 
   //加载更多
