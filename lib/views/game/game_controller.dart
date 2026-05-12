@@ -306,6 +306,9 @@ class GameController extends GetxController {
 
   String pVal2() {
     if (state.bettingMoney.isEmpty || !state.bettingMoney.isNum) return '';
+    state.bettingMoney = state.randomValue == '庄'
+        ? (double.parse(textEditingController.text) * double.parse(state.totalValue[30])).toStringAsFixed(2)
+        : textEditingController.text;
     var x = double.parse(state.totalValue[18]); //总输赢
     var y = double.parse(state.bettingMoney); //输入框下注额
     var z = double.parse(MyCharacter.removeChineseCharacters(state.totalValue[14])); //净胜
@@ -327,6 +330,9 @@ class GameController extends GetxController {
 
   String pVal1() {
     if (state.bettingMoney.isEmpty || !state.bettingMoney.isNum) return '';
+    state.bettingMoney = state.randomValue == '庄'
+        ? (double.parse(textEditingController.text) * double.parse(state.totalValue[30])).toStringAsFixed(2)
+        : textEditingController.text;
     var x = double.parse(state.totalValue[17]); //总输赢
     var y = double.parse(state.bettingMoney); //输入框下注额
     var z = double.parse(MyCharacter.removeChineseCharacters(state.totalValue[13])); //净胜
