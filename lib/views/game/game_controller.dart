@@ -43,6 +43,9 @@ class GameController extends GetxController {
 
   final ScrollController roadMapScrollController = ScrollController(); //路子图的controller
 
+  /// 并发多次 [_getLineCharts] 时仅采纳最近一次发起的 `linechartData` 回调，避免旧响应把已画好的曲线冲掉。
+  int _lineChartRequestGen = 0;
+
   @override
   void onInit() {
     super.onInit();
@@ -469,9 +472,8 @@ class GameController extends GetxController {
             state.table1List = value;
             state.totalValue[0] = '${state.table1List.last.columnBenjin}'; //本金
             state.totalValue[19] = '${state.table1List.last.columnMean}'; //期望值
-            state.chartData = List.generate(75,
-                    (index) => LineChartDataModel(index, double.parse(state.table1List.last.columnBenjin.toString())))
-                .toList();
+            // 折线形状必须由 [_getLineCharts]（table2 末尾或 linechartData）提供；此处若用本金铺满 75 点，
+            // 会在接口已画出真实曲线之后覆盖成一条水平线（本金为 0 时即为「全 0」）。
             _syncLocalTempIndexWithBackendState();
           } else {
             state.currentTempIndex = 0;
@@ -581,6 +583,7 @@ class GameController extends GetxController {
   /// - 否则（如首屏只拉 66 条）走 linechartData 接口，从库中取最近 75 笔（id 降序返回，从尾到头填入）。
   /// - [applyStatsTail]：在刚从统计接口回填后，将最右一点强制为 [totalValue[4]]（本金+累计输赢），与统计区「当前金额」一致。
   void _getLineCharts({bool applyStatsTail = false}) {
+    final gen = ++_lineChartRequestGen;
     final benjin = state.table1List.isNotEmpty ? double.tryParse(state.table1List.last.columnBenjin.toString()) : null;
     void resetChartPad(double p) {
       if (state.chartData.length != 75) {
@@ -618,6 +621,7 @@ class GameController extends GetxController {
     BXGet<dynamic>(
       Api.getLinechartData,
       success: (isSuccess, code, message, results) {
+        if (gen != _lineChartRequestGen) return;
         if (!isSuccess) return;
         resetChartPad(benjin ?? (state.chartData.isNotEmpty ? state.chartData[0].sales : 0.0));
         var z = 0;

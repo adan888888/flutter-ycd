@@ -23,8 +23,9 @@ class GameState {
   static const double sflColWidth = 32; // 胜负路固定宽
   /// 下注列：约 5 个数字宽度；超出时用 FittedBox 缩小字体（同统计区）
   static const double betColWidth = 45;
+
   /// 投注记录表每一行高度（与 game_view._buildItem 一致，用于顶部插入后恢复滚动位置）
-  static const double bettingTableRowHeight = 30;
+  static const double bettingTableRowHeight = 26;
 
   var lineColor = Colors.black87.withValues(alpha: 0.8);
   var listViewColor = Colors.grey.shade50; // 浅灰白色

@@ -130,7 +130,7 @@ class GameView extends GetView<GameController> {
                             //表格区统计区
                             GetBuilder<GameController>(
                               builder: (controller) => SizedBox(
-                                height: 150,
+                                height: 145,
                                 child: RefreshIndicator(
                                   onRefresh: controller.refreshStatsArea,
                                   child: ListView(
@@ -319,9 +319,12 @@ class GameView extends GetView<GameController> {
                                     SizedBox(width: 3),
                                     GestureDetector(
                                       onTap: () => controller.sort(),
-                                      child: Icon(
-                                        CupertinoIcons.ant_fill,
-                                        color: controller.state.currentTextColor,
+                                      child: Padding(
+                                        padding: const EdgeInsets.only(left: 5.0),
+                                        child: Icon(
+                                          CupertinoIcons.ant_fill,
+                                          color: controller.state.currentTextColor,
+                                        ),
                                       ),
                                     ),
                                     SizedBox(width: 5),
@@ -426,15 +429,15 @@ class GameView extends GetView<GameController> {
                                   height: 30,
                                   decoration: BoxDecoration(
                                     color: controller.state.isDarkMode
-                                        ? Colors.white.withValues(alpha: 0.2)
-                                        : Colors.black.withValues(alpha: 0.2),
+                                        ? Colors.white.withValues(alpha: 0.1)
+                                        : Colors.black.withValues(alpha: 0.1),
                                     shape: BoxShape.circle,
                                   ),
                                   child: Icon(
                                     Icons.keyboard_arrow_down,
                                     color: controller.state.isDarkMode
-                                        ? Colors.white.withValues(alpha: 0.4)
-                                        : Colors.black.withValues(alpha: 0.4),
+                                        ? Colors.white.withValues(alpha: 0.1)
+                                        : Colors.black.withValues(alpha: 0.1),
                                     size: 20,
                                   ),
                                 ),
@@ -460,7 +463,7 @@ class GameView extends GetView<GameController> {
           // 根据index的奇偶性设置不同的背景色
           final backgroundColor = actualIndex % 2 == 0
               ? (controller.state.isDarkMode
-                  ? const Color(0xFF243447) // 深蓝灰色（稍浅）
+                  ? const Color(0xFF314154) // 深蓝灰色（再浅一档，与奇数行区分仍在）
                   : Colors.grey.shade50) // 浅灰白色
               : (controller.state.isDarkMode
                   ? const Color(0xFF1E2A3A) // 深蓝色（与背景色一致）
