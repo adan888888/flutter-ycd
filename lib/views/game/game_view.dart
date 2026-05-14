@@ -463,7 +463,7 @@ class GameView extends GetView<GameController> {
           // 根据index的奇偶性设置不同的背景色
           final backgroundColor = actualIndex % 2 == 0
               ? (controller.state.isDarkMode
-                  ? const Color(0xFF314154) // 深蓝灰色（再浅一档，与奇数行区分仍在）
+                  ? const Color(0xFF2B3B4E) // 深蓝灰色（介于两行深浅之间）
                   : Colors.grey.shade50) // 浅灰白色
               : (controller.state.isDarkMode
                   ? const Color(0xFF1E2A3A) // 深蓝色（与背景色一致）
