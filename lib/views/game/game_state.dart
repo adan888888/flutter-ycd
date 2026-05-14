@@ -16,7 +16,7 @@ class GameState {
   var bettingMoney = '';
   var js1 = 0; //随机总数
   var js2 = 0;
-  int currentTempIndex = 0; //局部平衡的临时变量（与列表左侧眼睛标记为同一行 id）
+  int currentTempIndex = 0; // 局部平衡锚点行 id（与列表眼睛一致）；持久化为服务端 table1.temp_index → Table1Model.tempIndex
 
   /// 列表各列固定宽度（game_view 投注记录行；过长用 FittedBox 缩小字体）
   static const double seqColMaxWidth = 34; // 序号+眼睛，约 4 个数字

@@ -68,23 +68,43 @@ class GameController extends GetxController {
     _queryMysqlTable1();
     //2。起始要拿到统计区数据
     _getStatisticalAreasData(-10000);
-    //3。启始先查66条数据
-    BXGet<Table2Model>(Api.loadMore,
-        params: {"last_id": -1, "uid": GetStore.getInstance().userModel.userId, "c": 66}, //"c"每页多少个数据
-        success: (isSuccess, code, message, results) {
-          if (isSuccess && results.isNotEmpty) {
-            state.table2List.clear();
-            state.table2List = List<Table2Model>.from(results);
-            _reloadLuZiTu();
-            if (!state.isBigRoad) {
-              _getLineCharts(applyStatsTail: true);
-            }
-            update();
-            scrollBettingListToBottom();
+    //3。起始先查66条数据（与 [_reloadBettingListTail] 逻辑一致）
+    _reloadBettingListTail();
+  }
+
+  /// 按最新一页重新拉取投注记录（`last_id: -1`，与进入页面时一致）。
+  /// [minCount] 至少条数；若已通过上拉加载更多历史，则用当前条数避免刷新后列表变短。
+  /// **局部平衡锚点 id 若不在本窗口内**：不扩列表、不特殊处理；该行不在 `table2List` 时眼睛不出现即可。
+  Future<void> _reloadBettingListTail({int minCount = 66}) async {
+    final completer = Completer<void>();
+    final n = state.table2List.length > minCount ? state.table2List.length : minCount;
+    BXGet<Table2Model>(
+      Api.loadMore,
+      params: {"last_id": -1, "uid": GetStore.getInstance().userModel.userId, "c": n},
+      success: (isSuccess, code, message, results) {
+        if (isSuccess && results.isNotEmpty) {
+          state.table2List.clear();
+          state.table2List = List<Table2Model>.from(results);
+          _reloadLuZiTu();
+          if (!state.isBigRoad) {
+            _getLineCharts(applyStatsTail: true);
           }
-        },
-        isShowLoading: false, // 第二个接口不显示loading，避免重复显示
-        onModel: (m) => Table2Model.fromJson(m));
+          update();
+          scrollBettingListToBottom();
+        }
+        if (!completer.isCompleted) {
+          completer.complete();
+        }
+      },
+      failed: (_, __) {
+        if (!completer.isCompleted) {
+          completer.complete();
+        }
+      },
+      isShowLoading: false,
+      onModel: (m) => Table2Model.fromJson(m),
+    );
+    return completer.future;
   }
 
   /// 更新大路图
@@ -241,6 +261,37 @@ class GameController extends GetxController {
     Future.delayed(const Duration(milliseconds: 560), apply);
   }
 
+  /// 局部平衡锚点（投注列表「眼睛」行 id）：以后端 **table_yanchendao1.temp_index** 为准，
+  /// 对应客户端 `table1List.last.tempIndex`；值为整数且 **>2** 视为有效 table2 主键 id。
+  /// **temp_index 为 -1**：取消局部平衡，`currentTempIndex` 固定为 **0**。
+  /// 若无 table1 数据则退回统计接口回填的 `totalValue[30]`（兼容冷启动顺序）。
+  /// **锚点 id 不在当前 `table2List` 时**：不处理列表窗口（不保证眼睛可见）；仅保持 `currentTempIndex` 与配置一致。
+  void _syncLocalTempIndexWithBackendState() {
+    if (state.table1List.isNotEmpty) {
+      final raw = state.table1List.last.tempIndex?.trim() ?? '';
+      final v = int.tryParse(raw);
+      // 后端 temp_index 为 -1：取消局部平衡，锚点归零
+      if (v == -1) {
+        state.currentTempIndex = 0;
+        return;
+      }
+      state.currentTempIndex = (v != null && v > 2) ? v : 0;
+      return;
+    }
+    if (state.totalValue.length > 30) {
+      final raw = state.totalValue[30].toString().trim();
+      if (raw.isEmpty) return;
+      final v = int.tryParse(raw);
+      if (v == -1) {
+        state.currentTempIndex = 0;
+        return;
+      }
+      if (v != null && v > 2) {
+        state.currentTempIndex = v;
+      }
+    }
+  }
+
   /// *
   ///  tempIndex -10000 app第一次进来
   ///  tempIndex -1 取消局部平衡/重启...
@@ -255,30 +306,40 @@ class GameController extends GetxController {
       success: (isSuccess, code, message, results) {
         state.totalValue = results.map((e) => e.toString()).toList();
         state.totalValue[28] = "${state.js1}/${state.js2}";
-        //先用30这个位置的值来判断，现在是不是局部平衡的状态。解决退出这个界面再进来时候的小优化
-        if (state.totalValue[30].toString().isNotEmpty && int.parse(state.totalValue[30]) > 2) {
-          state.currentTempIndex = int.parse(state.totalValue[30]);
-        }
-        //预测平均值
-        if (textEditingController.text.isNotEmpty) {
-          ///总体
-          state.totalValue[20] = pVal1();
 
-          ///局部
-          state.totalValue[24] = pVal2();
-        }
-        state.isCanPress = true;
+        void continueAfterStatsReady() {
+          _syncLocalTempIndexWithBackendState();
+          //预测平均值
+          if (textEditingController.text.isNotEmpty) {
+            ///总体
+            state.totalValue[20] = pVal1();
 
-        if (state.isBigRoad) {
-          _reloadLuZiTu(); //路子图直接在本地的数据处理
-          update();
+            ///局部
+            state.totalValue[24] = pVal2();
+          }
+          state.isCanPress = true;
+
+          if (state.isBigRoad) {
+            _reloadLuZiTu(); //路子图直接在本地的数据处理
+            update();
+          } else {
+            // 统计区 totalValue[4] 由服务端按全表重算，用作折线最右一点，避免与 column_current_jin 漂移（如大输赢后末端不更新）
+            _getLineCharts(applyStatsTail: true);
+          }
+          _delayedTask(); //必须要提一个方法放出去，不然会会卡下面的代码
+          if (!completer.isCompleted) {
+            completer.complete();
+          }
+        }
+
+        // 取消局部平衡(-1) 或 选中锚点行(>2) 时后端会更新 table1.temp_index；须先拉 table1 再同步，
+        // 否则会沿用内存里旧的 temp_index，把 currentTempIndex 又写回去（取消失效）。
+        final ti = tempIndex;
+        final needsFreshTable1 = ti == -1 || (ti != null && ti > 2);
+        if (needsFreshTable1) {
+          _queryMysqlTable1().then((_) => continueAfterStatsReady()).catchError((_) => continueAfterStatsReady());
         } else {
-          // 统计区 totalValue[4] 由服务端按全表重算，用作折线最右一点，避免与 column_current_jin 漂移（如大输赢后末端不更新）
-          _getLineCharts(applyStatsTail: true);
-        }
-        _delayedTask(); //必须要提一个方法放出去，不然会会卡下面的代码
-        if (!completer.isCompleted) {
-          completer.complete();
+          continueAfterStatsReady();
         }
       },
       failed: (message, _) {
@@ -411,6 +472,9 @@ class GameController extends GetxController {
             state.chartData = List.generate(75,
                     (index) => LineChartDataModel(index, double.parse(state.table1List.last.columnBenjin.toString())))
                 .toList();
+            _syncLocalTempIndexWithBackendState();
+          } else {
+            state.currentTempIndex = 0;
           }
           update();
           if (!completer.isCompleted) {
@@ -1086,12 +1150,14 @@ class GameController extends GetxController {
     if (state.table2List.isNotEmpty) _getStatisticalAreasData(index);
   }
 
+  //统计区的下拉刷新
   Future<void> refreshStatsArea() async {
     state.isRefreshing = true;
     update();
     try {
       await _queryMysqlTable1();
       await _getStatisticalAreasData(-2);
+      await _reloadBettingListTail();
     } catch (e) {
       debugPrint('统计区下拉刷新失败: $e');
     } finally {
