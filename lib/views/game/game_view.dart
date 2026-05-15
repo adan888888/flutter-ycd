@@ -473,7 +473,6 @@ class GameView extends GetView<GameController> {
             height: GameState.bettingTableRowHeight,
             color: backgroundColor,
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
                 // 标记+序号：固定列宽；数字过长时缩小字体（与下注列一致）
                 GestureDetector(
@@ -492,31 +491,30 @@ class GameView extends GetView<GameController> {
                         )
                       : SizedBox(
                           width: GameState.seqColMaxWidth,
-                          child: Center(
-                            child: FittedBox(
-                              fit: BoxFit.scaleDown,
-                              alignment: Alignment.center,
-                              child: Text(
-                                "${controller.state.table2List[index].seq}",
-                                maxLines: 1,
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  fontSize: 12.5,
-                                  fontWeight: FontWeight.w300,
-                                  color: controller.state.isDarkMode ? Colors.white70 : Colors.black45,
-                                ),
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            alignment: Alignment.center,
+                            child: Text(
+                              "${controller.state.table2List[index].seq}",
+                              maxLines: 1,
+                              style: TextStyle(
+                                fontSize: 12.5,
+                                fontWeight: FontWeight.w300,
+                                color: controller.state.isDarkMode ? Colors.white70 : Colors.black45,
                               ),
                             ),
                           ),
                         ),
                 ),
 
-                // 输赢列：固定列宽；过长缩小字体
-                GestureDetector(
-                  onTap: () => controller.juBuPingHeng(controller.state.table2List[index].id!,
-                      v: controller.state.totalValue[30]),
-                  child: SizedBox(
-                    width: GameState.betColWidth,
+                // 输赢列：与下一列均分剩余宽度；过长缩小字体
+                Expanded(
+                  flex: 1,
+                  child: GestureDetector(
+                    onTap: () {
+                      /*  controller.juBuPingHeng(controller.state.table2List[index].id!,
+                        v: controller.state.totalValue[30]); */
+                    },
                     child: Align(
                       alignment: Alignment.centerRight,
                       child: FittedBox(
@@ -537,9 +535,10 @@ class GameView extends GetView<GameController> {
                     ),
                   ),
                 ),
-                // 消数列：固定列宽；数字区过长缩小字体，右侧保留删除图标
-                SizedBox(
-                  width: GameState.betColWidth,
+                SizedBox(width: 5),
+                // 消数列：与输赢列均分剩余宽度；数字区过长缩小字体，右侧保留删除图标
+                Expanded(
+                  flex: 1,
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.end,
                     crossAxisAlignment: CrossAxisAlignment.center,
