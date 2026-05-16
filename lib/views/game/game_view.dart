@@ -233,11 +233,16 @@ class GameView extends GetView<GameController> {
                                   _buildButton(controller.state.buttonNegativeBgColor, "B-", 4),
                                   _divier2(controller.state.currentTextColor, 38),
                                   TextButton(
+                                    style: TextButton.styleFrom(
+                                      padding: const EdgeInsets.symmetric(vertical: 0.0, horizontal: 4.0),
+                                      minimumSize: Size.zero,
+                                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                    ),
                                     onPressed: () => controller.deleteLast(),
                                     child: Text(
-                                      "Delete",
+                                      "DEL",
                                       style: TextStyle(
-                                        fontSize: 18.sp,
+                                        fontSize: 14.sp,
                                         color: controller.state.isDarkMode ? Colors.white70 : Colors.black45,
                                       ),
                                     ),
@@ -246,7 +251,7 @@ class GameView extends GetView<GameController> {
                                   GestureDetector(
                                     onTap: controller.reStart,
                                     child: Padding(
-                                      padding: const EdgeInsets.symmetric(vertical: 2.0, horizontal: 8.0),
+                                      padding: const EdgeInsets.symmetric(vertical: 0.0, horizontal: 2.0),
                                       child: Image.asset(height: 35, width: 35, 'assets/images/restart3.png'),
                                     ),
                                   )
