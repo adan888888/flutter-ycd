@@ -774,9 +774,7 @@ class GameView extends GetView<GameController> {
             : (controller.state.chartData.isNotEmpty
                 ? SizedBox(
                     height: 120,
-                    child: GestureDetector(
-                      onTap: () => controller.changeChart(),
-                      child: Container(
+                    child: Container(
                         color: controller.state.currentChartBgColor,
                         padding: const EdgeInsets.only(top: 8.0, right: 0.0, bottom: 8.0), // 去掉左边内边距
                         child: Builder(
@@ -914,6 +912,12 @@ class GameView extends GetView<GameController> {
                                 lineTouchData: LineTouchData(
                                   enabled: true,
                                   handleBuiltInTouches: true,
+                                  touchCallback: (FlTouchEvent event, LineTouchResponse? response) {
+                                    // 单击抬起：切换路子图（内置仍会处理 tooltip / 高亮）
+                                    if (event is FlTapUpEvent) {
+                                      controller.changeChart();
+                                    }
+                                  },
                                   touchTooltipData: LineTouchTooltipData(
                                     fitInsideHorizontally: true,
                                     fitInsideVertically: true,
@@ -997,7 +1001,6 @@ class GameView extends GetView<GameController> {
                           },
                         ),
                       ),
-                    ),
                   )
                 : const Text('data')),
       );

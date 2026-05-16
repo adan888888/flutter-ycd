@@ -204,6 +204,18 @@ class GameController extends GetxController {
     });
   }
 
+  /// 路子图数据变更后调度滚动：`update()` 之后 extent 可能尚未更新，多帧 + 短延迟与投注列表兜底一致。
+  void _scheduleRoadMapScrollAfterRebuild() {
+    if (!state.hasBigRoadData) return;
+    void tick() => scrollToCurrentPosition();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      tick();
+      WidgetsBinding.instance.addPostFrameCallback((_) => tick());
+    });
+    Future.delayed(const Duration(milliseconds: 50), tick);
+    Future.delayed(const Duration(milliseconds: 180), tick);
+  }
+
   /// 投注列表时间升序（最新在底部）。多帧 + 延迟重试，避免刚 `update()` 后 extent 未算准、或未挂上 Scrollable。
   void scrollBettingListToBottom() {
     void jumpToEnd() {
@@ -1219,6 +1231,10 @@ class GameController extends GetxController {
       _getLineCharts(applyStatsTail: true);
     }
     update();
+    // 切到大路子图时组件本帧才挂上 Scrollable，须在 update 之后再调度一次滚动。
+    if (state.isBigRoad) {
+      _scheduleRoadMapScrollAfterRebuild();
+    }
   }
 
   //重新加载路子图
@@ -1228,5 +1244,6 @@ class GameController extends GetxController {
     for (var value in list) {
       updateBigRoad(value);
     }
+    _scheduleRoadMapScrollAfterRebuild();
   }
 }
