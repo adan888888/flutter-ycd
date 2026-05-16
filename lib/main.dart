@@ -38,6 +38,7 @@ Future<void> main() async {
   Hive.init(hivePath);
   // 初始化存储器
   await StorageUtil.init();
+  await GetStore.initStorageNamespace();
   //检查登录状态
   GetStore.getInstance().checkLoginStatus();
   //加载默认语言
