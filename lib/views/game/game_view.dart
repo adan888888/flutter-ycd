@@ -178,7 +178,7 @@ class GameView extends GetView<GameController> {
                                                       child: FittedBox(
                                                         fit: BoxFit.contain,
                                                         child: Padding(
-                                                          padding: const EdgeInsets.only(right: 3.0),
+                                                          padding: const EdgeInsets.only(right: 3.0,left: 3.0),
                                                           child: Text(
                                                               textAlign: TextAlign.left,
                                                               style: TextStyle(
