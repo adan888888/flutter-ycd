@@ -170,7 +170,7 @@ class GameView extends GetView<GameController> {
                                                     onTap: () {
                                                       // 仅第一行第三列可点：取消局部平衡（currentTempIndex 置 0，眼睛同步消失）
                                                       if (row == 0 && column == 2) {
-                                                        controller.juBuPingHeng(-1, v: controller.state.totalValue[30]);
+                                                        controller.juBuPingHeng(-1, v: controller.state.totalValue[29]);
                                                       }
                                                     },
                                                     child: Align(

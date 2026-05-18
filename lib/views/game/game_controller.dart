@@ -279,7 +279,7 @@ class GameController extends GetxController {
   /// 局部平衡锚点（投注列表「眼睛」行 id）：以后端 **table_yanchendao1.temp_index** 为准，
   /// 对应客户端 `table1List.last.tempIndex`；值为整数且 **>2** 视为有效 table2 主键 id。
   /// **temp_index 为 -1**：取消局部平衡，`currentTempIndex` 固定为 **0**。
-  /// 若无 table1 数据则退回统计接口回填的 `totalValue[30]`（兼容冷启动顺序）。
+  /// 若无 table1 数据则退回统计接口回填的 `totalValue[29]`（兼容冷启动顺序）。
   /// **锚点 id 不在当前 `table2List` 时**：不处理列表窗口（不保证眼睛可见）；仅保持 `currentTempIndex` 与配置一致。
   void _syncLocalTempIndexWithBackendState() {
     if (state.table1List.isNotEmpty) {
@@ -293,8 +293,8 @@ class GameController extends GetxController {
       state.currentTempIndex = (v != null && v > 2) ? v : 0;
       return;
     }
-    if (state.totalValue.length > 30) {
-      final raw = state.totalValue[30].toString().trim();
+    if (state.totalValue.length > 29) {
+      final raw = state.totalValue[29].toString().trim();
       if (raw.isEmpty) return;
       final v = int.tryParse(raw);
       if (v == -1) {
@@ -369,7 +369,7 @@ class GameController extends GetxController {
 
   Future<void> _delayedTask() async {
     Future.delayed(const Duration(milliseconds: 300), () {
-      state.totalValue[30] = state.randomValue;
+      state.totalValue[29] = state.randomValue;
       update();
     });
   }
@@ -450,14 +450,14 @@ class GameController extends GetxController {
         var result = (results.first as Map)["result"].toString();
 
         if (result.isNotEmpty) {
-          state.randomValue = state.totalValue[30] = result;
+          state.randomValue = state.totalValue[29] = result;
         } else {
           // if (next(1, 90485) > 44625 - MyState.OFFSET8431) {
           //1到100（包含1，100）//<= 70 是 70%庄 30%闲
           if (_next(1, 100) <= state.ratio) {
-            state.randomValue = state.totalValue[30] = '庄';
+            state.randomValue = state.totalValue[29] = '庄';
           } else {
-            state.randomValue = state.totalValue[30] = '闲';
+            state.randomValue = state.totalValue[29] = '闲';
           }
         }
         Get.dialog(
