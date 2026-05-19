@@ -1193,7 +1193,7 @@ class GameController extends GetxController {
     // 与后端 LoadMore 一致：数据为 created_at 升序，分页游标为当前已加载中最旧一条（first）的 id。
     final anchorId = state.table2List.isEmpty ? -1 : (state.table2List.first.id ?? -1);
     BXGet<Table2Model>(Api.loadMore,
-        params: {"last_id": anchorId, "uid": GetStore.getInstance().userModel.userId, "c": 40}, //"c"每页多少个数据
+        params: {"last_id": anchorId, "uid": GetStore.getInstance().userModel.userId, "c": 250}, //"c"每页多少个数据
         success: (isSuccess, code, message, results) {
           if (!isSuccess) {
             refreshcontroller.finishRefresh(IndicatorResult.fail, true);

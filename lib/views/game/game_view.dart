@@ -178,7 +178,7 @@ class GameView extends GetView<GameController> {
                                                       child: FittedBox(
                                                         fit: BoxFit.contain,
                                                         child: Padding(
-                                                          padding: const EdgeInsets.only(right: 3.0,left: 3.0),
+                                                          padding: const EdgeInsets.only(right: 3.0, left: 3.0),
                                                           child: Text(
                                                               textAlign: TextAlign.left,
                                                               style: TextStyle(
@@ -234,7 +234,7 @@ class GameView extends GetView<GameController> {
                                   _divier2(controller.state.currentTextColor, 38),
                                   TextButton(
                                     style: TextButton.styleFrom(
-                                      padding: const EdgeInsets.symmetric(vertical: 0.0, horizontal: 4.0),
+                                      padding: const EdgeInsets.symmetric(vertical: 0.0, horizontal: 8.0),
                                       minimumSize: Size.zero,
                                       tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                                     ),
@@ -775,232 +775,230 @@ class GameView extends GetView<GameController> {
                 ? SizedBox(
                     height: 120,
                     child: Container(
-                        color: controller.state.currentChartBgColor,
-                        padding: const EdgeInsets.only(top: 8.0, right: 0.0, bottom: 8.0), // 去掉左边内边距
-                        child: Builder(
-                          builder: (context) {
-                            return LineChart(
-                              LineChartData(
-                                backgroundColor: Colors.transparent,
-                                borderData: FlBorderData(show: false),
-                                //网格线显示和样式
-                                gridData: FlGridData(
-                                  show: true,
-                                  // x轴线（横线）的间隔
-                                  horizontalInterval: (() {
-                                    // 动态计算水平网格线间隔
-                                    if (controller.state.chartData.isEmpty) return 1.0;
-                                    final minV =
-                                        controller.state.chartData.map((e) => e.sales).reduce((a, b) => a < b ? a : b) *
-                                            0.9;
-                                    final maxV =
-                                        controller.state.chartData.map((e) => e.sales).reduce((a, b) => a > b ? a : b) *
-                                            1.1;
-                                    final span = maxV - minV;
-                                    final step = span / 2.0;
-                                    return (step.isFinite && step > 0) ? step : 1.0;
-                                  })(),
-                                  // x轴线（横线）的样式
-                                  getDrawingHorizontalLine: (value) {
-                                    return FlLine(
-                                      color: Colors.white.withValues(alpha: 0.3),
-                                      strokeWidth: 1,
-                                      dashArray: [5, 5], // 虚线样式（线宽，间隔）
-                                    );
-                                  },
-                                  //y轴竖线 垂直间隔
-                                  verticalInterval: 1,
-                                  // y轴竖线 垂直设置一个很小的值，但不显示垂直网格线
-                                  getDrawingVerticalLine: (value) {
-                                    return const FlLine(
-                                      color: Colors.transparent, // 透明色，实际上不显示
-                                      strokeWidth: 0,
-                                    );
-                                  },
+                      color: controller.state.currentChartBgColor,
+                      padding: const EdgeInsets.only(top: 8.0, right: 0.0, bottom: 8.0), // 去掉左边内边距
+                      child: Builder(
+                        builder: (context) {
+                          return LineChart(
+                            LineChartData(
+                              backgroundColor: Colors.transparent,
+                              borderData: FlBorderData(show: false),
+                              //网格线显示和样式
+                              gridData: FlGridData(
+                                show: true,
+                                // x轴线（横线）的间隔
+                                horizontalInterval: (() {
+                                  // 动态计算水平网格线间隔
+                                  if (controller.state.chartData.isEmpty) return 1.0;
+                                  final minV =
+                                      controller.state.chartData.map((e) => e.sales).reduce((a, b) => a < b ? a : b) *
+                                          0.9;
+                                  final maxV =
+                                      controller.state.chartData.map((e) => e.sales).reduce((a, b) => a > b ? a : b) *
+                                          1.1;
+                                  final span = maxV - minV;
+                                  final step = span / 2.0;
+                                  return (step.isFinite && step > 0) ? step : 1.0;
+                                })(),
+                                // x轴线（横线）的样式
+                                getDrawingHorizontalLine: (value) {
+                                  return FlLine(
+                                    color: Colors.white.withValues(alpha: 0.3),
+                                    strokeWidth: 1,
+                                    dashArray: [5, 5], // 虚线样式（线宽，间隔）
+                                  );
+                                },
+                                //y轴竖线 垂直间隔
+                                verticalInterval: 1,
+                                // y轴竖线 垂直设置一个很小的值，但不显示垂直网格线
+                                getDrawingVerticalLine: (value) {
+                                  return const FlLine(
+                                    color: Colors.transparent, // 透明色，实际上不显示
+                                    strokeWidth: 0,
+                                  );
+                                },
+                              ),
+                              //左则轴标数据
+                              titlesData: FlTitlesData(
+                                show: true,
+                                rightTitles: const AxisTitles(
+                                  sideTitles: SideTitles(showTitles: false),
                                 ),
-                                //左则轴标数据
-                                titlesData: FlTitlesData(
-                                  show: true,
-                                  rightTitles: const AxisTitles(
-                                    sideTitles: SideTitles(showTitles: false),
-                                  ),
-                                  topTitles: const AxisTitles(
-                                    sideTitles: SideTitles(showTitles: false),
-                                  ),
-                                  bottomTitles: const AxisTitles(
-                                    sideTitles: SideTitles(showTitles: false),
-                                  ),
-                                  leftTitles: AxisTitles(
-                                    sideTitles: SideTitles(
-                                      showTitles: true,
-                                      reservedSize: 35, //离左边的距离
-                                      interval: (() {
-                                        if (controller.state.chartData.isEmpty) return 1.0;
-
-                                        // 强制只显示3个标签：最小值、中间值、最大值
-                                        // 使用动态间隔来避免标签重叠
-                                        if (controller.state.chartData.isEmpty) return 1.0;
-
-                                        final dataValues = controller.state.chartData.map((e) => e.sales).toList();
-                                        final minValue = dataValues.reduce((a, b) => a < b ? a : b);
-                                        final maxValue = dataValues.reduce((a, b) => a > b ? a : b);
-                                        final span = maxValue - minValue;
-
-                                        // 使用更大的间隔，但不要太大
-                                        final step = span / 1.5; // 使用1.5倍间隔
-                                        const minStep = 300.0; // 最小间隔300
-                                        final finalStep = step > minStep ? step : minStep;
-
-                                        debugPrint("---------------->$finalStep");
-                                        return finalStep;
-                                      })(),
-                                      getTitlesWidget: (value, meta) {
-                                        // 强制只显示3个标签：最小值、中间值、最大值
-                                        if (controller.state.chartData.isEmpty) {
-                                          return const SizedBox.shrink();
-                                        }
-
-                                        final dataValues = controller.state.chartData.map((e) => e.sales).toList();
-                                        final minValue = dataValues.reduce((a, b) => a < b ? a : b);
-                                        final maxValue = dataValues.reduce((a, b) => a > b ? a : b);
-                                        final midValue = (minValue + maxValue) / 2;
-
-                                        // 只显示最小值、中间值、最大值
-                                        final tolerance = (maxValue - minValue) * 0.3; // 增加容差到30%，确保能匹配到标签
-                                        final isMin = (value - minValue).abs() < tolerance;
-                                        final isMax = (value - maxValue).abs() < tolerance;
-                                        final isMid = (value - midValue).abs() < tolerance;
-
-                                        if (!isMin && !isMax && !isMid) {
-                                          return const SizedBox.shrink(); // 隐藏其他标签
-                                        }
-
-                                        return SideTitleWidget(
-                                          meta: meta,
-                                          space: 8,
-                                          child: Text(
-                                            _formatValue(value),
-                                            maxLines: 1,
-                                            softWrap: false,
-                                            overflow: TextOverflow.clip,
-                                            textAlign: TextAlign.right,
-                                            style: TextStyle(
-                                              color: controller.state.isDarkMode ? Colors.white : Colors.black87,
-                                              fontSize: 9,
-                                              fontWeight: FontWeight.w600,
-                                            ),
-                                          ),
-                                        );
-                                      },
-                                    ),
-                                  ),
+                                topTitles: const AxisTitles(
+                                  sideTitles: SideTitles(showTitles: false),
                                 ),
-                                // 添加内边距
-                                minX: 0,
-                                maxX: controller.state.chartData.length.toDouble() + 0.5,
-                                minY: controller.state.chartData.isNotEmpty
-                                    ? controller.state.chartData.map((e) => e.sales).reduce((a, b) => a < b ? a : b) *
-                                        0.9
-                                    : 0,
-                                maxY: controller.state.chartData.isNotEmpty
-                                    ? controller.state.chartData.map((e) => e.sales).reduce((a, b) => a > b ? a : b) *
-                                        1.1
-                                    : 100,
-                                // 设置图表边距
-                                clipData: const FlClipData.none(),
-                                // 添加一些内边距
-                                lineTouchData: LineTouchData(
-                                  enabled: true,
-                                  handleBuiltInTouches: true,
-                                  touchCallback: (FlTouchEvent event, LineTouchResponse? response) {
-                                    // 单击抬起：切换路子图（内置仍会处理 tooltip / 高亮）
-                                    if (event is FlTapUpEvent) {
-                                      controller.changeChart();
-                                    }
-                                  },
-                                  touchTooltipData: LineTouchTooltipData(
-                                    fitInsideHorizontally: true,
-                                    fitInsideVertically: true,
-                                    getTooltipItems: (touchedSpots) {
-                                      return touchedSpots.map((touchedSpot) {
-                                        return LineTooltipItem(
-                                          touchedSpot.y.toStringAsFixed(1),
-                                          const TextStyle(
-                                            color: Colors.white,
-                                            fontSize: 12,
-                                            fontWeight: FontWeight.bold,
+                                bottomTitles: const AxisTitles(
+                                  sideTitles: SideTitles(showTitles: false),
+                                ),
+                                leftTitles: AxisTitles(
+                                  sideTitles: SideTitles(
+                                    showTitles: true,
+                                    reservedSize: 35, //离左边的距离
+                                    interval: (() {
+                                      if (controller.state.chartData.isEmpty) return 1.0;
+
+                                      // 强制只显示3个标签：最小值、中间值、最大值
+                                      // 使用动态间隔来避免标签重叠
+                                      if (controller.state.chartData.isEmpty) return 1.0;
+
+                                      final dataValues = controller.state.chartData.map((e) => e.sales).toList();
+                                      final minValue = dataValues.reduce((a, b) => a < b ? a : b);
+                                      final maxValue = dataValues.reduce((a, b) => a > b ? a : b);
+                                      final span = maxValue - minValue;
+
+                                      // 使用更大的间隔，但不要太大
+                                      final step = span / 1.5; // 使用1.5倍间隔
+                                      const minStep = 300.0; // 最小间隔300
+                                      final finalStep = step > minStep ? step : minStep;
+
+                                      debugPrint("---------------->$finalStep");
+                                      return finalStep;
+                                    })(),
+                                    getTitlesWidget: (value, meta) {
+                                      // 强制只显示3个标签：最小值、中间值、最大值
+                                      if (controller.state.chartData.isEmpty) {
+                                        return const SizedBox.shrink();
+                                      }
+
+                                      final dataValues = controller.state.chartData.map((e) => e.sales).toList();
+                                      final minValue = dataValues.reduce((a, b) => a < b ? a : b);
+                                      final maxValue = dataValues.reduce((a, b) => a > b ? a : b);
+                                      final midValue = (minValue + maxValue) / 2;
+
+                                      // 只显示最小值、中间值、最大值
+                                      final tolerance = (maxValue - minValue) * 0.3; // 增加容差到30%，确保能匹配到标签
+                                      final isMin = (value - minValue).abs() < tolerance;
+                                      final isMax = (value - maxValue).abs() < tolerance;
+                                      final isMid = (value - midValue).abs() < tolerance;
+
+                                      if (!isMin && !isMax && !isMid) {
+                                        return const SizedBox.shrink(); // 隐藏其他标签
+                                      }
+
+                                      return SideTitleWidget(
+                                        meta: meta,
+                                        space: 8,
+                                        child: Text(
+                                          _formatValue(value),
+                                          maxLines: 1,
+                                          softWrap: false,
+                                          overflow: TextOverflow.clip,
+                                          textAlign: TextAlign.right,
+                                          style: TextStyle(
+                                            color: controller.state.isDarkMode ? Colors.white : Colors.black87,
+                                            fontSize: 9,
+                                            fontWeight: FontWeight.w600,
                                           ),
-                                        );
-                                      }).toList();
+                                        ),
+                                      );
                                     },
                                   ),
-                                  getTouchedSpotIndicator: (LineChartBarData barData, List<int> spotIndexes) {
-                                    return spotIndexes.map((spotIndex) {
-                                      return TouchedSpotIndicatorData(
-                                        const FlLine(
-                                          color: Colors.transparent, // 透明线条，不显示
-                                          strokeWidth: 0,
-                                        ),
-                                        FlDotData(
-                                          show: true, // 显示数据点高亮
-                                          getDotPainter: (spot, percent, barData, index) {
-                                            return FlDotCirclePainter(
-                                              radius: 4,
-                                              color: Colors.white,
-                                              strokeWidth: 2,
-                                              strokeColor: Colors.black,
-                                            );
-                                          },
+                                ),
+                              ),
+                              // 添加内边距
+                              minX: 0,
+                              maxX: controller.state.chartData.length.toDouble() + 0.5,
+                              minY: controller.state.chartData.isNotEmpty
+                                  ? controller.state.chartData.map((e) => e.sales).reduce((a, b) => a < b ? a : b) * 0.9
+                                  : 0,
+                              maxY: controller.state.chartData.isNotEmpty
+                                  ? controller.state.chartData.map((e) => e.sales).reduce((a, b) => a > b ? a : b) * 1.1
+                                  : 100,
+                              // 设置图表边距
+                              clipData: const FlClipData.none(),
+                              // 添加一些内边距
+                              lineTouchData: LineTouchData(
+                                enabled: true,
+                                handleBuiltInTouches: true,
+                                touchCallback: (FlTouchEvent event, LineTouchResponse? response) {
+                                  // 单击抬起：切换路子图（内置仍会处理 tooltip / 高亮）
+                                  if (event is FlTapUpEvent) {
+                                    controller.changeChart();
+                                  }
+                                },
+                                touchTooltipData: LineTouchTooltipData(
+                                  fitInsideHorizontally: true,
+                                  fitInsideVertically: true,
+                                  getTooltipItems: (touchedSpots) {
+                                    return touchedSpots.map((touchedSpot) {
+                                      return LineTooltipItem(
+                                        touchedSpot.y.toStringAsFixed(1),
+                                        const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.bold,
                                         ),
                                       );
                                     }).toList();
                                   },
                                 ),
-                                lineBarsData: [
-                                  LineChartBarData(
-                                    spots: controller.state.chartData
-                                        .map((data) => FlSpot(data.year.toDouble(), data.sales))
-                                        .toList(),
-                                    // false：点与点用直线连接；true 会用曲线拟合，在急升急跌处容易「鼓包」略过中间点
-                                    isCurved: false,
-                                    color: controller.state.isDarkMode ? Colors.grey.shade400 : Colors.grey.shade600,
-                                    barWidth: 2,
-                                    dotData: FlDotData(
-                                      show: true,
-                                      getDotPainter: (spot, percent, barData, index) {
-                                        // 根据相对于上一个点的资金变化设置颜色
-                                        Color dotColor;
-                                        if (index == 0) {
-                                          // 第一个点，无法比较，使用灰色
-                                          dotColor = const Color(0xFF6B7280);
-                                        } else {
-                                          // 获取当前点和上一个点的值
-                                          final currentValue = spot.y;
-                                          final previousValue = barData.spots[index - 1].y;
-                                          final change = currentValue - previousValue;
-
-                                          if (change > 0) {
-                                            dotColor = Colors.red; // 红色 - 资金增加
-                                          } else if (change < 0) {
-                                            dotColor = Colors.green; // 绿色 - 资金减少
-                                          } else {
-                                            dotColor = const Color(0xFF6B7280); // 灰色 - 无变化
-                                          }
-                                        }
-                                        return FlDotCirclePainter(
-                                          radius: 2.3,
-                                          color: dotColor,
-                                          strokeWidth: 0,
-                                        );
-                                      },
-                                    ),
-                                  ),
-                                ],
+                                getTouchedSpotIndicator: (LineChartBarData barData, List<int> spotIndexes) {
+                                  return spotIndexes.map((spotIndex) {
+                                    return TouchedSpotIndicatorData(
+                                      const FlLine(
+                                        color: Colors.transparent, // 透明线条，不显示
+                                        strokeWidth: 0,
+                                      ),
+                                      FlDotData(
+                                        show: true, // 显示数据点高亮
+                                        getDotPainter: (spot, percent, barData, index) {
+                                          return FlDotCirclePainter(
+                                            radius: 4,
+                                            color: Colors.white,
+                                            strokeWidth: 2,
+                                            strokeColor: Colors.black,
+                                          );
+                                        },
+                                      ),
+                                    );
+                                  }).toList();
+                                },
                               ),
-                            );
-                          },
-                        ),
+                              lineBarsData: [
+                                LineChartBarData(
+                                  spots: controller.state.chartData
+                                      .map((data) => FlSpot(data.year.toDouble(), data.sales))
+                                      .toList(),
+                                  // false：点与点用直线连接；true 会用曲线拟合，在急升急跌处容易「鼓包」略过中间点
+                                  isCurved: false,
+                                  color: controller.state.isDarkMode ? Colors.grey.shade400 : Colors.grey.shade600,
+                                  barWidth: 2,
+                                  dotData: FlDotData(
+                                    show: true,
+                                    getDotPainter: (spot, percent, barData, index) {
+                                      // 根据相对于上一个点的资金变化设置颜色
+                                      Color dotColor;
+                                      if (index == 0) {
+                                        // 第一个点，无法比较，使用灰色
+                                        dotColor = const Color(0xFF6B7280);
+                                      } else {
+                                        // 获取当前点和上一个点的值
+                                        final currentValue = spot.y;
+                                        final previousValue = barData.spots[index - 1].y;
+                                        final change = currentValue - previousValue;
+
+                                        if (change > 0) {
+                                          dotColor = Colors.red; // 红色 - 资金增加
+                                        } else if (change < 0) {
+                                          dotColor = Colors.green; // 绿色 - 资金减少
+                                        } else {
+                                          dotColor = const Color(0xFF6B7280); // 灰色 - 无变化
+                                        }
+                                      }
+                                      return FlDotCirclePainter(
+                                        radius: 2.3,
+                                        color: dotColor,
+                                        strokeWidth: 0,
+                                      );
+                                    },
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
                       ),
+                    ),
                   )
                 : const Text('data')),
       );
