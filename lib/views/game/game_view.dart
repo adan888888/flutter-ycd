@@ -473,12 +473,18 @@ class GameView extends GetView<GameController> {
               : (controller.state.isDarkMode
                   ? const Color(0xFF1E2A3A) // 深蓝色（与背景色一致）
                   : Colors.grey.shade100); // 稍深一点的浅灰色
-          final restartIndexRaw = controller.state.table1List.isNotEmpty
-              ? controller.state.table1List.last.columnRestartIndex?.trim() ?? ''
-              : '';
-          final restartRowId = int.tryParse(restartIndexRaw);
-          final isRestartRow =
-              restartRowId != null && restartRowId > 0 && controller.state.table2List[index].id == restartRowId;
+          // 重启标记线：取最近两条「不同」的重启位置。
+          // 若倒数第二条与最后一条相同，则继续向前找下一条不同值。
+          final restartRowIds = <int>[];
+          for (int i = controller.state.table1List.length - 1; i >= 0 && restartRowIds.length < 2; i--) {
+            final raw = controller.state.table1List[i].columnRestartIndex?.trim() ?? '';
+            final parsed = int.tryParse(raw);
+            if (parsed != null && parsed > 0 && !restartRowIds.contains(parsed)) {
+              restartRowIds.add(parsed);
+            }
+          }
+          final currentRowId = controller.state.table2List[index].id;
+          final isRestartRow = currentRowId != null && restartRowIds.contains(currentRowId);
 
           return Container(
             height: GameState.bettingTableRowHeight,
