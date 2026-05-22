@@ -265,7 +265,7 @@ class HttpService {
     Function(String, BaseModel)? failed,
     BaseModel model,
   ) {
-    const msg = '服务已到期，请联系管理员';
+    final msg = GetStore.getInstance().userModel.ycdExpiredMessage;
     log('💳 2202: $msg');
     GetStore.getInstance().cleanUser();
     if (showError) BXLoading.showToast(msg);

@@ -55,11 +55,11 @@ class LoginController extends GetxController {
                   GetStore.getInstance().cleanUser();
                   Get.snackbar(
                     '',
-                    '服务已到期，请联系管理员',
+                    user.ycdExpiredMessage,
                     snackPosition: SnackPosition.TOP,
-                    backgroundColor: Colors.orange.withValues(alpha: 0.9),
+                    backgroundColor: Colors.orange.withValues(alpha: 0.1),
                     colorText: Colors.white,
-                    duration: const Duration(seconds: 6),
+                    duration: const Duration(seconds: 10),
                   );
                 }
               } else {

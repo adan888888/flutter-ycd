@@ -15,23 +15,42 @@ class UserModel {
   bool ycdAllowed = false;
   bool isPermanent = false;
   String expiresAt = "";
-  String expiresAtDisplay = "";
   UserModel();
 
   /// 是否可使用 ycd：优先按到期时间判断（与后端一致），登录后会写入 expires_at
   bool get canUseYcd {
     if (isPermanent || nickname == 'Admin') return true;
-    if (_isExpiresActive(expiresAtDisplay)) return true;
     if (_isExpiresActive(expiresAt)) return true;
     return ycdAllowed;
   }
 
   static bool _isExpiresActive(String raw) {
     final s = raw.trim();
-    if (s.isEmpty || s == '未设置' || s == '永久') return false;
+    if (s.isEmpty || s == '永久') return false;
     final dt = DateTime.tryParse(s.replaceFirst(' ', 'T')) ?? DateTime.tryParse(s);
     if (dt == null) return false;
     return !DateTime.now().isAfter(dt);
+  }
+
+  /// 到期日 yyyy-MM-dd，无有效时间返回空
+  String get expiresAtYmd {
+    final s = expiresAt.trim();
+    if (s.isEmpty || s == '永久') return '';
+    final dt = DateTime.tryParse(s.replaceFirst(' ', 'T')) ?? DateTime.tryParse(s);
+    if (dt != null) {
+      final m = dt.month.toString().padLeft(2, '0');
+      final d = dt.day.toString().padLeft(2, '0');
+      return '${dt.year}-$m-$d';
+    }
+    final match = RegExp(r'(\d{4}-\d{2}-\d{2})').firstMatch(s);
+    return match?.group(1) ?? '';
+  }
+
+  /// ycd 不可用时的提示文案
+  String get ycdExpiredMessage {
+    final ymd = expiresAtYmd;
+    if (ymd.isEmpty) return '服务未开通，请联系管理员';
+    return '服务已到期（$ymd）\n请联系管理员';
   }
 
   UserModel.fromJson(Map<String, dynamic> map) {
@@ -49,7 +68,6 @@ class UserModel {
     ycdAllowed = map["ycd_allowed"] == true;
     isPermanent = map["is_permanent"] == true;
     expiresAt = map["expires_at"]?.toString() ?? "";
-    expiresAtDisplay = map["expires_at_display"]?.toString() ?? expiresAt;
   }
 
   Map<String, dynamic> toJson() => {
@@ -66,7 +84,6 @@ class UserModel {
         "ycd_allowed": ycdAllowed,
         "is_permanent": isPermanent,
         "expires_at": expiresAt,
-        "expires_at_display": expiresAtDisplay,
       };
 }
 
