@@ -6,6 +6,7 @@ class Table2Model {
   String? colmunShuyingzhiD; //输赢值(消数列的)
   String? colmunShengfulu;
   String? colmunZx;
+  String? restartStatSnapshot; // 重启统计快照（2/6/14/18 拼接）
   String? colmunRemark; //输赢标记
   String? columnCurrentJin;
 
@@ -19,6 +20,7 @@ class Table2Model {
     this.colmunZx,
     this.colmunRemark,
     this.columnCurrentJin,
+    this.restartStatSnapshot,
   });
 
   Table2Model.fromJson(Map<String, dynamic> json) {
@@ -31,6 +33,7 @@ class Table2Model {
     colmunZx = json['colmun_zx'];
     colmunRemark = json['colmun_remark'];
     columnCurrentJin = json['column_current_jin'];
+    restartStatSnapshot = json['restartStatSnapshot'];
   }
 
   Map<String, dynamic> toJson() {
@@ -44,6 +47,7 @@ class Table2Model {
     data['colmun_zx'] = colmunZx;
     data['colmun_remark'] = colmunRemark;
     data['column_current_jin'] = columnCurrentJin;
+    data['restartStatSnapshot'] = restartStatSnapshot;
     return data;
   }
 }

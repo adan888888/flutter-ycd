@@ -38,6 +38,9 @@ class Api {
   //插入表二数据
   static String inserttable2 = "/ycd/inserttable2";
 
+  // 更新重启统计快照
+  static String updateLastRowRestartStatSnapshot = "/ycd/updaterestartstatsnapshot";
+
   //删除最后一行
   static String deletelast = "/ycd/deletelast";
 

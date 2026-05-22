@@ -749,6 +749,22 @@ class GameController extends GetxController {
     );
   }
 
+  void _saveLastRowRestartStatSnapshot(String snapshot) {
+    if (state.table2List.isEmpty || snapshot.isEmpty) return;
+    BXPut<dynamic>(
+      Api.updateLastRowRestartStatSnapshot,
+      isShowLoading: false,
+      params: {'restartStatSnapshot': snapshot},
+      success: (isSuccess, code, message, results) {
+        if (isSuccess && state.table2List.isNotEmpty) {
+          state.table2List.last.restartStatSnapshot = snapshot;
+          update();
+        }
+      },
+    );
+  }
+
+  //重启局部数据
   void reStart() {
     Get.defaultDialog(
       barrierDismissible: false,
@@ -771,7 +787,15 @@ class GameController extends GetxController {
               // BXLoading.showToast("${value.last.columnRestartIndex}");
               state.table1List = value;
               state.table2List = state.table2List.map((element) => element..colmunShuyingzhiD = "").toList();
-              _getStatisticalAreasData(-1);
+              _getStatisticalAreasData(-1).then((_) {
+                const indices = [2, 6, 14, 18];
+                final restartStatSnapshot = indices
+                    .map((i) => i < state.totalValue.length
+                        ? MyCharacter.removeChineseCharacters(state.totalValue[i].toString()).trim()
+                        : '')
+                    .join('/');
+                _saveLastRowRestartStatSnapshot(restartStatSnapshot);
+              });
               state.currentTempIndex = 0;
             }
           },
