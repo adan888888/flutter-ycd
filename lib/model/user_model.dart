@@ -18,8 +18,21 @@ class UserModel {
   String expiresAtDisplay = "";
   UserModel();
 
-  /// 是否可使用 ycd（计数器）功能：超管永久或未到期的普通用户
-  bool get canUseYcd => isPermanent || ycdAllowed;
+  /// 是否可使用 ycd：优先按到期时间判断（与后端一致），登录后会写入 expires_at
+  bool get canUseYcd {
+    if (isPermanent || nickname == 'Admin') return true;
+    if (_isExpiresActive(expiresAtDisplay)) return true;
+    if (_isExpiresActive(expiresAt)) return true;
+    return ycdAllowed;
+  }
+
+  static bool _isExpiresActive(String raw) {
+    final s = raw.trim();
+    if (s.isEmpty || s == '未设置' || s == '永久') return false;
+    final dt = DateTime.tryParse(s.replaceFirst(' ', 'T')) ?? DateTime.tryParse(s);
+    if (dt == null) return false;
+    return !DateTime.now().isAfter(dt);
+  }
 
   UserModel.fromJson(Map<String, dynamic> map) {
     userId = map["userId"]?.toString() ?? "";

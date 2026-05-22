@@ -53,16 +53,13 @@ class LoginController extends GetxController {
                   Get.offAndToNamed(AppRoutes.gameHome);
                 } else {
                   GetStore.getInstance().cleanUser();
-                  final hint = user.expiresAtDisplay.isNotEmpty
-                      ? '服务已到期（${user.expiresAtDisplay}），请充值后联系管理员续期'
-                      : '服务已到期或未开通，请充值后联系管理员续期';
                   Get.snackbar(
-                    '请充值',
-                    hint,
+                    '',
+                    '服务已到期，请联系管理员',
                     snackPosition: SnackPosition.TOP,
                     backgroundColor: Colors.orange.withValues(alpha: 0.9),
                     colorText: Colors.white,
-                    duration: const Duration(seconds: 4),
+                    duration: const Duration(seconds: 6),
                   );
                 }
               } else {

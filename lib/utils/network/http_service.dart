@@ -265,8 +265,8 @@ class HttpService {
     Function(String, BaseModel)? failed,
     BaseModel model,
   ) {
-    final msg = model.msg.isNotEmpty ? model.msg : '请充值';
-    log('💳 2202 ycd已到期: $msg');
+    const msg = '服务已到期，请联系管理员';
+    log('💳 2202: $msg');
     GetStore.getInstance().cleanUser();
     if (showError) BXLoading.showToast(msg);
     Future.delayed(const Duration(milliseconds: 500), () {
