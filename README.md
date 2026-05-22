@@ -1,9 +1,13 @@
 # flutter_ycd
 
 一个新 Flutter 项目.
-两个账号  
+测试账号：
+Admin/admin123 （超级管理员账号）
 amdin1/123
 admin2/123
+admin3/123
+admin4
+...
 ## Getting Started
 
 This project is a starting point for a Flutter application.
