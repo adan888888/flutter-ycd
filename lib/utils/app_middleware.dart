@@ -11,8 +11,13 @@ class AppMiddleware extends GetMiddleware {
     bool isLogin = GetStore.getInstance().isLogin;
     if (!isLogin) {
       return null;
-    } else {
+    }
+    final user = GetStore.getInstance().readUserModel();
+    if (user.canUseYcd) {
       return const RouteSettings(name: AppRoutes.gameHome);
     }
+    // 已登录但 ycd 已到期：清除会话并留在登录页
+    GetStore.getInstance().cleanUser();
+    return null;
   }
 }

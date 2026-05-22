@@ -172,6 +172,8 @@ class HttpService {
                 success(true, model.code, model.msg, values);
               }
             }
+          } else if (model.code == 2202) {
+            _handleYcdExpired(showError, failed, model);
           } else {
             if (model.code == 1) {
               if (showError) BXLoading.showToast(model.msg);
@@ -255,6 +257,25 @@ class HttpService {
       if (isShowLoading) {
         BXLoading.dismiss();
       }
+    }
+  }
+
+  void _handleYcdExpired(
+    bool showError,
+    Function(String, BaseModel)? failed,
+    BaseModel model,
+  ) {
+    final msg = model.msg.isNotEmpty ? model.msg : '请充值';
+    log('💳 2202 ycd已到期: $msg');
+    GetStore.getInstance().cleanUser();
+    if (showError) BXLoading.showToast(msg);
+    Future.delayed(const Duration(milliseconds: 500), () {
+      if (Get.currentRoute != AppRoutes.login) {
+        Get.offAllNamed(AppRoutes.login);
+      }
+    });
+    if (failed != null) {
+      failed(msg, model);
     }
   }
 

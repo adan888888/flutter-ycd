@@ -43,13 +43,28 @@ class LoginController extends GetxController {
             params: {"username": usrname, "password": password},
             success: (isSuccess, code, message, results) {
               if (isSuccess) {
-                GetStore.getInstance().saveUser(results.first);
-                Future.delayed(const Duration(seconds: 2), () {
-                  var userId = GetStore.getInstance().readUserModel().userId;
-                  if (userId.isNotEmpty) {
-                    Get.offAndToNamed(AppRoutes.gameHome);
-                  }
-                });
+                final user = results.first;
+                GetStore.getInstance().saveUser(user);
+                if (user.userId.isEmpty) {
+                  Get.snackbar('登录失败', '用户数据异常', snackPosition: SnackPosition.TOP);
+                  return;
+                }
+                if (user.canUseYcd) {
+                  Get.offAndToNamed(AppRoutes.gameHome);
+                } else {
+                  GetStore.getInstance().cleanUser();
+                  final hint = user.expiresAtDisplay.isNotEmpty
+                      ? '服务已到期（${user.expiresAtDisplay}），请充值后联系管理员续期'
+                      : '服务已到期或未开通，请充值后联系管理员续期';
+                  Get.snackbar(
+                    '请充值',
+                    hint,
+                    snackPosition: SnackPosition.TOP,
+                    backgroundColor: Colors.orange.withValues(alpha: 0.9),
+                    colorText: Colors.white,
+                    duration: const Duration(seconds: 4),
+                  );
+                }
               } else {
                 Get.snackbar(
                   '登录失败',
