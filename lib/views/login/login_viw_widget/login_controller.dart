@@ -50,7 +50,7 @@ class LoginController extends GetxController {
                   return;
                 }
                 if (user.canUseYcd) {
-                  Get.offAndToNamed(AppRoutes.gameHome);
+                  Get.offAndToNamed(AppRoutes.home);
                 } else {
                   GetStore.getInstance().cleanUser();
                   Get.snackbar(

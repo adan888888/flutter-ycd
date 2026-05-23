@@ -53,6 +53,9 @@ class AppPages {
     GetPage(
       name: AppRoutes.home,
       page: () => const HomeView(),
+      middlewares: [
+        AuthRequiredMiddleware(),
+      ],
     ),
 
     // 认证页面
@@ -70,6 +73,9 @@ class AppPages {
       name: AppRoutes.gameHome,
       page: () => const GameView(title: 'v2.0'),
       binding: GameBinding(),
+      middlewares: [
+        AuthRequiredMiddleware(),
+      ],
     ),
 
     // 投资工具页面
@@ -77,36 +83,57 @@ class AppPages {
       name: AppRoutes.investmentCalculator,
       page: () => const InvestmentCalculatorView(),
       binding: InvestmentCalculatorBinding(),
+      middlewares: [
+        AuthRequiredMiddleware(),
+      ],
     ),
     GetPage(
       name: AppRoutes.rsiAnalysis,
       page: () => const RSIAnalysisView(),
       binding: RSIAnalysisBinding(),
+      middlewares: [
+        AuthRequiredMiddleware(),
+      ],
     ),
     GetPage(
       name: AppRoutes.rsiStrategyBacktest,
       page: () => const RSIStrategyBacktestView(),
       binding: RSIStrategyBacktestBinding(),
+      middlewares: [
+        AuthRequiredMiddleware(),
+      ],
     ),
     GetPage(
       name: AppRoutes.buyRecords,
       page: () => const BuyRecordsView(),
       binding: BuyRecordsBinding(),
+      middlewares: [
+        AuthRequiredMiddleware(),
+      ],
     ),
     GetPage(
       name: AppRoutes.currencyConverter,
       page: () => const CurrencyConverterView(),
       binding: CurrencyConverterBinding(),
+      middlewares: [
+        AuthRequiredMiddleware(),
+      ],
     ),
     GetPage(
       name: AppRoutes.digitalPasswordBook,
       page: () => const DigitalPasswordBookView(),
       binding: DigitalPasswordBookBinding(),
+      middlewares: [
+        AuthRequiredMiddleware(),
+      ],
     ),
     GetPage(
       name: AppRoutes.aesEncrypt,
       page: () => const AesEncryptView(),
       binding: AesEncryptBinding(),
+      middlewares: [
+        AuthRequiredMiddleware(),
+      ],
     ),
 
     // 百家乐开奖模拟页面
@@ -114,6 +141,9 @@ class AppPages {
       name: AppRoutes.baccaratSimulation,
       page: () => const BaccaratSimulationView(),
       binding: BaccaratSimulationBinding(),
+      middlewares: [
+        AuthRequiredMiddleware(),
+      ],
     ),
   ];
 }

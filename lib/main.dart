@@ -60,7 +60,7 @@ class MyApp extends StatelessWidget {
           primaryColor: Colors.green,
           useMaterial3: true,
         ),
-        initialRoute: AppRoutes.home,
+        initialRoute: AppRoutes.login,
         getPages: AppPages.pages,
         builder: EasyLoading.init(),
       ),
