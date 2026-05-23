@@ -1,9 +1,11 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'package:ycd/utils/network/api.dart';
+import 'package:ycd/utils/network/http_mgr.dart';
 
 import 'buy_records_state.dart';
 
@@ -151,51 +153,33 @@ class BuyRecordsController extends GetxController {
   Future<void> _fetchBuyRecords() async {
     state.isLoading = true;
     state.errorMessage = null;
-
-    try {
-      final response = await http.get(
-        Uri.parse('${Api.baseUrl}${Api.buyRecords}?currency=${state.currentCurrency}'),
-        headers: {
-          'User-Agent':
-              'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-          'Accept': 'application/json',
-          'Accept-Language': 'en-US,en;q=0.9',
-        },
-      ).timeout(const Duration(seconds: 30));
-
-      debugPrint('请求URL: ${response.request?.url}');
-      debugPrint('响应状态码: ${response.statusCode}');
-      debugPrint('响应头: ${response.headers}');
-
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        debugPrint('买入记录API返回数据: $data');
-
-        if (data is Map && data['code'] == 0) {
-          if (data['data'] != null) {
-            // 接口 created_at 升序 [最旧…最新]，倒置后 state 为 [最新…最旧]，列表从上到下即最新在上。
-            state.buyRecords = List<Map<String, dynamic>>.from(
-              (data['data'] as List).reversed,
-            );
-          } else {
-            // data为null时，显示暂无购买
-            state.buyRecords = [];
-          }
-        } else if (data is List) {
-          state.buyRecords =
-              List<Map<String, dynamic>>.from(data.reversed);
+    final completer = Completer<void>();
+    BXGet<dynamic>(
+      Api.buyRecords,
+      params: {'currency': state.currentCurrency},
+      isShowLoading: false,
+      showError: false,
+      success: (isSuccess, code, message, results) {
+        if (isSuccess) {
+          // 接口 created_at 升序 [最旧…最新]，倒置后 state 为 [最新…最旧]，列表从上到下即最新在上。
+          state.buyRecords = List<Map<String, dynamic>>.from(results.reversed);
+          debugPrint('买入记录API返回条数: ${state.buyRecords.length}');
         } else {
-          state.errorMessage = '数据格式错误: ${data['msg'] ?? '未知错误'}';
+          state.buyRecords = [];
+          state.errorMessage = message.isNotEmpty ? message : '获取数据失败';
         }
-      } else {
-        state.errorMessage = '获取数据失败: ${response.statusCode}';
-      }
-    } catch (e) {
-      state.errorMessage = '请求失败: $e';
-      debugPrint('获取买入记录失败: $e');
-    } finally {
-      state.isLoading = false;
-    }
+        state.isLoading = false;
+        if (!completer.isCompleted) completer.complete();
+      },
+      failed: (message, _) {
+        state.buyRecords = [];
+        state.errorMessage = message.isNotEmpty ? message : '请求失败';
+        debugPrint('获取买入记录失败: $message');
+        state.isLoading = false;
+        if (!completer.isCompleted) completer.complete();
+      },
+    );
+    await completer.future;
   }
 
   /// 格式化成本价（TRX 保留五位小数，其他三位）
