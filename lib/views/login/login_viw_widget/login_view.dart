@@ -48,14 +48,15 @@ class LoginWidget extends GetView<LoginController> {
             alignment: Alignment.center,
             child: Padding(
               padding: EdgeInsets.symmetric(horizontal: 20.w),
-              child: _buildLoginCard(c),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _buildLoginCard(c),
+                  SizedBox(height: 16.h),
+                  _buildServiceEntry(),
+                ],
+              ),
             ),
-          ),
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: MediaQuery.paddingOf(context).bottom + 28.h,
-            child: _buildServiceEntry(),
           ),
         ],
       ),
@@ -120,7 +121,7 @@ class LoginWidget extends GetView<LoginController> {
     return Container(
       padding: EdgeInsets.fromLTRB(16.w, 14.h, 16.w, 12.h),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Colors.white.withValues(alpha: 0.4),
         borderRadius: BorderRadius.circular(24.r),
         boxShadow: [
           BoxShadow(
