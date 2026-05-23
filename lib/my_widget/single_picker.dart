@@ -23,7 +23,7 @@ class _SinglePickerState extends State<SinglePicker> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 300,
+      height: 400,
       color: controller.state.isDarkMode ? const Color(0xFF1E2A3A) : Colors.white,
       child: Column(
         children: [

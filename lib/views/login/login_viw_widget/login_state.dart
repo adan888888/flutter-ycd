@@ -7,8 +7,11 @@ class LoginState {
   // 加载状态
   final isLoading = false.obs;
 
-  // 自动登录：勾选后登录成功会保存账号密码，下次打开自动填入
+  // 记住密码：勾选后登录成功会保存账号密码，下次打开自动填入
   final autoLogin = true.obs;
+
+  // 0=登录 1=注册
+  final authTabIndex = 0.obs;
 
   LoginState() {
     ///Initialize variables

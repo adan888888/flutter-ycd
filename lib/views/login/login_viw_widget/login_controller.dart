@@ -74,7 +74,7 @@ class LoginController extends GetxController {
       '提示',
       '请联系管理员',
       snackPosition: SnackPosition.TOP,
-      backgroundColor: Colors.blue.withValues(alpha: 0.85),
+      backgroundColor: const Color(0xFF2A2218).withValues(alpha: 0.1),
       colorText: Colors.white,
       duration: const Duration(seconds: 2),
     );
