@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:ycd/routes/app_routes.dart';
+import 'package:ycd/utils/network/get_store.dart';
 
 // 首页选择界面
 class HomeView extends StatelessWidget {
@@ -8,9 +9,31 @@ class HomeView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final store = GetStore.getInstance();
+    store.checkLoginStatus();
+    // 仅「先去逛逛」未登录进入时显示返回；登录后进首页不显示
+    final showBack = !store.isLogin;
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('投资分析工具🔧'),
+        automaticallyImplyLeading: showBack,
+        leading: showBack
+            ? IconButton(
+                icon: const Icon(Icons.arrow_back_ios_new),
+                onPressed: () {
+                  if (Get.key.currentState?.canPop() ?? false) {
+                    Get.back();
+                  } else {
+                    Get.offAllNamed(AppRoutes.login);
+                  }
+                },
+              )
+            : null,
+        iconTheme: const IconThemeData(color: Color(0xFF2F3A4F)),
+        title: const Text(
+          '投资分析工具🔧',
+          style: TextStyle(color: Color(0xFF2F3A4F)),
+        ),
         backgroundColor: Colors.transparent,
         elevation: 0,
         centerTitle: true,

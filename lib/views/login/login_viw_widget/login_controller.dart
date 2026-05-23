@@ -5,10 +5,15 @@ import 'package:ycd/routes/app_routes.dart';
 import 'package:ycd/utils/network/api.dart';
 import 'package:ycd/utils/network/get_store.dart';
 import 'package:ycd/utils/network/http_mgr.dart';
+import 'package:ycd/utils/storage_util.dart';
 
 import 'login_state.dart';
 
 class LoginController extends GetxController {
+  static const String _keyAutoLogin = 'login_auto_login';
+  static const String _keySavedUsername = 'login_saved_username';
+  static const String _keySavedPassword = 'login_saved_password';
+
   final LoginState state = LoginState();
 
   final formKey = GlobalKey<FormState>();
@@ -16,9 +21,63 @@ class LoginController extends GetxController {
   final TextEditingController userNameController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
 
+  String _prefKey(String shortKey) => GetStore.prefKey(shortKey);
+
+  @override
+  void onInit() {
+    super.onInit();
+    _loadSavedCredentials();
+  }
+
+  @override
+  void onClose() {
+    userNameController.dispose();
+    passwordController.dispose();
+    emailController.dispose();
+    super.onClose();
+  }
+
+  void _loadSavedCredentials() {
+    final autoLogin = StorageUtil.getBool(_prefKey(_keyAutoLogin)) ?? false;
+    state.autoLogin.value = autoLogin;
+    if (!autoLogin) return;
+
+    final username = StorageUtil.getString(_prefKey(_keySavedUsername));
+    final password = StorageUtil.getString(_prefKey(_keySavedPassword));
+    if (username != null && username.isNotEmpty) {
+      userNameController.text = username;
+    }
+    if (password != null && password.isNotEmpty) {
+      passwordController.text = password;
+    }
+  }
+
+  Future<void> _persistLoginCredentials(String username, String password) async {
+    if (state.autoLogin.value) {
+      await StorageUtil.saveBool(_prefKey(_keyAutoLogin), true);
+      await StorageUtil.saveString(_prefKey(_keySavedUsername), username);
+      await StorageUtil.saveString(_prefKey(_keySavedPassword), password);
+    } else {
+      await StorageUtil.saveBool(_prefKey(_keyAutoLogin), false);
+      await StorageUtil.remove(_prefKey(_keySavedUsername));
+      await StorageUtil.remove(_prefKey(_keySavedPassword));
+    }
+  }
+
   // 切换密码可见性
   void togglePasswordVisibility() {
     state.isPasswordVisible.value = !state.isPasswordVisible.value;
+  }
+
+  void showContactAdminTip() {
+    Get.snackbar(
+      '提示',
+      '请联系管理员',
+      snackPosition: SnackPosition.TOP,
+      backgroundColor: Colors.blue.withValues(alpha: 0.85),
+      colorText: Colors.white,
+      duration: const Duration(seconds: 2),
+    );
   }
 
   Future<void> login() async {
@@ -50,6 +109,7 @@ class LoginController extends GetxController {
                   return;
                 }
                 if (user.canUseYcd) {
+                  _persistLoginCredentials(usrname, password);
                   Get.offAndToNamed(AppRoutes.home);
                 } else {
                   GetStore.getInstance().cleanUser();

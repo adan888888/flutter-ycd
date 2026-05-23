@@ -53,9 +53,6 @@ class AppPages {
     GetPage(
       name: AppRoutes.home,
       page: () => const HomeView(),
-      middlewares: [
-        AuthRequiredMiddleware(),
-      ],
     ),
 
     // 认证页面
