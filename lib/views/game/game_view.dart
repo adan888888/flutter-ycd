@@ -622,16 +622,16 @@ class GameView extends GetView<GameController> {
                 Expanded(
                   flex: 1,
                   child: Align(
-                    alignment: Alignment.center,
+                    alignment: Alignment.centerLeft,
                     child: restartSnapshot.isEmpty
                         ? const SizedBox.shrink()
                         : FittedBox(
                             fit: BoxFit.scaleDown,
-                            alignment: Alignment.center,
+                            alignment: Alignment.centerLeft,
                             child: Text(
                               restartSnapshot,
                               maxLines: 1,
-                              textAlign: TextAlign.center,
+                              textAlign: TextAlign.left,
                               style: TextStyle(
                                 fontSize: 10.5,
                                 fontWeight: FontWeight.w500,

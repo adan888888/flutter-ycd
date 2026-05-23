@@ -12,7 +12,7 @@ class LoginWidget extends GetView<LoginController> {
   static const Color _goldDark = Color(0xFFC9A86C);
   static const Color _textLight = Color(0xFFE8E4DC);
   static const Color _textMuted = Color(0x99FFFFFF);
-  static const Color _inputFill = Color(0x4D1A1612);
+  static const Color _inputFill = Color(0xFF332F2D);
   static const double _loginButtonAspectRatio = 1020 / 150;
 
   @override
