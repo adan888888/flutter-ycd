@@ -749,18 +749,87 @@ class GameController extends GetxController {
     );
   }
 
-  void _saveLastRowRestartStatSnapshot(String snapshot) {
-    if (state.table2List.isEmpty || snapshot.isEmpty) return;
+  /// 重启前从统计区取 2/6/14/18 拼接快照（须在调用 restart 接口之前），
+  /// 其中 index 18 四舍五入保留 1 位小数。
+  String _buildRestartStatSnapshot() {
+    const indices = [2, 6, 14, 18];
+    return indices.map((i) {
+      if (i >= state.totalValue.length) return '';
+      final raw = MyCharacter.removeChineseCharacters(state.totalValue[i].toString()).trim();
+      if (i != 18) return raw;
+      final v = double.tryParse(raw);
+      return v == null ? raw : v.toStringAsFixed(1);
+    }).join('/');
+  }
+
+  /// 当前回合是否无数据（看统计区「回合局数」totalValue[2]）
+  bool _isRoundStatsEmpty() {
+    if (state.totalValue.length <= 2) return true;
+    final raw = MyCharacter.removeChineseCharacters(state.totalValue[2].toString()).trim();
+    if (raw.isEmpty || raw == '-' || raw == '0') return true;
+    final count = int.tryParse(raw);
+    return count == null || count <= 0;
+  }
+
+  void _saveLastRowRestartStatSnapshot(
+    String snapshot, {
+    required VoidCallback onDone,
+    VoidCallback? onFail,
+  }) {
+    if (state.table2List.isEmpty) {
+      onFail?.call();
+      return;
+    }
+    if (snapshot.isEmpty) {
+      onDone();
+      return;
+    }
     BXPut<dynamic>(
       Api.updateLastRowRestartStatSnapshot,
       isShowLoading: false,
+      showError: false,
       params: {'restartStatSnapshot': snapshot},
       success: (isSuccess, code, message, results) {
-        if (isSuccess && state.table2List.isNotEmpty) {
-          state.table2List.last.restartStatSnapshot = snapshot;
-          update();
+        if (isSuccess) {
+          if (state.table2List.isNotEmpty) {
+            state.table2List.last.restartStatSnapshot = snapshot;
+          }
+          onDone();
+        } else {
+          BXLoading.showToast(message.isNotEmpty ? message : '保存重启快照失败');
+          onFail?.call();
         }
       },
+      failed: (_, __) => onFail?.call(),
+    );
+  }
+
+  void _callRestartApi(String snapshot) {
+    if (state.table2List.isEmpty) {
+      Loading.dismiss();
+      return;
+    }
+    BXPost<Table1Model>(
+      Api.restart,
+      isShowLoading: false,
+      params: {"index": state.table2List.last.id},
+      success: (isSuccess, code, message, value) {
+        Loading.dismiss();
+        if (isSuccess) {
+          state.table1List = value;
+          state.table2List = state.table2List.map((element) => element..colmunShuyingzhiD = "").toList();
+          if (snapshot.isNotEmpty && state.table2List.isNotEmpty) {
+            state.table2List.last.restartStatSnapshot = snapshot;
+          }
+          state.currentTempIndex = 0;
+          _getStatisticalAreasData(-1);
+          update();
+        } else {
+          BXLoading.showToast(message.isNotEmpty ? message : '重启失败');
+        }
+      },
+      failed: (_, __) => Loading.dismiss(),
+      onModel: (m) => Table1Model.fromJson(m),
     );
   }
 
@@ -778,30 +847,26 @@ class GameController extends GetxController {
       contentPadding: const EdgeInsets.all(20),
       onCancel: () {},
       onConfirm: () {
-        Loading.show();
-        BXPost<Table1Model>(
-          Api.restart,
-          params: {"index": state.table2List.last.id},
-          success: (isSuccess, code, message, value) {
-            if (isSuccess) {
-              // BXLoading.showToast("${value.last.columnRestartIndex}");
-              state.table1List = value;
-              state.table2List = state.table2List.map((element) => element..colmunShuyingzhiD = "").toList();
-              _getStatisticalAreasData(-1).then((_) {
-                const indices = [2, 6, 14, 18];
-                final restartStatSnapshot = indices
-                    .map((i) => i < state.totalValue.length
-                        ? MyCharacter.removeChineseCharacters(state.totalValue[i].toString()).trim()
-                        : '')
-                    .join('/');
-                _saveLastRowRestartStatSnapshot(restartStatSnapshot);
-              });
-              state.currentTempIndex = 0;
-            }
-          },
-          onModel: (m) => Table1Model.fromJson(m),
-        );
         Get.back();
+        if (state.table2List.isEmpty) {
+          BXLoading.showToast('暂无投注记录，无法重启');
+          return;
+        }
+        if (_isRoundStatsEmpty()) {
+          BXLoading.showToast('回合数据为空，无需重启');
+          return;
+        }
+        Loading.show();
+        final snapshot = _buildRestartStatSnapshot();
+        if (snapshot.isNotEmpty) {
+          state.table2List.last.restartStatSnapshot = snapshot;
+          update();
+        }
+        _saveLastRowRestartStatSnapshot(
+          snapshot,
+          onDone: () => _callRestartApi(snapshot),
+          onFail: Loading.dismiss,
+        );
       },
     );
   }

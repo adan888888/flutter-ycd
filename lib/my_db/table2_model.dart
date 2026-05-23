@@ -6,7 +6,7 @@ class Table2Model {
   String? colmunShuyingzhiD; //输赢值(消数列的)
   String? colmunShengfulu;
   String? colmunZx;
-  String? restartStatSnapshot; // 重启统计快照（2/6/14/18 拼接）
+  String? restartStatSnapshot; // 重启统计快照（2/6/14/18，其中 18 保留 1 位小数）
   String? colmunRemark; //输赢标记
   String? columnCurrentJin;
 

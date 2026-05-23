@@ -474,8 +474,7 @@ class GameView extends GetView<GameController> {
                   ? const Color(0xFF1E2A3A) // 深蓝色（与背景色一致）
                   : Colors.grey.shade100); // 稍深一点的浅灰色
           // 重启标记线：该行有重启统计快照则显示底部分隔线
-          final restartSnapshot =
-              controller.state.table2List[index].restartStatSnapshot?.trim() ?? '';
+          final restartSnapshot = controller.state.table2List[index].restartStatSnapshot?.trim() ?? '';
           final isRestartRow = restartSnapshot.isNotEmpty;
 
           return Container(
@@ -544,7 +543,7 @@ class GameView extends GetView<GameController> {
                           maxLines: 1,
                           textAlign: TextAlign.right,
                           style: TextStyle(
-                            fontSize: 12.5,
+                            fontSize: 14,
                             fontWeight: FontWeight.w400,
                             color: controller.state
                                 .getValueColor(controller.state.table2List[index].colmunShuyingzhi.toString()),
@@ -619,6 +618,29 @@ class GameView extends GetView<GameController> {
                 ),
                 //胜负路
                 _sflContainer(index),
+                // 重启快照列（最后一列，与输赢/消数列均分剩余宽度）
+                Expanded(
+                  flex: 1,
+                  child: Align(
+                    alignment: Alignment.center,
+                    child: restartSnapshot.isEmpty
+                        ? const SizedBox.shrink()
+                        : FittedBox(
+                            fit: BoxFit.scaleDown,
+                            alignment: Alignment.center,
+                            child: Text(
+                              restartSnapshot,
+                              maxLines: 1,
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: 10.5,
+                                fontWeight: FontWeight.w500,
+                                color: controller.state.isDarkMode ? Colors.amber.shade200 : Colors.amber.shade800,
+                              ),
+                            ),
+                          ),
+                  ),
+                ),
               ],
             ),
           );
