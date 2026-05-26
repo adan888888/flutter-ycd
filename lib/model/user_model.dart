@@ -15,11 +15,12 @@ class UserModel {
   bool ycdAllowed = false;
   bool isPermanent = false;
   String expiresAt = "";
+  String role = "";
   UserModel();
 
   /// 是否可使用 ycd：优先按到期时间判断（与后端一致），登录后会写入 expires_at
   bool get canUseYcd {
-    if (isPermanent || nickname == 'Admin') return true;
+    if (isPermanent || role == 'super_admin') return true;
     if (_isExpiresActive(expiresAt)) return true;
     return ycdAllowed;
   }
@@ -68,6 +69,7 @@ class UserModel {
     ycdAllowed = map["ycd_allowed"] == true;
     isPermanent = map["is_permanent"] == true;
     expiresAt = map["expires_at"]?.toString() ?? "";
+    role = map["role"]?.toString() ?? "";
   }
 
   Map<String, dynamic> toJson() => {
@@ -84,6 +86,7 @@ class UserModel {
         "ycd_allowed": ycdAllowed,
         "is_permanent": isPermanent,
         "expires_at": expiresAt,
+        "role": role,
       };
 }
 
