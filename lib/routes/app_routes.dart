@@ -105,7 +105,7 @@ class AppPages {
       page: () => const BuyRecordsView(),
       binding: BuyRecordsBinding(),
       middlewares: [
-        AuthRequiredMiddleware(),
+        ProFeatureMiddleware(),
       ],
     ),
     GetPage(
@@ -121,7 +121,7 @@ class AppPages {
       page: () => const DigitalPasswordBookView(),
       binding: DigitalPasswordBookBinding(),
       middlewares: [
-        AuthRequiredMiddleware(),
+        ProFeatureMiddleware(),
       ],
     ),
     GetPage(
@@ -129,7 +129,7 @@ class AppPages {
       page: () => const AesEncryptView(),
       binding: AesEncryptBinding(),
       middlewares: [
-        AuthRequiredMiddleware(),
+        ProFeatureMiddleware(),
       ],
     ),
 
@@ -139,7 +139,7 @@ class AppPages {
       page: () => const BaccaratSimulationView(),
       binding: BaccaratSimulationBinding(),
       middlewares: [
-        AuthRequiredMiddleware(),
+        ProFeatureMiddleware(),
       ],
     ),
   ];

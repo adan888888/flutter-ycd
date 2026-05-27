@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:ycd/routes/app_routes.dart';
+import 'package:ycd/utils/bx_loading.dart';
+import 'package:ycd/utils/user_role.dart';
 import 'package:ycd/utils/network/get_store.dart';
 
 // 首页选择界面
@@ -13,6 +15,7 @@ class HomeView extends StatelessWidget {
     store.checkLoginStatus();
     // 仅「先去逛逛」未登录进入时显示返回；登录后进首页不显示
     final showBack = !store.isLogin;
+    final displayName = _resolveDisplayName(store);
 
     return Scaffold(
       appBar: AppBar(
@@ -31,12 +34,35 @@ class HomeView extends StatelessWidget {
             : null,
         iconTheme: const IconThemeData(color: Color(0xFF2F3A4F)),
         title: const Text(
-          '投资分析工具🔧',
-          style: TextStyle(color: Color(0xFF2F3A4F)),
+          '投资分析工具 🔧',
+          style: TextStyle(color: Color(0xFF2F3A4F), fontSize: 18),
         ),
+        centerTitle: true,
+        actions: store.isLogin
+            ? [
+                PopupMenuButton<String>(
+                  icon: const Icon(Icons.more_vert, color: Color(0xFF2F3A4F), size: 22),
+                  offset: const Offset(0, 40),
+                  onSelected: (value) {
+                    if (value == 'logout') _confirmLogout();
+                  },
+                  itemBuilder: (context) => const [
+                    PopupMenuItem<String>(
+                      value: 'logout',
+                      child: Row(
+                        children: [
+                          Icon(Icons.logout, size: 18, color: Color(0xFF2F3A4F)),
+                          SizedBox(width: 8),
+                          Text('退出登录'),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ]
+            : null,
         backgroundColor: Colors.transparent,
         elevation: 0,
-        centerTitle: true,
       ),
       // 让 body 扩展到 AppBar 背后
       extendBodyBehindAppBar: true,
@@ -56,6 +82,10 @@ class HomeView extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
+              if (store.isLogin) ...[
+                _buildUserInfoRow(displayName, store),
+                const SizedBox(height: 8),
+              ],
               Image.asset(
                 'assets/images/polyline.png',
                 width: 150,
@@ -96,13 +126,13 @@ class HomeView extends StatelessWidget {
 
               const SizedBox(height: 4),
 
-              _buildOptionCard(
+              _buildProOptionCard(
                 context,
                 icon: Icons.receipt_long,
                 title: '持币记录分析',
                 subtitle: '查看历史买入记录',
                 color: Colors.purple,
-                onTap: () => Get.toNamed(AppRoutes.buyRecords),
+                route: AppRoutes.buyRecords,
               ),
 
               const SizedBox(height: 4),
@@ -119,37 +149,37 @@ class HomeView extends StatelessWidget {
 
               const SizedBox(height: 4),
 
-              // AES加解密工具选项
-              _buildOptionCard(
+              // AES加解密工具选项（专业版及以上）
+              _buildProOptionCard(
                 context,
                 icon: Icons.vpn_key,
                 title: 'AES加解密工具',
                 subtitle: 'AES加密和解密工具',
                 color: Colors.deepOrange,
-                onTap: () => Get.toNamed(AppRoutes.aesEncrypt),
+                route: AppRoutes.aesEncrypt,
               ),
 
               const SizedBox(height: 4),
 
-              _buildOptionCard(
+              _buildProOptionCard(
                 context,
                 icon: Icons.lock,
                 title: '数字密码本',
                 subtitle: '安全存储和管理密码',
                 color: Colors.indigo,
-                onTap: () => Get.toNamed(AppRoutes.digitalPasswordBook),
+                route: AppRoutes.digitalPasswordBook,
               ),
 
               const SizedBox(height: 4),
 
-              // 百家乐开奖模拟选项 - 倒数第二
-              _buildOptionCard(
+              // 百家乐开奖模拟选项 - 倒数第二（专业版及以上）
+              _buildProOptionCard(
                 context,
                 icon: Icons.casino,
                 title: '百家乐开奖模拟',
                 subtitle: '模拟真实的开奖过程',
                 color: Colors.amber,
-                onTap: () => Get.toNamed(AppRoutes.baccaratSimulation),
+                route: AppRoutes.baccaratSimulation,
               ),
 
               const SizedBox(height: 4),
@@ -170,6 +200,121 @@ class HomeView extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildUserInfoRow(String displayName, GetStore store) {
+    return Row(
+      children: [
+        Flexible(
+          child: Text(
+            displayName,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              color: Color(0xFF2F3A4F),
+              fontSize: 15,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
+        const SizedBox(width: 8),
+        _buildRoleBadge(store),
+      ],
+    );
+  }
+
+  String _resolveDisplayName(GetStore store) {
+    if (!store.isLogin) return '';
+    final user = store.userModel;
+    if (user.nickname.trim().isNotEmpty) return user.nickname.trim();
+    if (user.account.trim().isNotEmpty) return user.account.trim();
+    if (user.userId.isNotEmpty) return '用户${user.userId}';
+    return '已登录';
+  }
+
+  Widget _buildRoleBadge(GetStore store) {
+    final user = store.userModel;
+    final role = user.isSuperAdmin ? UserRole.superAdmin : UserRole.normalize(user.role);
+    final label = UserRole.label(role);
+
+    late Color bg;
+    late Color fg;
+    switch (role) {
+      case UserRole.superAdmin:
+        bg = const Color(0xFFFFEBEE);
+        fg = const Color(0xFFC62828);
+      case UserRole.pro:
+        bg = const Color(0xFFFFF3E0);
+        fg = const Color(0xFFE65100);
+      default:
+        bg = const Color(0xFFECEFF1);
+        fg = const Color(0xFF546E7A);
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(4),
+        border: Border.all(color: fg.withValues(alpha: 0.35)),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          fontSize: 10,
+          fontWeight: FontWeight.w600,
+          color: fg,
+          height: 1.2,
+        ),
+      ),
+    );
+  }
+
+  void _confirmLogout() {
+    Get.dialog(
+      AlertDialog(
+        title: const Text('退出登录'),
+        content: const Text('确定退出当前账号？'),
+        actions: [
+          TextButton(onPressed: Get.back, child: const Text('取消')),
+          TextButton(
+            onPressed: () {
+              Get.back();
+              GetStore.getInstance().logout();
+              Get.offAllNamed(AppRoutes.login);
+            },
+            child: const Text('退出'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// 专业版及以上功能入口：普通用户显示锁定态
+  Widget _buildProOptionCard(
+    BuildContext context, {
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required Color color,
+    required String route,
+  }) {
+    final store = GetStore.getInstance();
+    final locked = store.isLogin && !store.userModel.isProOrAbove;
+    return _buildOptionCard(
+      context,
+      icon: locked ? Icons.lock_outline : icon,
+      title: title,
+      subtitle: locked ? '需专业版及以上权限，请联系管理员' : subtitle,
+      color: locked ? Colors.grey : color,
+      onTap: () {
+        if (locked) {
+          BXLoading.showToast('该功能需专业版及以上权限，请联系管理员');
+          return;
+        }
+        Get.toNamed(route);
+      },
     );
   }
 

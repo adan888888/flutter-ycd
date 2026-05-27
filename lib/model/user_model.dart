@@ -1,4 +1,5 @@
 import '../utils/types_of.dart';
+import '../utils/user_role.dart';
 
 class UserModel {
   String userId = "";
@@ -19,10 +20,13 @@ class UserModel {
   UserModel();
 
   /// 是否超级管理员
-  bool get isSuperAdmin {
-    if (role == 'super_admin') return true;
-    return isPermanent;
-  }
+  bool get isSuperAdmin => UserRole.isSuperAdmin(role) || isPermanent;
+
+  /// 是否专业版及以上
+  bool get isProOrAbove => UserRole.isProOrAbove(role) || isPermanent;
+
+  /// 角色展示名
+  String get roleLabel => UserRole.label(role);
 
   /// 是否可使用 jsq（计数器）：优先按到期时间判断（与后端一致），登录后会写入 expires_at
   bool get canUseJsq {
@@ -77,8 +81,9 @@ class UserModel {
     expiresAt = map["expires_at"]?.toString() ?? "";
     role = map["role"]?.toString() ?? "";
     if (role.isEmpty && map["is_super_admin"] == true) {
-      role = 'super_admin';
+      role = UserRole.superAdmin;
     }
+    role = UserRole.normalize(role);
   }
 
   Map<String, dynamic> toJson() => {
