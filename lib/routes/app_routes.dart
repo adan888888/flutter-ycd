@@ -105,7 +105,7 @@ class AppPages {
       page: () => const BuyRecordsView(),
       binding: BuyRecordsBinding(),
       middlewares: [
-        AuthRequiredMiddleware(),
+        SuperAdminRequiredMiddleware(),
       ],
     ),
     GetPage(
@@ -121,7 +121,7 @@ class AppPages {
       page: () => const DigitalPasswordBookView(),
       binding: DigitalPasswordBookBinding(),
       middlewares: [
-        AuthRequiredMiddleware(),
+        SuperAdminRequiredMiddleware(),
       ],
     ),
     GetPage(

@@ -18,6 +18,12 @@ class UserModel {
   String role = "";
   UserModel();
 
+  /// 是否超级管理员
+  bool get isSuperAdmin {
+    if (role == 'super_admin') return true;
+    return isPermanent;
+  }
+
   /// 是否可使用 ycd：优先按到期时间判断（与后端一致），登录后会写入 expires_at
   bool get canUseYcd {
     if (isPermanent || role == 'super_admin') return true;
@@ -70,6 +76,9 @@ class UserModel {
     isPermanent = map["is_permanent"] == true;
     expiresAt = map["expires_at"]?.toString() ?? "";
     role = map["role"]?.toString() ?? "";
+    if (role.isEmpty && map["is_super_admin"] == true) {
+      role = 'super_admin';
+    }
   }
 
   Map<String, dynamic> toJson() => {
