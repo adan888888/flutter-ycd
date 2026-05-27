@@ -8,14 +8,14 @@ import 'get_store.dart';
 
 /// 全局业务码副作用：Toast + 清 session + 路由跳转。
 abstract final class ApiSessionHandler {
-  static void handleGlobal(int code, String msg, {required bool showError}) {
-    switch (ApiCodePolicy.categoryOf(code)) {
-      case ApiCategory.unauthorized:
+  static void handleGlobal(int code, String msg, {required bool showError, bool isAuthApi = false}) {
+    switch (code) {
+      case ApiCode.jsqExpired:
+        _onJsqExpired(msg, showError, isAuthApi: isAuthApi);
+      case ApiCode.unauthorized:
         _onUnauthorized(msg, showError);
-      case ApiCategory.forbidden:
+      case ApiCode.forbidden:
         _onForbidden(msg);
-      case ApiCategory.ycdExpired:
-        _onYcdExpired(msg, showError);
       default:
         break;
     }
@@ -40,9 +40,12 @@ abstract final class ApiSessionHandler {
     });
   }
 
-  static void _onYcdExpired(String msg, bool showError) {
-    GetStore.getInstance().cleanUser();
+  static void _onJsqExpired(String msg, bool showError, {bool isAuthApi = false}) {
+    if (!isAuthApi) {
+      GetStore.getInstance().cleanUser();
+    }
     if (showError && msg.isNotEmpty) BXLoading.showToast(msg);
+    if (isAuthApi) return;
     Future.delayed(const Duration(milliseconds: 500), () {
       if (Get.currentRoute != AppRoutes.login) {
         Get.offAllNamed(AppRoutes.login);
@@ -54,13 +57,13 @@ abstract final class ApiSessionHandler {
     BaseModel model, {
     required bool showError,
     Function(String, BaseModel)? failed,
+    bool autoToast = true,
   }) {
-    if (model.code == ApiCode.fail) {
-      if (showError && model.msg.isNotEmpty) BXLoading.showToast(model.msg);
-      return;
-    }
     if (failed != null) failed(model.msg, model);
-    if (model.code != ApiCode.silent && showError && model.msg.isNotEmpty) {
+    if (autoToast &&
+        model.code != ApiCode.silent &&
+        showError &&
+        model.msg.isNotEmpty) {
       BXLoading.showToast(model.msg);
     }
   }

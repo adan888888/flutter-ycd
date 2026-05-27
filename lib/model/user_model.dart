@@ -12,7 +12,7 @@ class UserModel {
   String avatar = "";
   String statusDesc = "";
   int levelId = 0;
-  bool ycdAllowed = false;
+  bool jsqAllowed = false;
   bool isPermanent = false;
   String expiresAt = "";
   String role = "";
@@ -24,11 +24,11 @@ class UserModel {
     return isPermanent;
   }
 
-  /// 是否可使用 ycd：优先按到期时间判断（与后端一致），登录后会写入 expires_at
-  bool get canUseYcd {
+  /// 是否可使用 jsq（计数器）：优先按到期时间判断（与后端一致），登录后会写入 expires_at
+  bool get canUseJsq {
     if (isPermanent || role == 'super_admin') return true;
     if (_isExpiresActive(expiresAt)) return true;
-    return ycdAllowed;
+    return jsqAllowed;
   }
 
   static bool _isExpiresActive(String raw) {
@@ -53,8 +53,8 @@ class UserModel {
     return match?.group(1) ?? '';
   }
 
-  /// ycd 不可用时的提示文案
-  String get ycdExpiredMessage {
+  /// jsq（计数器）不可用时的提示文案
+  String get jsqExpiredMessage {
     final ymd = expiresAtYmd;
     if (ymd.isEmpty) return '服务未开通，请联系管理员';
     return '服务已到期（$ymd）\n请联系管理员';
@@ -72,7 +72,7 @@ class UserModel {
     avatar = map["avatar"] ?? "";
     statusDesc = map["status_desc"] ?? "";
     levelId = bxGetInt(map["levelId"]);
-    ycdAllowed = map["ycd_allowed"] == true;
+    jsqAllowed = map["jsq_allowed"] == true;
     isPermanent = map["is_permanent"] == true;
     expiresAt = map["expires_at"]?.toString() ?? "";
     role = map["role"]?.toString() ?? "";
@@ -92,7 +92,7 @@ class UserModel {
         "nickname": nickname,
         "avatar": avatar,
         "status_desc": statusDesc,
-        "ycd_allowed": ycdAllowed,
+        "jsq_allowed": jsqAllowed,
         "is_permanent": isPermanent,
         "expires_at": expiresAt,
         "role": role,

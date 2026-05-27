@@ -8,8 +8,8 @@ import 'package:ycd/views/currency_converter/currency_converter_binding.dart';
 import 'package:ycd/views/currency_converter/currency_converter_view.dart';
 import 'package:ycd/views/digital_password_book/digital_password_book_binding.dart';
 import 'package:ycd/views/digital_password_book/digital_password_book_view.dart';
-import 'package:ycd/views/game/game_binding.dart';
-import 'package:ycd/views/game/game_view.dart';
+import 'package:ycd/views/ji_shu_qi/ji_shu_qi_binding.dart';
+import 'package:ycd/views/ji_shu_qi/ji_shu_qi_view.dart';
 import 'package:ycd/views/home_view.dart';
 import 'package:ycd/views/investment_calculator/investment_calculator_binding.dart';
 import 'package:ycd/views/investment_calculator/investment_calculator_view.dart';
@@ -30,8 +30,8 @@ class AppRoutes {
   // 认证相关
   static const String login = '/login';
 
-  // 游戏相关
-  static const String gameHome = '/gameHome';
+  // 计数器（jsq）
+  static const String jiShuQiHome = '/jiShuQiHome';
 
   // 投资工具
   static const String investmentCalculator = '/investment-calculator';
@@ -65,11 +65,11 @@ class AppPages {
       ],
     ),
 
-    // 游戏页面
+    // 计数器页面
     GetPage(
-      name: AppRoutes.gameHome,
-      page: () => const GameView(title: 'v2.0'),
-      binding: GameBinding(),
+      name: AppRoutes.jiShuQiHome,
+      page: () => const JiShuQiView(title: 'v2.0'),
+      binding: JiShuQiBinding(),
       middlewares: [
         AuthRequiredMiddleware(),
       ],

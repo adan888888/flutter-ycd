@@ -3,8 +3,8 @@ import 'table1_model.dart';
 
 class DbHelper {
   final String path = "my.db"; // 数据库名称 一般不变
-  static const table1 = "table_ycd1";
-  static const table2 = "table_ycd2"; //历史记录
+  static const table1 = "table_jsq1";
+  static const table2 = "table_jsq2"; //历史记录
   //私有构造
   DbHelper._();
   static DbHelper? _instance;
@@ -28,18 +28,17 @@ class DbHelper {
   Future<Database> _initDb() async {
     // 这里是我们真正创建数据库的地方 vserion代表数据库的版本，如果版本改变
     //，则db会调用onUpgrade方法进行更新操作
-    final db = await openDatabase(path, version: 1, onCreate: (db, version) {
+    final db = await openDatabase(path, version: 2, onCreate: (db, version) {
       // 数据库创建完成
       db.execute("create table $table1 (column_benjin text not null, column_yongJin text not null,column_mean text,column_restart_index text,column_liushui_index text)");
       db.insert(table1, Table1Model(columnBenjin: "5000", columnYongJin: "0.95", columnMean: "0.08", columnRestartIndex: "0", columnLiushuiIndex: "0").toJson());
       db.execute(
           "create table $table2 (table2Id int not null,column_xiazhujine text not null, colmun_shuyingzhi text not null,colmun_shuyingzhi_d text,colmun_shengfulu text,colmun_zx text,colmun_remark text,column_current_jin text)");
-    }, onUpgrade: (db, oldV, newV) {
-      // 升级数据库调用
-      ///  db 数据库
-      ///   oldV 旧版本号
-      //   newV 新版本号
-      //   升级完成就不会在调用这个方法了
+    }, onUpgrade: (db, oldV, newV) async {
+      if (oldV < 2) {
+        await db.execute('ALTER TABLE table_ycd1 RENAME TO table_jsq1');
+        await db.execute('ALTER TABLE table_ycd2 RENAME TO table_jsq2');
+      }
     });
 
     return db;

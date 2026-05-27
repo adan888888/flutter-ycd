@@ -14,11 +14,11 @@ import 'package:ycd/my_widget/baccarat_big_road_widget.dart';
 import 'package:ycd/utils/network/get_store.dart';
 
 import '../../my_widget/vertical_text.dart';
-import 'game_controller.dart';
-import 'game_state.dart';
+import 'ji_shu_qi_controller.dart';
+import 'ji_shu_qi_state.dart';
 
-class GameView extends GetView<GameController> {
-  const GameView({super.key, required this.title});
+class JiShuQiView extends GetView<JiShuQiController> {
+  const JiShuQiView({super.key, required this.title});
 
   final String title;
 
@@ -29,14 +29,14 @@ class GameView extends GetView<GameController> {
       child: Listener(
         onPointerDown: (PointerDownEvent event) => controller.onUserInteraction(),
         onPointerMove: (event) => controller.onUserInteraction(),
-        child: GetBuilder<GameController>(
+        child: GetBuilder<JiShuQiController>(
           builder: (controller) => Scaffold(
             backgroundColor: controller.state.currentBgColor,
             floatingActionButtonLocation: FloatingActionButtonLocation.endDocked,
             floatingActionButtonAnimator: FloatingActionButtonAnimator.scaling,
             floatingActionButton: Transform.scale(
               scale: 0.7,
-              child: GetBuilder<GameController>(
+              child: GetBuilder<JiShuQiController>(
                 builder: (controller) {
                   return AnimatedScale(
                     scale: controller.state.floatButtonScale,
@@ -63,7 +63,7 @@ class GameView extends GetView<GameController> {
             ),
             appBar: PreferredSize(
               preferredSize: const Size.fromHeight(20),
-              child: GetBuilder<GameController>(
+              child: GetBuilder<JiShuQiController>(
                 builder: (controller) => AppBar(
                     // 隐藏返回键
                     automaticallyImplyLeading: false,
@@ -109,7 +109,7 @@ class GameView extends GetView<GameController> {
               ),
             ),
             body: SafeArea(
-              child: GetBuilder<GameController>(
+              child: GetBuilder<JiShuQiController>(
                 builder: (controller) => LayoutBuilder(
                   builder: (context, constraints) {
                     // 获取图表区域的高度（如果显示）
@@ -128,7 +128,7 @@ class GameView extends GetView<GameController> {
                             controller.state.isChartVisible ? _buildLineChats() : const SizedBox.shrink(),
                             SizedBox(height: 5),
                             //表格区统计区
-                            GetBuilder<GameController>(
+                            GetBuilder<JiShuQiController>(
                               builder: (controller) => SizedBox(
                                 height: 145,
                                 child: RefreshIndicator(
@@ -260,7 +260,7 @@ class GameView extends GetView<GameController> {
                             ),
                             //列表
                             Expanded(
-                              child: GetBuilder<GameController>(
+                              child: GetBuilder<JiShuQiController>(
                                   builder: (controller) => AbsorbPointer /*NotificationListener 也可以实现（监听滑动的回调）*/ (
                                         absorbing: controller.state.isRefreshing,
                                         child: GestureDetector(
@@ -461,7 +461,7 @@ class GameView extends GetView<GameController> {
     );
   }
 
-  _buildItem(int index) => GetBuilder<GameController>(
+  _buildItem(int index) => GetBuilder<JiShuQiController>(
         builder: (controller) {
           // 由于ListView是reverse的，需要转换index来获取正确的交替颜色
           final actualIndex = controller.state.table2List.length - 1 - index;
@@ -478,7 +478,7 @@ class GameView extends GetView<GameController> {
           final isRestartRow = restartSnapshot.isNotEmpty;
 
           return Container(
-            height: GameState.bettingTableRowHeight,
+            height: JiShuQiState.bettingTableRowHeight,
             decoration: BoxDecoration(
               color: backgroundColor,
               border: Border(
@@ -498,7 +498,7 @@ class GameView extends GetView<GameController> {
                   child: controller.state.table2List[index].id != null &&
                           controller.state.table2List[index].id == controller.state.currentTempIndex
                       ? SizedBox(
-                          width: GameState.seqColMaxWidth,
+                          width: JiShuQiState.seqColMaxWidth,
                           child: Center(
                             child: Icon(
                               Icons.visibility,
@@ -508,7 +508,7 @@ class GameView extends GetView<GameController> {
                           ),
                         )
                       : SizedBox(
-                          width: GameState.seqColMaxWidth,
+                          width: JiShuQiState.seqColMaxWidth,
                           child: FittedBox(
                             fit: BoxFit.scaleDown,
                             alignment: Alignment.center,
@@ -597,7 +597,7 @@ class GameView extends GetView<GameController> {
                 ),
                 //下注值列：宽约 5 个数字；过长时整体缩小字体（与统计区 FittedBox 一致）
                 SizedBox(
-                  width: GameState.betColWidth,
+                  width: JiShuQiState.betColWidth,
                   child: Align(
                     alignment: Alignment.centerRight,
                     child: FittedBox(
@@ -647,7 +647,7 @@ class GameView extends GetView<GameController> {
         },
       );
 
-  _sflContainer(int index) => GetBuilder<GameController>(
+  _sflContainer(int index) => GetBuilder<JiShuQiController>(
         builder: (controller) {
           final isZhengDa = controller.state.table2List[index].colmunShengfulu == '正打';
           final isLose = controller.state.table2List[index].colmunRemark?.startsWith('-') ?? false;
@@ -657,7 +657,7 @@ class GameView extends GetView<GameController> {
             if (isLose) {
               return Container(
                 color: Colors.transparent,
-                width: GameState.sflColWidth,
+                width: JiShuQiState.sflColWidth,
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -676,7 +676,7 @@ class GameView extends GetView<GameController> {
             } else {
               return Container(
                 color: Colors.transparent,
-                width: GameState.sflColWidth,
+                width: JiShuQiState.sflColWidth,
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -697,7 +697,7 @@ class GameView extends GetView<GameController> {
             if (isLose) {
               return Container(
                 color: Colors.transparent,
-                width: GameState.sflColWidth,
+                width: JiShuQiState.sflColWidth,
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -716,7 +716,7 @@ class GameView extends GetView<GameController> {
             } else {
               return Container(
                 color: Colors.transparent,
-                width: GameState.sflColWidth,
+                width: JiShuQiState.sflColWidth,
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -737,7 +737,7 @@ class GameView extends GetView<GameController> {
         },
       );
 
-  _buildLineChats() => GetBuilder<GameController>(
+  _buildLineChats() => GetBuilder<JiShuQiController>(
         builder: (controller) => controller.state.isBigRoad
             ? (controller.state.hasBigRoadData
                 //大路子图
@@ -777,8 +777,8 @@ class GameView extends GetView<GameController> {
                               // 大路网格
                               BaccaratBigRoadWidget(
                                 bigRoadData: controller.state.bigRoad,
-                                cellWidth: GameState.cellWidth,
-                                cellHeight: GameState.cellWidth,
+                                cellWidth: JiShuQiState.cellWidth,
+                                cellHeight: JiShuQiState.cellWidth,
                                 hasData: controller.state.hasBigRoadData,
                                 scrollController: controller.roadMapScrollController,
                                 borderColor: controller.state.isDarkMode ? Colors.white24 : Colors.grey.shade300,

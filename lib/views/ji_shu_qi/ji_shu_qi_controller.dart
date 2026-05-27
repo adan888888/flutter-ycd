@@ -25,11 +25,11 @@ import 'package:ycd/utils/network/api.dart';
 import 'package:ycd/utils/network/get_store.dart';
 import 'package:ycd/utils/network/http_mgr.dart';
 
-import 'game_state.dart';
+import 'ji_shu_qi_state.dart';
 
-class GameController extends GetxController {
+class JiShuQiController extends GetxController {
   EasyRefreshController refreshcontroller = EasyRefreshController(controlFinishRefresh: true, controlFinishLoad: true);
-  final GameState state = GameState();
+  final JiShuQiState state = JiShuQiState();
   Future<Database>? _instance;
 
   final scrollController = ScrollController();
@@ -151,8 +151,8 @@ class GameController extends GetxController {
       var ids = state.currentCol - 1; // 当前列的列
 
       // 如果下方有内容，或者已经超过6行，则需要往右平移（长龙处理）
-      if ((state.currentRow < GameState.bigRoadRows && state.bigRoad[state.currentRow][ids].isNotEmpty) ||
-          state.currentRow > GameState.bigRoadRows - 1) {
+      if ((state.currentRow < JiShuQiState.bigRoadRows && state.bigRoad[state.currentRow][ids].isNotEmpty) ||
+          state.currentRow > JiShuQiState.bigRoadRows - 1) {
         // 长龙处理：向右平移
         state.dragonStartCol++;
         state.bigRoad[state.dragonParallelRow][state.dragonStartCol] = winner;
@@ -176,7 +176,7 @@ class GameController extends GetxController {
       if (roadMapScrollController.hasClients) {
         // 计算当前列右边界的位置(这样计算还是有点不准，能在整个数据里找到最右边的列才更准，不过实际中应该没有那长的龙，先就这样吧)
         double currentColRightEdge =
-            (state.dragonStartCol == -1 ? state.currentCol : state.dragonStartCol + 1) * GameState.cellWidth;
+            (state.dragonStartCol == -1 ? state.currentCol : state.dragonStartCol + 1) * JiShuQiState.cellWidth;
 
         double currentScrollOffset = roadMapScrollController.position.pixels /* 当前滚动位置（滑动了多少）*/;
         /* 当前滚动位置 + 可见区域尺寸 = 可见区域右边界 */
@@ -185,7 +185,7 @@ class GameController extends GetxController {
         // 只有当当前列的右边界超出可见区域右边界时才滚动
         if (currentColRightEdge > visibleRightEdge) {
           // 计算需要滚动的距离，让当前列刚好可见
-          double scrollDistance = currentColRightEdge - visibleRightEdge + GameState.cellWidth;
+          double scrollDistance = currentColRightEdge - visibleRightEdge + JiShuQiState.cellWidth;
           double newOffset = currentScrollOffset + scrollDistance;
 
           // 确保不超过最大滚动范围
@@ -257,7 +257,7 @@ class GameController extends GetxController {
   /// 下拉刷新时 [keptPixels] 可能为负，按 0 处理。
   void _schedulePreserveScrollAfterPrepend(double keptPixels, int insertedCount) {
     if (insertedCount <= 0 || !keptPixels.isFinite) return;
-    final delta = GameState.bettingTableRowHeight * insertedCount;
+    final delta = JiShuQiState.bettingTableRowHeight * insertedCount;
     final base = keptPixels < 0 ? 0.0 : keptPixels;
 
     void apply() {

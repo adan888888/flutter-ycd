@@ -100,38 +100,24 @@ class LoginController extends GetxController {
         // 真实登录逻辑
         BXPost<UserModel>(Api.login,
             params: {"username": usrname, "password": password},
+            failed: (msg, _) {
+              if (msg.isEmpty) return;
+              Get.snackbar(
+                '',
+                msg,
+                snackPosition: SnackPosition.TOP,
+                backgroundColor: Colors.red.withValues(alpha: 0.8),
+                colorText: Colors.white,
+                duration: const Duration(seconds: 3),
+              );
+            },
             success: (isSuccess, code, message, results) {
-              if (isSuccess) {
-                final user = results.first;
-                GetStore.getInstance().saveUser(user);
-                if (user.userId.isEmpty) {
-                  Get.snackbar('登录失败', '用户数据异常', snackPosition: SnackPosition.TOP);
-                  return;
-                }
-                if (user.canUseYcd) {
-                  _persistLoginCredentials(usrname, password);
-                  Get.offAndToNamed(AppRoutes.home);
-                } else {
-                  GetStore.getInstance().cleanUser();
-                  Get.snackbar(
-                    '',
-                    user.ycdExpiredMessage,
-                    snackPosition: SnackPosition.TOP,
-                    backgroundColor: Colors.orange.withValues(alpha: 0.1),
-                    colorText: Colors.white,
-                    duration: const Duration(seconds: 10),
-                  );
-                }
-              } else {
-                Get.snackbar(
-                  '登录失败',
-                  message,
-                  snackPosition: SnackPosition.TOP,
-                  backgroundColor: Colors.red.withValues(alpha: 0.8),
-                  colorText: Colors.white,
-                  duration: const Duration(seconds: 3),
-                );
-              }
+              if (!isSuccess || results.isEmpty) return;
+              final user = results.first;
+              GetStore.getInstance().saveUser(user);
+              if (user.userId.isEmpty) return;
+              _persistLoginCredentials(usrname, password);
+              Get.offAndToNamed(AppRoutes.home);
             },
             onModel: (m) => UserModel.fromJson(m));
       } catch (e) {

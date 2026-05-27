@@ -27,61 +27,61 @@ class Api {
   static String login = "/auth/login";
 
   //初始化程序 创建表
-  static String createtables = "/ycd/createtable";
+  static String createtables = "/jsq/createtable";
 
   //获取表一数据
-  static String getTable1 = "/ycd/table1";
+  static String getTable1 = "/jsq/table1";
 
   //插入表一数据
-  static String inserttable1 = "/ycd/inserttable1";
+  static String inserttable1 = "/jsq/inserttable1";
 
   //插入表二数据
-  static String inserttable2 = "/ycd/inserttable2";
+  static String inserttable2 = "/jsq/inserttable2";
 
   // 更新重启统计快照
-  static String updateLastRowRestartStatSnapshot = "/ycd/updaterestartstatsnapshot";
+  static String updateLastRowRestartStatSnapshot = "/jsq/updaterestartstatsnapshot";
 
   //删除最后一行
-  static String deletelast = "/ycd/deletelast";
+  static String deletelast = "/jsq/deletelast";
 
   //重新启动
-  static String restart = "/ycd/restart";
+  static String restart = "/jsq/restart";
 
   //排序消数列
-  static String sortxiaoshu = "/ycd/sortxiaoshu";
+  static String sortxiaoshu = "/jsq/sortxiaoshu";
 
   //消数
-  static String xiaoshu = "/ycd/xiaoshu";
+  static String xiaoshu = "/jsq/xiaoshu";
 
   //删除本页
-  static String deleteall = "/ycd/deleteall";
+  static String deleteall = "/jsq/deleteall";
 
   //重置流水
-  static String resetliushui = "/ycd/resetliushui";
+  static String resetliushui = "/jsq/resetliushui";
 
   //修改个性期望值
-  static String updateQiWangValue = "/ycd/updateqiwangvalue";
+  static String updateQiWangValue = "/jsq/updateqiwangvalue";
 
   //修改赔率
-  static String updateOdds = "/ycd/updateodds";
+  static String updateOdds = "/jsq/updateodds";
 
   //修改本金
-  static String updateBenjin = "/ycd/updatebenjin";
+  static String updateBenjin = "/jsq/updatebenjin";
 
   //加载更多历史数据
-  static String loadMore = "/ycd/loadmore";
+  static String loadMore = "/jsq/loadmore";
 
   //加载更多历史数据
-  static String getStatisticalAreasData = "/ycd/getStatisticalAreasData";
+  static String getStatisticalAreasData = "/jsq/getStatisticalAreasData";
 
   //折线图数据
-  static String getLinechartData = "/ycd/linechartData";
+  static String getLinechartData = "/jsq/linechartData";
 
   //清除数据（消数列数据全部清除）
-  static String cleanDataD = "/ycd/cleanDataD";
+  static String cleanDataD = "/jsq/cleanDataD";
 
   //随机庄闲接口
-  static String randomBankerPlayer = "/ycd/randomBankerPlayer";
+  static String randomBankerPlayer = "/jsq/randomBankerPlayer";
 
   static String buyRecords = "/buyRecords";
 

@@ -162,7 +162,7 @@ class HomeView extends StatelessWidget {
                 title: '计数器',
                 subtitle: '让你游戏数据更加清晰',
                 color: Colors.red,
-                onTap: () => Get.toNamed(AppRoutes.gameHome),
+                onTap: () => Get.toNamed(AppRoutes.jiShuQiHome),
               ),
 
               const SizedBox(height: 20), // 底部留白

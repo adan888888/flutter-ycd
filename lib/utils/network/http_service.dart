@@ -150,9 +150,23 @@ class HttpService {
       log('✅ 响应数据: ${jsonEncode(response.data)}');
       log('\n---------------------------------------------------------------------------------------------------------------------------------------');
 
+      // Gin 路由不存在时 HTTP 404 + 纯文本，无 {code,msg,data}
+      if (response.statusCode == 404) {
+        final path = response.requestOptions.uri.path;
+        final errorMsg = '接口不存在(404): $path';
+        log('❌ $errorMsg');
+        if (showError) BXLoading.showToast(errorMsg);
+        if (failed != null) {
+          failed(errorMsg, BaseModel.fromJson({"code": -1, "msg": errorMsg}));
+        }
+        return;
+      }
+
       final model = _parseModel(response.data);
+      // 标准响应 { code, msg, data }：按业务码分发（成功 / 全局码 / 普通失败）
       if (model != null) {
         if (_dispatchByBusinessCode(
+          api,
           model,
           success: success,
           failed: failed,
@@ -162,6 +176,7 @@ class HttpService {
           return;
         }
       } else if (response.data != null) {
+        // 非标准格式但有 msg/error 字段：兜底 Toast + failed
         final errorMsg = _backendMsg(response.data);
         if (errorMsg != null) {
           if (showError) BXLoading.showToast(errorMsg);
@@ -171,10 +186,11 @@ class HttpService {
         }
         return;
       }
-    } on dio.DioException catch (e) {
+    } on dio.DioException catch (e) /* Dio 传输层失败时进入（连不上、超时、断网、CORS、证书等）。 */ {
       final model = _parseModel(e.response?.data);
       if (model != null &&
           _dispatchByBusinessCode(
+            api,
             model,
             success: success,
             failed: failed,
@@ -232,15 +248,14 @@ class HttpService {
   }
 
   bool _dispatchByBusinessCode<T>(
+    String api,
     BaseModel model, {
     required Function(bool isSuccess, int code, String message, List<T> results) success,
     Function(String, BaseModel)? failed,
     Function(dynamic)? onModel,
     required bool showError,
   }) {
-    final category = ApiCodePolicy.categoryOf(model.code);
-
-    if (category == ApiCategory.success) {
+    if (ApiCodePolicy.isSuccess(model.code)) {
       final dynamic d = model.data;
       final listResult = d is List ? List<dynamic>.from(d) : <dynamic>[];
       if (onModel == null) {
@@ -259,16 +274,29 @@ class HttpService {
       return true;
     }
 
+    final isAuthApi = _isAuthApi(api);
+
     if (ApiCodePolicy.isGlobal(model.code)) {
-      ApiSessionHandler.handleGlobal(model.code, model.msg, showError: showError);
-      if (model.code == ApiCode.ycdExpired && failed != null) {
-        failed(model.msg, model);
-      }
+      ApiSessionHandler.handleGlobal(
+        model.code,
+        model.msg,
+        showError: showError,
+        isAuthApi: isAuthApi,
+      );
       return true;
     }
 
-    ApiSessionHandler.handleBusinessFail(model, showError: showError, failed: failed);
+    ApiSessionHandler.handleBusinessFail(
+      model,
+      showError: showError,
+      failed: failed,
+      autoToast: ApiCodePolicy.shouldAutoToast(model.code, isAuthApi: isAuthApi),
+    );
     return true;
+  }
+
+  bool _isAuthApi(String api) {
+    return api.contains('/auth/login') || api.contains('/auth/register');
   }
 
   String? _backendMsg(dynamic data) {

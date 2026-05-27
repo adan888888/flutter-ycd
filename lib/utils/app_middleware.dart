@@ -8,16 +8,10 @@ class AppMiddleware extends GetMiddleware {
   @override
   RouteSettings? redirect(String? route) {
     GetStore.getInstance().checkLoginStatus();
-    bool isLogin = GetStore.getInstance().isLogin;
-    if (!isLogin) {
-      return null;
-    }
-    final user = GetStore.getInstance().readUserModel();
-    if (user.canUseYcd) {
+    final isLogin = GetStore.getInstance().isLogin;
+    if (isLogin) {
       return const RouteSettings(name: AppRoutes.home);
     }
-    // 已登录但 ycd 已到期：清除会话并留在登录页
-    GetStore.getInstance().cleanUser();
     return null;
   }
 }
@@ -29,11 +23,6 @@ class AuthRequiredMiddleware extends GetMiddleware {
     GetStore.getInstance().checkLoginStatus();
     final isLogin = GetStore.getInstance().isLogin;
     if (!isLogin) {
-      return const RouteSettings(name: AppRoutes.login);
-    }
-    final user = GetStore.getInstance().readUserModel();
-    if (!user.canUseYcd) {
-      GetStore.getInstance().cleanUser();
       return const RouteSettings(name: AppRoutes.login);
     }
     return null;

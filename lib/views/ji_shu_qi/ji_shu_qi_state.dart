@@ -4,7 +4,7 @@ import 'package:ycd/model/linechart_data_model.dart';
 import 'package:ycd/my_db/table1_model.dart';
 import 'package:ycd/my_db/table2_model.dart';
 
-class GameState {
+class JiShuQiState {
   var ratio = 50; //庄闲占比(50=50%庄 50%闲；70=70%庄 30%闲，)
   static const OFFSET8431 = 8431; //庄闲占比是 庄60% 闲40%
   static const double height = 16 / 3;
@@ -18,13 +18,13 @@ class GameState {
   var js2 = 0;
   int currentTempIndex = 0; // 局部平衡锚点行 id（与列表眼睛一致）；持久化为服务端 table1.temp_index → Table1Model.tempIndex
 
-  /// 列表各列固定宽度（game_view 投注记录行；过长用 FittedBox 缩小字体）
+  /// 列表各列固定宽度（ji_shu_qi_view 投注记录行；过长用 FittedBox 缩小字体）
   static const double seqColMaxWidth = 34; // 序号+眼睛，约 4 个数字
   static const double sflColWidth = 32; // 胜负路固定宽
   /// 下注列：约 5 个数字宽度；超出时用 FittedBox 缩小字体（同统计区）
   static const double betColWidth = 45;
 
-  /// 投注记录表每一行高度（与 game_view._buildItem 一致，用于顶部插入后恢复滚动位置）
+  /// 投注记录表每一行高度（与 ji_shu_qi_view._buildItem 一致，用于顶部插入后恢复滚动位置）
   static const double bettingTableRowHeight = 26;
 
   var lineColor = Colors.black87.withValues(alpha: 0.8);
@@ -163,7 +163,7 @@ class GameState {
 
   /// 构造函数
   /// 初始化大路图数据
-  GameState() {
+  JiShuQiState() {
     initializeBigRoad();
   }
 

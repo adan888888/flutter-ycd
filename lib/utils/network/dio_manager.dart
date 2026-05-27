@@ -4,8 +4,8 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import '../../model/user_model.dart';
 import '../local_util.dart';
-import 'get_store.dart';
 import 'api.dart';
+import 'get_store.dart';
 
 class DioManager {
   static DioManager? _instance;
@@ -31,6 +31,8 @@ class DioManager {
     _dio.options.sendTimeout = const Duration(seconds: 15);
     // 统一按响应体 business code 处理，不因 HTTP 4xx/5xx 抛 DioException
     _dio.options.validateStatus = (status) => status != null && status < 600;
+
+    log('API baseUrl: ${Api.baseUrl}');
 
     // Web平台特殊配置
     if (kIsWeb) {

@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:ycd/views/game/game_controller.dart';
+import 'package:ycd/views/ji_shu_qi/ji_shu_qi_controller.dart';
 
 class SinglePicker extends StatefulWidget {
   const SinglePicker({super.key});
@@ -11,7 +11,7 @@ class SinglePicker extends StatefulWidget {
 }
 
 class _SinglePickerState extends State<SinglePicker> {
-  final controller = Get.find<GameController>();
+  final controller = Get.find<JiShuQiController>();
   int selectIndex = 0;
 
   @override
@@ -46,7 +46,7 @@ class _SinglePickerState extends State<SinglePicker> {
               ),
             ],
           ),
-          GetBuilder<GameController>(
+          GetBuilder<JiShuQiController>(
               builder: (controller) => Expanded(
                     child: CupertinoPicker(
                         scrollController: controller.fixedExtentScrollController,
