@@ -163,8 +163,8 @@ class HttpService {
       }
 
       final model = _parseModel(response.data);
-      // 标准响应 { code, msg, data }：按业务码分发（成功 / 全局码 / 普通失败）
       if (model != null) {
+        // 标准响应 { code, msg, data }：按业务码分发（成功 / 全局码 / 普通失败）
         if (_dispatchByBusinessCode(
           api,
           model,

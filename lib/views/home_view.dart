@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:ycd/routes/app_routes.dart';
 import 'package:ycd/utils/bx_loading.dart';
+import 'package:ycd/utils/permission_util.dart';
 import 'package:ycd/utils/user_role.dart';
 import 'package:ycd/utils/network/get_store.dart';
 
@@ -291,7 +292,7 @@ class HomeView extends StatelessWidget {
     );
   }
 
-  /// 专业版及以上功能入口：普通用户显示锁定态
+  /// 专业版及以上功能入口：未登录或普通用户显示锁定态
   Widget _buildProOptionCard(
     BuildContext context, {
     required IconData icon,
@@ -301,16 +302,22 @@ class HomeView extends StatelessWidget {
     required String route,
   }) {
     final store = GetStore.getInstance();
-    final locked = store.isLogin && !store.userModel.isProOrAbove;
+    store.checkLoginStatus();
+    final canAccess = PermissionUtil.canAccessProFeature();
     return _buildOptionCard(
       context,
-      icon: locked ? Icons.lock_outline : icon,
+      icon: canAccess ? icon : Icons.lock_outline,
       title: title,
-      subtitle: locked ? '需专业版及以上权限，请联系管理员' : subtitle,
-      color: locked ? Colors.grey : color,
+      subtitle: canAccess ? subtitle : PermissionUtil.proFeatureLockedSubtitle(isLogin: store.isLogin),
+      color: canAccess ? color : Colors.grey,
       onTap: () {
-        if (locked) {
-          BXLoading.showToast('该功能需专业版及以上权限，请联系管理员');
+        if (!canAccess) {
+          if (!store.isLogin) {
+            BXLoading.showToast('请先登录');
+            Get.toNamed(AppRoutes.login);
+            return;
+          }
+          BXLoading.showError(toast: '该功能需专业版及以上权限，请联系管理员');
           return;
         }
         Get.toNamed(route);

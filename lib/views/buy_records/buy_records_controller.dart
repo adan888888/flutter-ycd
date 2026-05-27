@@ -6,6 +6,7 @@ import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'package:ycd/utils/network/api.dart';
 import 'package:ycd/utils/network/http_mgr.dart';
+import 'package:ycd/utils/permission_util.dart';
 
 import 'buy_records_state.dart';
 
@@ -35,6 +36,7 @@ class BuyRecordsController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    if (!PermissionUtil.guardProFeature()) return;
     _initializeData();
   }
 

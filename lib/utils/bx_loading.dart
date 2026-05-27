@@ -107,7 +107,7 @@ class BXLoading {
       ..displayDuration = const Duration(seconds: val)
       ..indicatorType = EasyLoadingIndicatorType.fadingCircle
       ..loadingStyle = EasyLoadingStyle.custom
-      ..backgroundColor = ColorUtil.color_0x80FFFFFF
+      ..backgroundColor = ColorUtil.black.withValues(alpha: 0.5)
       ..indicatorSize = 45.0
       ..radius = 12
       ..indicatorColor = Colors.white
