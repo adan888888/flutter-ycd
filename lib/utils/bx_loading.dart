@@ -4,6 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:lottie/lottie.dart';
+
 import 'color_util.dart';
 
 enum ToastType {
@@ -20,8 +21,7 @@ class BXLoading {
     // 弹窗 loading
     EasyLoading.show(
       indicator: Container(
-        decoration: BoxDecoration(
-            color: ColorUtil.color_0xff733547, borderRadius: BorderRadius.circular(15.w)),
+        decoration: BoxDecoration(color: ColorUtil.color_0xff733547, borderRadius: BorderRadius.circular(15.w)),
         width: 90,
         height: 90,
         child: Center(
@@ -72,9 +72,9 @@ class BXLoading {
     Get.snackbar(
       "发现错误",
       toast,
-      maxWidth: Get.width * 0.8,
+      maxWidth: Get.width * 0.9,
       colorText: Colors.white,
-      backgroundColor: Colors.black.withValues(alpha: 0.4),
+      backgroundColor: Colors.black.withValues(alpha: 0.3),
       duration: const Duration(
         seconds: 2,
       ),
@@ -107,7 +107,7 @@ class BXLoading {
       ..displayDuration = const Duration(seconds: val)
       ..indicatorType = EasyLoadingIndicatorType.fadingCircle
       ..loadingStyle = EasyLoadingStyle.custom
-      ..backgroundColor = ColorUtil.color_0xffef235d
+      ..backgroundColor = ColorUtil.color_0x80FFFFFF
       ..indicatorSize = 45.0
       ..radius = 12
       ..indicatorColor = Colors.white

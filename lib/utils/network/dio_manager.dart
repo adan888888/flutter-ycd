@@ -29,6 +29,8 @@ class DioManager {
     _dio.options.connectTimeout = const Duration(seconds: 15);
     _dio.options.receiveTimeout = const Duration(seconds: 15);
     _dio.options.sendTimeout = const Duration(seconds: 15);
+    // 统一按响应体 business code 处理，不因 HTTP 4xx/5xx 抛 DioException
+    _dio.options.validateStatus = (status) => status != null && status < 600;
 
     // Web平台特殊配置
     if (kIsWeb) {

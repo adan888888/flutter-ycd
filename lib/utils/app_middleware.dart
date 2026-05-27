@@ -39,23 +39,3 @@ class AuthRequiredMiddleware extends GetMiddleware {
     return null;
   }
 }
-
-/// 仅超级管理员可访问（需先登录且 ycd 有效）
-class SuperAdminRequiredMiddleware extends GetMiddleware {
-  @override
-  RouteSettings? redirect(String? route) {
-    GetStore.getInstance().checkLoginStatus();
-    if (!GetStore.getInstance().isLogin) {
-      return const RouteSettings(name: AppRoutes.login);
-    }
-    final user = GetStore.getInstance().readUserModel();
-    if (!user.canUseYcd) {
-      GetStore.getInstance().cleanUser();
-      return const RouteSettings(name: AppRoutes.login);
-    }
-    if (!user.isSuperAdmin) {
-      return const RouteSettings(name: AppRoutes.home);
-    }
-    return null;
-  }
-}

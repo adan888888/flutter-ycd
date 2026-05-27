@@ -3,13 +3,12 @@ import 'dart:developer';
 
 import 'package:dio/dio.dart' as dio;
 import 'package:flutter/foundation.dart';
-import 'package:get/get.dart';
 
 import '../../model/base_model.dart';
-import '../../routes/app_routes.dart'; // 添加路由配置导入
 import '../bx_loading.dart';
+import 'api_code.dart';
+import 'api_session_handler.dart';
 import 'dio_manager.dart';
-import 'get_store.dart';
 
 class HttpService {
   static HttpService? _instance;
@@ -148,96 +147,53 @@ class HttpService {
       if (response.requestOptions.data != null) {
         log('📝 请求参数: ${response.requestOptions.data}');
       }
-      log('✅ 响应数据: ${response.statusCode} ${jsonEncode(response.data)}');
+      log('✅ 响应数据: ${jsonEncode(response.data)}');
       log('\n---------------------------------------------------------------------------------------------------------------------------------------');
 
-      if (response.statusCode == 200) {
-        final data = response.data;
-        if (data != null) {
-          BaseModel model = BaseModel.fromJson(data);
-
-          if (model.code == 0) {
-            final dynamic d = model.data;
-            final listResult = d is List ? List<dynamic>.from(d) : <dynamic>[];
-            if (onModel == null) {
-              success(true, model.code, model.msg, List<T>.from(listResult));
-            } else {
-              if (listResult.isEmpty) {
-                success(true, model.code, "数据为空", <T>[]);
-              } else {
-                final values = <T>[];
-                for (final element in listResult) {
-                  values.add(onModel(element));
-                }
-                success(true, model.code, model.msg, values);
-              }
-            }
-          } else if (model.code == 2202) {
-            _handleYcdExpired(showError, failed, model);
-          } else {
-            if (model.code == 1) {
-              if (showError) BXLoading.showToast(model.msg);
-            } else {
-              if (failed != null) failed(model.msg, model);
-              if (model.code != 8 && showError) BXLoading.showToast(model.msg);
-            }
-          }
-        }
-      } else {
-        String errorMsg = '请求失败: ${response.statusCode}';
-        if (showError) BXLoading.showToast(errorMsg);
-        if (failed != null) {
-          failed(
-              errorMsg,
-              BaseModel.fromJson({
-                "code": response.statusCode ?? -1,
-                "msg": errorMsg,
-              }));
-        }
-      }
-    } on dio.DioException catch (e) {
-      String errorMsg = _handleDioError(e);
-
-      // 处理401未授权错误（token过期）
-      if (e.response?.statusCode == 401) {
-        log('🔐 401错误: ${e.response?.data}');
-        if (e.response!.data.toString().contains("Access denied")) {
-          BXLoading.showToast("连接不上数据库，Access denied");
+      final model = _parseModel(response.data);
+      if (model != null) {
+        if (_dispatchByBusinessCode(
+          model,
+          success: success,
+          failed: failed,
+          onModel: onModel,
+          showError: showError,
+        )) {
           return;
         }
-        // 尝试解析服务端返回的错误信息
-        try {
-          if (e.response?.data != null) {
-            BaseModel errorModel = BaseModel.fromJson(e.response!.data);
-            errorMsg = errorModel.msg;
-            log('🔐 解析的错误信息: $errorMsg');
+      } else if (response.data != null) {
+        final errorMsg = _backendMsg(response.data);
+        if (errorMsg != null) {
+          if (showError) BXLoading.showToast(errorMsg);
+          if (failed != null) {
+            failed(errorMsg, BaseModel.fromJson({"code": -1, "msg": errorMsg}));
           }
-        } catch (parseError) {
-          errorMsg = '登录已过期，请重新登录';
-          log('🔐 解析错误信息失败: $parseError');
         }
-
-        // 清除本地用户信息
-        GetStore.getInstance().cleanUser();
-
-        // 显示提示
-        if (showError) BXLoading.showToast(errorMsg);
-
-        // 跳转到登录页面（避免重复跳转）
-        Future.delayed(const Duration(seconds: 1), () {
-          // 检查当前是否已经在登录页面
-          if (Get.currentRoute != AppRoutes.login) {
-            log('🔄 跳转到登录页面，当前路由: ${Get.currentRoute}');
-            Get.offAndToNamed(AppRoutes.login);
-          } else {
-            log('ℹ️ 当前已在登录页面，无需跳转');
-          }
-        });
-
+        return;
+      }
+    } on dio.DioException catch (e) {
+      final model = _parseModel(e.response?.data);
+      if (model != null &&
+          _dispatchByBusinessCode(
+            model,
+            success: success,
+            failed: failed,
+            onModel: onModel,
+            showError: showError,
+          )) {
         return;
       }
 
-      // Web平台特殊处理
+      final backendMsg = _backendMsg(e.response?.data);
+      if (backendMsg != null) {
+        if (showError) BXLoading.showToast(backendMsg);
+        if (failed != null) {
+          failed(backendMsg, BaseModel.fromJson({"code": -1, "msg": backendMsg}));
+        }
+        return;
+      }
+
+      String errorMsg = _handleDioError(e);
       if (kIsWeb && e.type == dio.DioExceptionType.connectionError) {
         errorMsg = 'Web平台连接错误，请检查后端服务器CORS配置';
       }
@@ -260,23 +216,72 @@ class HttpService {
     }
   }
 
-  void _handleYcdExpired(
-    bool showError,
-    Function(String, BaseModel)? failed,
-    BaseModel model,
-  ) {
-    final msg = GetStore.getInstance().userModel.ycdExpiredMessage;
-    log('💳 2202: $msg');
-    GetStore.getInstance().cleanUser();
-    if (showError) BXLoading.showToast(msg);
-    Future.delayed(const Duration(milliseconds: 500), () {
-      if (Get.currentRoute != AppRoutes.login) {
-        Get.offAllNamed(AppRoutes.login);
+  BaseModel? _parseModel(dynamic data) {
+    if (data == null) return null;
+    try {
+      if (data is Map<String, dynamic>) {
+        return BaseModel.fromJson(data);
       }
-    });
-    if (failed != null) {
-      failed(msg, model);
+      if (data is Map) {
+        return BaseModel.fromJson(Map<String, dynamic>.from(data));
+      }
+    } catch (e) {
+      log('解析响应失败: $e');
     }
+    return null;
+  }
+
+  bool _dispatchByBusinessCode<T>(
+    BaseModel model, {
+    required Function(bool isSuccess, int code, String message, List<T> results) success,
+    Function(String, BaseModel)? failed,
+    Function(dynamic)? onModel,
+    required bool showError,
+  }) {
+    final category = ApiCodePolicy.categoryOf(model.code);
+
+    if (category == ApiCategory.success) {
+      final dynamic d = model.data;
+      final listResult = d is List ? List<dynamic>.from(d) : <dynamic>[];
+      if (onModel == null) {
+        success(true, model.code, model.msg, List<T>.from(listResult));
+      } else {
+        if (listResult.isEmpty) {
+          success(true, model.code, model.msg, <T>[]);
+        } else {
+          final values = <T>[];
+          for (final element in listResult) {
+            values.add(onModel(element));
+          }
+          success(true, model.code, model.msg, values);
+        }
+      }
+      return true;
+    }
+
+    if (ApiCodePolicy.isGlobal(model.code)) {
+      ApiSessionHandler.handleGlobal(model.code, model.msg, showError: showError);
+      if (model.code == ApiCode.ycdExpired && failed != null) {
+        failed(model.msg, model);
+      }
+      return true;
+    }
+
+    ApiSessionHandler.handleBusinessFail(model, showError: showError, failed: failed);
+    return true;
+  }
+
+  String? _backendMsg(dynamic data) {
+    if (data == null) return null;
+    final model = _parseModel(data);
+    if (model != null && model.msg.isNotEmpty) return model.msg;
+    if (data is Map) {
+      final msg = data['msg'];
+      if (msg != null && msg.toString().isNotEmpty) return msg.toString();
+      final error = data['error'];
+      if (error != null && error.toString().isNotEmpty) return error.toString();
+    }
+    return null;
   }
 
   String _handleDioError(dio.DioException error) {
@@ -288,11 +293,7 @@ class HttpService {
       case dio.DioExceptionType.receiveTimeout:
         return '接收超时，请重试';
       case dio.DioExceptionType.badResponse:
-        // 特殊处理401错误
-        if (error.response?.statusCode == 401) {
-          return '登录已过期，请重新登录';
-        }
-        return '服务器响应错误: ${error.response?.statusCode}';
+        return _backendMsg(error.response?.data) ?? '服务器响应错误';
       case dio.DioExceptionType.cancel:
         return '请求已取消';
       case dio.DioExceptionType.connectionError:

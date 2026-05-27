@@ -13,7 +13,6 @@ class HomeView extends StatelessWidget {
     store.checkLoginStatus();
     // 仅「先去逛逛」未登录进入时显示返回；登录后进首页不显示
     final showBack = !store.isLogin;
-    final isSuperAdmin = store.isLogin && store.readUserModel().isSuperAdmin;
 
     return Scaffold(
       appBar: AppBar(
@@ -97,19 +96,16 @@ class HomeView extends StatelessWidget {
 
               const SizedBox(height: 4),
 
-              if (isSuperAdmin) ...[
-                // 买入记录选项（仅超级管理员）
-                _buildOptionCard(
-                  context,
-                  icon: Icons.receipt_long,
-                  title: '持币记录分析',
-                  subtitle: '查看历史买入记录',
-                  color: Colors.purple,
-                  onTap: () => Get.toNamed(AppRoutes.buyRecords),
-                ),
+              _buildOptionCard(
+                context,
+                icon: Icons.receipt_long,
+                title: '持币记录分析',
+                subtitle: '查看历史买入记录',
+                color: Colors.purple,
+                onTap: () => Get.toNamed(AppRoutes.buyRecords),
+              ),
 
-                const SizedBox(height: 4),
-              ],
+              const SizedBox(height: 4),
 
               // 汇率换算选项
               _buildOptionCard(
@@ -135,19 +131,16 @@ class HomeView extends StatelessWidget {
 
               const SizedBox(height: 4),
 
-              if (isSuperAdmin) ...[
-                // 数字密码本选项（仅超级管理员）
-                _buildOptionCard(
-                  context,
-                  icon: Icons.lock,
-                  title: '数字密码本',
-                  subtitle: '安全存储和管理密码',
-                  color: Colors.indigo,
-                  onTap: () => Get.toNamed(AppRoutes.digitalPasswordBook),
-                ),
+              _buildOptionCard(
+                context,
+                icon: Icons.lock,
+                title: '数字密码本',
+                subtitle: '安全存储和管理密码',
+                color: Colors.indigo,
+                onTap: () => Get.toNamed(AppRoutes.digitalPasswordBook),
+              ),
 
-                const SizedBox(height: 4),
-              ],
+              const SizedBox(height: 4),
 
               // 百家乐开奖模拟选项 - 倒数第二
               _buildOptionCard(

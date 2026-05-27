@@ -36,15 +36,12 @@ class DigitalPasswordBookController extends GetxController {
         if (isSuccess) {
           state.passwordList.clear();
           state.passwordList.addAll(results);
-          // 调用成功回调
           onSuccess?.call();
         } else {
-          Get.snackbar('错误', '加载密码列表失败: $message');
           onError?.call(message);
         }
       },
       failed: (error, baseModel) {
-        Get.snackbar('错误', '加载密码列表失败: $error');
         onError?.call(error);
       },
       onModel: (json) => PasswordItem.fromJson(json),
@@ -84,18 +81,10 @@ class DigitalPasswordBookController extends GetxController {
       success: (isSuccess, code, message, results) {
         if (isSuccess && results.isNotEmpty) {
           state.passwordList.insert(0, results.first);
-
-          // 清空表单
           clearAddForm();
           state.showAddDialog.value = false;
-
           Get.snackbar('成功', '密码已添加');
-        } else {
-          Get.snackbar('错误', '添加密码失败: $message');
         }
-      },
-      failed: (error, baseModel) {
-        Get.snackbar('错误', '添加密码失败: $error');
       },
       onModel: (json) => PasswordItem.fromJson(json),
       isShowLoading: true,
@@ -154,12 +143,7 @@ class DigitalPasswordBookController extends GetxController {
             state.showEditDialog.value = false;
             Get.snackbar('成功', '密码已更新');
           }
-        } else {
-          Get.snackbar('错误', '更新密码失败: $message');
         }
-      },
-      failed: (error, baseModel) {
-        Get.snackbar('错误', '更新密码失败: $error');
       },
       onModel: (json) => PasswordItem.fromJson(json),
       isShowLoading: true,
@@ -187,12 +171,7 @@ class DigitalPasswordBookController extends GetxController {
                     state.passwordList.removeWhere((e) => e.id == item.id);
                     Get.back();
                     Get.snackbar('成功', '密码已删除');
-                  } else {
-                    Get.snackbar('错误', '删除失败: $message');
                   }
-                },
-                failed: (error, baseModel) {
-                  Get.snackbar('错误', '删除密码失败: $error');
                 },
                 isShowLoading: true,
                 showError: true,
@@ -380,16 +359,7 @@ class DigitalPasswordBookController extends GetxController {
         );
         state.isLoading.value = false;
       },
-      onError: (error) {
-        Get.snackbar(
-          '刷新失败',
-          '无法更新密码列表: $error',
-          snackPosition: SnackPosition.TOP,
-          duration: const Duration(seconds: 3),
-          backgroundColor: Colors.red.withValues(alpha: 0.8),
-          colorText: Colors.white,
-          icon: const Icon(Icons.error, color: Colors.white),
-        );
+      onError: (_) {
         state.isLoading.value = false;
       },
     );
