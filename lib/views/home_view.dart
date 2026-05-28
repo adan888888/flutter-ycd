@@ -131,7 +131,7 @@ class HomeView extends StatelessWidget {
                 context,
                 icon: Icons.receipt_long,
                 title: '持币记录分析',
-                subtitle: '查看历史买入记录',
+                subtitle: '查看当前登录用户的买入记录',
                 color: Colors.purple,
                 route: AppRoutes.buyRecords,
               ),
