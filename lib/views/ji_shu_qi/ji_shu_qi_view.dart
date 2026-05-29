@@ -327,7 +327,7 @@ class JiShuQiView extends GetView<JiShuQiController> {
                                       child: Padding(
                                         padding: const EdgeInsets.only(left: 5.0),
                                         child: Icon(
-                                          CupertinoIcons.ant_fill,
+                                          Icons.swap_vert,
                                           color: controller.state.currentTextColor,
                                         ),
                                       ),
@@ -396,27 +396,24 @@ class JiShuQiView extends GetView<JiShuQiController> {
                             top: chartHeight != null
                                 ? chartHeight - 20 // 折线图：图表高度120，按钮高度40，居中在图表底部
                                 : 80 - 20, // 大路图：估算高度80（标题行约30px + 大路图约50px），按钮居中在图表底部
-                            left: 0,
                             right: 0,
-                            child: Center(
-                              child: GestureDetector(
-                                onTap: () => controller.toggleChartVisibility(),
-                                child: Container(
-                                  width: 30,
-                                  height: 30,
-                                  decoration: BoxDecoration(
-                                    color: controller.state.isDarkMode
-                                        ? Colors.white.withValues(alpha: 0.2)
-                                        : Colors.black.withValues(alpha: 0.2),
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: Icon(
-                                    Icons.keyboard_arrow_up,
-                                    color: controller.state.isDarkMode
-                                        ? Colors.white.withValues(alpha: 0.4)
-                                        : Colors.black.withValues(alpha: 0.4),
-                                    size: 20,
-                                  ),
+                            child: GestureDetector(
+                              onTap: () => controller.toggleChartVisibility(),
+                              child: Container(
+                                width: 30,
+                                height: 30,
+                                decoration: BoxDecoration(
+                                  color: controller.state.isDarkMode
+                                      ? Colors.white.withValues(alpha: 0.2)
+                                      : Colors.black.withValues(alpha: 0.2),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Icon(
+                                  Icons.keyboard_arrow_up,
+                                  color: controller.state.isDarkMode
+                                      ? Colors.white.withValues(alpha: 0.4)
+                                      : Colors.black.withValues(alpha: 0.4),
+                                  size: 20,
                                 ),
                               ),
                             ),
@@ -424,31 +421,69 @@ class JiShuQiView extends GetView<JiShuQiController> {
                         else
                           Positioned(
                             top: 0,
-                            left: 0,
                             right: 0,
-                            child: Center(
-                              child: GestureDetector(
-                                onTap: () => controller.toggleChartVisibility(),
-                                child: Container(
-                                  width: 30,
-                                  height: 30,
-                                  decoration: BoxDecoration(
-                                    color: controller.state.isDarkMode
-                                        ? Colors.white.withValues(alpha: 0.1)
-                                        : Colors.black.withValues(alpha: 0.1),
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: Icon(
-                                    Icons.keyboard_arrow_down,
-                                    color: controller.state.isDarkMode
-                                        ? Colors.white.withValues(alpha: 0.1)
-                                        : Colors.black.withValues(alpha: 0.1),
-                                    size: 20,
-                                  ),
+                            child: GestureDetector(
+                              onTap: () => controller.toggleChartVisibility(),
+                              child: Container(
+                                width: 30,
+                                height: 30,
+                                decoration: BoxDecoration(
+                                  color: controller.state.isDarkMode
+                                      ? Colors.white.withValues(alpha: 0.1)
+                                      : Colors.black.withValues(alpha: 0.1),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Icon(
+                                  Icons.keyboard_arrow_down,
+                                  color: controller.state.isDarkMode
+                                      ? Colors.white.withValues(alpha: 0.1)
+                                      : Colors.black.withValues(alpha: 0.1),
+                                  size: 20,
                                 ),
                               ),
                             ),
                           ),
+                        // 右下角半透明悬浮标：向上箭头，点击列表回到顶部
+                        Positioned(
+                          right: -0,
+                          bottom: 90,
+                          child: GestureDetector(
+                            onTap: () {
+                              if (!controller.scrollController.hasClients) return;
+                              final tempIndex = controller.state.currentTempIndex;
+                              // 找到眼睛标记行（id == currentTempIndex）在列表中的下标
+                              final idx =
+                                  controller.state.table2List.indexWhere((e) => e.id != null && e.id == tempIndex);
+                              if (tempIndex == 0 || idx < 0) return;
+                              // 行高 + 顶部内边距(10)，让目标行靠顶部显示
+                              const rowHeight = JiShuQiState.bettingTableRowHeight;
+                              final target = 10 + idx * rowHeight;
+                              final maxS = controller.scrollController.position.maxScrollExtent;
+                              controller.scrollController.animateTo(
+                                target.clamp(0.0, maxS),
+                                duration: const Duration(milliseconds: 300),
+                                curve: Curves.easeInOut,
+                              );
+                            },
+                            child: Container(
+                              width: 40,
+                              height: 40,
+                              decoration: BoxDecoration(
+                                color: controller.state.isDarkMode
+                                    ? Colors.white.withValues(alpha: 0.15)
+                                    : Colors.black.withValues(alpha: 0.15),
+                                shape: BoxShape.circle,
+                              ),
+                              child: Icon(
+                                Icons.keyboard_arrow_up,
+                                color: controller.state.isDarkMode
+                                    ? Colors.white.withValues(alpha: 0.6)
+                                    : Colors.black.withValues(alpha: 0.6),
+                                size: 24,
+                              ),
+                            ),
+                          ),
+                        ),
                       ],
                     );
                   },
