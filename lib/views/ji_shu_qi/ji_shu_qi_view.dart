@@ -327,8 +327,9 @@ class JiShuQiView extends GetView<JiShuQiController> {
                                       child: Padding(
                                         padding: const EdgeInsets.only(left: 5.0),
                                         child: Icon(
-                                          Icons.swap_vert,
+                                          CupertinoIcons.arrow_up_arrow_down,
                                           color: controller.state.currentTextColor,
+                                          size: 20,
                                         ),
                                       ),
                                     ),
@@ -669,7 +670,7 @@ class JiShuQiView extends GetView<JiShuQiController> {
                               textAlign: TextAlign.left,
                               style: TextStyle(
                                 fontSize: 10.5,
-                                fontWeight: FontWeight.w500,
+                                fontWeight: FontWeight.w100,
                                 color: controller.state.isDarkMode ? Colors.amber.shade200 : Colors.amber.shade800,
                               ),
                             ),
@@ -1049,15 +1050,15 @@ class JiShuQiView extends GetView<JiShuQiController> {
                                         final change = currentValue - previousValue;
 
                                         if (change > 0) {
-                                          dotColor = Colors.red; // 红色 - 资金增加
+                                          dotColor = controller.state.positiveColor; // 资金增加
                                         } else if (change < 0) {
-                                          dotColor = Colors.green; // 绿色 - 资金减少
+                                          dotColor = controller.state.negativeColor; // 资金减少
                                         } else {
                                           dotColor = const Color(0xFF6B7280); // 灰色 - 无变化
                                         }
                                       }
                                       return FlDotCirclePainter(
-                                        radius: 2.3,
+                                        radius: 2.6,
                                         color: dotColor,
                                         strokeWidth: 0,
                                       );
