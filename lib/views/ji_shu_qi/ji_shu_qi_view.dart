@@ -508,7 +508,7 @@ class JiShuQiView extends GetView<JiShuQiController> {
                   : Colors.grey.shade50) // 浅灰白色
               : (controller.state.isDarkMode
                   ? const Color(0xFF1E2A3A) // 深蓝色（与背景色一致）
-                  : Colors.grey.shade100); // 稍深一点的浅灰色
+                  : Colors.grey.shade200); // 稍深一点的浅灰色
           // 重启标记线：该行有重启统计快照则显示底部分隔线
           final restartSnapshot = controller.state.table2List[index].restartStatSnapshot?.trim() ?? '';
           final isRestartRow = restartSnapshot.isNotEmpty;

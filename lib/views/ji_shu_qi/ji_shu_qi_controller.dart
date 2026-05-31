@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 
+import 'package:audioplayers/audioplayers.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:easy_refresh/easy_refresh.dart';
 import 'package:flutter/material.dart';
@@ -42,6 +43,8 @@ class JiShuQiController extends GetxController {
   Timer? _timer;
 
   final ScrollController roadMapScrollController = ScrollController(); //路子图的controller
+  final AudioPlayer _diceSoundPlayer = AudioPlayer();
+  bool _diceSoundAvailable = true;
 
   /// 并发多次 [_getLineCharts] 时仅采纳最近一次发起的 `linechartData` 回调，避免旧响应把已画好的曲线冲掉。
   int _lineChartRequestGen = 0;
@@ -68,7 +71,9 @@ class JiShuQiController extends GetxController {
     );
 
     //1。查询表一数据
-    _queryMysqlTable1();
+    _queryMysqlTable1().catchError((e) {
+      debugPrint('初始化 table1 失败: $e');
+    });
     //2。起始要拿到统计区数据
     _getStatisticalAreasData(-10000);
     //3。起始先查66条数据（与 [_reloadBettingListTail] 逻辑一致）
@@ -432,15 +437,33 @@ class JiShuQiController extends GetxController {
   void onClose() {
     // 取消计时器
     _timer?.cancel();
+    _diceSoundPlayer.dispose();
     super.onClose();
     WakelockPlus.disable();
     textEditingController.dispose();
+  }
+
+  void _playDiceRollSound() {
+    if (!_diceSoundAvailable) return;
+    unawaited(() async {
+      try {
+        await _diceSoundPlayer.stop();
+        await _diceSoundPlayer.play(
+          AssetSource('sounds/dice_roll.wav'),
+          mode: PlayerMode.lowLatency,
+        );
+      } catch (e) {
+        _diceSoundAvailable = false;
+        debugPrint('dice sound unavailable: $e');
+      }
+    }());
   }
 
   setRandom(Function(int) f) {
     if (!state.isCanPress) {
       return;
     }
+    _playDiceRollSound();
     state.isCanPress = false;
     state.js2 = state.js2 + 1;
     state.totalValue[28] = "${state.js1}/${state.js2}";
