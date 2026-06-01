@@ -389,7 +389,8 @@ class JiShuQiView extends GetView<JiShuQiController> {
                                   ],
                                 ),
                               ),
-                            )
+                            ),
+                            SizedBox(height: (!kIsWeb && Platform.isAndroid) ? 5 : 0)
                           ],
                         ),
                         // 悬浮按钮：切换图表显示/隐藏（叠加在图表和统计区之间）
