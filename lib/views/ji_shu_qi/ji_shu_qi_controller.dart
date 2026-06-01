@@ -258,6 +258,57 @@ class JiShuQiController extends GetxController {
     Future.delayed(const Duration(milliseconds: 420), jumpToEnd);
   }
 
+  void jumpToCurrentTempIndexRow() {
+    if (!scrollController.hasClients) return;
+    final tempIndex = state.currentTempIndex;
+    if (tempIndex == 0) return;
+
+    int idx = state.table2List.indexWhere((e) => e.id != null && e.id == tempIndex);
+    // 如果眼睛的位置不在列表中，则加载更多数据，再滚动到眼睛的位置
+    if (idx < 0) {
+      unawaited(_loadMoreForTempIndex(tempIndex));
+      return;
+    }
+    // 滚动到眼睛的位置
+    _animateBettingListToIndex(idx);
+  }
+
+  Future<void> _loadMoreForTempIndex(int tempIndex) async {
+    if (state.table2List.isEmpty) return;
+    final firstId = state.table2List.first.id;
+    if (firstId == null) return;
+    // 目标 id 比当前最旧 id 还新，说明不存在“往前加载更多”空间。
+    if (tempIndex >= firstId) return;
+
+    var loadCount = firstId - tempIndex;
+    if (loadCount < 1) loadCount = 1;
+    final inserted = await onLoadMore(
+      count: loadCount,
+      preserveViewport: false,
+    );
+    if (inserted <= 0) return;
+
+    // 加载后按最新列表重算一次索引再滚动。
+    await WidgetsBinding.instance.endOfFrame;
+    if (!scrollController.hasClients) return;
+    final idx = state.table2List.indexWhere((e) => e.id != null && e.id == tempIndex);
+    if (idx >= 0) {
+      _animateBettingListToIndex(idx);
+    }
+  }
+
+  void _animateBettingListToIndex(int idx) {
+    if (!scrollController.hasClients || idx < 0) return;
+    const rowHeight = JiShuQiState.bettingTableRowHeight;
+    final target = 10 + idx * rowHeight;
+    final maxS = scrollController.position.maxScrollExtent;
+    scrollController.animateTo(
+      target.clamp(0.0, maxS),
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+    );
+  }
+
   /// 顶部插入历史行后恢复视口：用固定行高累计增量（避免 LazyList / EasyRefresh 回弹时 maxScrollExtent 不准）。
   /// 下拉刷新时 [keptPixels] 可能为负，按 0 处理。
   void _schedulePreserveScrollAfterPrepend(double keptPixels, int insertedCount) {
@@ -534,7 +585,7 @@ class JiShuQiController extends GetxController {
       Get.snackbar("温馨提示", '请摇塞子',
           duration: const Duration(seconds: 2),
           snackPosition: SnackPosition.TOP,
-          backgroundColor: Colors.white.withValues(alpha: 0.7));
+          backgroundColor: Colors.white.withValues(alpha: 0.2));
       return;
     }
 
@@ -542,21 +593,21 @@ class JiShuQiController extends GetxController {
       Get.snackbar("温馨提示", '请输入下注金额',
           duration: const Duration(seconds: 2),
           snackPosition: SnackPosition.TOP,
-          backgroundColor: Colors.white.withValues(alpha: 0.7));
+          backgroundColor: Colors.white.withValues(alpha: 0.3));
       return;
     }
     if (!state.bettingMoney.isNum) {
       Get.snackbar("温馨提示", '请输入数字',
           duration: const Duration(seconds: 2),
           snackPosition: SnackPosition.TOP,
-          backgroundColor: Colors.white.withValues(alpha: 0.7));
+          backgroundColor: Colors.white.withValues(alpha: 0.3));
       return;
     }
     if (!state.isCanPress) {
       Get.snackbar("温馨提示", '速度太快',
           duration: const Duration(seconds: 2),
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.white.withValues(alpha: 0.7));
+          snackPosition: SnackPosition.TOP,
+          backgroundColor: Colors.white.withValues(alpha: 0.3));
       return;
     }
     Loading.show();
@@ -1300,20 +1351,26 @@ class JiShuQiController extends GetxController {
   }
 
   //加载更多
-  void onLoadMore() {
+  Future<int> onLoadMore({
+    int count = 250,
+    bool preserveViewport = true,
+  }) {
+    final completer = Completer<int>();
     // id 为 null 时 Dio 会发出 last_id= 无值，后端会走错分支；空列表用 -1。
     // 与后端 LoadMore 一致：数据为 created_at 升序，分页游标为当前已加载中最旧一条（first）的 id。
     final anchorId = state.table2List.isEmpty ? -1 : (state.table2List.first.id ?? -1);
     BXGet<Table2Model>(Api.loadMore,
-        params: {"last_id": anchorId, "uid": GetStore.getInstance().userModel.userId, "c": 250}, //"c"每页多少个数据
+        params: {"last_id": anchorId, "uid": GetStore.getInstance().userModel.userId, "c": count}, //"c"每页多少个数据
         success: (isSuccess, code, message, results) {
           if (!isSuccess) {
             refreshcontroller.finishRefresh(IndicatorResult.fail, true);
+            if (!completer.isCompleted) completer.complete(0);
             return;
           }
 
           if (results.isEmpty) {
             refreshcontroller.finishRefresh(IndicatorResult.noMore, true);
+            if (!completer.isCompleted) completer.complete(0);
             return;
           }
 
@@ -1328,12 +1385,18 @@ class JiShuQiController extends GetxController {
             }
             update();
             refreshcontroller.finishRefresh(IndicatorResult.success, true);
-            if (keptPixels != null) {
+            if (preserveViewport && keptPixels != null) {
               _schedulePreserveScrollAfterPrepend(keptPixels, results.length);
             }
           }
+          if (!completer.isCompleted) completer.complete(results.length);
+        },
+        failed: (_, __) {
+          refreshcontroller.finishRefresh(IndicatorResult.fail, true);
+          if (!completer.isCompleted) completer.complete(0);
         },
         onModel: (m) => Table2Model.fromJson(m));
+    return completer.future;
   }
 
   changeChart() {

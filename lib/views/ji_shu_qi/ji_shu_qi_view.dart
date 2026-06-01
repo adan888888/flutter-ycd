@@ -46,7 +46,7 @@ class JiShuQiView extends GetView<JiShuQiController> {
                       backgroundColor: Colors.transparent,
                       onPressed: () {
                         // 触发点击动画：放大1.5倍再缩小
-                        controller.state.floatButtonScale = 1.5;
+                        controller.state.floatButtonScale = 2;
                         controller.update();
                         Future.delayed(const Duration(milliseconds: 300), () {
                           controller.state.floatButtonScale = 1.0;
@@ -321,8 +321,9 @@ class JiShuQiView extends GetView<JiShuQiController> {
                                 height: 40,
                                 child: Row(
                                   children: [
-                                    SizedBox(width: 3),
+                                    SizedBox(width: 13),
                                     GestureDetector(
+                                      // 排序
                                       onTap: () => controller.sort(),
                                       child: Padding(
                                         padding: const EdgeInsets.only(left: 5.0),
@@ -444,27 +445,13 @@ class JiShuQiView extends GetView<JiShuQiController> {
                               ),
                             ),
                           ),
-                        // 右下角半透明悬浮标：向上箭头，点击列表回到顶部
+                        // 右下角半透明悬浮标：向上箭头，点击列表回到眼睛的位置
                         Positioned(
                           right: -0,
                           bottom: 90,
                           child: GestureDetector(
                             onTap: () {
-                              if (!controller.scrollController.hasClients) return;
-                              final tempIndex = controller.state.currentTempIndex;
-                              // 找到眼睛标记行（id == currentTempIndex）在列表中的下标
-                              final idx =
-                                  controller.state.table2List.indexWhere((e) => e.id != null && e.id == tempIndex);
-                              if (tempIndex == 0 || idx < 0) return;
-                              // 行高 + 顶部内边距(10)，让目标行靠顶部显示
-                              const rowHeight = JiShuQiState.bettingTableRowHeight;
-                              final target = 10 + idx * rowHeight;
-                              final maxS = controller.scrollController.position.maxScrollExtent;
-                              controller.scrollController.animateTo(
-                                target.clamp(0.0, maxS),
-                                duration: const Duration(milliseconds: 300),
-                                curve: Curves.easeInOut,
-                              );
+                              controller.jumpToCurrentTempIndexRow();
                             },
                             child: Container(
                               width: 40,
@@ -530,6 +517,7 @@ class JiShuQiView extends GetView<JiShuQiController> {
               children: [
                 // 标记+序号：固定列宽；数字过长时缩小字体（与下注列一致）
                 GestureDetector(
+                  // 进行局部平衡
                   onTap: () => controller.juBuPingHeng(controller.state.table2List[index].id!),
                   child: controller.state.table2List[index].id != null &&
                           controller.state.table2List[index].id == controller.state.currentTempIndex

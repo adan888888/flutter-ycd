@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:ycd/routes/app_routes.dart';
 import 'package:ycd/utils/bx_loading.dart';
+import 'package:ycd/utils/network/get_store.dart';
 import 'package:ycd/utils/permission_util.dart';
 import 'package:ycd/utils/user_role.dart';
-import 'package:ycd/utils/network/get_store.dart';
 
 // 首页选择界面
 class HomeView extends StatelessWidget {
@@ -219,7 +219,7 @@ class HomeView extends StatelessWidget {
             ),
           ),
         ),
-        const SizedBox(width: 8),
+        const SizedBox(width: 1),
         _buildRoleBadge(store),
       ],
     );
