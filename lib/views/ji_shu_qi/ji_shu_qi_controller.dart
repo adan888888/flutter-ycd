@@ -36,6 +36,8 @@ class JiShuQiController extends GetxController {
   final scrollController = ScrollController();
   final textEditingController = TextEditingController();
   final focusNode = FocusNode();
+  double _lastKeyboardInset = 0;
+  Timer? _keyboardOpenSettleTimer;
 
   FixedExtentScrollController? fixedExtentScrollController;
 
@@ -54,6 +56,7 @@ class JiShuQiController extends GetxController {
     super.onInit();
     WakelockPlus.enable();
     onUserInteraction();
+    focusNode.addListener(_onInputFocusChanged);
 
     List.generate(32, (index) => state.totalValue.add('$index'));
     textEditingController.addListener(
@@ -69,14 +72,6 @@ class JiShuQiController extends GetxController {
         }
       },
     );
-    focusNode.addListener(() {
-      if (focusNode.hasFocus) {
-        _alignListToBottomForKeyboard();
-      } else {
-        _restoreListAfterKeyboardHidden();
-      }
-    });
-
     //1。查询表一数据
     _queryMysqlTable1().catchError((e) {
       debugPrint('初始化 table1 失败: $e');
@@ -85,6 +80,17 @@ class JiShuQiController extends GetxController {
     _getStatisticalAreasData(-10000);
     //3。起始先查66条数据（与 [_reloadBettingListTail] 逻辑一致）
     _reloadBettingListTail();
+  }
+
+  void _onInputFocusChanged() {
+    if (!focusNode.hasFocus) {
+      if (!focusNode.hasFocus) {
+        update();
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          scrollBettingListToBottom();
+        });
+      }
+    }
   }
 
   /// 按最新一页重新拉取投注记录（`last_id: -1`，与进入页面时一致）。
@@ -265,33 +271,35 @@ class JiShuQiController extends GetxController {
     Future.delayed(const Duration(milliseconds: 420), jumpToEnd);
   }
 
-  /// 输入框获得焦点时，键盘弹出会经历多帧布局变化；
-  /// 这里分段对齐到底部，避免列表停在中间位置。
-  void _alignListToBottomForKeyboard() {
-    scrollBettingListToBottom();
-    Future.delayed(const Duration(milliseconds: 80), () {
-      if (focusNode.hasFocus) scrollBettingListToBottom();
-    });
-    Future.delayed(const Duration(milliseconds: 220), () {
-      if (focusNode.hasFocus) scrollBettingListToBottom();
-    });
-    Future.delayed(const Duration(milliseconds: 420), () {
-      if (focusNode.hasFocus) scrollBettingListToBottom();
-    });
+  /// 点击列表等空白区域时收起键盘（不用 TextField.onTapOutside，避免弹出瞬间误触收回）。
+  void dismissKeyboard() {
+    if (focusNode.hasFocus) {
+      focusNode.unfocus();
+    }
   }
 
-  /// 键盘收起后，viewport 会再次变化；补做几次到底对齐，避免列表停在中间。
-  void _restoreListAfterKeyboardHidden() {
-    scrollBettingListToBottom();
-    Future.delayed(const Duration(milliseconds: 80), () {
-      if (!focusNode.hasFocus) scrollBettingListToBottom();
-    });
-    Future.delayed(const Duration(milliseconds: 220), () {
-      if (!focusNode.hasFocus) scrollBettingListToBottom();
-    });
-    Future.delayed(const Duration(milliseconds: 420), () {
-      if (!focusNode.hasFocus) scrollBettingListToBottom();
-    });
+  /// 键盘“弹出完成后”再滚到底，避免动画过程中触发布局抖动。
+  void onKeyboardInsetChanged(double inset) {
+    final opening = _lastKeyboardInset == 0 && inset > 0;
+    final closing = _lastKeyboardInset > 0 && inset == 0;
+    _lastKeyboardInset = inset;
+
+    _keyboardOpenSettleTimer?.cancel();
+    if (opening) {
+      _keyboardOpenSettleTimer = Timer(const Duration(milliseconds: 260), () {
+        if (!focusNode.hasFocus) return;
+        scrollBettingListToBottom();
+      });
+      return;
+    }
+
+    if (closing) {
+      _keyboardOpenSettleTimer = Timer(const Duration(milliseconds: 220), () {
+        if (focusNode.hasFocus) return;
+        update();
+        scrollBettingListToBottom();
+      });
+    }
   }
 
   void jumpToCurrentTempIndexRow() {
@@ -522,12 +530,14 @@ class JiShuQiController extends GetxController {
 
   @override
   void onClose() {
-    // 取消计时器
+    focusNode.removeListener(_onInputFocusChanged);
+    _keyboardOpenSettleTimer?.cancel();
     _timer?.cancel();
     _diceSoundPlayer.dispose();
-    super.onClose();
     WakelockPlus.disable();
+    focusNode.dispose();
     textEditingController.dispose();
+    super.onClose();
   }
 
   void _playDiceRollSound() {

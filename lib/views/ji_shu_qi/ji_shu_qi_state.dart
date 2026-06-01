@@ -27,6 +27,9 @@ class JiShuQiState {
   /// 投注记录表每一行高度（与 ji_shu_qi_view._buildItem 一致，用于顶部插入后恢复滚动位置）
   static const double bettingTableRowHeight = 26;
 
+  /// 统计区固定高度（吸顶 SliverPersistentHeader）
+  static const double statsAreaHeight = 145;
+
   var lineColor = Colors.black87.withValues(alpha: 0.8);
   var listViewColor = Colors.grey.shade50; // 浅灰白色
   var bgColor = Colors.grey.shade50; // 浅灰白色

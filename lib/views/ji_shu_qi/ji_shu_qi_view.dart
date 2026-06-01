@@ -7,7 +7,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:ycd/my_widget/baccarat_big_road_widget.dart';
@@ -24,14 +23,13 @@ class JiShuQiView extends GetView<JiShuQiController> {
 
   @override
   Widget build(BuildContext context) {
-    return KeyboardDismissOnTap(
-      dismissOnCapturedTaps: kIsWeb ? false : (Platform.isMacOS || Platform.isWindows ? false : true),
-      child: Listener(
+    return Listener(
         onPointerDown: (PointerDownEvent event) => controller.onUserInteraction(),
         onPointerMove: (event) => controller.onUserInteraction(),
         child: GetBuilder<JiShuQiController>(
           builder: (controller) => Scaffold(
             backgroundColor: controller.state.currentBgColor,
+            resizeToAvoidBottomInset: false,
             floatingActionButtonLocation: FloatingActionButtonLocation.endDocked,
             floatingActionButtonAnimator: FloatingActionButtonAnimator.scaling,
             floatingActionButton: Transform.scale(
@@ -118,104 +116,48 @@ class JiShuQiView extends GetView<JiShuQiController> {
                       // 折线图固定高度120，大路图需要动态计算
                       chartHeight = controller.state.isBigRoad ? null : 120.0;
                     }
+                    final keyboardInset = MediaQuery.viewInsetsOf(context).bottom;
+                    controller.onKeyboardInsetChanged(keyboardInset);
+                    // 键盘弹出时用 Offstage 藏图表（保留挂载，避免卸载导致输入框失焦）
+                    final keyboardOpen = keyboardInset > 0;
+                    final showChart = controller.state.isChartVisible;
+
+                    Widget buildStatsArea() {
+                      return GetBuilder<JiShuQiController>(
+                        builder: (c) => SizedBox(
+                          height: JiShuQiState.statsAreaHeight,
+                          child: RefreshIndicator(
+                            onRefresh: c.refreshStatsArea,
+                            color: c.state.isDarkMode ? Colors.white : Colors.blue,
+                            child: ListView(
+                              padding: EdgeInsets.zero,
+                              physics: const AlwaysScrollableScrollPhysics(),
+                              children: [_buildStatsTable(c)],
+                            ),
+                          ),
+                        ),
+                      );
+                    }
 
                     return Stack(
                       children: [
                         Column(
                           mainAxisAlignment: MainAxisAlignment.start,
                           children: <Widget>[
-                            //图表区
-                            controller.state.isChartVisible ? _buildLineChats() : const SizedBox.shrink(),
-                            SizedBox(height: 5),
-                            //表格区统计区
-                            GetBuilder<JiShuQiController>(
-                              builder: (controller) => SizedBox(
-                                height: 145,
-                                child: RefreshIndicator(
-                                  onRefresh: controller.refreshStatsArea,
-                                  child: ListView(
-                                    padding: EdgeInsets.zero,
-                                    physics: const AlwaysScrollableScrollPhysics(),
-                                    children: [
-                                      Table(
-                                        border: TableBorder(
-                                          //在右上下的边框线
-                                          // top: BorderSide(color: Colors.red),
-                                          // left: BorderSide(color: Colors.red),
-                                          // right: BorderSide(color: Colors.red),
-                                          // bottom: BorderSide(color: Colors.red),
-                                          //水平线
-                                          horizontalInside:
-                                              BorderSide(color: controller.state.currentLineColor, width: 0.1),
-                                          //垂直线
-                                          verticalInside:
-                                              BorderSide(color: controller.state.currentLineColor, width: 1),
-                                        ),
-                                        //单元格的宽， map哪列 ：宽度
-                                        columnWidths: const {
-                                          1: FlexColumnWidth(1.3),
-                                          // 0: IntrinsicColumnWidth(), //包裹内容
-                                          0: FlexColumnWidth(1),
-                                          3: FlexColumnWidth(1),
-                                          2: FlexColumnWidth(1.3),
-                                        },
-                                        //垂直的位置
-                                        defaultVerticalAlignment: TableCellVerticalAlignment.middle,
-                                        children: List.generate(
-                                            8,
-                                            (row) => TableRow(
-                                                decoration: BoxDecoration(color: controller.state.currentBgColor),
-                                                children: List.generate(4, (column) {
-                                                  final cellWidget = GestureDetector(
-                                                    onTap: () {
-                                                      // 仅第一行第三列可点：取消局部平衡（currentTempIndex 置 0，眼睛同步消失）
-                                                      if (row == 0 && column == 2) {
-                                                        controller.juBuPingHeng(-1, v: controller.state.totalValue[29]);
-                                                      }
-                                                    },
-                                                    child: Align(
-                                                      alignment: Alignment.center,
-                                                      child: FittedBox(
-                                                        fit: BoxFit.contain,
-                                                        child: Padding(
-                                                          padding: const EdgeInsets.only(right: 3.0, left: 3.0),
-                                                          child: Text(
-                                                              textAlign: TextAlign.left,
-                                                              style: TextStyle(
-                                                                  height: 1.35 /*行高间距*/,
-                                                                  wordSpacing: 0 /*相当于padding*/,
-                                                                  fontSize: 12.5,
-                                                                  fontWeight: FontWeight.w400,
-                                                                  color: ((row * 4 + column) == 26 ||
-                                                                          (row * 4 + column) == 27)
-                                                                      ? Colors.green
-                                                                      : ((row * 4 + column) == 24 ||
-                                                                              (row * 4 + column) == 22)
-                                                                          ? (controller.state.isDarkMode
-                                                                              ? Colors.orange
-                                                                              : Colors.red)
-                                                                          : (row * 4 + column) == 2 &&
-                                                                                  controller.state.currentTempIndex != 0
-                                                                              ? Colors.amber
-                                                                              : controller.state.currentTextColor),
-                                                              controller.state.totalValue[row * 4 + column]),
-                                                        ),
-                                                      ),
-                                                    ),
-                                                  );
-                                                  return Tooltip(
-                                                    message: controller.state.description[row].elementAt(column),
-                                                    preferBelow: true,
-                                                    verticalOffset: 10,
-                                                    waitDuration: const Duration(seconds: 3),
-                                                    child: cellWidget,
-                                                  );
-                                                }).toList())).toList(),
-                                      ),
-                                    ],
-                                  ),
-                                ),
+                            Offstage(
+                              offstage: keyboardOpen || !showChart,
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  _buildLineChats(),
+                                  const SizedBox(height: 5),
+                                ],
                               ),
+                            ),
+                            GestureDetector(
+                              behavior: HitTestBehavior.deferToChild,
+                              onTap: controller.dismissKeyboard,
+                              child: buildStatsArea(),
                             ),
                             //按钮功能区
                             SizedBox(
@@ -261,10 +203,11 @@ class JiShuQiView extends GetView<JiShuQiController> {
                             //列表
                             Expanded(
                               child: GetBuilder<JiShuQiController>(
-                                  builder: (controller) => AbsorbPointer /*NotificationListener 也可以实现（监听滑动的回调）*/ (
+                                  builder: (controller) => AbsorbPointer(
                                         absorbing: controller.state.isRefreshing,
                                         child: GestureDetector(
-                                          // onLongPress: () => controller.lockScreen(),
+                                          behavior: HitTestBehavior.translucent,
+                                          onTap: controller.dismissKeyboard,
                                           child: ColoredBox(
                                             color: controller.state.currentListViewColor,
                                             child: EasyRefresh(
@@ -285,10 +228,10 @@ class JiShuQiView extends GetView<JiShuQiController> {
                                                 showMessage: true,
                                               ),
                                               footer: const ClassicFooter(
-                                                clamping: true /*clamping: true 想要自动回弹收起*/,
-                                                infiniteOffset: null /*想要允许无限/持续展开*/,
+                                                clamping: true,
+                                                infiniteOffset: null,
                                                 triggerWhenReach: false,
-                                                triggerWhenRelease: true /*松开手：才执行 onLoadMore()*/,
+                                                triggerWhenRelease: true,
                                                 dragText: '上拉加载',
                                                 armedText: '松开加载',
                                                 readyText: '加载中...',
@@ -300,9 +243,8 @@ class JiShuQiView extends GetView<JiShuQiController> {
                                                 showMessage: true,
                                               ),
                                               onRefresh: () async => controller.onLoadMore(),
-                                              // reverse: true, 上滑加载更多变成下拉加载更多（历史数据）。
-                                              // onLoad: () async => controller.onLoadMore(),
                                               child: ListView.builder(
+                                                key: const PageStorageKey<String>('ji_shu_qi_betting_list'),
                                                 reverse: false,
                                                 padding: const EdgeInsets.all(10),
                                                 controller: controller.scrollController,
@@ -314,12 +256,15 @@ class JiShuQiView extends GetView<JiShuQiController> {
                                         ),
                                       )),
                             ),
-                            //输入金额
-                            SafeArea(
-                              bottom: true,
-                              child: SizedBox(
-                                height: 40,
-                                child: Row(
+                            // 输入栏：仅此处随键盘上移，统计区不参与整体上移
+                            Padding(
+                              padding: EdgeInsets.only(bottom: keyboardInset),
+                              child: SafeArea(
+                                top: false,
+                                bottom: keyboardInset == 0,
+                                child: SizedBox(
+                                  height: 40,
+                                  child: Row(
                                   children: [
                                     SizedBox(width: 13),
                                     GestureDetector(
@@ -340,32 +285,25 @@ class JiShuQiView extends GetView<JiShuQiController> {
                                         data: Theme.of(context).copyWith(
                                           textSelectionTheme: TextSelectionThemeData(
                                             selectionColor: controller.state.isDarkMode
-                                                ? Colors.white.withValues(alpha: 0.4) // 暗色模式：更亮的半透明白色选中背景
-                                                : Colors.blue.withValues(alpha: 0.3), // 亮色模式：半透明蓝色选中背景
+                                                ? Colors.white.withValues(alpha: 0.4)
+                                                : Colors.blue.withValues(alpha: 0.3),
                                             selectionHandleColor: controller.state.isDarkMode
-                                                ? Colors.white // 暗色模式：白色选择手柄
-                                                : Colors.blue, // 亮色模式：蓝色选择手柄
+                                                ? Colors.white
+                                                : Colors.blue,
                                           ),
                                         ),
                                         child: TextField(
+                                          key: const ValueKey('ji_shu_qi_bet_input'),
                                           focusNode: controller.focusNode,
                                           autofocus: false,
                                           controller: controller.textEditingController,
                                           onChanged: (value) {},
-                                          //表示基础类型是数字键盘，主要用于输入数字, decimal设置为 true 时，允许输入小数
                                           keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                                          // ignorePointers: false,//是否可以用虚拟键盘
-                                          //过滤（仅只能输入数字，不能小数点.）
-                                          // inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                                          //限制只能输入数字
                                           textInputAction: TextInputAction.done,
-                                          // 通过输入格式化器限制只能输入数字和小数点
                                           inputFormatters: [
-                                            // 允许 0-9 数字和小数点（.）
                                             FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),
                                           ],
                                           cursorColor: controller.state.isDarkMode ? Colors.white : Colors.blue,
-                                          // 暗色模式：白色光标，亮色模式：蓝色光标
                                           style: TextStyle(color: controller.state.currentTextColor),
                                           decoration: InputDecoration(
                                             contentPadding: const EdgeInsets.only(bottom: 7),
@@ -390,12 +328,14 @@ class JiShuQiView extends GetView<JiShuQiController> {
                                 ),
                               ),
                             ),
-                            SizedBox(height: (!kIsWeb && Platform.isAndroid) ? 5 : 0)
+                            ),
+                            if (keyboardInset == 0)
+                              SizedBox(height: (!kIsWeb && Platform.isAndroid) ? 5 : 0),
                           ],
                         ),
                         // 悬浮按钮：切换图表显示/隐藏（叠加在图表和统计区之间）
-                        if (controller.state.isChartVisible)
-                          Positioned(
+                            if (showChart && !keyboardOpen)
+                              Positioned(
                             top: chartHeight != null
                                 ? chartHeight - 20 // 折线图：图表高度120，按钮高度40，居中在图表底部
                                 : 80 - 20, // 大路图：估算高度80（标题行约30px + 大路图约50px），按钮居中在图表底部
@@ -420,9 +360,9 @@ class JiShuQiView extends GetView<JiShuQiController> {
                                 ),
                               ),
                             ),
-                          )
-                        else
-                          Positioned(
+                              )
+                            else
+                              Positioned(
                             top: 0,
                             right: 0,
                             child: GestureDetector(
@@ -445,11 +385,11 @@ class JiShuQiView extends GetView<JiShuQiController> {
                                 ),
                               ),
                             ),
-                          ),
-                        // 右下角半透明悬浮标：向上箭头，点击列表回到眼睛的位置
-                        Positioned(
+                              ),
+                            // 右下角半透明悬浮标：向上箭头，点击列表回到眼睛的位置
+                            Positioned(
                           right: -0,
-                          bottom: 90,
+                          bottom: 90 + keyboardInset,
                           child: GestureDetector(
                             onTap: () {
                               controller.jumpToCurrentTempIndexRow();
@@ -472,17 +412,16 @@ class JiShuQiView extends GetView<JiShuQiController> {
                               ),
                             ),
                           ),
-                        ),
-                      ],
-                    );
+                            ),
+                          ],
+                        );
                   },
                 ),
               ),
             ),
           ),
         ),
-      ),
-    );
+      );
   }
 
   _buildItem(int index) => GetBuilder<JiShuQiController>(
@@ -761,6 +700,67 @@ class JiShuQiView extends GetView<JiShuQiController> {
           }
         },
       );
+
+  Widget _buildStatsTable(JiShuQiController controller) {
+    return Table(
+      border: TableBorder(
+        horizontalInside: BorderSide(color: controller.state.currentLineColor, width: 0.1),
+        verticalInside: BorderSide(color: controller.state.currentLineColor, width: 1),
+      ),
+      columnWidths: const {
+        1: FlexColumnWidth(1.3),
+        0: FlexColumnWidth(1),
+        3: FlexColumnWidth(1),
+        2: FlexColumnWidth(1.3),
+      },
+      defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+      children: List.generate(
+          8,
+          (row) => TableRow(
+              decoration: BoxDecoration(color: controller.state.currentBgColor),
+              children: List.generate(4, (column) {
+                final cellWidget = GestureDetector(
+                  onTap: () {
+                    if (row == 0 && column == 2) {
+                      controller.juBuPingHeng(-1, v: controller.state.totalValue[29]);
+                    }
+                  },
+                  child: Align(
+                    alignment: Alignment.center,
+                    child: FittedBox(
+                      fit: BoxFit.contain,
+                      child: Padding(
+                        padding: const EdgeInsets.only(right: 3.0, left: 3.0),
+                        child: Text(
+                          textAlign: TextAlign.left,
+                          style: TextStyle(
+                            height: 1.35,
+                            wordSpacing: 0,
+                            fontSize: 12.5,
+                            fontWeight: FontWeight.w400,
+                            color: ((row * 4 + column) == 26 || (row * 4 + column) == 27)
+                                ? Colors.green
+                                : ((row * 4 + column) == 24 || (row * 4 + column) == 22)
+                                    ? (controller.state.isDarkMode ? Colors.orange : Colors.red)
+                                    : (row * 4 + column) == 2 && controller.state.currentTempIndex != 0
+                                        ? Colors.amber
+                                        : controller.state.currentTextColor),
+                          controller.state.totalValue[row * 4 + column],
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+                return Tooltip(
+                  message: controller.state.description[row].elementAt(column),
+                  preferBelow: true,
+                  verticalOffset: 10,
+                  waitDuration: const Duration(seconds: 3),
+                  child: cellWidget,
+                );
+              }).toList())).toList(),
+    );
+  }
 
   _buildLineChats() => GetBuilder<JiShuQiController>(
         builder: (controller) => controller.state.isBigRoad
