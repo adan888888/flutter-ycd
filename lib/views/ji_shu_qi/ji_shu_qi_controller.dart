@@ -69,6 +69,13 @@ class JiShuQiController extends GetxController {
         }
       },
     );
+    focusNode.addListener(() {
+      if (focusNode.hasFocus) {
+        _alignListToBottomForKeyboard();
+      } else {
+        _restoreListAfterKeyboardHidden();
+      }
+    });
 
     //1。查询表一数据
     _queryMysqlTable1().catchError((e) {
@@ -256,6 +263,35 @@ class JiShuQiController extends GetxController {
     Future.delayed(const Duration(milliseconds: 50), jumpToEnd);
     Future.delayed(const Duration(milliseconds: 180), jumpToEnd);
     Future.delayed(const Duration(milliseconds: 420), jumpToEnd);
+  }
+
+  /// 输入框获得焦点时，键盘弹出会经历多帧布局变化；
+  /// 这里分段对齐到底部，避免列表停在中间位置。
+  void _alignListToBottomForKeyboard() {
+    scrollBettingListToBottom();
+    Future.delayed(const Duration(milliseconds: 80), () {
+      if (focusNode.hasFocus) scrollBettingListToBottom();
+    });
+    Future.delayed(const Duration(milliseconds: 220), () {
+      if (focusNode.hasFocus) scrollBettingListToBottom();
+    });
+    Future.delayed(const Duration(milliseconds: 420), () {
+      if (focusNode.hasFocus) scrollBettingListToBottom();
+    });
+  }
+
+  /// 键盘收起后，viewport 会再次变化；补做几次到底对齐，避免列表停在中间。
+  void _restoreListAfterKeyboardHidden() {
+    scrollBettingListToBottom();
+    Future.delayed(const Duration(milliseconds: 80), () {
+      if (!focusNode.hasFocus) scrollBettingListToBottom();
+    });
+    Future.delayed(const Duration(milliseconds: 220), () {
+      if (!focusNode.hasFocus) scrollBettingListToBottom();
+    });
+    Future.delayed(const Duration(milliseconds: 420), () {
+      if (!focusNode.hasFocus) scrollBettingListToBottom();
+    });
   }
 
   void jumpToCurrentTempIndexRow() {
@@ -540,6 +576,12 @@ class JiShuQiController extends GetxController {
           barrierColor: Colors.black.withValues(alpha: 0.18),
         );
         state.isCanPress = true;
+
+        ///总体
+        state.totalValue[20] = pVal1();
+
+        ///局部
+        state.totalValue[24] = pVal2();
         update();
       },
       isShowLoading: false, // 使用自定义的Loading
