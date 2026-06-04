@@ -39,6 +39,6 @@ abstract final class PermissionUtil {
 
   static String proFeatureLockedSubtitle({required bool isLogin}) {
     if (!isLogin) return '请先登录，需专业版及以上权限';
-    return '需专业版及以上权限，请联系管理员';
+    return '需专业版，请联系管理员';
   }
 }

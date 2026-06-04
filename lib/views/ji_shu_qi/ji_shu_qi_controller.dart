@@ -567,7 +567,7 @@ class JiShuQiController extends GetxController {
       try {
         await _diceSoundPlayer.stop();
         await _diceSoundPlayer.play(
-          AssetSource('sounds/dice_roll.wav'),
+          AssetSource('sounds/zhuotou.mp3'),
           mode: PlayerMode.lowLatency,
         );
       } catch (e) {
