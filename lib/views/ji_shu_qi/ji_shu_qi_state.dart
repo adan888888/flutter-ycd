@@ -24,8 +24,14 @@ class JiShuQiState {
   /// 下注列：约 5 个数字宽度；超出时用 FittedBox 缩小字体（同统计区）
   static const double betColWidth = 45;
 
-  /// 投注记录表每一行高度（与 ji_shu_qi_view._buildItem 一致，用于顶部插入后恢复滚动位置）
+  /// 投注记录表每一行高度（与 ji_shu_qi_view._buildItem Container.height 一致）
   static const double bettingTableRowHeight = 26;
+
+  /// 列表滚到「眼睛」行时，行顶相对可视区顶部的留白（ensureVisible alignment 换算用）
+  static const double bettingTableScrollTopInset = 5;
+
+  /// 右下角「回到眼睛」悬浮钮的 bottom（与 ji_shu_qi_view Positioned 一致）
+  static const double jumpToEyeFabBottom = 90;
 
   /// 统计区固定高度（吸顶 SliverPersistentHeader）
   static const double statsAreaHeight = 145;
@@ -41,6 +47,9 @@ class JiShuQiState {
 
   // 图表显示标志
   var isChartVisible = true;
+
+  /// 投注表是否显示序号列；false 时眼睛与局部平衡点击在输赢列（默认隐藏）
+  var isSeqVisible = false;
 
   // 暗黑主题颜色（深蓝色调风格）
   var darkLineColor = Colors.white.withValues(alpha: 0.6);
@@ -91,20 +100,21 @@ class JiShuQiState {
 
   var table2List = <Table2Model>[];
   var selectIndex = 7;
-  var functionTypes = [
-    '1.排列数据',
-    '2.消除数据',
-    '3.修改本金',
-    '4.修改位置',
-    '5.删除本页',
-    '6.重置流水',
-    '7.备份数据',
-    '8.重启系统',
-    '9.修改期望值',
-    '10.恢复数据',
-    '11.修改赔率',
-    '12.退出程序'
-  ];
+  List<String> get functionTypes => [
+        '1.排列数据',
+        '2.消除数据',
+        '3.修改本金',
+        '4.修改位置',
+        '5.删除本页',
+        '6.重置流水',
+        '7.备份数据',
+        '8.重启系统',
+        '9.修改期望值',
+        '10.恢复数据',
+        '11.修改赔率',
+        '12.退出程序',
+        isSeqVisible ? '13.隐藏序号' : '13.显示序号',
+      ];
   var description = [
     {"本金", "总局数", "回合局数", "流水"},
     {"输赢后的金额", "总净胜", "回合净胜", "均利"},

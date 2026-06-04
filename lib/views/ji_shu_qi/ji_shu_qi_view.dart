@@ -24,247 +24,246 @@ class JiShuQiView extends GetView<JiShuQiController> {
   @override
   Widget build(BuildContext context) {
     return Listener(
-        onPointerDown: (PointerDownEvent event) => controller.onUserInteraction(),
-        onPointerMove: (event) => controller.onUserInteraction(),
-        child: GetBuilder<JiShuQiController>(
-          builder: (controller) => Scaffold(
-            backgroundColor: controller.state.currentBgColor,
-            resizeToAvoidBottomInset: false,
-            floatingActionButtonLocation: FloatingActionButtonLocation.endDocked,
-            floatingActionButtonAnimator: FloatingActionButtonAnimator.scaling,
-            floatingActionButton: Transform.scale(
-              scale: 0.7,
-              child: GetBuilder<JiShuQiController>(
-                builder: (controller) {
-                  return AnimatedScale(
-                    scale: controller.state.floatButtonScale,
-                    duration: const Duration(milliseconds: 300),
-                    curve: Curves.easeInOut,
-                    child: FloatingActionButton(
-                      backgroundColor: Colors.transparent,
-                      onPressed: () {
-                        // 触发点击动画：放大1.5倍再缩小
-                        controller.state.floatButtonScale = 2;
+      onPointerDown: (PointerDownEvent event) => controller.onUserInteraction(),
+      onPointerMove: (event) => controller.onUserInteraction(),
+      child: GetBuilder<JiShuQiController>(
+        builder: (controller) => Scaffold(
+          backgroundColor: controller.state.currentBgColor,
+          resizeToAvoidBottomInset: false,
+          floatingActionButtonLocation: FloatingActionButtonLocation.endDocked,
+          floatingActionButtonAnimator: FloatingActionButtonAnimator.scaling,
+          floatingActionButton: Transform.scale(
+            scale: 0.7,
+            child: GetBuilder<JiShuQiController>(
+              builder: (controller) {
+                return AnimatedScale(
+                  scale: controller.state.floatButtonScale,
+                  duration: const Duration(milliseconds: 300),
+                  curve: Curves.easeInOut,
+                  child: FloatingActionButton(
+                    backgroundColor: Colors.transparent,
+                    onPressed: () {
+                      // 触发点击动画：放大1.5倍再缩小
+                      controller.state.floatButtonScale = 2;
+                      controller.update();
+                      Future.delayed(const Duration(milliseconds: 300), () {
+                        controller.state.floatButtonScale = 1.0;
                         controller.update();
-                        Future.delayed(const Duration(milliseconds: 300), () {
-                          controller.state.floatButtonScale = 1.0;
-                          controller.update();
-                        });
-                        // 执行随机逻辑
-                        controller.setRandom((int _) => debugPrint(_.toString()));
-                      },
-                      child: Image.asset('assets/images/shai.png'),
+                      });
+                      // 执行随机逻辑
+                      controller.setRandom((int _) => debugPrint(_.toString()));
+                    },
+                    child: Image.asset('assets/images/shai.png'),
+                  ),
+                );
+              },
+            ),
+          ),
+          appBar: PreferredSize(
+            preferredSize: const Size.fromHeight(20),
+            child: GetBuilder<JiShuQiController>(
+              builder: (controller) => AppBar(
+                  // 隐藏返回键
+                  automaticallyImplyLeading: false,
+                  actions: [
+                    GestureDetector(
+                        onTap: () => controller.toggleDarkMode(),
+                        child: Icon(
+                          controller.state.isDarkMode ? Icons.light_mode : Icons.dark_mode,
+                          size: 20,
+                          color: controller.state.isDarkMode ? Colors.white : Colors.black87,
+                        )),
+                    GestureDetector(
+                        onTap: () => controller.lockScreen(),
+                        child: Icon(
+                          Icons.lock,
+                          size: 20,
+                          color: controller.state.isDarkMode ? Colors.white : Colors.black87,
+                        )),
+                    GestureDetector(
+                        onTap: () => controller.showBottomFunction(),
+                        child: Icon(
+                          Icons.edit,
+                          size: 20,
+                          color: controller.state.isDarkMode ? Colors.white : Colors.black87,
+                        )),
+                    const SizedBox(
+                      width: 10,
+                    )
+                  ],
+                  elevation: 0,
+                  toolbarHeight: 20,
+                  centerTitle: false,
+                  backgroundColor: controller.state.isBigRoad
+                      ? controller.state.currentBgColor
+                      : controller.state.currentChartBgColor,
+                  title: Text(
+                    "  $title ${GetStore.getInstance().userModel.nickname}",
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: controller.state.isDarkMode ? Colors.white : Colors.black87,
                     ),
-                  );
-                },
-              ),
+                  )),
             ),
-            appBar: PreferredSize(
-              preferredSize: const Size.fromHeight(20),
-              child: GetBuilder<JiShuQiController>(
-                builder: (controller) => AppBar(
-                    // 隐藏返回键
-                    automaticallyImplyLeading: false,
-                    actions: [
-                      GestureDetector(
-                          onTap: () => controller.toggleDarkMode(),
-                          child: Icon(
-                            controller.state.isDarkMode ? Icons.light_mode : Icons.dark_mode,
-                            size: 20,
-                            color: controller.state.isDarkMode ? Colors.white : Colors.black87,
-                          )),
-                      GestureDetector(
-                          onTap: () => controller.lockScreen(),
-                          child: Icon(
-                            Icons.lock,
-                            size: 20,
-                            color: controller.state.isDarkMode ? Colors.white : Colors.black87,
-                          )),
-                      GestureDetector(
-                          onTap: () => controller.showBottomFunction(),
-                          child: Icon(
-                            Icons.edit,
-                            size: 20,
-                            color: controller.state.isDarkMode ? Colors.white : Colors.black87,
-                          )),
-                      const SizedBox(
-                        width: 10,
-                      )
-                    ],
-                    elevation: 0,
-                    toolbarHeight: 20,
-                    centerTitle: false,
-                    backgroundColor: controller.state.isBigRoad
-                        ? controller.state.currentBgColor
-                        : controller.state.currentChartBgColor,
-                    title: Text(
-                      "  $title ${GetStore.getInstance().userModel.nickname}",
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: controller.state.isDarkMode ? Colors.white : Colors.black87,
-                      ),
-                    )),
-              ),
-            ),
-            body: SafeArea(
-              child: GetBuilder<JiShuQiController>(
-                builder: (controller) => LayoutBuilder(
-                  builder: (context, constraints) {
-                    // 获取图表区域的高度（如果显示）
-                    double? chartHeight;
-                    if (controller.state.isChartVisible) {
-                      // 折线图固定高度120，大路图需要动态计算
-                      chartHeight = controller.state.isBigRoad ? null : 120.0;
-                    }
-                    final keyboardInset = MediaQuery.viewInsetsOf(context).bottom;
-                    controller.onKeyboardInsetChanged(keyboardInset);
-                    // 键盘弹出时用 Offstage 藏图表（保留挂载，避免卸载导致输入框失焦）
-                    final keyboardOpen = keyboardInset > 0;
-                    final showChart = controller.state.isChartVisible;
+          ),
+          body: SafeArea(
+            child: GetBuilder<JiShuQiController>(
+              builder: (controller) => LayoutBuilder(
+                builder: (context, constraints) {
+                  // 获取图表区域的高度（如果显示）
+                  double? chartHeight;
+                  if (controller.state.isChartVisible) {
+                    // 折线图固定高度120，大路图需要动态计算
+                    chartHeight = controller.state.isBigRoad ? null : 120.0;
+                  }
+                  final keyboardInset = MediaQuery.viewInsetsOf(context).bottom;
+                  controller.onKeyboardInsetChanged(keyboardInset);
+                  // 键盘弹出时用 Offstage 藏图表（保留挂载，避免卸载导致输入框失焦）
+                  final keyboardOpen = keyboardInset > 0;
+                  final showChart = controller.state.isChartVisible;
 
-                    Widget buildStatsArea() {
-                      return GetBuilder<JiShuQiController>(
-                        builder: (c) => SizedBox(
-                          height: JiShuQiState.statsAreaHeight,
-                          child: RefreshIndicator(
-                            onRefresh: c.refreshStatsArea,
-                            color: c.state.isDarkMode ? Colors.white : Colors.blue,
-                            child: ListView(
-                              padding: EdgeInsets.zero,
-                              physics: const AlwaysScrollableScrollPhysics(),
-                              children: [_buildStatsTable(c)],
-                            ),
+                  Widget buildStatsArea() {
+                    return GetBuilder<JiShuQiController>(
+                      builder: (c) => SizedBox(
+                        height: JiShuQiState.statsAreaHeight,
+                        child: RefreshIndicator(
+                          onRefresh: c.refreshStatsArea,
+                          color: c.state.isDarkMode ? Colors.white : Colors.blue,
+                          child: ListView(
+                            padding: EdgeInsets.zero,
+                            physics: const AlwaysScrollableScrollPhysics(),
+                            children: [_buildStatsTable(c)],
                           ),
                         ),
-                      );
-                    }
+                      ),
+                    );
+                  }
 
-                    return Stack(
-                      children: [
-                        Column(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          children: <Widget>[
-                            Offstage(
-                              offstage: keyboardOpen || !showChart,
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  _buildLineChats(),
-                                  const SizedBox(height: 5),
-                                ],
-                              ),
+                  return Stack(
+                    children: [
+                      Column(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: <Widget>[
+                          Offstage(
+                            offstage: keyboardOpen || !showChart,
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                _buildLineChats(),
+                                const SizedBox(height: 5),
+                              ],
                             ),
-                            GestureDetector(
-                              behavior: HitTestBehavior.deferToChild,
-                              onTap: controller.dismissKeyboard,
-                              child: buildStatsArea(),
-                            ),
-                            //按钮功能区
-                            SizedBox(
-                              height: 35,
-                              child: Row(
-                                children: [
-                                  SizedBox(width: 2),
-                                  _divier2(controller.state.currentTextColor, 38),
-                                  _buildButton(controller.state.buttonPositiveBgColor, "P+", 1),
-                                  _divier2(controller.state.currentTextColor, 38),
-                                  _buildButton(controller.state.buttonPositiveBgColor, "B+", 2),
-                                  _divier2(controller.state.currentTextColor, 38),
-                                  _buildButton(controller.state.buttonNegativeBgColor, "P-", 3),
-                                  _divier2(controller.state.currentTextColor, 38),
-                                  _buildButton(controller.state.buttonNegativeBgColor, "B-", 4),
-                                  _divier2(controller.state.currentTextColor, 38),
-                                  TextButton(
-                                    style: TextButton.styleFrom(
-                                      padding: const EdgeInsets.symmetric(vertical: 0.0, horizontal: 8.0),
-                                      minimumSize: Size.zero,
-                                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                                    ),
-                                    onPressed: () => controller.deleteLast(),
-                                    child: Text(
-                                      "DEL",
-                                      style: TextStyle(
-                                        fontSize: 14.sp,
-                                        color: controller.state.isDarkMode ? Colors.white70 : Colors.black45,
-                                      ),
+                          ),
+                          GestureDetector(
+                            behavior: HitTestBehavior.deferToChild,
+                            onTap: controller.dismissKeyboard,
+                            child: buildStatsArea(),
+                          ),
+                          //按钮功能区
+                          SizedBox(
+                            height: 35,
+                            child: Row(
+                              children: [
+                                SizedBox(width: 2),
+                                _divier2(controller.state.currentTextColor, 38),
+                                _buildButton(controller.state.buttonPositiveBgColor, "P+", 1),
+                                _divier2(controller.state.currentTextColor, 38),
+                                _buildButton(controller.state.buttonPositiveBgColor, "B+", 2),
+                                _divier2(controller.state.currentTextColor, 38),
+                                _buildButton(controller.state.buttonNegativeBgColor, "P-", 3),
+                                _divier2(controller.state.currentTextColor, 38),
+                                _buildButton(controller.state.buttonNegativeBgColor, "B-", 4),
+                                _divier2(controller.state.currentTextColor, 38),
+                                TextButton(
+                                  style: TextButton.styleFrom(
+                                    padding: const EdgeInsets.symmetric(vertical: 0.0, horizontal: 8.0),
+                                    minimumSize: Size.zero,
+                                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                  ),
+                                  onPressed: () => controller.deleteLast(),
+                                  child: Text(
+                                    "DEL",
+                                    style: TextStyle(
+                                      fontSize: 14.sp,
+                                      color: controller.state.isDarkMode ? Colors.white70 : Colors.black45,
                                     ),
                                   ),
-                                  Container(height: 25, width: 0.5, color: controller.state.currentTextColor),
-                                  GestureDetector(
-                                    onTap: controller.reStart,
-                                    child: Padding(
-                                      padding: const EdgeInsets.symmetric(vertical: 0.0, horizontal: 2.0),
-                                      child: Image.asset(height: 35, width: 35, 'assets/images/restart3.png'),
-                                    ),
-                                  )
-                                ],
-                              ),
+                                ),
+                                Container(height: 25, width: 0.5, color: controller.state.currentTextColor),
+                                GestureDetector(
+                                  onTap: controller.reStart,
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(vertical: 0.0, horizontal: 2.0),
+                                    child: Image.asset(height: 35, width: 35, 'assets/images/restart3.png'),
+                                  ),
+                                )
+                              ],
                             ),
-                            //列表
-                            Expanded(
-                              child: GetBuilder<JiShuQiController>(
-                                  builder: (controller) => AbsorbPointer(
-                                        absorbing: controller.state.isRefreshing,
-                                        child: GestureDetector(
-                                          behavior: HitTestBehavior.translucent,
-                                          onTap: controller.dismissKeyboard,
-                                          child: ColoredBox(
-                                            color: controller.state.currentListViewColor,
-                                            child: EasyRefresh(
-                                              controller: controller.refreshcontroller,
-                                              header: const ClassicHeader(
-                                                clamping: false,
-                                                infiniteOffset: null,
-                                                triggerWhenReach: false,
-                                                triggerWhenRelease: false,
-                                                dragText: '下拉加载',
-                                                armedText: '松开加载',
-                                                readyText: '加载中...',
-                                                processingText: '加载中...',
-                                                processedText: '加载成功',
-                                                noMoreText: '没有更多了',
-                                                failedText: '加载失败',
-                                                messageText: '更新时间 %T',
-                                                showMessage: true,
-                                              ),
-                                              footer: const ClassicFooter(
-                                                clamping: true,
-                                                infiniteOffset: null,
-                                                triggerWhenReach: false,
-                                                triggerWhenRelease: true,
-                                                dragText: '上拉加载',
-                                                armedText: '松开加载',
-                                                readyText: '加载中...',
-                                                processingText: '加载中...',
-                                                processedText: '加载成功',
-                                                noMoreText: '没有更多了',
-                                                failedText: '加载失败',
-                                                messageText: '更新时间 %T',
-                                                showMessage: true,
-                                              ),
-                                              onRefresh: () async => controller.onLoadMore(),
-                                              child: ListView.builder(
-                                                key: const PageStorageKey<String>('ji_shu_qi_betting_list'),
-                                                reverse: false,
-                                                padding: const EdgeInsets.all(10),
-                                                controller: controller.scrollController,
-                                                itemCount: controller.state.table2List.length,
-                                                itemBuilder: (BuildContext context, int index) => _buildItem(index),
-                                              ),
+                          ),
+                          //列表
+                          Expanded(
+                            child: GetBuilder<JiShuQiController>(
+                                builder: (controller) => AbsorbPointer(
+                                      absorbing: controller.state.isRefreshing,
+                                      child: GestureDetector(
+                                        behavior: HitTestBehavior.translucent,
+                                        onTap: controller.dismissKeyboard,
+                                        child: ColoredBox(
+                                          color: controller.state.currentListViewColor,
+                                          child: EasyRefresh(
+                                            controller: controller.refreshcontroller,
+                                            header: const ClassicHeader(
+                                              clamping: false,
+                                              infiniteOffset: null,
+                                              triggerWhenReach: false,
+                                              triggerWhenRelease: false,
+                                              dragText: '下拉加载',
+                                              armedText: '松开加载',
+                                              readyText: '加载中...',
+                                              processingText: '加载中...',
+                                              processedText: '加载成功',
+                                              noMoreText: '没有更多了',
+                                              failedText: '加载失败',
+                                              messageText: '更新时间 %T',
+                                              showMessage: true,
+                                            ),
+                                            footer: const ClassicFooter(
+                                              clamping: true,
+                                              infiniteOffset: null,
+                                              triggerWhenReach: false,
+                                              triggerWhenRelease: true,
+                                              dragText: '上拉加载',
+                                              armedText: '松开加载',
+                                              readyText: '加载中...',
+                                              processingText: '加载中...',
+                                              processedText: '加载成功',
+                                              noMoreText: '没有更多了',
+                                              failedText: '加载失败',
+                                              messageText: '更新时间 %T',
+                                              showMessage: true,
+                                            ),
+                                            onRefresh: () async => controller.onLoadMore(),
+                                            child: ListView.builder(
+                                              key: const PageStorageKey<String>('ji_shu_qi_betting_list'),
+                                              reverse: false,
+                                              controller: controller.scrollController,
+                                              itemCount: controller.state.table2List.length,
+                                              itemBuilder: (BuildContext context, int index) => _buildItem(index),
                                             ),
                                           ),
                                         ),
-                                      )),
-                            ),
-                            // 输入栏：仅此处随键盘上移，统计区不参与整体上移
-                            Padding(
-                              padding: EdgeInsets.only(bottom: keyboardInset),
-                              child: SafeArea(
-                                top: false,
-                                bottom: keyboardInset == 0,
-                                child: SizedBox(
-                                  height: 40,
-                                  child: Row(
+                                      ),
+                                    )),
+                          ),
+                          // 输入栏：仅此处随键盘上移，统计区不参与整体上移
+                          Padding(
+                            padding: EdgeInsets.only(bottom: keyboardInset),
+                            child: SafeArea(
+                              top: false,
+                              bottom: keyboardInset == 0,
+                              child: SizedBox(
+                                height: 40,
+                                child: Row(
                                   children: [
                                     SizedBox(width: 13),
                                     GestureDetector(
@@ -287,9 +286,8 @@ class JiShuQiView extends GetView<JiShuQiController> {
                                             selectionColor: controller.state.isDarkMode
                                                 ? Colors.white.withValues(alpha: 0.4)
                                                 : Colors.blue.withValues(alpha: 0.3),
-                                            selectionHandleColor: controller.state.isDarkMode
-                                                ? Colors.white
-                                                : Colors.blue,
+                                            selectionHandleColor:
+                                                controller.state.isDarkMode ? Colors.white : Colors.blue,
                                           ),
                                         ),
                                         child: TextField(
@@ -328,100 +326,99 @@ class JiShuQiView extends GetView<JiShuQiController> {
                                 ),
                               ),
                             ),
-                            ),
-                            if (keyboardInset == 0)
-                              SizedBox(height: (!kIsWeb && Platform.isAndroid) ? 5 : 0),
-                          ],
-                        ),
-                        // 悬浮按钮：切换图表显示/隐藏（叠加在图表和统计区之间）
-                            if (showChart && !keyboardOpen)
-                              Positioned(
-                            top: chartHeight != null
-                                ? chartHeight - 20 // 折线图：图表高度120，按钮高度40，居中在图表底部
-                                : 80 - 20, // 大路图：估算高度80（标题行约30px + 大路图约50px），按钮居中在图表底部
-                            right: 0,
-                            child: GestureDetector(
-                              onTap: () => controller.toggleChartVisibility(),
-                              child: Container(
-                                width: 30,
-                                height: 30,
-                                decoration: BoxDecoration(
-                                  color: controller.state.isDarkMode
-                                      ? Colors.white.withValues(alpha: 0.2)
-                                      : Colors.black.withValues(alpha: 0.2),
-                                  shape: BoxShape.circle,
-                                ),
-                                child: Icon(
-                                  Icons.keyboard_arrow_up,
-                                  color: controller.state.isDarkMode
-                                      ? Colors.white.withValues(alpha: 0.4)
-                                      : Colors.black.withValues(alpha: 0.4),
-                                  size: 20,
-                                ),
-                              ),
-                            ),
-                              )
-                            else
-                              Positioned(
-                            top: 0,
-                            right: 0,
-                            child: GestureDetector(
-                              onTap: () => controller.toggleChartVisibility(),
-                              child: Container(
-                                width: 30,
-                                height: 30,
-                                decoration: BoxDecoration(
-                                  color: controller.state.isDarkMode
-                                      ? Colors.white.withValues(alpha: 0.1)
-                                      : Colors.black.withValues(alpha: 0.1),
-                                  shape: BoxShape.circle,
-                                ),
-                                child: Icon(
-                                  Icons.keyboard_arrow_down,
-                                  color: controller.state.isDarkMode
-                                      ? Colors.white.withValues(alpha: 0.1)
-                                      : Colors.black.withValues(alpha: 0.1),
-                                  size: 20,
-                                ),
-                              ),
-                            ),
-                              ),
-                            // 右下角半透明悬浮标：向上箭头，点击列表回到眼睛的位置
-                            Positioned(
-                          right: -0,
-                          bottom: 90 + keyboardInset,
+                          ),
+                          if (keyboardInset == 0) SizedBox(height: (!kIsWeb && Platform.isAndroid) ? 5 : 0),
+                        ],
+                      ),
+                      // 悬浮按钮：切换图表显示/隐藏（叠加在图表和统计区之间）
+                      if (showChart && !keyboardOpen)
+                        Positioned(
+                          top: chartHeight != null
+                              ? chartHeight - 20 // 折线图：图表高度120，按钮高度40，居中在图表底部
+                              : 80 - 20, // 大路图：估算高度80（标题行约30px + 大路图约50px），按钮居中在图表底部
+                          right: 0,
                           child: GestureDetector(
-                            onTap: () {
-                              controller.jumpToCurrentTempIndexRow();
-                            },
+                            onTap: () => controller.toggleChartVisibility(),
                             child: Container(
-                              width: 40,
-                              height: 40,
+                              width: 30,
+                              height: 30,
                               decoration: BoxDecoration(
                                 color: controller.state.isDarkMode
-                                    ? Colors.white.withValues(alpha: 0.15)
-                                    : Colors.black.withValues(alpha: 0.15),
+                                    ? Colors.white.withValues(alpha: 0.2)
+                                    : Colors.black.withValues(alpha: 0.2),
                                 shape: BoxShape.circle,
                               ),
                               child: Icon(
                                 Icons.keyboard_arrow_up,
                                 color: controller.state.isDarkMode
-                                    ? Colors.white.withValues(alpha: 0.6)
-                                    : Colors.black.withValues(alpha: 0.6),
-                                size: 24,
+                                    ? Colors.white.withValues(alpha: 0.4)
+                                    : Colors.black.withValues(alpha: 0.4),
+                                size: 20,
                               ),
                             ),
                           ),
+                        )
+                      else
+                        Positioned(
+                          top: 0,
+                          right: 0,
+                          child: GestureDetector(
+                            onTap: () => controller.toggleChartVisibility(),
+                            child: Container(
+                              width: 30,
+                              height: 30,
+                              decoration: BoxDecoration(
+                                color: controller.state.isDarkMode
+                                    ? Colors.white.withValues(alpha: 0.1)
+                                    : Colors.black.withValues(alpha: 0.1),
+                                shape: BoxShape.circle,
+                              ),
+                              child: Icon(
+                                Icons.keyboard_arrow_down,
+                                color: controller.state.isDarkMode
+                                    ? Colors.white.withValues(alpha: 0.1)
+                                    : Colors.black.withValues(alpha: 0.1),
+                                size: 20,
+                              ),
                             ),
-                          ],
-                        );
-                  },
-                ),
+                          ),
+                        ),
+                      // 右下角半透明悬浮标：向上箭头，点击列表回到眼睛的位置
+                      Positioned(
+                        right: -0,
+                        bottom: JiShuQiState.jumpToEyeFabBottom + keyboardInset,
+                        child: GestureDetector(
+                          onTap: () {
+                            controller.jumpToCurrentTempIndexRow();
+                          },
+                          child: Container(
+                            width: 40,
+                            height: 40,
+                            decoration: BoxDecoration(
+                              color: controller.state.isDarkMode
+                                  ? Colors.white.withValues(alpha: 0.15)
+                                  : Colors.black.withValues(alpha: 0.15),
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(
+                              Icons.keyboard_arrow_up,
+                              color: controller.state.isDarkMode
+                                  ? Colors.white.withValues(alpha: 0.6)
+                                  : Colors.black.withValues(alpha: 0.6),
+                              size: 24,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  );
+                },
               ),
             ),
           ),
         ),
-      );
+      ),
+    );
   }
 
   _buildItem(int index) => GetBuilder<JiShuQiController>(
@@ -439,8 +436,14 @@ class JiShuQiView extends GetView<JiShuQiController> {
           // 重启标记线：该行有重启统计快照则显示底部分隔线
           final restartSnapshot = controller.state.table2List[index].restartStatSnapshot?.trim() ?? '';
           final isRestartRow = restartSnapshot.isNotEmpty;
+          final rowId = controller.state.table2List[index].id;
+          final isEyeRow =
+              rowId != null && rowId != 0 && rowId == controller.state.currentTempIndex;
 
           return Container(
+            key: isEyeRow
+                ? controller.tempIndexRowKey
+                : (rowId != null ? ValueKey<int>(rowId) : ValueKey<int>(index)),
             height: JiShuQiState.bettingTableRowHeight,
             decoration: BoxDecoration(
               color: backgroundColor,
@@ -455,65 +458,117 @@ class JiShuQiView extends GetView<JiShuQiController> {
             ),
             child: Row(
               children: [
-                // 标记+序号：固定列宽；数字过长时缩小字体（与下注列一致）
-                GestureDetector(
-                  // 进行局部平衡
-                  onTap: () => controller.juBuPingHeng(controller.state.table2List[index].id!),
-                  child: controller.state.table2List[index].id != null &&
-                          controller.state.table2List[index].id == controller.state.currentTempIndex
-                      ? SizedBox(
-                          width: JiShuQiState.seqColMaxWidth,
-                          child: Center(
-                            child: Icon(
-                              Icons.visibility,
-                              size: 16,
-                              color: controller.state.isDarkMode ? Colors.amber.shade200 : Colors.amber.shade800,
+                // 序号列：显示序号时含眼睛与局部平衡点击；隐藏时仅占位
+                if (controller.state.isSeqVisible)
+                  GestureDetector(
+                    onTap: () => controller.juBuPingHeng(controller.state.table2List[index].id!),
+                    child: controller.state.table2List[index].id != null &&
+                            controller.state.table2List[index].id == controller.state.currentTempIndex
+                        ? SizedBox(
+                            width: JiShuQiState.seqColMaxWidth,
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              mainAxisSize: MainAxisSize.max,
+                              children: [
+                                Icon(
+                                  Icons.visibility,
+                                  size: 13,
+                                  color:
+                                      controller.state.isDarkMode ? Colors.amber.shade200 : Colors.amber.shade800,
+                                ),
+                                FittedBox(
+                                  fit: BoxFit.scaleDown,
+                                  alignment: Alignment.center,
+                                  child: Text(
+                                    "${controller.state.table2List[index].seq}",
+                                    maxLines: 1,
+                                    style: TextStyle(
+                                      fontSize: 10,
+                                      height: 1.0,
+                                      fontWeight: FontWeight.w200,
+                                      color: controller.state.isDarkMode ? Colors.white70 : Colors.black45,
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
-                          ),
-                        )
-                      : SizedBox(
-                          width: JiShuQiState.seqColMaxWidth,
-                          child: FittedBox(
-                            fit: BoxFit.scaleDown,
-                            alignment: Alignment.center,
-                            child: Text(
-                              "${controller.state.table2List[index].seq}",
-                              maxLines: 1,
-                              style: TextStyle(
-                                fontSize: 12.5,
-                                fontWeight: FontWeight.w300,
-                                color: controller.state.isDarkMode ? Colors.white70 : Colors.black45,
+                          )
+                        : SizedBox(
+                            width: JiShuQiState.seqColMaxWidth,
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              alignment: Alignment.center,
+                              child: Text(
+                                "${controller.state.table2List[index].seq}",
+                                maxLines: 1,
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w200,
+                                  color: controller.state.isDarkMode ? Colors.white70 : Colors.black45,
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                ),
+                  )
+                else
+                  const SizedBox(width: JiShuQiState.seqColMaxWidth),
 
-                // 输赢列：与下一列均分剩余宽度；过长缩小字体
+                // 输赢列：隐藏序号时眼睛与局部平衡点击在此列
                 Expanded(
                   flex: 1,
                   child: GestureDetector(
-                    onTap: () {
-                      /*  controller.juBuPingHeng(controller.state.table2List[index].id!,
-                        v: controller.state.totalValue[30]); */
-                    },
+                    onTap: controller.state.isSeqVisible
+                        ? null
+                        : () => controller.juBuPingHeng(controller.state.table2List[index].id!),
                     child: Align(
                       alignment: Alignment.centerRight,
-                      child: FittedBox(
-                        fit: BoxFit.scaleDown,
-                        alignment: Alignment.centerRight,
-                        child: Text(
-                          controller.state.table2List[index].colmunShuyingzhi.toString(),
-                          maxLines: 1,
-                          textAlign: TextAlign.right,
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w400,
-                            color: controller.state
-                                .getValueColor(controller.state.table2List[index].colmunShuyingzhi.toString()),
-                          ),
-                        ),
-                      ),
+                      child: !controller.state.isSeqVisible &&
+                              controller.state.table2List[index].id != null &&
+                              controller.state.table2List[index].id == controller.state.currentTempIndex
+                          ? Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              mainAxisSize: MainAxisSize.max,
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                Icon(
+                                  Icons.visibility,
+                                  size: 13,
+                                  color:
+                                      controller.state.isDarkMode ? Colors.amber.shade200 : Colors.amber.shade800,
+                                ),
+                                FittedBox(
+                                  fit: BoxFit.scaleDown,
+                                  alignment: Alignment.centerRight,
+                                  child: Text(
+                                    controller.state.table2List[index].colmunShuyingzhi.toString(),
+                                    maxLines: 1,
+                                    textAlign: TextAlign.right,
+                                    style: TextStyle(
+                                      fontSize: 10,
+                                      height: 1.0,
+                                      fontWeight: FontWeight.w400,
+                                      color: controller.state.getValueColor(
+                                          controller.state.table2List[index].colmunShuyingzhi.toString()),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            )
+                          : FittedBox(
+                              fit: BoxFit.scaleDown,
+                              alignment: Alignment.centerRight,
+                              child: Text(
+                                controller.state.table2List[index].colmunShuyingzhi.toString(),
+                                maxLines: 1,
+                                textAlign: TextAlign.right,
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w400,
+                                  color: controller.state
+                                      .getValueColor(controller.state.table2List[index].colmunShuyingzhi.toString()),
+                                ),
+                              ),
+                            ),
                     ),
                   ),
                 ),
@@ -734,17 +789,17 @@ class JiShuQiView extends GetView<JiShuQiController> {
                         child: Text(
                           textAlign: TextAlign.left,
                           style: TextStyle(
-                            height: 1.35,
-                            wordSpacing: 0,
-                            fontSize: 12.5,
-                            fontWeight: FontWeight.w400,
-                            color: ((row * 4 + column) == 26 || (row * 4 + column) == 27)
-                                ? Colors.green
-                                : ((row * 4 + column) == 24 || (row * 4 + column) == 22)
-                                    ? (controller.state.isDarkMode ? Colors.orange : Colors.red)
-                                    : (row * 4 + column) == 2 && controller.state.currentTempIndex != 0
-                                        ? Colors.amber
-                                        : controller.state.currentTextColor),
+                              height: 1.35,
+                              wordSpacing: 0,
+                              fontSize: 12.5,
+                              fontWeight: FontWeight.w400,
+                              color: ((row * 4 + column) == 26 || (row * 4 + column) == 27)
+                                  ? Colors.green
+                                  : ((row * 4 + column) == 24 || (row * 4 + column) == 22)
+                                      ? (controller.state.isDarkMode ? Colors.orange : Colors.red)
+                                      : (row * 4 + column) == 2 && controller.state.currentTempIndex != 0
+                                          ? Colors.amber
+                                          : controller.state.currentTextColor),
                           controller.state.totalValue[row * 4 + column],
                         ),
                       ),

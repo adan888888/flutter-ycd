@@ -34,6 +34,8 @@ class JiShuQiController extends GetxController {
   Future<Database>? _instance;
 
   final scrollController = ScrollController();
+  /// 投注列表「眼睛」行 GlobalKey，用于精确定位滚动（避免手算行高累积误差）
+  final GlobalKey tempIndexRowKey = GlobalKey();
   final textEditingController = TextEditingController();
   final focusNode = FocusNode();
   double _lastKeyboardInset = 0;
@@ -313,8 +315,7 @@ class JiShuQiController extends GetxController {
       unawaited(_loadMoreForTempIndex(tempIndex));
       return;
     }
-    // 滚动到眼睛的位置
-    _animateBettingListToIndex(idx);
+    _scrollToTempIndexRow(idx);
   }
 
   Future<void> _loadMoreForTempIndex(int tempIndex) async {
@@ -337,20 +338,40 @@ class JiShuQiController extends GetxController {
     if (!scrollController.hasClients) return;
     final idx = state.table2List.indexWhere((e) => e.id != null && e.id == tempIndex);
     if (idx >= 0) {
-      _animateBettingListToIndex(idx);
+      _scrollToTempIndexRow(idx);
     }
   }
 
-  void _animateBettingListToIndex(int idx) {
+  /// 滚到「眼睛」行：优先 [Scrollable.ensureVisible]；行未挂载时用行高粗估再重试。
+  void _scrollToTempIndexRow(int idx) {
     if (!scrollController.hasClients || idx < 0) return;
-    const rowHeight = JiShuQiState.bettingTableRowHeight;
-    final target = 10 + idx * rowHeight;
-    final maxS = scrollController.position.maxScrollExtent;
-    scrollController.animateTo(
-      target.clamp(0.0, maxS),
-      duration: const Duration(milliseconds: 300),
-      curve: Curves.easeInOut,
-    );
+    const rowH = JiShuQiState.bettingTableRowHeight;
+
+    Future<void> tryEnsure({int attempt = 0}) async {
+      final ctx = tempIndexRowKey.currentContext;
+      if (ctx != null) {
+        final viewport = scrollController.position.viewportDimension;
+        final align = viewport > 0
+            ? (JiShuQiState.bettingTableScrollTopInset / viewport).clamp(0.0, 0.35)
+            : 0.0;
+        await Scrollable.ensureVisible(
+          ctx,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeInOut,
+          alignment: align,
+        );
+        return;
+      }
+      if (attempt > 15) return;
+      final maxS = scrollController.position.maxScrollExtent;
+      if (maxS.isFinite) {
+        scrollController.jumpTo((idx * rowH).clamp(0.0, maxS));
+      }
+      await WidgetsBinding.instance.endOfFrame;
+      await tryEnsure(attempt: attempt + 1);
+    }
+
+    unawaited(tryEnsure());
   }
 
   /// 顶部插入历史行后恢复视口：用固定行高累计增量（避免 LazyList / EasyRefresh 回弹时 maxScrollExtent 不准）。
@@ -1178,6 +1199,11 @@ class JiShuQiController extends GetxController {
       case 11: //退出程序
         GetStore.getInstance().cleanUser();
         Get.offAndToNamed(AppRoutes.login);
+        break;
+      case 12: //隐藏/显示序号
+        state.isSeqVisible = !state.isSeqVisible;
+        state.selectIndex = 12;
+        update();
         break;
     }
   }
