@@ -437,13 +437,10 @@ class JiShuQiView extends GetView<JiShuQiController> {
           final restartSnapshot = controller.state.table2List[index].restartStatSnapshot?.trim() ?? '';
           final isRestartRow = restartSnapshot.isNotEmpty;
           final rowId = controller.state.table2List[index].id;
-          final isEyeRow =
-              rowId != null && rowId != 0 && rowId == controller.state.currentTempIndex;
+          final isEyeRow = rowId != null && rowId != 0 && rowId == controller.state.currentTempIndex;
 
           return Container(
-            key: isEyeRow
-                ? controller.tempIndexRowKey
-                : (rowId != null ? ValueKey<int>(rowId) : ValueKey<int>(index)),
+            key: isEyeRow ? controller.tempIndexRowKey : (rowId != null ? ValueKey<int>(rowId) : ValueKey<int>(index)),
             height: JiShuQiState.bettingTableRowHeight,
             decoration: BoxDecoration(
               color: backgroundColor,
@@ -473,8 +470,7 @@ class JiShuQiView extends GetView<JiShuQiController> {
                                 Icon(
                                   Icons.visibility,
                                   size: 13,
-                                  color:
-                                      controller.state.isDarkMode ? Colors.amber.shade200 : Colors.amber.shade800,
+                                  color: controller.state.isDarkMode ? Colors.amber.shade200 : Colors.amber.shade800,
                                 ),
                                 FittedBox(
                                   fit: BoxFit.scaleDown,
@@ -533,8 +529,7 @@ class JiShuQiView extends GetView<JiShuQiController> {
                                 Icon(
                                   Icons.visibility,
                                   size: 13,
-                                  color:
-                                      controller.state.isDarkMode ? Colors.amber.shade200 : Colors.amber.shade800,
+                                  color: controller.state.isDarkMode ? Colors.amber.shade200 : Colors.amber.shade800,
                                 ),
                                 FittedBox(
                                   fit: BoxFit.scaleDown,
@@ -1161,7 +1156,7 @@ class JiShuQiView extends GetView<JiShuQiController> {
                     style: TextStyle(
                       color: (i == 1 || i == 2)
                           ? (controller.state.isDarkMode ? Colors.orange : Colors.red) // P+ 和 B+ 使用橙色（暗黑）或红色（亮色）
-                          : (controller.state.isDarkMode ? Colors.green : Colors.green), // P- 和 B- 使用绿色（两种模式都是绿色）
+                          : (controller.state.isDarkMode ? Color(0xFF69B6AD) : Colors.green),
                       fontWeight: FontWeight.bold,
                       height: 0,
                       fontSize: 16,
@@ -1187,7 +1182,7 @@ class JiShuQiView extends GetView<JiShuQiController> {
 
   _buildButtonStyle(Color bg) => ButtonStyle(
         backgroundColor: WidgetStateProperty.all(bg),
-        overlayColor: WidgetStateProperty.all(Colors.red.shade100),
+        overlayColor: WidgetStateProperty.all(Colors.black),
         padding: WidgetStateProperty.all(EdgeInsetsGeometry.lerp(EdgeInsets.zero, EdgeInsets.zero, 0)),
         shape: WidgetStateProperty.all<RoundedRectangleBorder>(
           RoundedRectangleBorder(

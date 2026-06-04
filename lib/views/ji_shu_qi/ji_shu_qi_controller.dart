@@ -829,13 +829,13 @@ class JiShuQiController extends GetxController {
 
   syzL(int i) {
     switch (i) {
-      case 1: //闲
-        return state.bettingMoney;
+      case 1: //闲赢
+        return '+${state.bettingMoney}';
       case 2: //庄赢：下注×赔率（不含加回本金）。注意不可用 toStringAsFixed(2)，否则 0.095 会变成 0.10
         double parse = double.parse(state.bettingMoney);
         final xx = parse *
             double.parse(state.totalValue[31] == "31" || state.totalValue[31] == "" ? "0.95" : state.totalValue[31]);
-        return _formatZhuangYingShuying(xx);
+        return '+${_formatZhuangYingShuying(xx)}';
       case 3:
       case 4:
         return '-${state.bettingMoney}';
