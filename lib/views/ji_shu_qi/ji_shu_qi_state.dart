@@ -1,4 +1,5 @@
 // ignore_for_file: constant_identifier_names
+import 'package:easy_refresh/easy_refresh.dart';
 import 'package:flutter/material.dart';
 import 'package:ycd/model/linechart_data_model.dart';
 import 'package:ycd/my_db/table1_model.dart';
@@ -68,6 +69,36 @@ class JiShuQiState {
   Color get currentChartBgColor => isDarkMode ? darkChartBgColor : chartBgColor;
 
   Color get currentTextColor => isDarkMode ? darkTextColor : textColor;
+
+  /// 统计区 / 投注列表共用的下拉刷新头部；底色与所在区域背景一致，文字/图标保证可读
+  ClassicHeader pullRefreshHeader({required Color backgroundColor}) => ClassicHeader(
+        clamping: false,
+        infiniteOffset: null,
+        triggerWhenReach: false,
+        triggerWhenRelease: false,
+        dragText: '下拉加载',
+        armedText: '松开加载',
+        readyText: '加载中...',
+        processingText: '加载中...',
+        processedText: '加载成功',
+        noMoreText: '没有更多了',
+        failedText: '加载失败',
+        messageText: '更新时间 %T',
+        showMessage: true,
+        backgroundColor: backgroundColor,
+        textStyle: TextStyle(
+          color: isDarkMode ? Colors.white.withValues(alpha: 0.9) : Colors.black87,
+          fontSize: 14,
+        ),
+        messageStyle: TextStyle(
+          color: isDarkMode ? Colors.white.withValues(alpha: 0.55) : Colors.black54,
+          fontSize: 12,
+        ),
+        iconTheme: IconThemeData(
+          color: isDarkMode ? Colors.white.withValues(alpha: 0.75) : Colors.black54,
+          size: 22,
+        ),
+      );
 
   // 列表列颜色（输赢值、消数值、胜负路共用）
   /// 负数/输的字体颜色（白天模式：绿色，暗黑模式：0xFF69B6AD）

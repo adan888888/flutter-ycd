@@ -126,9 +126,10 @@ class JiShuQiView extends GetView<JiShuQiController> {
                     return GetBuilder<JiShuQiController>(
                       builder: (c) => SizedBox(
                         height: JiShuQiState.statsAreaHeight,
-                        child: RefreshIndicator(
+                        child: EasyRefresh(
+                          controller: c.statsRefreshController,
+                          header: c.state.pullRefreshHeader(backgroundColor: c.state.currentBgColor),
                           onRefresh: c.refreshStatsArea,
-                          color: c.state.isDarkMode ? Colors.white : Colors.blue,
                           child: ListView(
                             padding: EdgeInsets.zero,
                             physics: const AlwaysScrollableScrollPhysics(),
@@ -212,20 +213,8 @@ class JiShuQiView extends GetView<JiShuQiController> {
                                           color: controller.state.currentListViewColor,
                                           child: EasyRefresh(
                                             controller: controller.refreshcontroller,
-                                            header: const ClassicHeader(
-                                              clamping: false,
-                                              infiniteOffset: null,
-                                              triggerWhenReach: false,
-                                              triggerWhenRelease: false,
-                                              dragText: '下拉加载',
-                                              armedText: '松开加载',
-                                              readyText: '加载中...',
-                                              processingText: '加载中...',
-                                              processedText: '加载成功',
-                                              noMoreText: '没有更多了',
-                                              failedText: '加载失败',
-                                              messageText: '更新时间 %T',
-                                              showMessage: true,
+                                            header: controller.state.pullRefreshHeader(
+                                              backgroundColor: controller.state.currentListViewColor,
                                             ),
                                             footer: const ClassicFooter(
                                               clamping: true,

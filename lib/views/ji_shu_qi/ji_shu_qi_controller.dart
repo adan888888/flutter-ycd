@@ -30,6 +30,8 @@ import 'ji_shu_qi_state.dart';
 
 class JiShuQiController extends GetxController {
   EasyRefreshController refreshcontroller = EasyRefreshController(controlFinishRefresh: true, controlFinishLoad: true);
+  /// 统计区下拉刷新（与投注列表同款 EasyRefresh 样式，独立 controller）
+  EasyRefreshController statsRefreshController = EasyRefreshController(controlFinishRefresh: true);
   final JiShuQiState state = JiShuQiState();
   Future<Database>? _instance;
 
@@ -555,6 +557,7 @@ class JiShuQiController extends GetxController {
     _keyboardOpenSettleTimer?.cancel();
     _timer?.cancel();
     _diceSoundPlayer.dispose();
+    statsRefreshController.dispose();
     WakelockPlus.disable();
     focusNode.dispose();
     textEditingController.dispose();
@@ -1411,15 +1414,21 @@ class JiShuQiController extends GetxController {
   Future<void> refreshStatsArea() async {
     state.isRefreshing = true;
     update();
+    var success = true;
     try {
       await _queryMysqlTable1();
       await _getStatisticalAreasData(-2);
       await _reloadBettingListTail();
     } catch (e) {
+      success = false;
       debugPrint('统计区下拉刷新失败: $e');
     } finally {
       state.isRefreshing = false;
       update();
+      statsRefreshController.finishRefresh(
+        success ? IndicatorResult.success : IndicatorResult.fail,
+        true,
+      );
     }
   }
 
