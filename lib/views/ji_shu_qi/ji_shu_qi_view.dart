@@ -541,7 +541,7 @@ class JiShuQiView extends GetView<JiShuQiController> {
                                 controller: controller,
                                 display: shuyingDisplay,
                                 raw: shuyingRaw,
-                                fontSize: 14,
+                                fontSize: 12.5,
                               ),
                             ),
                     ),
@@ -1094,7 +1094,7 @@ class JiShuQiView extends GetView<JiShuQiController> {
                 : const Text('data')),
       );
 
-  /// 输赢列：整数部分正常字号，小数点及小数部分略小（约 75%）
+  /// 输赢列：整数部分正常字号，小数点及小数部分略小（约 80%）
   Widget _buildShuyingzhiText({
     required JiShuQiController controller,
     required String display,
@@ -1108,7 +1108,7 @@ class JiShuQiView extends GetView<JiShuQiController> {
       fontWeight: FontWeight.w300,
       color: color,
     );
-    final decimalStyle = baseStyle.copyWith(fontSize: fontSize * 0.75);
+    final decimalStyle = baseStyle.copyWith(fontSize: fontSize * 0.80);
 
     var body = display;
     var sign = '';
