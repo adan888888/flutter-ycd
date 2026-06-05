@@ -112,6 +112,26 @@ class JiShuQiState {
     return value.startsWith('-') ? negativeColor : positiveColor;
   }
 
+  /// 输赢列展示：小数不足两位时补足两位；已满两位或更多则保持原样
+  String formatShuyingzhiColumn(String? raw) {
+    if (raw == null || raw.trim().isEmpty) return '';
+    final s = raw.trim();
+    final negative = s.startsWith('-');
+    final positive = s.startsWith('+');
+    final numStr = (negative || positive) ? s.substring(1) : s;
+    final n = double.tryParse(numStr);
+    if (n == null) return s;
+
+    final dot = numStr.indexOf('.');
+    final decimalPlaces = dot < 0 ? 0 : numStr.length - dot - 1;
+    if (decimalPlaces >= 2) return s;
+
+    final body = n.abs().toStringAsFixed(2);
+    if (negative) return '-$body';
+    if (positive) return '+$body';
+    return body;
+  }
+
   // 按钮颜色（P+/B+ 和 P-/B-）
   /// P+ 和 B+ 按钮背景颜色（暗黑模式：深蓝绿色，白色模式：稍深的蓝绿色）
   Color get buttonPositiveBgColor => isDarkMode

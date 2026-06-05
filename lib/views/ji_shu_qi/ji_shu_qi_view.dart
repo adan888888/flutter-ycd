@@ -427,6 +427,8 @@ class JiShuQiView extends GetView<JiShuQiController> {
           final isRestartRow = restartSnapshot.isNotEmpty;
           final rowId = controller.state.table2List[index].id;
           final isEyeRow = rowId != null && rowId != 0 && rowId == controller.state.currentTempIndex;
+          final shuyingRaw = controller.state.table2List[index].colmunShuyingzhi?.toString() ?? '';
+          final shuyingDisplay = controller.state.formatShuyingzhiColumn(shuyingRaw);
 
           return Container(
             key: isEyeRow ? controller.tempIndexRowKey : (rowId != null ? ValueKey<int>(rowId) : ValueKey<int>(index)),
@@ -523,17 +525,11 @@ class JiShuQiView extends GetView<JiShuQiController> {
                                 FittedBox(
                                   fit: BoxFit.scaleDown,
                                   alignment: Alignment.centerRight,
-                                  child: Text(
-                                    controller.state.table2List[index].colmunShuyingzhi.toString(),
-                                    maxLines: 1,
-                                    textAlign: TextAlign.right,
-                                    style: TextStyle(
-                                      fontSize: 10,
-                                      height: 1.0,
-                                      fontWeight: FontWeight.w400,
-                                      color: controller.state.getValueColor(
-                                          controller.state.table2List[index].colmunShuyingzhi.toString()),
-                                    ),
+                                  child: _buildShuyingzhiText(
+                                    controller: controller,
+                                    display: shuyingDisplay,
+                                    raw: shuyingRaw,
+                                    fontSize: 10,
                                   ),
                                 ),
                               ],
@@ -541,16 +537,11 @@ class JiShuQiView extends GetView<JiShuQiController> {
                           : FittedBox(
                               fit: BoxFit.scaleDown,
                               alignment: Alignment.centerRight,
-                              child: Text(
-                                controller.state.table2List[index].colmunShuyingzhi.toString(),
-                                maxLines: 1,
-                                textAlign: TextAlign.right,
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w400,
-                                  color: controller.state
-                                      .getValueColor(controller.state.table2List[index].colmunShuyingzhi.toString()),
-                                ),
+                              child: _buildShuyingzhiText(
+                                controller: controller,
+                                display: shuyingDisplay,
+                                raw: shuyingRaw,
+                                fontSize: 14,
                               ),
                             ),
                     ),
@@ -1102,6 +1093,49 @@ class JiShuQiView extends GetView<JiShuQiController> {
                   )
                 : const Text('data')),
       );
+
+  /// 输赢列：整数部分正常字号，小数点及小数部分略小（约 75%）
+  Widget _buildShuyingzhiText({
+    required JiShuQiController controller,
+    required String display,
+    required String raw,
+    required double fontSize,
+  }) {
+    final color = controller.state.getValueColor(raw);
+    final baseStyle = TextStyle(
+      fontSize: fontSize,
+      height: 1.0,
+      fontWeight: FontWeight.w300,
+      color: color,
+    );
+    final decimalStyle = baseStyle.copyWith(fontSize: fontSize * 0.75);
+
+    var body = display;
+    var sign = '';
+    if (body.startsWith('+') || body.startsWith('-')) {
+      sign = body.substring(0, 1);
+      body = body.substring(1);
+    }
+    final dot = body.indexOf('.');
+    if (dot < 0) {
+      return Text.rich(
+        TextSpan(text: sign + body, style: baseStyle),
+        maxLines: 1,
+        textAlign: TextAlign.right,
+      );
+    }
+
+    return Text.rich(
+      TextSpan(
+        children: [
+          TextSpan(text: sign + body.substring(0, dot), style: baseStyle),
+          TextSpan(text: body.substring(dot), style: decimalStyle),
+        ],
+      ),
+      maxLines: 1,
+      textAlign: TextAlign.right,
+    );
+  }
 
   _divier(Color color, double height) => Container(height: height, width: 1, color: color);
 
