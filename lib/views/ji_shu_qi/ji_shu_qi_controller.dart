@@ -1208,6 +1208,11 @@ class JiShuQiController extends GetxController {
         state.selectIndex = 12;
         update();
         break;
+      case 13: //红输绿赢 / 红赢绿输
+        state.isRedWinGreenLose = !state.isRedWinGreenLose;
+        state.selectIndex = 13;
+        update();
+        break;
     }
   }
 

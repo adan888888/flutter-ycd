@@ -52,6 +52,9 @@ class JiShuQiState {
   /// 投注表是否显示序号列；false 时眼睛与局部平衡点击在输赢列（默认隐藏）
   var isSeqVisible = false;
 
+  /// false=红输绿赢（默认），true=红赢绿输
+  var isRedWinGreenLose = false;
+
   // 暗黑主题颜色（深蓝色调风格）
   var darkLineColor = Colors.white.withValues(alpha: 0.6);
   var darkListViewColor = const Color(0xFF1A2332); // 深蓝灰色
@@ -100,14 +103,24 @@ class JiShuQiState {
         ),
       );
 
-  // 列表列颜色（输赢值、消数值、胜负路共用）
-  /// 负数/输的字体颜色（白天模式：绿色，暗黑模式：0xFF69B6AD）
-  Color get negativeColor => isDarkMode ? const Color(0xFF69B6AD) : Colors.green;
+  // 列表 / 按钮输赢文字色（暗色：橙≈红、青绿≈绿）
+  Color get _redTone => isDarkMode ? Colors.orange : Colors.red;
 
-  /// 正数/赢的字体颜色（白天模式：红色，暗黑模式：与统计区「回合结束」等高亮格一致）
-  Color get positiveColor => isDarkMode ? Colors.orange : Colors.red;
+  Color get _greenTone => isDarkMode ? const Color(0xFF69B6AD) : Colors.green;
 
-  /// 根据值判断字体颜色（负数返回绿色/0xFF69B6AD，正数返回红色/橙色）
+  /// 列表「输」
+  Color get negativeColor => isRedWinGreenLose ? _greenTone : _redTone;
+
+  /// 列表「赢」
+  Color get positiveColor => isRedWinGreenLose ? _redTone : _greenTone;
+
+  /// P+ / B+ 按钮文字（与列表「赢」一致）
+  Color get buttonWinTextColor => positiveColor;
+
+  /// P- / B- 按钮文字（与列表「输」一致）
+  Color get buttonLossTextColor => negativeColor;
+
+  /// 根据值判断字体颜色
   Color getValueColor(String value) {
     return value.startsWith('-') ? negativeColor : positiveColor;
   }
@@ -165,6 +178,7 @@ class JiShuQiState {
         '11.修改赔率',
         '12.退出程序',
         isSeqVisible ? '13.隐藏序号' : '13.显示序号',
+        isRedWinGreenLose ? '14.红输绿赢' : '14.红赢绿输',
       ];
   var description = [
     {"本金", "总局数", "回合局数", "流水"},
