@@ -104,8 +104,8 @@ class JiShuQiState {
   /// 负数/输的字体颜色（白天模式：绿色，暗黑模式：0xFF69B6AD）
   Color get negativeColor => isDarkMode ? const Color(0xFF69B6AD) : Colors.green;
 
-  /// 正数/赢的字体颜色（白天模式：红色，暗黑模式：橙色）
-  Color get positiveColor => isDarkMode ? const Color(0xFFF57859) : Colors.red;
+  /// 正数/赢的字体颜色（白天模式：红色，暗黑模式：与统计区「回合结束」等高亮格一致）
+  Color get positiveColor => isDarkMode ? Colors.orange : Colors.red;
 
   /// 根据值判断字体颜色（负数返回绿色/0xFF69B6AD，正数返回红色/橙色）
   Color getValueColor(String value) {

@@ -1144,9 +1144,7 @@ class JiShuQiView extends GetView<JiShuQiController> {
                     str,
                     style: TextStyle(
                       color: (i == 1 || i == 2)
-                          ? (controller.state.isDarkMode
-                              ? const Color(0xFFF57859)
-                              : Colors.red) // P+ 和 B+ 使用橙色（暗黑）或红色（亮色）
+                          ? (controller.state.isDarkMode ? Colors.orange : Colors.red) // P+ 和 B+ 使用橙色（暗黑）或红色（亮色）
                           : (controller.state.isDarkMode
                               ? const Color(0xFF69B6AD)
                               : Colors.green), // P- 和 B- 使用青绿（暗黑）或绿色（亮色），与列表输赢列「输」一致
