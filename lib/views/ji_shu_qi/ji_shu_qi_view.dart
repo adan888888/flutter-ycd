@@ -438,9 +438,9 @@ class JiShuQiView extends GetView<JiShuQiController> {
               border: Border(
                 bottom: BorderSide(
                   color: isRestartRow
-                      ? (controller.state.isDarkMode ? Colors.amberAccent.shade100 : Colors.amber.shade700)
+                      ? (controller.state.isDarkMode ? Colors.amberAccent.shade100 : Colors.black)
                       : Colors.transparent,
-                  width: isRestartRow ? 1.4 : 0,
+                  width: isRestartRow ? 0.5 : 0,
                 ),
               ),
             ),
@@ -498,7 +498,7 @@ class JiShuQiView extends GetView<JiShuQiController> {
                           ),
                   )
                 else
-                  const SizedBox(width: JiShuQiState.seqColMaxWidth),
+                  const SizedBox(width: 10),
 
                 // 输赢列：隐藏序号时眼睛与局部平衡点击在此列
                 Expanded(
@@ -529,7 +529,7 @@ class JiShuQiView extends GetView<JiShuQiController> {
                                     controller: controller,
                                     display: shuyingDisplay,
                                     raw: shuyingRaw,
-                                    fontSize: 10,
+                                    fontSize: 12.5,
                                   ),
                                 ),
                               ],

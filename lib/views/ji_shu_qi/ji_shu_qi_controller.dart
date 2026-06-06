@@ -564,27 +564,31 @@ class JiShuQiController extends GetxController {
     super.onClose();
   }
 
-  void _playDiceRollSound() {
+  void _playSound(String asset) {
     if (!_diceSoundAvailable) return;
     unawaited(() async {
       try {
         await _diceSoundPlayer.stop();
         await _diceSoundPlayer.play(
-          AssetSource('sounds/zhuotou.mp3'),
+          AssetSource(asset),
           mode: PlayerMode.lowLatency,
         );
       } catch (e) {
         _diceSoundAvailable = false;
-        debugPrint('dice sound unavailable: $e');
+        debugPrint('sound unavailable: $e');
       }
     }());
   }
+
+  void _playRandomSound() => _playSound('sounds/kaijiang.mp3');
+
+  void _playDiceRollSound() => _playSound('sounds/zhuotou.mp3');
 
   setRandom(Function(int) f) {
     if (!state.isCanPress) {
       return;
     }
-    _playDiceRollSound();
+    _playRandomSound();
     state.isCanPress = false;
     state.js2 = state.js2 + 1;
     state.totalValue[28] = "${state.js1}/${state.js2}";
@@ -686,6 +690,7 @@ class JiShuQiController extends GetxController {
           backgroundColor: Colors.white.withValues(alpha: 0.3));
       return;
     }
+    _playDiceRollSound();
     Loading.show();
     state.isCanPress = false;
     state.js1 = state.js1 + 1;
