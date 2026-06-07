@@ -52,8 +52,8 @@ class JiShuQiState {
   /// 投注表是否显示序号列；false 时眼睛与局部平衡点击在输赢列（默认隐藏）
   var isSeqVisible = false;
 
-  /// false=红输绿赢（默认），true=红赢绿输
-  var isRedWinGreenLose = false;
+  /// false=红输绿赢，true=红赢绿输（默认）
+  var isRedWinGreenLose = true;
 
   // 暗黑主题颜色（深蓝色调风格）
   var darkLineColor = Colors.white.withValues(alpha: 0.6);

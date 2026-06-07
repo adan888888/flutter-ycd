@@ -1,4 +1,4 @@
-// 主应用配置（计数器1）
-PRODUCT_NAME = 计数器1
-PRODUCT_BUNDLE_IDENTIFIER = com.like.flutterYcd
+// 副本配置：独立 Bundle ID，数据互不干扰
+PRODUCT_NAME = 计数器2
+PRODUCT_BUNDLE_IDENTIFIER = com.like.flutterYcd2
 PRODUCT_COPYRIGHT = Copyright © 2024 com.like. All rights reserved.

@@ -42,6 +42,7 @@ class JiShuQiController extends GetxController {
   final focusNode = FocusNode();
   double _lastKeyboardInset = 0;
   Timer? _keyboardOpenSettleTimer;
+  bool _skipKeyboardDismissScroll = false;
 
   FixedExtentScrollController? fixedExtentScrollController;
 
@@ -88,12 +89,16 @@ class JiShuQiController extends GetxController {
 
   void _onInputFocusChanged() {
     if (!focusNode.hasFocus) {
-      if (!focusNode.hasFocus) {
-        update();
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          scrollBettingListToBottom();
-        });
+      update();
+      if (_skipKeyboardDismissScroll) {
+        if (_lastKeyboardInset == 0) {
+          _skipKeyboardDismissScroll = false;
+        }
+        return;
       }
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        scrollBettingListToBottom();
+      });
     }
   }
 
@@ -301,6 +306,10 @@ class JiShuQiController extends GetxController {
       _keyboardOpenSettleTimer = Timer(const Duration(milliseconds: 220), () {
         if (focusNode.hasFocus) return;
         update();
+        if (_skipKeyboardDismissScroll) {
+          _skipKeyboardDismissScroll = false;
+          return;
+        }
         scrollBettingListToBottom();
       });
     }
@@ -1407,17 +1416,22 @@ class JiShuQiController extends GetxController {
 
   //(取消)局部平衡
   juBuPingHeng(int index, {v}) {
+    if (focusNode.hasFocus || _lastKeyboardInset > 0) {
+      _skipKeyboardDismissScroll = true;
+    }
+    final targetIndex = index != -1 && state.currentTempIndex == index ? -1 : index;
+
     //-1 取消局部平衡
-    if (index == -1) {
+    if (targetIndex == -1) {
       if (state.currentTempIndex == 0) {
         return;
       }
       state.currentTempIndex = 0;
     } else {
-      state.currentTempIndex = index;
+      state.currentTempIndex = targetIndex;
     }
     update();
-    if (state.table2List.isNotEmpty) _getStatisticalAreasData(index);
+    if (state.table2List.isNotEmpty) _getStatisticalAreasData(targetIndex);
   }
 
   //统计区的下拉刷新
