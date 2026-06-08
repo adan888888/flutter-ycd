@@ -57,9 +57,9 @@ class JiShuQiState {
 
   // 暗黑主题颜色（深蓝色调风格）
   var darkLineColor = Colors.white.withValues(alpha: 0.6);
-  var darkListViewColor = const Color(0xFF1A2332); // 深蓝灰色
-  var darkBgColor = const Color(0xFF1E2A3A); // 深蓝色
-  var darkChartBgColor = const Color(0xFF15202B); // 深蓝黑色
+  var darkListViewColor = const Color(0xFF2B2D30); // 列表区背景（中性深灰）
+  var darkBgColor = const Color(0xFF2B2D30); // 统计区 / 页面主背景
+  var darkChartBgColor = const Color(0xFF2B2D30); // 图表区背景
   var darkTextColor = Colors.white; // 暗黑模式下使用纯白色文字
 
   // 根据主题获取颜色

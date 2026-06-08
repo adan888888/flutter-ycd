@@ -417,11 +417,9 @@ class JiShuQiView extends GetView<JiShuQiController> {
           // 根据index的奇偶性设置不同的背景色
           final backgroundColor = actualIndex % 2 == 0
               ? (controller.state.isDarkMode
-                  ? const Color(0xFF2B3B4E) // 深蓝灰色（介于两行深浅之间）
+                  ? const Color(0xFF2E3540) // 微蓝调斑马纹（略浅）
                   : Colors.grey.shade50) // 浅灰白色
-              : (controller.state.isDarkMode
-                  ? const Color(0xFF1E2A3A) // 深蓝色（与背景色一致）
-                  : Colors.grey.shade200); // 稍深一点的浅灰色
+              : (controller.state.isDarkMode ? controller.state.darkListViewColor : Colors.grey.shade200); // 稍深一点的浅灰色
           // 重启标记线：该行有重启统计快照则显示底部分隔线
           final restartSnapshot = controller.state.table2List[index].restartStatSnapshot?.trim() ?? '';
           final isRestartRow = restartSnapshot.isNotEmpty;
@@ -431,6 +429,7 @@ class JiShuQiView extends GetView<JiShuQiController> {
           final shuyingDisplay = controller.state.formatShuyingzhiColumn(shuyingRaw);
 
           return Container(
+            margin: EdgeInsets.symmetric(horizontal: 5),
             key: isEyeRow ? controller.tempIndexRowKey : (rowId != null ? ValueKey<int>(rowId) : ValueKey<int>(index)),
             height: JiShuQiState.bettingTableRowHeight,
             decoration: BoxDecoration(
