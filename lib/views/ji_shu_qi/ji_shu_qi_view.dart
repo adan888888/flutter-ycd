@@ -295,7 +295,8 @@ class JiShuQiView extends GetView<JiShuQiController> {
                                           decoration: InputDecoration(
                                             contentPadding: const EdgeInsets.only(bottom: 7),
                                             focusedBorder: UnderlineInputBorder(
-                                                borderSide: BorderSide(width: 1, color: Colors.blue)),
+                                                borderSide: BorderSide(
+                                                    width: 1, color: controller.state.currentRestartRowBorderColor)),
                                             enabledBorder: UnderlineInputBorder(
                                               borderSide: BorderSide(
                                                 width: 1,
@@ -436,9 +437,7 @@ class JiShuQiView extends GetView<JiShuQiController> {
               color: backgroundColor,
               border: Border(
                 bottom: BorderSide(
-                  color: isRestartRow
-                      ? (controller.state.isDarkMode ? Colors.amberAccent.shade100 : Colors.black)
-                      : Colors.transparent,
+                  color: isRestartRow ? controller.state.currentRestartRowBorderColor : Colors.transparent,
                   width: isRestartRow ? 0.5 : 0,
                 ),
               ),

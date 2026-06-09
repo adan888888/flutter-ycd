@@ -76,6 +76,9 @@ class JiShuQiState {
 
   Color get currentTextColor => isDarkMode ? darkTextColor : textColor;
 
+  /// 投注列表「重启行」底部分隔线颜色
+  Color get currentRestartRowBorderColor => isDarkMode ? Colors.amberAccent.shade100 : Colors.black;
+
   /// 统计区 / 投注列表共用的下拉刷新头部；底色与所在区域背景一致，文字/图标保证可读
   ClassicHeader pullRefreshHeader({required Color backgroundColor}) => ClassicHeader(
         clamping: false,
