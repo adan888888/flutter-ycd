@@ -76,15 +76,30 @@ class JiShuQiController extends GetxController {
         }
       },
     );
-    //1。查询表一数据
-    _queryMysqlTable1().catchError((e) {
-      debugPrint('初始化 table1 失败: $e');
-    });
-    //2。起始要拿到统计区数据
-    _getStatisticalAreasData(-10000);
-    //3。起始先查66条数据（与 [_reloadBettingListTail] 逻辑一致）
-    _reloadBettingListTail();
     scrollController.addListener(_onBettingListScroll);
+    unawaited(_bootstrapPageData());
+  }
+
+  /// 进入页面：统一 Loading；并行请求关闭各自 Toast，由本方法汇总提示一次。
+  Future<void> _bootstrapPageData() async {
+    BXLoading.show();
+    String? errorMsg;
+    Future<void> track(Future<void> future) => future.catchError((e) {
+          errorMsg ??= e is String ? e : e.toString();
+        });
+
+    await Future.wait([
+      track(_queryMysqlTable1(isShowLoading: false, showError: false)),
+      track(_getStatisticalAreasData(-10000, isShowLoading: false, showError: false)),
+      track(_reloadBettingListTail(isShowLoading: false, showError: false)),
+    ]);
+
+    BXLoading.reset();
+    if (errorMsg != null && errorMsg!.isNotEmpty) {
+      BXLoading.showToast(errorMsg!);
+    }
+    state.isCanPress = true;
+    update();
   }
 
   void _onInputFocusChanged() {
@@ -105,7 +120,11 @@ class JiShuQiController extends GetxController {
   /// 按最新一页重新拉取投注记录（`last_id: -1`，与进入页面时一致）。
   /// [minCount] 至少条数；若已通过上拉加载更多历史，则用当前条数避免刷新后列表变短。
   /// **局部平衡锚点 id 若不在本窗口内**：不扩列表、不特殊处理；该行不在 `table2List` 时眼睛不出现即可。
-  Future<void> _reloadBettingListTail({int minCount = 66}) async {
+  Future<void> _reloadBettingListTail({
+    int minCount = 66,
+    bool isShowLoading = false,
+    bool showError = true,
+  }) async {
     final completer = Completer<void>();
     final n = state.table2List.length > minCount ? state.table2List.length : minCount;
     BXGet<Table2Model>(
@@ -126,12 +145,13 @@ class JiShuQiController extends GetxController {
           completer.complete();
         }
       },
-      failed: (_, __) {
+      failed: (message, _) {
         if (!completer.isCompleted) {
-          completer.complete();
+          completer.completeError(message);
         }
       },
-      isShowLoading: false,
+      isShowLoading: isShowLoading,
+      showError: showError,
       onModel: (m) => Table2Model.fromJson(m),
     );
     return completer.future;
@@ -488,12 +508,17 @@ class JiShuQiController extends GetxController {
   ///  tempIndex -2 确保不会破坏局部平衡-->每次下注后（recordbutton() ，改变数据库里面的值等 ...）
   ///  tempIndex >2 点击进行局部平衡
   ///
-  Future<void> _getStatisticalAreasData(int? tempIndex, {bool isShowLoading = true}) {
+  Future<void> _getStatisticalAreasData(
+    int? tempIndex, {
+    bool isShowLoading = true,
+    bool showError = true,
+  }) {
     final completer = Completer<void>();
     BXGet<dynamic>(
       Api.getStatisticalAreasData,
       params: {"tempIndex": tempIndex},
       isShowLoading: isShowLoading,
+      showError: showError,
       success: (isSuccess, code, message, results) {
         state.totalValue = results.map((e) => e.toString()).toList();
         state.totalValue[28] = "${state.js1}/${state.js2}";
@@ -682,10 +707,14 @@ class JiShuQiController extends GetxController {
 
   _next(int min, int max) => min + Random().nextInt(max - min + 1);
 
-  Future<void> _queryMysqlTable1() {
+  Future<void> _queryMysqlTable1({
+    bool isShowLoading = false,
+    bool showError = true,
+  }) {
     final completer = Completer<void>();
     BXGet<Table1Model>(Api.getTable1,
-        isShowLoading: false,
+        isShowLoading: isShowLoading,
+        showError: showError,
         success: (isSuccess, code, message, value) {
           state.table1List.clear();
           if (value.isNotEmpty) {
@@ -1496,18 +1525,17 @@ class JiShuQiController extends GetxController {
     if (state.table2List.isNotEmpty) _getStatisticalAreasData(targetIndex);
   }
 
-  //统计区的下拉刷新
+  //统计区的下拉刷新（网络错误 Toast 由 HttpService 统一处理）
   Future<void> refreshStatsArea() async {
     state.isRefreshing = true;
     update();
     var success = true;
     try {
-      await _queryMysqlTable1();
-      await _getStatisticalAreasData(-2);
-      await _reloadBettingListTail();
-    } catch (e) {
+      await _queryMysqlTable1(isShowLoading: false);
+      await _getStatisticalAreasData(-2, isShowLoading: false);
+      await _reloadBettingListTail(isShowLoading: false);
+    } catch (_) {
       success = false;
-      debugPrint('统计区下拉刷新失败: $e');
     } finally {
       state.isRefreshing = false;
       update();

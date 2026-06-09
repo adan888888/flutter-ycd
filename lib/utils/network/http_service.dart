@@ -109,6 +109,20 @@ class HttpService {
     );
   }
 
+  /// 请求失败统一出口：日志、Toast、failed 回调。
+  /// 业务层只需在 [failed] 里处理 UI 状态（如刷新头、按钮解禁），勿重复弹 Toast。
+  void _failRequest<T>({
+    required String errorMsg,
+    required bool showError,
+    Function(String, BaseModel)? failed,
+  }) {
+    log('❌ $errorMsg');
+    if (showError && errorMsg.isNotEmpty) {
+      BXLoading.showToast(errorMsg);
+    }
+    failed?.call(errorMsg, BaseModel.fromJson({"code": -1, "msg": errorMsg}));
+  }
+
   Future<void> _request<T>(
     String api, {
     required String method,
@@ -153,12 +167,11 @@ class HttpService {
       // Gin 路由不存在时 HTTP 404 + 纯文本，无 {code,msg,data}
       if (response.statusCode == 404) {
         final path = response.requestOptions.uri.path;
-        final errorMsg = '接口不存在(404): $path';
-        log('❌ $errorMsg');
-        if (showError) BXLoading.showToast(errorMsg);
-        if (failed != null) {
-          failed(errorMsg, BaseModel.fromJson({"code": -1, "msg": errorMsg}));
-        }
+        _failRequest<T>(
+          errorMsg: '接口不存在(404): $path',
+          showError: showError,
+          failed: failed,
+        );
         return;
       }
 
@@ -179,10 +192,11 @@ class HttpService {
         // 非标准格式但有 msg/error 字段：兜底 Toast + failed
         final errorMsg = _backendMsg(response.data);
         if (errorMsg != null) {
-          if (showError) BXLoading.showToast(errorMsg);
-          if (failed != null) {
-            failed(errorMsg, BaseModel.fromJson({"code": -1, "msg": errorMsg}));
-          }
+          _failRequest<T>(
+            errorMsg: errorMsg,
+            showError: showError,
+            failed: failed,
+          );
         }
         return;
       }
@@ -202,29 +216,30 @@ class HttpService {
 
       final backendMsg = _backendMsg(e.response?.data);
       if (backendMsg != null) {
-        if (showError) BXLoading.showToast(backendMsg);
-        if (failed != null) {
-          failed(backendMsg, BaseModel.fromJson({"code": -1, "msg": backendMsg}));
-        }
+        _failRequest<T>(
+          errorMsg: backendMsg,
+          showError: showError,
+          failed: failed,
+        );
         return;
       }
 
-      String errorMsg = _handleDioError(e);
+      var errorMsg = _handleDioError(e);
       if (kIsWeb && e.type == dio.DioExceptionType.connectionError) {
         errorMsg = 'Web平台连接错误，请检查后端服务器CORS配置';
       }
 
-      if (showError) BXLoading.showToast(errorMsg);
-      if (failed != null) {
-        failed(errorMsg, BaseModel.fromJson({"code": -1, "msg": errorMsg}));
-      }
+      _failRequest<T>(
+        errorMsg: errorMsg,
+        showError: showError,
+        failed: failed,
+      );
     } catch (e) {
-      String errorMsg = '网络异常: ${e.toString()}';
-      log('❌ 网络异常: $errorMsg');
-      if (showError) BXLoading.showToast(errorMsg);
-      if (failed != null) {
-        failed(errorMsg, BaseModel.fromJson({"code": -1, "msg": errorMsg}));
-      }
+      _failRequest<T>(
+        errorMsg: '网络异常: ${e.toString()}',
+        showError: showError,
+        failed: failed,
+      );
     } finally {
       if (isShowLoading) {
         BXLoading.dismiss();
@@ -325,18 +340,22 @@ class HttpService {
       case dio.DioExceptionType.cancel:
         return '请求已取消';
       case dio.DioExceptionType.connectionError:
-        // 断网或网络不可达的情况
+        // 断网、Connection refused、主机不可达等
         if (error.message?.contains('Network is unreachable') == true ||
             error.message?.contains('No address associated with hostname') == true) {
           return '网络不可达，请检查网络连接';
+        }
+        if (error.message?.contains('Connection refused') == true) {
+          return '网络连接失败，请检查网络连接';
         }
         return '网络连接失败，请检查网络连接';
       case dio.DioExceptionType.badCertificate:
         return '证书验证失败';
       case dio.DioExceptionType.unknown:
-        // 检查是否是网络相关错误
-        if (error.message?.contains('SocketException') == true ||
-            error.message?.contains('Failed host lookup') == true) {
+        final msg = error.message ?? '';
+        if (msg.contains('SocketException') ||
+            msg.contains('Failed host lookup') ||
+            msg.contains('Connection refused')) {
           return '网络连接失败，请检查网络连接';
         }
         return '未知错误: ${error.message}';

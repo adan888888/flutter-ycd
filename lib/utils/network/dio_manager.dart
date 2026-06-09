@@ -57,7 +57,7 @@ class DioManager {
         handler.next(response);
       },
       onError: (error, handler) {
-        log('❌ 错误: ${error.message}');
+        // 用户可读错误与 Toast 由 HttpService 统一处理
         handler.next(error);
       },
     ));
@@ -118,19 +118,8 @@ class DioManager {
     String path, {
     Map<String, dynamic>? queryParameters,
     Options? options,
-  }) async {
-    try {
-      final response = await _dio.get(
-        path,
-        queryParameters: queryParameters,
-        options: options,
-      );
-      return response;
-    } on DioException catch (e) {
-      _handleError(e);
-      rethrow;
-    }
-  }
+  }) =>
+      _dio.get(path, queryParameters: queryParameters, options: options);
 
   // POST 请求
   Future<Response> post(
@@ -138,20 +127,8 @@ class DioManager {
     dynamic data,
     Map<String, dynamic>? queryParameters,
     Options? options,
-  }) async {
-    try {
-      final response = await _dio.post(
-        path,
-        data: data,
-        queryParameters: queryParameters,
-        options: options,
-      );
-      return response;
-    } on DioException catch (e) {
-      _handleError(e);
-      rethrow;
-    }
-  }
+  }) =>
+      _dio.post(path, data: data, queryParameters: queryParameters, options: options);
 
   // PUT 请求
   Future<Response> put(
@@ -159,20 +136,8 @@ class DioManager {
     dynamic data,
     Map<String, dynamic>? queryParameters,
     Options? options,
-  }) async {
-    try {
-      final response = await _dio.put(
-        path,
-        data: data,
-        queryParameters: queryParameters,
-        options: options,
-      );
-      return response;
-    } on DioException catch (e) {
-      _handleError(e);
-      rethrow;
-    }
-  }
+  }) =>
+      _dio.put(path, data: data, queryParameters: queryParameters, options: options);
 
   // DELETE 请求
   Future<Response> delete(
@@ -180,47 +145,6 @@ class DioManager {
     dynamic data,
     Map<String, dynamic>? queryParameters,
     Options? options,
-  }) async {
-    try {
-      final response = await _dio.delete(
-        path,
-        data: data,
-        queryParameters: queryParameters,
-        options: options,
-      );
-      return response;
-    } on DioException catch (e) {
-      _handleError(e);
-      rethrow;
-    }
-  }
-
-  void _handleError(DioException error) {
-    switch (error.type) {
-      case DioExceptionType.connectionTimeout:
-        log('连接超时');
-        break;
-      case DioExceptionType.sendTimeout:
-        log('发送超时');
-        break;
-      case DioExceptionType.receiveTimeout:
-        log('接收超时');
-        break;
-      case DioExceptionType.badResponse:
-        log('响应错误: ${error.response?.statusCode}');
-        break;
-      case DioExceptionType.cancel:
-        log('请求被取消');
-        break;
-      case DioExceptionType.connectionError:
-        log('连接错误');
-        break;
-      case DioExceptionType.unknown:
-        log('未知错误: ${error.message}');
-        break;
-      case DioExceptionType.badCertificate:
-        log('证书错误');
-        break;
-    }
-  }
+  }) =>
+      _dio.delete(path, data: data, queryParameters: queryParameters, options: options);
 }

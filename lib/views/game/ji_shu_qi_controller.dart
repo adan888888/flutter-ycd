@@ -927,11 +927,11 @@ class JiShuQiController extends GetxController {
       case 2: //修改本金
         BXLoading.show(douyinStyle: true);
         if (s.isEmpty) {
-          BXLoading.showToast( '请输入金额 ${textEditingController.text} ');
+          BXLoading.showToast('请输入金额 ${textEditingController.text} ');
           break;
         }
         if (!s.isNum) {
-          BXLoading.showToast( '请输入数字 ${textEditingController.text} ');
+          BXLoading.showToast('请输入数字 ${textEditingController.text} ');
           break;
         }
         updateBenJin(s);
@@ -1023,11 +1023,11 @@ class JiShuQiController extends GetxController {
         break;
       case 8: //修改期望值
         if (s.isEmpty) {
-          BXLoading.showToast( '请输入期望值 ${textEditingController.text} ');
+          BXLoading.showToast('请输入期望值 ${textEditingController.text} ');
           break;
         }
         if (!s.isNum) {
-          BXLoading.showToast( '请输入数字 ${textEditingController.text} ');
+          BXLoading.showToast('请输入数字 ${textEditingController.text} ');
           break;
         }
         updateQiWangZhi(s);
@@ -1039,11 +1039,11 @@ class JiShuQiController extends GetxController {
       case 10: //修改赔率
         BXLoading.show(douyinStyle: true);
         if (s.isEmpty) {
-          BXLoading.showToast( '请输入赔率 ${textEditingController.text} ');
+          BXLoading.showToast('请输入赔率 ${textEditingController.text} ');
           break;
         }
         if (!s.isNum) {
-          BXLoading.showToast( '请输入赔率 ${textEditingController.text} ');
+          BXLoading.showToast('请输入赔率 ${textEditingController.text} ');
           break;
         }
         updateOdds(s);
@@ -1059,7 +1059,6 @@ class JiShuQiController extends GetxController {
     //改成接口，不用model接收值
     BXPost(Api.sortxiaoshu, success: (isSuccess, code, message, results) {
       if (isSuccess) {
-        // BXLoading.showToast(message);
         var list = (results.first as Map<String, dynamic>)["sorted_sequence"];
         final n = state.table2List.length;
         final m = list.length;
@@ -1121,7 +1120,7 @@ class JiShuQiController extends GetxController {
     final file = await getFile('file.text');
     if (!await file.exists()) {
       BXLoading.dismiss();
-      BXLoading.showToast( '文件不存在');
+      BXLoading.showToast('文件不存在');
       return;
     }
     var filePath = file.path;

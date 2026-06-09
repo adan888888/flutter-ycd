@@ -1,7 +1,7 @@
 import '../../model/base_model.dart';
 import 'http_service.dart';
 
-// 使用新的Dio服务
+// 使用新的Dio框架，如果还有其它的网络框架，可以在这里类里进行管理
 BXGet<T>(String api,
     {Map<String, dynamic>? params,
     required Function(bool isSuccess, int code, String message, List<T> results) success,
