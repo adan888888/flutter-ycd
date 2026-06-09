@@ -19,7 +19,6 @@ import 'package:ycd/my_widget/custom_dialog.dart';
 import 'package:ycd/my_widget/single_picker.dart';
 import 'package:ycd/routes/app_routes.dart';
 import 'package:ycd/utils/bx_loading.dart';
-import 'package:ycd/utils/loading.dart';
 import 'package:ycd/utils/my_character.dart';
 import 'package:ycd/utils/network/api.dart';
 import 'package:ycd/utils/network/get_store.dart';
@@ -536,7 +535,7 @@ class JiShuQiController extends GetxController {
           backgroundColor: Colors.white.withValues(alpha: 0.7));
       return;
     }
-    Loading.show();
+    BXLoading.show(douyinStyle: true);
     state.isCanPress = false;
     state.js1 = state.js1 + 1;
     final table = tableName == 'table2'
@@ -806,7 +805,7 @@ class JiShuQiController extends GetxController {
 
   void _callRestartApi(String snapshot) {
     if (state.table2List.isEmpty) {
-      Loading.dismiss();
+      BXLoading.dismiss();
       return;
     }
     BXPost<Table1Model>(
@@ -814,7 +813,7 @@ class JiShuQiController extends GetxController {
       isShowLoading: false,
       params: {"index": state.table2List.last.id},
       success: (isSuccess, code, message, value) {
-        Loading.dismiss();
+        BXLoading.dismiss();
         if (isSuccess) {
           state.table1List = value;
           state.table2List = state.table2List.map((element) => element..colmunShuyingzhiD = "").toList();
@@ -828,7 +827,7 @@ class JiShuQiController extends GetxController {
           BXLoading.showToast(message.isNotEmpty ? message : '重启失败');
         }
       },
-      failed: (_, __) => Loading.dismiss(),
+      failed: (_, __) => BXLoading.dismiss(),
       onModel: (m) => Table1Model.fromJson(m),
     );
   }
@@ -856,7 +855,7 @@ class JiShuQiController extends GetxController {
           BXLoading.showToast('回合数据为空，无需重启');
           return;
         }
-        Loading.show();
+        BXLoading.show(douyinStyle: true);
         final snapshot = _buildRestartStatSnapshot();
         if (snapshot.isNotEmpty) {
           state.table2List.last.restartStatSnapshot = snapshot;
@@ -865,7 +864,7 @@ class JiShuQiController extends GetxController {
         _saveLastRowRestartStatSnapshot(
           snapshot,
           onDone: () => _callRestartApi(snapshot),
-          onFail: Loading.dismiss,
+          onFail: BXLoading.dismiss,
         );
       },
     );
@@ -904,7 +903,7 @@ class JiShuQiController extends GetxController {
     var s = textEditingController.text.toString();
     switch (i) {
       case 0: //排列数据
-        Loading.show();
+        BXLoading.show(douyinStyle: true);
         //改成接口，不用model接收值
         sort();
         break;
@@ -926,22 +925,22 @@ class JiShuQiController extends GetxController {
         );
         break;
       case 2: //修改本金
-        Loading.show();
+        BXLoading.show(douyinStyle: true);
         if (s.isEmpty) {
-          Loading.showToast(toast: '请输入金额 ${textEditingController.text} ');
+          BXLoading.showToast( '请输入金额 ${textEditingController.text} ');
           break;
         }
         if (!s.isNum) {
-          Loading.showToast(toast: '请输入数字 ${textEditingController.text} ');
+          BXLoading.showToast( '请输入数字 ${textEditingController.text} ');
           break;
         }
         updateBenJin(s);
         break;
       case 3: //修改位置
-        Loading.show();
+        BXLoading.show(douyinStyle: true);
         state.js2 = state.js1;
         state.totalValue[28] = "${state.js1}/${state.js2}";
-        Loading.dismiss();
+        BXLoading.dismiss();
         break;
       case 4: //删除本页
         Get.defaultDialog(
@@ -956,7 +955,7 @@ class JiShuQiController extends GetxController {
           contentPadding: const EdgeInsets.all(20),
           onCancel: () {},
           onConfirm: () {
-            Loading.show();
+            BXLoading.show(douyinStyle: true);
             BXDelete(Api.deleteall, success: (isSuccess, code, message, results) {
               if (isSuccess) {
                 BXLoading.showToast(message);
@@ -979,12 +978,12 @@ class JiShuQiController extends GetxController {
         );
         break;
       case 6: //备份数据
-        Loading.show();
+        BXLoading.show(douyinStyle: true);
         BXPost(
           Api.backupManual,
           success: (isSuccess, code, message, results) {
             debugPrint('=====备份完成===== ${results.first}');
-            Loading.dismiss();
+            BXLoading.dismiss();
             if (isSuccess) {
               Get.snackbar(
                 '备份成功',
@@ -1006,7 +1005,7 @@ class JiShuQiController extends GetxController {
             }
           },
           failed: (error, model) {
-            Loading.dismiss();
+            BXLoading.dismiss();
             Get.snackbar(
               '备份失败',
               '网络错误：$error',
@@ -1024,27 +1023,27 @@ class JiShuQiController extends GetxController {
         break;
       case 8: //修改期望值
         if (s.isEmpty) {
-          Loading.showToast(toast: '请输入期望值 ${textEditingController.text} ');
+          BXLoading.showToast( '请输入期望值 ${textEditingController.text} ');
           break;
         }
         if (!s.isNum) {
-          Loading.showToast(toast: '请输入数字 ${textEditingController.text} ');
+          BXLoading.showToast( '请输入数字 ${textEditingController.text} ');
           break;
         }
         updateQiWangZhi(s);
         break;
       case 9: //恢复数据
-        Loading.show();
+        BXLoading.show(douyinStyle: true);
         getString();
         break;
       case 10: //修改赔率
-        Loading.show();
+        BXLoading.show(douyinStyle: true);
         if (s.isEmpty) {
-          Loading.showToast(toast: '请输入赔率 ${textEditingController.text} ');
+          BXLoading.showToast( '请输入赔率 ${textEditingController.text} ');
           break;
         }
         if (!s.isNum) {
-          Loading.showToast(toast: '请输入赔率 ${textEditingController.text} ');
+          BXLoading.showToast( '请输入赔率 ${textEditingController.text} ');
           break;
         }
         updateOdds(s);
@@ -1091,7 +1090,7 @@ class JiShuQiController extends GetxController {
                     columnRestartIndex: "0",
                     columnLiushuiIndex: "0")
                 .toJson()))
-        .then((value) => Loading.dismiss());
+        .then((value) => BXLoading.dismiss());
   }
 
   void updateQiWangZhi(String qiwangzhi) {
@@ -1112,7 +1111,7 @@ class JiShuQiController extends GetxController {
     final file = await getFile('file.text');
     //写入字符串
     file.writeAsString(s).then((value) {
-      Loading.dismiss();
+      BXLoading.dismiss();
       debugPrint('=====备份完成=====');
     });
   }
@@ -1121,8 +1120,8 @@ class JiShuQiController extends GetxController {
   Future getString() async {
     final file = await getFile('file.text');
     if (!await file.exists()) {
-      Loading.dismiss();
-      Loading.showToast(toast: '文件不存在');
+      BXLoading.dismiss();
+      BXLoading.showToast( '文件不存在');
       return;
     }
     var filePath = file.path;
@@ -1201,7 +1200,7 @@ class JiShuQiController extends GetxController {
         if (input.length == 4 && input == "0000") {
           return true;
         } else {
-          Loading.showError(toast: '密码错误');
+          BXLoading.showError(toast: '密码错误');
           return false;
         }
       });

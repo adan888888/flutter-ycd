@@ -14,32 +14,76 @@ enum ToastType {
 
 class BXLoading {
   static const int val = 2;
+  static int _refCount = 0;
 
-  static show({String? s, String? content}) {
+  /// 多个请求/手动 show 叠加时只保留一层 Loading，全部 release 后才 dismiss。
+  static void acquire(VoidCallback present) {
+    if (_refCount == 0) {
+      present();
+    }
+    _refCount++;
+  }
+
+  static show({
+    String? s,
+    String? content,
+    bool douyinStyle = false,
+  }) {
     configLoading();
-    //弹窗loading
-    // 弹窗 loading
-    EasyLoading.show(
-      indicator: Container(
-        decoration: BoxDecoration(color: ColorUtil.color_0xff733547, borderRadius: BorderRadius.circular(15.w)),
-        width: 90,
-        height: 90,
+    acquire(() {
+      EasyLoading.show(
+        indicator: _buildIndicator(douyinStyle),
+        maskType: EasyLoadingMaskType.clear,
+        status: content ?? s,
+      );
+    });
+  }
+
+  static Widget _buildIndicator(bool douyinStyle) {
+    //抖音风双球
+    if (douyinStyle) {
+      return SizedBox(
+        width: 80,
+        height: 80,
         child: Center(
-          child: Lottie.asset(
-            'assets/loading.json', // 确保 JSON 动画文件在正确路径
-            width: 60,
-            height: 60,
-            fit: BoxFit.cover,
+          child: LoadingAnimationWidget.flickr(
+            leftDotColor: const Color(0xFF1A1A3F),
+            rightDotColor: const Color(0xFFEA3799),
+            size: 35,
           ),
         ),
+      );
+    }
+    //Lottie 方块旋转
+    return Container(
+      decoration: BoxDecoration(
+        color: ColorUtil.color_0xff733547,
+        borderRadius: BorderRadius.circular(15.w),
       ),
-      maskType: EasyLoadingMaskType.clear,
-      status: content,
+      width: 90,
+      height: 90,
+      child: Center(
+        child: Lottie.asset(
+          'assets/loading.json',
+          width: 60,
+          height: 60,
+          fit: BoxFit.cover,
+        ),
+      ),
     );
   }
 
-  //移除loading
   static dismiss() {
+    if (_refCount <= 0) return;
+    _refCount--;
+    if (_refCount == 0) {
+      EasyLoading.dismiss();
+    }
+  }
+
+  /// 异常兜底：强制归零并关闭 Loading。
+  static void reset() {
+    _refCount = 0;
     EasyLoading.dismiss();
   }
 
@@ -115,45 +159,5 @@ class BXLoading {
       ..maskColor = Colors.blue.withValues(alpha: 0.5)
       ..userInteractions = true
       ..dismissOnTap = false;
-  }
-}
-
-/*
-* LoadingInWidget(
-*       //隐藏和显示loading
-        showLoading: true or false,
-        * //传如需要加载loading的局部组件
-        child: Container(
-
-        ),
-      ),
-* **/
-
-//局部容器剧中显示loading
-class LoadingInWidget extends StatelessWidget {
-  final bool? showLoading;
-  final Widget child;
-
-  const LoadingInWidget({
-    super.key,
-    this.showLoading = true,
-    required this.child,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        child,
-        if (showLoading!)
-          Center(
-            child: LoadingAnimationWidget.flickr(
-              leftDotColor: const Color(0xFF1A1A3F),
-              rightDotColor: const Color(0xFFEA3799),
-              size: 30,
-            ),
-          ),
-      ],
-    );
   }
 }
