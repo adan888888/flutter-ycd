@@ -881,10 +881,20 @@ class JiShuQiController extends GetxController {
         onConfirm: () {
           BXDelete<Table2Model>(Api.deletelast,
               success: (isSuccess, code, message, results) {
-                _getStatisticalAreasData(-2);
+                if (results.isNotEmpty) {
+                  final deletedId = results.first.id;
+                  final idx = deletedId == null
+                      ? -1
+                      : state.table2List.indexWhere((e) => e.id == deletedId);
+                  if (idx >= 0) {
+                    state.table2List.removeAt(idx);
+                  } else if (state.table2List.isNotEmpty) {
+                    state.table2List.removeLast();
+                  }
+                }
                 state.js1 = state.js1 - 1;
                 state.totalValue[28] = "${state.js1}/${state.js2}";
-                state.table2List.removeLast();
+                _getStatisticalAreasData(-2);
                 _reloadLuZiTu();
                 Get.back();
                 update();
