@@ -372,14 +372,12 @@ class JiShuQiView extends GetView<JiShuQiController> {
                             ),
                           ),
                         ),
-                      // 右下角半透明悬浮标：向上箭头，点击列表回到眼睛的位置
+                      // 右下角悬浮钮：在底部↑去眼睛，不在底部↓回最底
                       Positioned(
                         right: -0,
                         bottom: JiShuQiState.jumpToEyeFabBottom + keyboardInset,
                         child: GestureDetector(
-                          onTap: () {
-                            controller.jumpToCurrentTempIndexRow();
-                          },
+                          onTap: controller.onBettingListJumpFabTap,
                           child: Container(
                             width: 40,
                             height: 40,
@@ -390,7 +388,9 @@ class JiShuQiView extends GetView<JiShuQiController> {
                               shape: BoxShape.circle,
                             ),
                             child: Icon(
-                              Icons.keyboard_arrow_up,
+                              controller.state.isBettingListAtBottom
+                                  ? Icons.keyboard_arrow_up
+                                  : Icons.keyboard_arrow_down,
                               color: controller.state.isDarkMode
                                   ? Colors.white.withValues(alpha: 0.6)
                                   : Colors.black.withValues(alpha: 0.6),

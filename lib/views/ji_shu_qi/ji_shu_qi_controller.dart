@@ -84,6 +84,7 @@ class JiShuQiController extends GetxController {
     _getStatisticalAreasData(-10000);
     //3。起始先查66条数据（与 [_reloadBettingListTail] 逻辑一致）
     _reloadBettingListTail();
+    scrollController.addListener(_onBettingListScroll);
   }
 
   void _onInputFocusChanged() {
@@ -242,6 +243,40 @@ class JiShuQiController extends GetxController {
     Future.delayed(const Duration(milliseconds: 180), tick);
   }
 
+  static const double _bettingListBottomThreshold = 1.5;
+
+  bool _computeBettingListAtBottom() {
+    if (!scrollController.hasClients) return state.isBettingListAtBottom;
+    final pos = scrollController.position;
+    final max = pos.maxScrollExtent;
+    if (!max.isFinite) return state.isBettingListAtBottom;
+    if (max <= 0.5) return true;
+    return max - pos.pixels <= _bettingListBottomThreshold;
+  }
+
+  void _onBettingListScroll() {
+    final atBottom = _computeBettingListAtBottom();
+    if (atBottom == state.isBettingListAtBottom) return;
+    state.isBettingListAtBottom = atBottom;
+    update();
+  }
+
+  void _syncBettingListAtBottom({bool? atBottom}) {
+    final next = atBottom ?? _computeBettingListAtBottom();
+    if (next == state.isBettingListAtBottom) return;
+    state.isBettingListAtBottom = next;
+    update();
+  }
+
+  /// 右下角悬浮钮：在底部时向上滚到眼睛行，否则向下滚到列表最底。
+  void onBettingListJumpFabTap() {
+    if (state.isBettingListAtBottom) {
+      jumpToCurrentTempIndexRow();
+    } else {
+      scrollBettingListToBottom();
+    }
+  }
+
   /// 投注列表时间升序（最新在底部）。多帧 + 延迟重试，避免刚 `update()` 后 extent 未算准、或未挂上 Scrollable。
   void scrollBettingListToBottom() {
     void jumpToEnd() {
@@ -274,9 +309,18 @@ class JiShuQiController extends GetxController {
     }
 
     scheduleFrames(10);
-    Future.delayed(const Duration(milliseconds: 50), jumpToEnd);
-    Future.delayed(const Duration(milliseconds: 180), jumpToEnd);
-    Future.delayed(const Duration(milliseconds: 420), jumpToEnd);
+    Future.delayed(const Duration(milliseconds: 50), () {
+      jumpToEnd();
+      _syncBettingListAtBottom(atBottom: true);
+    });
+    Future.delayed(const Duration(milliseconds: 180), () {
+      jumpToEnd();
+      _syncBettingListAtBottom(atBottom: true);
+    });
+    Future.delayed(const Duration(milliseconds: 420), () {
+      jumpToEnd();
+      _syncBettingListAtBottom(atBottom: true);
+    });
   }
 
   /// 点击列表等空白区域时收起键盘（不用 TextField.onTapOutside，避免弹出瞬间误触收回）。
@@ -562,6 +606,7 @@ class JiShuQiController extends GetxController {
 
   @override
   void onClose() {
+    scrollController.removeListener(_onBettingListScroll);
     focusNode.removeListener(_onInputFocusChanged);
     _keyboardOpenSettleTimer?.cancel();
     _timer?.cancel();

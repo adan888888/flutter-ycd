@@ -34,6 +34,9 @@ class JiShuQiState {
   /// 右下角「回到眼睛」悬浮钮的 bottom（与 ji_shu_qi_view Positioned 一致）
   static const double jumpToEyeFabBottom = 90;
 
+  /// 投注列表是否滚在底部：底部显示向上箭头（去眼睛），否则向下箭头（回底部）
+  var isBettingListAtBottom = true;
+
   /// 统计区固定高度（吸顶 SliverPersistentHeader）
   static const double statsAreaHeight = 145;
 
