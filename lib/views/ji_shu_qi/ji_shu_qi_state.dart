@@ -41,9 +41,9 @@ class JiShuQiState {
   static const double statsAreaHeight = 145;
 
   var lineColor = Colors.black87.withValues(alpha: 0.8);
-  var listViewColor = Colors.grey.shade50; // 浅灰白色
-  var bgColor = Colors.grey.shade50; // 浅灰白色
-  var chartBgColor = Colors.grey.shade50; // 图表背景（浅灰白色）
+  var listViewColor = const Color(0xFF1E1F22); // 偏冷的深灰，略偏蓝
+  var bgColor = const Color(0xFF1E1F22); // 偏冷的深灰，略偏蓝
+  var chartBgColor = const Color(0xFF1E1F22); // 偏冷的深灰，略偏蓝
   var textColor = Colors.black;
 
   // 暗黑主题标志
