@@ -58,6 +58,7 @@ class JiShuQiController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    BXLoading.syncTheme(state.isDarkMode);
     WakelockPlus.enable();
     onUserInteraction();
     focusNode.addListener(_onInputFocusChanged);
@@ -1474,6 +1475,7 @@ class JiShuQiController extends GetxController {
   /// 切换暗黑主题
   void toggleDarkMode() {
     state.isDarkMode = !state.isDarkMode;
+    BXLoading.syncTheme(state.isDarkMode);
     update();
   }
 

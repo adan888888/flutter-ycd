@@ -16,6 +16,13 @@ class BXLoading {
   static const int val = 2;
   static int _refCount = 0;
 
+  /// 与计数器页 `state.isDarkMode` 同步，供抖音风 Loading 自动配色。
+  static bool isDarkMode = true;
+
+  static void syncTheme(bool dark) {
+    isDarkMode = dark;
+  }
+
   /// 多个请求/手动 show 叠加时只保留一层 Loading，全部 release 后才 dismiss。
   static void acquire(VoidCallback present) {
     if (_refCount == 0) {
@@ -47,7 +54,8 @@ class BXLoading {
         height: 80,
         child: Center(
           child: LoadingAnimationWidget.flickr(
-            leftDotColor: const Color(0xFF1A1A3F),
+            // 浅底用深色球、深底用浅色球，保证对比度
+            leftDotColor: isDarkMode ? Colors.white : const Color(0xFF1A1A3F),
             rightDotColor: const Color(0xFFEA3799),
             size: 35,
           ),

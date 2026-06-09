@@ -40,12 +40,6 @@ class JiShuQiState {
   /// 统计区固定高度（吸顶 SliverPersistentHeader）
   static const double statsAreaHeight = 145;
 
-  var lineColor = Colors.black87.withValues(alpha: 0.8);
-  var listViewColor = const Color(0xFF1E1F22); // 偏冷的深灰，略偏蓝
-  var bgColor = const Color(0xFF1E1F22); // 偏冷的深灰，略偏蓝
-  var chartBgColor = const Color(0xFF1E1F22); // 偏冷的深灰，略偏蓝
-  var textColor = Colors.black;
-
   // 暗黑主题标志
   var isDarkMode = true;
 
@@ -58,11 +52,18 @@ class JiShuQiState {
   /// false=红输绿赢，true=红赢绿输（默认）
   var isRedWinGreenLose = true;
 
+  // 白色主题颜色
+  var lineColor = Colors.black87.withValues(alpha: 0.8);
+  var listViewColor = Colors.grey.shade50; // 浅灰白色
+  var bgColor = Colors.grey.shade50; // 浅灰白色
+  var chartBgColor = Colors.grey.shade50; // 图表背景（浅灰白色）
+  var textColor = Colors.black;
+
   // 暗黑主题颜色（深蓝色调风格）
   var darkLineColor = Colors.white.withValues(alpha: 0.6);
-  var darkListViewColor = const Color(0xFF2B2D30); // 列表区背景（中性深灰）
-  var darkBgColor = const Color(0xFF2B2D30); // 统计区 / 页面主背景
-  var darkChartBgColor = const Color(0xFF2B2D30); // 图表区背景
+  var darkListViewColor = const Color(0xFF1E1F22); // 列表区背景（炭灰）
+  var darkBgColor = const Color(0xFF1E1F22); // 统计区 / 页面主背景
+  var darkChartBgColor = const Color(0xFF1E1F22); // 图表区背景
   var darkTextColor = Colors.white; // 暗黑模式下使用纯白色文字
 
   // 根据主题获取颜色
@@ -170,6 +171,7 @@ class JiShuQiState {
 
   var table2List = <Table2Model>[];
   var selectIndex = 7;
+
   List<String> get functionTypes => [
         '1.排列数据',
         '2.消除数据',

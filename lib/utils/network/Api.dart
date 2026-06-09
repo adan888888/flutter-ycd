@@ -18,7 +18,7 @@ class Api {
     if (kIsWeb) {
       return "http://localhost:3001/api";
     }
-    return "http://localhost:3000/api";
+    return "http://192.168.100.61:3000/api";
   }
 
   static String config = "/tenant/get";
