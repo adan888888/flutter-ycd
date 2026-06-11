@@ -113,7 +113,7 @@ class JiShuQiState {
   // 列表 / 按钮输赢文字色（暗色：橙≈红、青绿≈绿）
   Color get _redTone => isDarkMode ? Colors.orange : Colors.red;
 
-  Color get _greenTone => isDarkMode ? Colors.green : Colors.green;
+  Color get _greenTone => isDarkMode ? const Color(0xFF69B6AD) : Colors.green;
 
   /// 列表「输」
   Color get negativeColor => isRedWinGreenLose ? _greenTone : _redTone;
