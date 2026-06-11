@@ -4,7 +4,9 @@ import 'package:get/get.dart';
 import 'package:ycd/views/ji_shu_qi/ji_shu_qi_controller.dart';
 
 class SinglePicker extends StatefulWidget {
-  const SinglePicker({super.key});
+  const SinglePicker({super.key, this.darkTextColor});
+
+  final Color? darkTextColor;
 
   @override
   State<StatefulWidget> createState() => _SinglePickerState();
@@ -35,11 +37,15 @@ class _SinglePickerState extends State<SinglePicker> {
                   Get.back();
                   controller.functionConfirm(selectIndex);
                 },
-                style: ButtonStyle(backgroundColor: WidgetStateProperty.all(Colors.transparent)),
+                style: ButtonStyle(
+                    backgroundColor:
+                        WidgetStateProperty.all(Colors.transparent)),
                 child: Text(
                   "确定",
                   style: TextStyle(
-                    color: controller.state.isDarkMode ? Colors.orange : Colors.redAccent,
+                    color: controller.state.isDarkMode
+                        ? Colors.orange
+                        : Colors.redAccent,
                     fontSize: 20,
                   ),
                 ),
@@ -49,7 +55,8 @@ class _SinglePickerState extends State<SinglePicker> {
           GetBuilder<JiShuQiController>(
               builder: (controller) => Expanded(
                     child: CupertinoPicker(
-                        scrollController: controller.fixedExtentScrollController,
+                        scrollController:
+                            controller.fixedExtentScrollController,
                         itemExtent: 50, // 每个选项的高度
                         onSelectedItemChanged: (int index) {
                           // 处理选中项的变化
@@ -62,7 +69,9 @@ class _SinglePickerState extends State<SinglePicker> {
                             child: Text(
                               controller.state.functionTypes[index].toString(),
                               style: TextStyle(
-                                color: controller.state.isDarkMode ? Colors.white : Colors.black,
+                                color: controller.state.isDarkMode
+                                    ? widget.darkTextColor ?? Colors.white
+                                    : Colors.black,
                               ),
                             ),
                           ),

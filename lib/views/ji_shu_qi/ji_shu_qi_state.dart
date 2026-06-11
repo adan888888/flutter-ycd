@@ -61,10 +61,10 @@ class JiShuQiState {
 
   // 暗黑主题颜色（深蓝色调风格）
   var darkLineColor = Colors.white.withValues(alpha: 0.6);
-  var darkListViewColor = const Color(0xFF1E1F22); // 列表区背景（炭灰）
-  var darkBgColor = const Color(0xFF1E1F22); // 统计区 / 页面主背景
-  var darkChartBgColor = const Color(0xFF1E1F22); // 图表区背景
-  var darkTextColor = Colors.white; // 暗黑模式下使用纯白色文字
+  var darkListViewColor = const Color(0xFF0e1621); // 列表区背景（炭灰）
+  var darkBgColor = const Color(0xFF0e1621); // 统计区 / 页面主背景
+  var darkChartBgColor = const Color(0xFF0e1621); // 图表区背景
+  var darkTextColor = const Color(0xFFF5F5F5); // 暗黑模式下的主文字色
 
   // 根据主题获取颜色
   Color get currentLineColor => isDarkMode ? darkLineColor : lineColor;
@@ -97,11 +97,11 @@ class JiShuQiState {
         showMessage: true,
         backgroundColor: backgroundColor,
         textStyle: TextStyle(
-          color: isDarkMode ? Colors.white.withValues(alpha: 0.9) : Colors.black87,
+          color: isDarkMode ? darkTextColor.withValues(alpha: 0.9) : Colors.black87,
           fontSize: 14,
         ),
         messageStyle: TextStyle(
-          color: isDarkMode ? Colors.white.withValues(alpha: 0.55) : Colors.black54,
+          color: isDarkMode ? darkTextColor.withValues(alpha: 0.55) : Colors.black54,
           fontSize: 12,
         ),
         iconTheme: IconThemeData(
@@ -113,7 +113,7 @@ class JiShuQiState {
   // 列表 / 按钮输赢文字色（暗色：橙≈红、青绿≈绿）
   Color get _redTone => isDarkMode ? Colors.orange : Colors.red;
 
-  Color get _greenTone => isDarkMode ? const Color(0xFF69B6AD) : Colors.green;
+  Color get _greenTone => isDarkMode ? Colors.green : Colors.green;
 
   /// 列表「输」
   Color get negativeColor => isRedWinGreenLose ? _greenTone : _redTone;

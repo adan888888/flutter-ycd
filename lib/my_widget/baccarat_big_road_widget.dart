@@ -34,6 +34,8 @@ class BaccaratBigRoadWidget extends StatelessWidget {
 
   final String back;
 
+  final Color textColor;
+
   const BaccaratBigRoadWidget({
     super.key,
     required this.bigRoadData,
@@ -47,6 +49,7 @@ class BaccaratBigRoadWidget extends StatelessWidget {
     this.showBorder = true,
     this.front = "b",
     this.back = "p",
+    this.textColor = Colors.white,
   });
 
   @override
@@ -70,7 +73,9 @@ class BaccaratBigRoadWidget extends StatelessWidget {
                             : null,
                       ),
                       child: Center(
-                        child: cell.isEmpty ? null : _buildBigRoadItem(cell, front, back),
+                        child: cell.isEmpty
+                            ? null
+                            : _buildBigRoadItem(cell, front, back, textColor),
                       ),
                     ),
                   )
@@ -97,7 +102,8 @@ class BaccaratBigRoadWidget extends StatelessWidget {
   }
 
   /// 构建大路图项
-  Widget _buildBigRoadItem(String winner, String front, String back) {
+  Widget _buildBigRoadItem(
+      String winner, String front, String back, Color textColor) {
     Color color;
     String text;
 
@@ -125,8 +131,8 @@ class BaccaratBigRoadWidget extends StatelessWidget {
       child: Center(
         child: Text(
           text,
-          style: const TextStyle(
-            color: Colors.white,
+          style: TextStyle(
+            color: textColor,
             fontSize: 8,
             fontWeight: FontWeight.bold,
             height: 1.0,

@@ -28,13 +28,17 @@ import 'package:ycd/utils/network/http_mgr.dart';
 import 'ji_shu_qi_state.dart';
 
 class JiShuQiController extends GetxController {
-  EasyRefreshController refreshcontroller = EasyRefreshController(controlFinishRefresh: true, controlFinishLoad: true);
+  EasyRefreshController refreshcontroller = EasyRefreshController(
+      controlFinishRefresh: true, controlFinishLoad: true);
+
   /// 统计区下拉刷新（与投注列表同款 EasyRefresh 样式，独立 controller）
-  EasyRefreshController statsRefreshController = EasyRefreshController(controlFinishRefresh: true);
+  EasyRefreshController statsRefreshController =
+      EasyRefreshController(controlFinishRefresh: true);
   final JiShuQiState state = JiShuQiState();
   Future<Database>? _instance;
 
   final scrollController = ScrollController();
+
   /// 投注列表「眼睛」行 GlobalKey，用于精确定位滚动（避免手算行高累积误差）
   final GlobalKey tempIndexRowKey = GlobalKey();
   final textEditingController = TextEditingController();
@@ -48,7 +52,8 @@ class JiShuQiController extends GetxController {
 // 定义一个计时器，用于延时锁屏
   Timer? _timer;
 
-  final ScrollController roadMapScrollController = ScrollController(); //路子图的controller
+  final ScrollController roadMapScrollController =
+      ScrollController(); //路子图的controller
   final AudioPlayer _diceSoundPlayer = AudioPlayer();
   bool _diceSoundAvailable = true;
 
@@ -91,7 +96,8 @@ class JiShuQiController extends GetxController {
 
     await Future.wait([
       track(_queryMysqlTable1(isShowLoading: false, showError: false)),
-      track(_getStatisticalAreasData(-10000, isShowLoading: false, showError: false)),
+      track(_getStatisticalAreasData(-10000,
+          isShowLoading: false, showError: false)),
       track(_reloadBettingListTail(isShowLoading: false, showError: false)),
     ]);
 
@@ -127,10 +133,15 @@ class JiShuQiController extends GetxController {
     bool showError = true,
   }) async {
     final completer = Completer<void>();
-    final n = state.table2List.length > minCount ? state.table2List.length : minCount;
+    final n =
+        state.table2List.length > minCount ? state.table2List.length : minCount;
     BXGet<Table2Model>(
       Api.loadMore,
-      params: {"last_id": -1, "uid": GetStore.getInstance().userModel.userId, "c": n},
+      params: {
+        "last_id": -1,
+        "uid": GetStore.getInstance().userModel.userId,
+        "c": n
+      },
       success: (isSuccess, code, message, results) {
         if (isSuccess && results.isNotEmpty) {
           state.table2List.clear();
@@ -199,18 +210,21 @@ class JiShuQiController extends GetxController {
       var ids = state.currentCol - 1; // 当前列的列
 
       // 如果下方有内容，或者已经超过6行，则需要往右平移（长龙处理）
-      if ((state.currentRow < JiShuQiState.bigRoadRows && state.bigRoad[state.currentRow][ids].isNotEmpty) ||
+      if ((state.currentRow < JiShuQiState.bigRoadRows &&
+              state.bigRoad[state.currentRow][ids].isNotEmpty) ||
           state.currentRow > JiShuQiState.bigRoadRows - 1) {
         // 长龙处理：向右平移
         state.dragonStartCol++;
         state.bigRoad[state.dragonParallelRow][state.dragonStartCol] = winner;
-        debugPrint('🐉️（长龙处理）与上一局相同，记录在 [${state.dragonParallelRow}][${state.dragonStartCol}]');
+        debugPrint(
+            '🐉️（长龙处理）与上一局相同，记录在 [${state.dragonParallelRow}][${state.dragonStartCol}]');
       } else {
         // 没有超过6行，且下方没有内容，正常往下走
         state.bigRoad[state.currentRow][state.currentCol - 1] = winner;
         state.dragonParallelRow = state.currentRow; // 记录最后一次行
         state.dragonStartCol = state.currentCol - 1; // 记录最后一次列
-        debugPrint('🐉️ 与上一局相同，记录在 [${state.currentRow}][${state.currentCol - 1}]');
+        debugPrint(
+            '🐉️ 与上一局相同，记录在 [${state.currentRow}][${state.currentCol - 1}]');
       }
     }
 
@@ -223,17 +237,22 @@ class JiShuQiController extends GetxController {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (roadMapScrollController.hasClients) {
         // 计算当前列右边界的位置(这样计算还是有点不准，能在整个数据里找到最右边的列才更准，不过实际中应该没有那长的龙，先就这样吧)
-        double currentColRightEdge =
-            (state.dragonStartCol == -1 ? state.currentCol : state.dragonStartCol + 1) * JiShuQiState.cellWidth;
+        double currentColRightEdge = (state.dragonStartCol == -1
+                ? state.currentCol
+                : state.dragonStartCol + 1) *
+            JiShuQiState.cellWidth;
 
-        double currentScrollOffset = roadMapScrollController.position.pixels /* 当前滚动位置（滑动了多少）*/;
+        double currentScrollOffset =
+            roadMapScrollController.position.pixels /* 当前滚动位置（滑动了多少）*/;
         /* 当前滚动位置 + 可见区域尺寸 = 可见区域右边界 */
-        double visibleRightEdge = currentScrollOffset + roadMapScrollController.position.viewportDimension /* 可见区域尺寸 */;
+        double visibleRightEdge = currentScrollOffset +
+            roadMapScrollController.position.viewportDimension /* 可见区域尺寸 */;
 
         // 只有当当前列的右边界超出可见区域右边界时才滚动
         if (currentColRightEdge > visibleRightEdge) {
           // 计算需要滚动的距离，让当前列刚好可见
-          double scrollDistance = currentColRightEdge - visibleRightEdge + JiShuQiState.cellWidth;
+          double scrollDistance =
+              currentColRightEdge - visibleRightEdge + JiShuQiState.cellWidth;
           double newOffset = currentScrollOffset + scrollDistance;
 
           // 确保不超过最大滚动范围
@@ -384,7 +403,8 @@ class JiShuQiController extends GetxController {
     final tempIndex = state.currentTempIndex;
     if (tempIndex == 0) return;
 
-    int idx = state.table2List.indexWhere((e) => e.id != null && e.id == tempIndex);
+    int idx =
+        state.table2List.indexWhere((e) => e.id != null && e.id == tempIndex);
     // 如果眼睛的位置不在列表中，则加载更多数据，再滚动到眼睛的位置
     if (idx < 0) {
       unawaited(_loadMoreForTempIndex(tempIndex));
@@ -411,7 +431,8 @@ class JiShuQiController extends GetxController {
     // 加载后按最新列表重算一次索引再滚动。
     await WidgetsBinding.instance.endOfFrame;
     if (!scrollController.hasClients) return;
-    final idx = state.table2List.indexWhere((e) => e.id != null && e.id == tempIndex);
+    final idx =
+        state.table2List.indexWhere((e) => e.id != null && e.id == tempIndex);
     if (idx >= 0) {
       _scrollToTempIndexRow(idx);
     }
@@ -427,7 +448,8 @@ class JiShuQiController extends GetxController {
       if (ctx != null) {
         final viewport = scrollController.position.viewportDimension;
         final align = viewport > 0
-            ? (JiShuQiState.bettingTableScrollTopInset / viewport).clamp(0.0, 0.35)
+            ? (JiShuQiState.bettingTableScrollTopInset / viewport)
+                .clamp(0.0, 0.35)
             : 0.0;
         await Scrollable.ensureVisible(
           ctx,
@@ -451,7 +473,8 @@ class JiShuQiController extends GetxController {
 
   /// 顶部插入历史行后恢复视口：用固定行高累计增量（避免 LazyList / EasyRefresh 回弹时 maxScrollExtent 不准）。
   /// 下拉刷新时 [keptPixels] 可能为负，按 0 处理。
-  void _schedulePreserveScrollAfterPrepend(double keptPixels, int insertedCount) {
+  void _schedulePreserveScrollAfterPrepend(
+      double keptPixels, int insertedCount) {
     if (insertedCount <= 0 || !keptPixels.isFinite) return;
     final delta = JiShuQiState.bettingTableRowHeight * insertedCount;
     final base = keptPixels < 0 ? 0.0 : keptPixels;
@@ -554,7 +577,9 @@ class JiShuQiController extends GetxController {
         final ti = tempIndex;
         final needsFreshTable1 = ti == -1 || (ti != null && ti > 2);
         if (needsFreshTable1) {
-          _queryMysqlTable1().then((_) => continueAfterStatsReady()).catchError((_) => continueAfterStatsReady());
+          _queryMysqlTable1()
+              .then((_) => continueAfterStatsReady())
+              .catchError((_) => continueAfterStatsReady());
         } else {
           continueAfterStatsReady();
         }
@@ -578,19 +603,25 @@ class JiShuQiController extends GetxController {
 
   showBottomFunction() {
     focusNode.nextFocus();
-    fixedExtentScrollController = FixedExtentScrollController(initialItem: state.selectIndex);
-    Get.bottomSheet(const SinglePicker());
+    fixedExtentScrollController =
+        FixedExtentScrollController(initialItem: state.selectIndex);
+    Get.bottomSheet(SinglePicker(darkTextColor: state.darkTextColor));
   }
 
   String pVal2() {
     if (state.bettingMoney.isEmpty || !state.bettingMoney.isNum) return '';
     var val = state.randomValue == '庄'
-        ? (double.parse(textEditingController.text) * double.parse(state.totalValue[31])).toStringAsFixed(2)
+        ? (double.parse(textEditingController.text) *
+                double.parse(state.totalValue[31]))
+            .toStringAsFixed(2)
         : textEditingController.text;
     var x = double.parse(state.totalValue[18]); //总输赢
     var y = double.parse(val); //输入框下注额
-    var z = double.parse(MyCharacter.removeChineseCharacters(state.totalValue[14])); //净胜
-    var z1 = double.parse(MyCharacter.removeChineseCharacters(state.totalValue[14])).abs(); //净胜绝对值
+    var z = double.parse(
+        MyCharacter.removeChineseCharacters(state.totalValue[14])); //净胜
+    var z1 =
+        double.parse(MyCharacter.removeChineseCharacters(state.totalValue[14]))
+            .abs(); //净胜绝对值
     if (z == 0) {
       return "回合结束";
     } else if (z > 0) /*赢>输的情况*/ {
@@ -609,12 +640,17 @@ class JiShuQiController extends GetxController {
   String pVal1() {
     if (state.bettingMoney.isEmpty || !state.bettingMoney.isNum) return '';
     var val = state.randomValue == '庄'
-        ? (double.parse(textEditingController.text) * double.parse(state.totalValue[31])).toStringAsFixed(2)
+        ? (double.parse(textEditingController.text) *
+                double.parse(state.totalValue[31]))
+            .toStringAsFixed(2)
         : textEditingController.text;
     var x = double.parse(state.totalValue[17]); //总输赢
     var y = double.parse(val); //输入框下注额
-    var z = double.parse(MyCharacter.removeChineseCharacters(state.totalValue[13])); //净胜
-    var z1 = double.parse(MyCharacter.removeChineseCharacters(state.totalValue[13])).abs(); //净胜绝对值
+    var z = double.parse(
+        MyCharacter.removeChineseCharacters(state.totalValue[13])); //净胜
+    var z1 =
+        double.parse(MyCharacter.removeChineseCharacters(state.totalValue[13]))
+            .abs(); //净胜绝对值
     if (z == 0) {
       return "回合结束";
     } else if (z > 0) /*赢>输的情况*/ {
@@ -689,7 +725,10 @@ class JiShuQiController extends GetxController {
           }
         }
         Get.dialog(
-          ZhuangXianDialog(state.randomValue),
+          ZhuangXianDialog(
+            state.randomValue,
+            darkTextColor: state.darkTextColor,
+          ),
           barrierDismissible: false,
           barrierColor: Colors.black.withValues(alpha: 0.18),
         );
@@ -744,7 +783,8 @@ class JiShuQiController extends GetxController {
     return completer.future;
   }
 
-  betRecordButton(int i, String tableName, {Table1Model? table1, Table2Model? table2}) {
+  betRecordButton(int i, String tableName,
+      {Table1Model? table1, Table2Model? table2}) {
     if (state.randomValue.isEmpty) {
       Get.snackbar("温馨提示", '请摇塞子',
           duration: const Duration(seconds: 2),
@@ -788,12 +828,14 @@ class JiShuQiController extends GetxController {
             //输（-） 赢 （+）
             colmunRemark: (i == 1 || i == 2) ? "1" : "-1",
             colmunShengfulu:
-                ((i == 1 || i == 3) && (state.randomValue == '闲')) || ((i == 2 || i == 4) && (state.randomValue == '庄'))
+                ((i == 1 || i == 3) && (state.randomValue == '闲')) ||
+                        ((i == 2 || i == 4) && (state.randomValue == '庄'))
                     ? "正打"
                     : "反打",
             colmunShuyingzhi: syzL(i),
             colmunShuyingzhiD: syzL(i),
-            columnCurrentJin: getCurrentJin(i, double.parse(state.bettingMoney)).toString(),
+            columnCurrentJin:
+                getCurrentJin(i, double.parse(state.bettingMoney)).toString(),
           )
         : Table1Model(
             columnBenjin: "10000",
@@ -806,8 +848,10 @@ class JiShuQiController extends GetxController {
     if (tableName == 'table1') {
       BXPut<Table1Model>(Api.inserttable1,
           params: (table as Table1Model).toJson()
-            ..addAll({"UserID": int.parse(GetStore.getInstance().userModel.userId)}),
-          success: (isSuccess, code, message, results) => BXLoading.showToast("操作表1"),
+            ..addAll(
+                {"UserID": int.parse(GetStore.getInstance().userModel.userId)}),
+          success: (isSuccess, code, message, results) =>
+              BXLoading.showToast("操作表1"),
           failed: (p0, p1) => state.isCanPress = true,
           onModel: (m) => Table1Model.fromJson(m));
     } else {
@@ -815,14 +859,17 @@ class JiShuQiController extends GetxController {
           isShowLoading: false,
           params: (table as Table2Model).toJson()
             ..remove("table2Id")
-            ..addAll({"UserID": int.parse(GetStore.getInstance().userModel.userId)}),
+            ..addAll(
+                {"UserID": int.parse(GetStore.getInstance().userModel.userId)}),
           success: (isSuccess, code, message, results) {
             if (results.isNotEmpty) {
-              state.table2List.add(results.first..seq = state.table2List.last.seq! + 1);
+              state.table2List
+                  .add(results.first..seq = state.table2List.last.seq! + 1);
             }
             update(); // 先让 ListView 用新 itemCount 布局，再滚到底才准
             scrollBettingListToBottom();
-            _getStatisticalAreasData(-2, isShowLoading: false).whenComplete(BXLoading.dismiss);
+            _getStatisticalAreasData(-2, isShowLoading: false)
+                .whenComplete(BXLoading.dismiss);
           },
           failed: (p0, p1) {
             state.isCanPress = true;
@@ -838,10 +885,13 @@ class JiShuQiController extends GetxController {
   /// - [applyStatsTail]：在刚从统计接口回填后，将最右一点强制为 [totalValue[4]]（本金+累计输赢），与统计区「当前金额」一致。
   void _getLineCharts({bool applyStatsTail = false}) {
     final gen = ++_lineChartRequestGen;
-    final benjin = state.table1List.isNotEmpty ? double.tryParse(state.table1List.last.columnBenjin.toString()) : null;
+    final benjin = state.table1List.isNotEmpty
+        ? double.tryParse(state.table1List.last.columnBenjin.toString())
+        : null;
     void resetChartPad(double p) {
       if (state.chartData.length != 75) {
-        state.chartData = List.generate(75, (index) => LineChartDataModel(index, p));
+        state.chartData =
+            List.generate(75, (index) => LineChartDataModel(index, p));
       } else {
         for (var i = 0; i < 75; i++) {
           state.chartData[i].sales = p;
@@ -849,7 +899,8 @@ class JiShuQiController extends GetxController {
       }
     }
 
-    final pad = benjin ?? (state.chartData.isNotEmpty ? state.chartData[0].sales : 0.0);
+    final pad =
+        benjin ?? (state.chartData.isNotEmpty ? state.chartData[0].sales : 0.0);
     resetChartPad(pad);
 
     final list = state.table2List;
@@ -877,9 +928,12 @@ class JiShuQiController extends GetxController {
       success: (isSuccess, code, message, results) {
         if (gen != _lineChartRequestGen) return;
         if (!isSuccess) return;
-        resetChartPad(benjin ?? (state.chartData.isNotEmpty ? state.chartData[0].sales : 0.0));
+        resetChartPad(benjin ??
+            (state.chartData.isNotEmpty ? state.chartData[0].sales : 0.0));
         var z = 0;
-        for (var i = results.length - 1; i >= 0 && z < state.chartData.length; i--) {
+        for (var i = results.length - 1;
+            i >= 0 && z < state.chartData.length;
+            i--) {
           if (results[i].toString().isNotEmpty) {
             state.chartData[z].sales = double.parse(results[i].toString());
           }
@@ -898,7 +952,9 @@ class JiShuQiController extends GetxController {
   void _syncChartLastPointWithTotalValue() {
     if (state.chartData.length != 75) return;
     if (state.totalValue.length <= 4) return;
-    final raw = MyCharacter.removeChineseCharacters(state.totalValue[4].toString()).trim();
+    final raw =
+        MyCharacter.removeChineseCharacters(state.totalValue[4].toString())
+            .trim();
     if (raw.isEmpty) return;
     final v = double.tryParse(raw);
     if (v != null) {
@@ -907,7 +963,9 @@ class JiShuQiController extends GetxController {
   }
 
   getCurrentJin(int i, double playMoney) {
-    var lastJinE = state.table2List.isEmpty ? 5000 : double.parse(state.totalValue[4].toString());
+    var lastJinE = state.table2List.isEmpty
+        ? 5000
+        : double.parse(state.totalValue[4].toString());
     switch (i) {
       case 1:
         return (lastJinE + playMoney);
@@ -915,7 +973,9 @@ class JiShuQiController extends GetxController {
         return (lastJinE) +
             playMoney *
                 double.parse(
-                    state.totalValue[31] == "31" || state.totalValue[31] == "" ? "0.95" : state.totalValue[31]);
+                    state.totalValue[31] == "31" || state.totalValue[31] == ""
+                        ? "0.95"
+                        : state.totalValue[31]);
       case 3:
       case 4:
         return (lastJinE) - playMoney;
@@ -929,7 +989,10 @@ class JiShuQiController extends GetxController {
       case 2: //庄赢：下注×赔率（不含加回本金）。注意不可用 toStringAsFixed(2)，否则 0.095 会变成 0.10
         double parse = double.parse(state.bettingMoney);
         final xx = parse *
-            double.parse(state.totalValue[31] == "31" || state.totalValue[31] == "" ? "0.95" : state.totalValue[31]);
+            double.parse(
+                state.totalValue[31] == "31" || state.totalValue[31] == ""
+                    ? "0.95"
+                    : state.totalValue[31]);
         return '+${_formatZhuangYingShuying(xx)}';
       case 3:
       case 4:
@@ -947,13 +1010,16 @@ class JiShuQiController extends GetxController {
     if (state.table2List.isNotEmpty) {
       Get.defaultDialog(
         barrierDismissible: false,
-        backgroundColor: state.isDarkMode ? const Color(0xFF1E2A3A) : Colors.white,
+        backgroundColor:
+            state.isDarkMode ? const Color(0xFF1E2A3A) : Colors.white,
         title: '警告',
         content: Text(
           '确定删除最后一行数据？',
-          style: TextStyle(color: state.isDarkMode ? Colors.white : Colors.black),
+          style: TextStyle(
+              color: state.isDarkMode ? state.darkTextColor : Colors.black),
         ),
-        titleStyle: TextStyle(color: state.isDarkMode ? Colors.white : Colors.black),
+        titleStyle: TextStyle(
+            color: state.isDarkMode ? state.darkTextColor : Colors.black),
         contentPadding: const EdgeInsets.all(20),
         onCancel: () {},
         onConfirm: () {
@@ -990,7 +1056,8 @@ class JiShuQiController extends GetxController {
     BXPost(
       Api.xiaoshu,
       isShowLoading: false,
-      params: state.table2List[index].toJson()..update("colmun_shuyingzhi_d", (value) => ""),
+      params: state.table2List[index].toJson()
+        ..update("colmun_shuyingzhi_d", (value) => ""),
       success: (isSuccess, code, message, results) {
         if (isSuccess) {
           state.table2List[index].colmunShuyingzhiD = "";
@@ -1012,7 +1079,9 @@ class JiShuQiController extends GetxController {
     const indices = [2, 6, 14, 18];
     return indices.map((i) {
       if (i >= state.totalValue.length) return '';
-      final raw = MyCharacter.removeChineseCharacters(state.totalValue[i].toString()).trim();
+      final raw =
+          MyCharacter.removeChineseCharacters(state.totalValue[i].toString())
+              .trim();
       if (i != 18) return raw;
       final v = double.tryParse(raw);
       return v == null ? raw : v.toStringAsFixed(1);
@@ -1022,7 +1091,9 @@ class JiShuQiController extends GetxController {
   /// 当前回合是否无数据（看统计区「回合局数」totalValue[2]）
   bool _isRoundStatsEmpty() {
     if (state.totalValue.length <= 2) return true;
-    final raw = MyCharacter.removeChineseCharacters(state.totalValue[2].toString()).trim();
+    final raw =
+        MyCharacter.removeChineseCharacters(state.totalValue[2].toString())
+            .trim();
     if (raw.isEmpty || raw == '-' || raw == '0') return true;
     final count = int.tryParse(raw);
     return count == null || count <= 0;
@@ -1074,7 +1145,9 @@ class JiShuQiController extends GetxController {
         BXLoading.dismiss();
         if (isSuccess) {
           state.table1List = value;
-          state.table2List = state.table2List.map((element) => element..colmunShuyingzhiD = "").toList();
+          state.table2List = state.table2List
+              .map((element) => element..colmunShuyingzhiD = "")
+              .toList();
           if (snapshot.isNotEmpty && state.table2List.isNotEmpty) {
             state.table2List.last.restartStatSnapshot = snapshot;
           }
@@ -1094,13 +1167,16 @@ class JiShuQiController extends GetxController {
   void reStart() {
     Get.defaultDialog(
       barrierDismissible: false,
-      backgroundColor: state.isDarkMode ? const Color(0xFF1E2A3A) : Colors.white,
+      backgroundColor:
+          state.isDarkMode ? const Color(0xFF1E2A3A) : Colors.white,
       title: '警告',
       content: Text(
         '是否重启局部数据',
-        style: TextStyle(color: state.isDarkMode ? Colors.white : Colors.black),
+        style: TextStyle(
+            color: state.isDarkMode ? state.darkTextColor : Colors.black),
       ),
-      titleStyle: TextStyle(color: state.isDarkMode ? Colors.white : Colors.black),
+      titleStyle: TextStyle(
+          color: state.isDarkMode ? state.darkTextColor : Colors.black),
       contentPadding: const EdgeInsets.all(20),
       onCancel: () {},
       onConfirm: () {
@@ -1136,7 +1212,9 @@ class JiShuQiController extends GetxController {
         if (isSuccess) {
           BXLoading.showToast("${value.last.columnBenjin}");
           state.totalValue[0] = b;
-          state.totalValue[4] = (double.parse(state.totalValue[0]) + double.parse(state.totalValue[17])).toString();
+          state.totalValue[4] = (double.parse(state.totalValue[0]) +
+                  double.parse(state.totalValue[17]))
+              .toString();
           _getStatisticalAreasData(-2);
         }
       },
@@ -1185,11 +1263,11 @@ class JiShuQiController extends GetxController {
       case 2: //修改本金
         BXLoading.show(douyinStyle: true);
         if (s.isEmpty) {
-          BXLoading.showToast( '请输入金额 ${textEditingController.text} ');
+          BXLoading.showToast('请输入金额 ${textEditingController.text} ');
           break;
         }
         if (!s.isNum) {
-          BXLoading.showToast( '请输入数字 ${textEditingController.text} ');
+          BXLoading.showToast('请输入数字 ${textEditingController.text} ');
           break;
         }
         updateBenJin(s);
@@ -1203,24 +1281,29 @@ class JiShuQiController extends GetxController {
       case 4: //删除本页
         Get.defaultDialog(
           barrierDismissible: false,
-          backgroundColor: state.isDarkMode ? const Color(0xFF1E2A3A) : Colors.white,
+          backgroundColor:
+              state.isDarkMode ? const Color(0xFF1E2A3A) : Colors.white,
           title: '警告',
           content: Text(
             '是否删除全部数据',
-            style: TextStyle(color: state.isDarkMode ? Colors.white : Colors.black),
+            style: TextStyle(
+                color: state.isDarkMode ? state.darkTextColor : Colors.black),
           ),
-          titleStyle: TextStyle(color: state.isDarkMode ? Colors.white : Colors.black),
+          titleStyle: TextStyle(
+              color: state.isDarkMode ? state.darkTextColor : Colors.black),
           contentPadding: const EdgeInsets.all(20),
           onCancel: () {},
           onConfirm: () {
             Get.back();
-            BXDelete(Api.deleteall, success: (isSuccess, code, message, results) {
+            BXDelete(Api.deleteall,
+                success: (isSuccess, code, message, results) {
               if (isSuccess) {
                 BXLoading.showToast(message);
                 state.table1List.clear();
                 state.table2List.clear();
                 state.randomValue = '';
-                List.generate(32, (index) => state.totalValue[index] = index.toString());
+                List.generate(
+                    32, (index) => state.totalValue[index] = index.toString());
                 _getStatisticalAreasData(-1, isShowLoading: false);
               }
             });
@@ -1231,7 +1314,8 @@ class JiShuQiController extends GetxController {
         BXPost(
           Api.resetliushui,
           params: {"resetIndex": (state.table2List.last.id)},
-          success: (bool isSuccess, int code, String message, List<dynamic> results) {},
+          success: (bool isSuccess, int code, String message,
+              List<dynamic> results) {},
         );
         break;
       case 6: //备份数据
@@ -1280,11 +1364,11 @@ class JiShuQiController extends GetxController {
         break;
       case 8: //修改期望值
         if (s.isEmpty) {
-          BXLoading.showToast( '请输入期望值 ${textEditingController.text} ');
+          BXLoading.showToast('请输入期望值 ${textEditingController.text} ');
           break;
         }
         if (!s.isNum) {
-          BXLoading.showToast( '请输入数字 ${textEditingController.text} ');
+          BXLoading.showToast('请输入数字 ${textEditingController.text} ');
           break;
         }
         updateQiWangZhi(s);
@@ -1296,11 +1380,11 @@ class JiShuQiController extends GetxController {
       case 10: //修改赔率
         BXLoading.show(douyinStyle: true);
         if (s.isEmpty) {
-          BXLoading.showToast( '请输入赔率 ${textEditingController.text} ');
+          BXLoading.showToast('请输入赔率 ${textEditingController.text} ');
           break;
         }
         if (!s.isNum) {
-          BXLoading.showToast( '请输入赔率 ${textEditingController.text} ');
+          BXLoading.showToast('请输入赔率 ${textEditingController.text} ');
           break;
         }
         updateOdds(s);
@@ -1361,7 +1445,8 @@ class JiShuQiController extends GetxController {
   }
 
   void updateQiWangZhi(String qiwangzhi) {
-    BXPost/*<Map<String,dynamic>>*/(Api.updateQiWangValue, params: {"mean": qiwangzhi},
+    BXPost/*<Map<String,dynamic>>*/(Api.updateQiWangValue,
+        params: {"mean": qiwangzhi},
         success: (isSuccess, int code, String message, List<dynamic> results) {
       if (isSuccess) {
         BXLoading.showToast(message);
@@ -1388,7 +1473,7 @@ class JiShuQiController extends GetxController {
     final file = await getFile('file.text');
     if (!await file.exists()) {
       BXLoading.dismiss();
-      BXLoading.showToast( '文件不存在');
+      BXLoading.showToast('文件不存在');
       return;
     }
     var filePath = file.path;
@@ -1463,7 +1548,8 @@ class JiShuQiController extends GetxController {
     });
   }
 
-  getFuture(String input) => Future.delayed(const Duration(milliseconds: 200), () {
+  getFuture(String input) =>
+      Future.delayed(const Duration(milliseconds: 200), () {
         if (input.length == 4 && input == "0000") {
           return true;
         } else {
@@ -1512,7 +1598,8 @@ class JiShuQiController extends GetxController {
     if (focusNode.hasFocus || _lastKeyboardInset > 0) {
       _skipKeyboardDismissScroll = true;
     }
-    final targetIndex = index != -1 && state.currentTempIndex == index ? -1 : index;
+    final targetIndex =
+        index != -1 && state.currentTempIndex == index ? -1 : index;
 
     //-1 取消局部平衡
     if (targetIndex == -1) {
@@ -1561,9 +1648,14 @@ class JiShuQiController extends GetxController {
     final completer = Completer<int>();
     // id 为 null 时 Dio 会发出 last_id= 无值，后端会走错分支；空列表用 -1。
     // 与后端 LoadMore 一致：数据为 created_at 升序，分页游标为当前已加载中最旧一条（first）的 id。
-    final anchorId = state.table2List.isEmpty ? -1 : (state.table2List.first.id ?? -1);
+    final anchorId =
+        state.table2List.isEmpty ? -1 : (state.table2List.first.id ?? -1);
     BXGet<Table2Model>(Api.loadMore,
-        params: {"last_id": anchorId, "uid": GetStore.getInstance().userModel.userId, "c": count}, //"c"每页多少个数据
+        params: {
+          "last_id": anchorId,
+          "uid": GetStore.getInstance().userModel.userId,
+          "c": count
+        }, //"c"每页多少个数据
         success: (isSuccess, code, message, results) {
           if (!isSuccess) {
             refreshcontroller.finishRefresh(IndicatorResult.fail, true);
@@ -1617,7 +1709,9 @@ class JiShuQiController extends GetxController {
 
   //重新加载路子图
   _reloadLuZiTu() {
-    var list = state.table2List.map((e) => e.colmunShuyingzhi!.startsWith("-") ? "闲家" : "庄家").toList();
+    var list = state.table2List
+        .map((e) => e.colmunShuyingzhi!.startsWith("-") ? "闲家" : "庄家")
+        .toList();
     state.initializeBigRoad();
     for (var value in list) {
       updateBigRoad(value);
