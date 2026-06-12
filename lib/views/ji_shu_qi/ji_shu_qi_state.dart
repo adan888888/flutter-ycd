@@ -37,6 +37,9 @@ class JiShuQiState {
   /// 投注列表是否滚在底部：底部显示向上箭头（去眼睛），否则向下箭头（回底部）
   var isBettingListAtBottom = true;
 
+  /// 投注记录为空时的缺省图（含「暂无投注记录」文案）
+  static const String emptyBettingListAsset = 'assets/images/empty_betting_records.png';
+
   /// 统计区固定高度（吸顶 SliverPersistentHeader）
   static const double statsAreaHeight = 145;
 
@@ -177,7 +180,7 @@ class JiShuQiState {
         '2.消除数据',
         '3.修改本金',
         '4.修改位置',
-        '5.删除本页',
+        '5.删除所有数据',
         '6.重置流水',
         '7.备份数据',
         '8.重启系统',

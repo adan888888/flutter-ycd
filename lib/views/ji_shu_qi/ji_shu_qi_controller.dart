@@ -143,15 +143,24 @@ class JiShuQiController extends GetxController {
         "c": n
       },
       success: (isSuccess, code, message, results) {
-        if (isSuccess && results.isNotEmpty) {
-          state.table2List.clear();
-          state.table2List = List<Table2Model>.from(results);
-          _reloadLuZiTu();
-          if (!state.isBigRoad) {
-            _getLineCharts(applyStatsTail: true);
+        if (isSuccess) {
+          if (results.isEmpty) {
+            state.table2List.clear();
+            _reloadLuZiTu();
+            if (!state.isBigRoad) {
+              _getLineCharts(applyStatsTail: true);
+            }
+            update();
+          } else {
+            state.table2List.clear();
+            state.table2List = List<Table2Model>.from(results);
+            _reloadLuZiTu();
+            if (!state.isBigRoad) {
+              _getLineCharts(applyStatsTail: true);
+            }
+            update();
+            scrollBettingListToBottom();
           }
-          update();
-          scrollBettingListToBottom();
         }
         if (!completer.isCompleted) {
           completer.complete();
@@ -1664,6 +1673,9 @@ class JiShuQiController extends GetxController {
           }
 
           if (results.isEmpty) {
+            if (state.table2List.isEmpty) {
+              update();
+            }
             refreshcontroller.finishRefresh(IndicatorResult.noMore, true);
             if (!completer.isCompleted) completer.complete(0);
             return;
