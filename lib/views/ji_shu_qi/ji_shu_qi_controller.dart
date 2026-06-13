@@ -689,13 +689,14 @@ class JiShuQiController extends GetxController {
     super.onClose();
   }
 
-  void _playSound(String asset) {
+  void _playSound(String asset, {double volume = 1.0}) {
     if (!_diceSoundAvailable) return;
     unawaited(() async {
       try {
         await _diceSoundPlayer.stop();
         await _diceSoundPlayer.play(
           AssetSource(asset),
+          volume: volume,
           mode: PlayerMode.lowLatency,
         );
       } catch (e) {
@@ -705,7 +706,7 @@ class JiShuQiController extends GetxController {
     }());
   }
 
-  void _playRandomSound() => _playSound('sounds/kaijiang.mp3');
+  void _playRandomSound() => _playSound('sounds/kaijiang.mp3', volume: 0.4);
 
   void _playDiceRollSound() => _playSound('sounds/zhuotou.mp3');
 
