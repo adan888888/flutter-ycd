@@ -7,7 +7,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:ycd/my_widget/baccarat_big_road_widget.dart';
 import 'package:ycd/utils/network/get_store.dart';
@@ -175,20 +174,16 @@ class JiShuQiView extends GetView<JiShuQiController> {
                                 _divier2(controller.state.currentTextColor, 38),
                                 _buildButton(controller.state.buttonNegativeBgColor, "B-", 4),
                                 _divier2(controller.state.currentTextColor, 38),
-                                TextButton(
-                                  style: TextButton.styleFrom(
-                                    padding: const EdgeInsets.symmetric(vertical: 0.0, horizontal: 8.0),
-                                    minimumSize: Size.zero,
-                                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                                  ),
-                                  onPressed: () => controller.deleteLast(),
-                                  child: Text(
-                                    "DEL",
-                                    style: TextStyle(
-                                      fontSize: 14.sp,
-                                      color: controller.state.isDarkMode
-                                          ? controller.state.darkTextColor.withValues(alpha: 0.7)
-                                          : Colors.black45,
+                                GestureDetector(
+                                  onTap: controller.deleteLast,
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(vertical: 0.0, horizontal: 4.0),
+                                    child: Image.asset(
+                                      'assets/images/delete_last.png',
+                                      height: 22,
+                                      fit: BoxFit.contain,
+                                      color: controller.state.deleteLastIconColor,
+                                      colorBlendMode: BlendMode.srcIn,
                                     ),
                                   ),
                                 ),
