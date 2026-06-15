@@ -222,8 +222,8 @@ class BaccaratSimulationView extends GetView<BaccaratSimulationController> {
             ),
             GetBuilder<BaccaratSimulationController>(
               builder: (controller) {
-                final hasCards = controller.state.playerCardsList.isNotEmpty ||
-                    controller.state.bankerCardsList.isNotEmpty;
+                final hasCards =
+                    controller.state.playerCardsList.isNotEmpty || controller.state.bankerCardsList.isNotEmpty;
                 if (!hasCards && !controller.state.isAnimating) {
                   return Padding(
                     padding: const EdgeInsets.only(top: 12),
@@ -354,9 +354,8 @@ class BaccaratSimulationView extends GetView<BaccaratSimulationController> {
         return Column(
           children: [
             ElevatedButton.icon(
-              onPressed: (controller.state.isAnimating || controller.state.isShuffling)
-                  ? null
-                  : controller.startSimulation,
+              onPressed:
+                  (controller.state.isAnimating || controller.state.isShuffling) ? null : controller.startSimulation,
               icon: controller.state.isAnimating || controller.state.isShuffling
                   ? const SizedBox(
                       width: 20,
@@ -365,9 +364,7 @@ class BaccaratSimulationView extends GetView<BaccaratSimulationController> {
                     )
                   : const Icon(Icons.casino),
               label: Text(
-                controller.state.isShuffling
-                    ? '洗牌中...'
-                    : (controller.state.isAnimating ? '模拟中...' : '开始模拟'),
+                controller.state.isShuffling ? '洗牌中...' : (controller.state.isAnimating ? '发牌中...' : '发牌'),
               ),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.amber.shade600,
