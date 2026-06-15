@@ -43,10 +43,10 @@ class BaccaratShoe {
   /// 每局开始前是否需换靴（仅判断，不洗牌）
   bool needsReshuffleBeforeHand() => needsReshuffle;
 
-  /// 从牌靴顶发一张牌（无放回）
+  /// 从牌靴顶发一张牌（无放回）；牌靴用尽时需先换新靴
   Map<String, dynamic> draw() {
-    if (remaining == 0) {
-      shuffle();
+    if (remaining <= 0) {
+      throw StateError('牌靴已空');
     }
     return _cards[_drawIndex++];
   }

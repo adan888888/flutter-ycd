@@ -319,7 +319,7 @@ class BaccaratSimulationView extends GetView<BaccaratSimulationController> {
               controller.state.isShuffling
                   ? '8副牌牌靴 · 正在洗牌'
                   : '8副牌牌靴 · 剩余 ${controller.state.shoeRemaining}/${BaccaratSimulationState.shoeTotalCards} 张'
-                      '${controller.state.shoeRemaining > 0 && controller.state.shoeRemaining <= BaccaratSimulationState.shoeCutCardRemaining ? '（下局换靴）' : ''}',
+                      '${controller.state.shoeRemaining > 0 && controller.state.shoeRemaining <= BaccaratSimulationState.shoeCutCardRemaining ? '（本靴已发完）' : ''}',
               style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
             ),
           ],
