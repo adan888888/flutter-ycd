@@ -1,62 +1,72 @@
 import 'dart:async';
-import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import 'baccarat_shoe.dart';
+import 'baccarat_shuffle_overlay.dart';
 import 'baccarat_simulation_state.dart';
+
+class _DealStep {
+  const _DealStep({
+    required this.side,
+    required this.card,
+    this.isThirdCard = false,
+  });
+
+  final String side;
+  final Map<String, dynamic> card;
+  final bool isThirdCard;
+}
+
+class _BaccaratHandResult {
+  const _BaccaratHandResult({
+    required this.playerCards,
+    required this.bankerCards,
+    required this.playerTotal,
+    required this.bankerTotal,
+    required this.steps,
+  });
+
+  final List<Map<String, dynamic>> playerCards;
+  final List<Map<String, dynamic>> bankerCards;
+  final int playerTotal;
+  final int bankerTotal;
+  final List<_DealStep> steps;
+}
 
 /// 百家乐模拟控制器
 /// 负责游戏逻辑、动画控制和状态管理
-class BaccaratSimulationController extends GetxController with GetSingleTickerProviderStateMixin {
+class BaccaratSimulationController extends GetxController {
   // ========== 状态管理 ==========
   /// 游戏状态管理实例
   final BaccaratSimulationState state = BaccaratSimulationState();
-
-  // ========== 动画控制 ==========
-  /// 动画控制器，用于控制开奖动画
-  late AnimationController animationController;
-
-  /// 缩放动画，用于开奖结果的缩放效果
-  late Animation<double> scaleAnimation;
 
   // ========== 滚动控制 ==========
   /// 大路图滚动控制器
   late ScrollController scrollController;
 
   // ========== 工具类 ==========
-  /// 随机数生成器，用于生成随机卡片
-  final Random _random = Random();
+  /// 8 副牌牌靴
+  final BaccaratShoe _shoe = BaccaratShoe();
 
   @override
   void onInit() {
     super.onInit();
-    _initializeAnimations();
     _initializeBigRoad();
     _initializeScrollController();
   }
 
   @override
-  void onClose() {
-    animationController.dispose();
-    scrollController.dispose();
-    super.onClose();
+  void onReady() {
+    super.onReady();
+    unawaited(playShuffleAnimation());
   }
 
-  /// 初始化动画控制器
-  /// 设置开奖动画的持续时间和缩放效果
-  void _initializeAnimations() {
-    animationController = AnimationController(
-      duration: const Duration(seconds: 2),
-      vsync: this,
-    );
-
-    scaleAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(
-        parent: animationController,
-        curve: Curves.elasticOut,
-      ),
-    );
+  @override
+  void onClose() {
+    scrollController.dispose();
+    super.onClose();
   }
 
   /// 初始化大路图
@@ -104,37 +114,25 @@ class BaccaratSimulationController extends GetxController with GetSingleTickerPr
     });
   }
 
-  /// 生成随机卡片
-  /// 返回包含花色、点数、百家乐值和显示文本的卡片数据
-  ///
-  /// 百家乐点数规则：
-  /// - A = 1点
-  /// - 2-9 = 对应点数
-  /// - 10, J, Q, K = 0点
-  /// - 总点数 = 所有卡片点数之和 % 10
-  Map<String, dynamic> _generateCard() {
-    final suits = ['♠', '♥', '♦', '♣'];
-    final ranks = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
+  void _syncShoeRemaining() {
+    state.shoeRemaining = _shoe.remaining;
+  }
 
-    final suit = suits[_random.nextInt(suits.length)];
-    final rank = ranks[_random.nextInt(ranks.length)];
+  /// 播放 8 副牌洗牌动画（动画开始时立即洗牌）
+  Future<void> playShuffleAnimation() async {
+    if (state.isShuffling) return;
 
-    // 计算百家乐点数
-    int value;
-    if (rank == 'A') {
-      value = 1;
-    } else if (['J', 'Q', 'K'].contains(rank)) {
-      value = 0;
-    } else {
-      value = int.parse(rank);
-    }
+    state.isShuffling = true;
+    state.isAnimating = true;
+    _shoe.shuffle();
+    _syncShoeRemaining();
+    update();
 
-    return {
-      'suit': suit, // 花色（♠♥♦♣）
-      'rank': rank, // 点数（A,2-10,J,Q,K）
-      'value': value, // 百家乐点数（0-9）
-      'display': '$rank$suit', // 显示文本（如：A♠）
-    };
+    await Future.delayed(BaccaratShuffleOverlay.animationDuration);
+
+    state.isShuffling = false;
+    state.isAnimating = false;
+    update();
   }
 
   /// 计算手牌总点数（百家乐规则）
@@ -149,37 +147,40 @@ class BaccaratSimulationController extends GetxController with GetSingleTickerPr
     return total % 10;
   }
 
-  /// 百家乐发牌规则
-  /// 实现标准百家乐发牌和第三张牌规则
-  ///
-  /// 发牌顺序：
-  /// 1. 闲家第一张，庄家第一张
-  /// 2. 闲家第二张，庄家第二张
-  /// 3. 根据第三张牌规则决定是否发第三张牌
-  ///
-  /// 返回：[闲家结果, 庄家结果]
-  List<Map<String, dynamic>> _dealBaccaratCards() {
-    List<Map<String, dynamic>> playerCards = [];
-    List<Map<String, dynamic>> bankerCards = [];
+  /// 百家乐发牌规则，返回完整手牌及按真实顺序的发牌步骤
+  _BaccaratHandResult _prepareBaccaratHand() {
+    final playerCards = <Map<String, dynamic>>[];
+    final bankerCards = <Map<String, dynamic>>[];
+    final steps = <_DealStep>[];
 
-    // 初始发牌：每人两张
-    playerCards.add(_generateCard());
-    bankerCards.add(_generateCard());
-    playerCards.add(_generateCard());
-    bankerCards.add(_generateCard());
+    void dealToPlayer({bool isThirdCard = false}) {
+      final card = _shoe.draw();
+      playerCards.add(card);
+      steps.add(_DealStep(side: 'player', card: card, isThirdCard: isThirdCard));
+    }
 
-    int playerTotal = _calculateBaccaratTotal(playerCards);
-    int bankerTotal = _calculateBaccaratTotal(bankerCards);
+    void dealToBanker({bool isThirdCard = false}) {
+      final card = _shoe.draw();
+      bankerCards.add(card);
+      steps.add(_DealStep(side: 'banker', card: card, isThirdCard: isThirdCard));
+    }
+
+    // 初始发牌：闲1 → 庄1 → 闲2 → 庄2
+    dealToPlayer();
+    dealToBanker();
+    dealToPlayer();
+    dealToBanker();
+
+    var playerTotal = _calculateBaccaratTotal(playerCards);
+    var bankerTotal = _calculateBaccaratTotal(bankerCards);
 
     // 第三张牌规则
-    bool playerGetsThird = playerTotal <= 5;
-    bool bankerGetsThird = false;
-
+    final playerGetsThird = playerTotal <= 5;
     if (playerGetsThird) {
-      playerCards.add(_generateCard());
+      dealToPlayer(isThirdCard: true);
       playerTotal = _calculateBaccaratTotal(playerCards);
 
-      // 庄家第三张牌规则
+      var bankerGetsThird = false;
       if (bankerTotal <= 2) {
         bankerGetsThird = true;
       } else if (bankerTotal == 3 && playerCards[2]['value'] != 8) {
@@ -193,43 +194,78 @@ class BaccaratSimulationController extends GetxController with GetSingleTickerPr
       }
 
       if (bankerGetsThird) {
-        bankerCards.add(_generateCard());
+        dealToBanker(isThirdCard: true);
         bankerTotal = _calculateBaccaratTotal(bankerCards);
       }
     } else if (bankerTotal <= 5) {
-      bankerCards.add(_generateCard());
+      dealToBanker(isThirdCard: true);
       bankerTotal = _calculateBaccaratTotal(bankerCards);
     }
 
-    return [
-      {'type': 'player', 'cards': playerCards, 'total': playerTotal},
-      {'type': 'banker', 'cards': bankerCards, 'total': bankerTotal},
-    ];
+    return _BaccaratHandResult(
+      playerCards: playerCards,
+      bankerCards: bankerCards,
+      playerTotal: playerTotal,
+      bankerTotal: bankerTotal,
+      steps: steps,
+    );
+  }
+
+  String _cardsToDisplay(List<Map<String, dynamic>> cards) {
+    return cards.map((card) => card['display'] as String).join(' ');
+  }
+
+  void _clearDealingBoard() {
+    state.playerCardsList = [];
+    state.bankerCardsList = [];
+    state.playerCards = '';
+    state.bankerCards = '';
+    state.playerTotal = 0;
+    state.bankerTotal = 0;
+    state.winner = '';
+    state.currentResult = '';
+  }
+
+  Future<void> _revealDealSteps(List<_DealStep> steps) async {
+    for (final step in steps) {
+      if (step.isThirdCard) {
+        await Future.delayed(const Duration(seconds: 2));
+      }
+      if (step.side == 'player') {
+        state.playerCardsList = [...state.playerCardsList, step.card];
+        state.playerTotal = _calculateBaccaratTotal(state.playerCardsList);
+      } else {
+        state.bankerCardsList = [...state.bankerCardsList, step.card];
+        state.bankerTotal = _calculateBaccaratTotal(state.bankerCardsList);
+      }
+      update();
+      await Future.delayed(const Duration(milliseconds: 420));
+    }
   }
 
   /// 开始模拟
-  /// 执行一次完整的百家乐开奖模拟
-  /// 包括：发牌、计算点数、判断胜负、更新大路图
+  /// 按百家乐顺序逐张发牌并播放动画
   Future<void> startSimulation() async {
     if (state.isAnimating) return;
 
-    // 开始动画状态
     startAnimation();
-    update(); // 触发UI更新
-    animationController.forward();
+    _clearDealingBoard();
+    if (_shoe.needsReshuffleBeforeHand()) {
+      await playShuffleAnimation();
+      startAnimation();
+      _clearDealingBoard();
+    }
+    _syncShoeRemaining();
+    update();
 
-    // 模拟发牌过程
-    await Future.delayed(const Duration(milliseconds: 500));
+    final hand = _prepareBaccaratHand();
+    await _revealDealSteps(hand.steps);
+    _syncShoeRemaining();
 
-    final results = _dealBaccaratCards();
-    final playerResult = results[0];
-    final bankerResult = results[1];
-
-    // 更新结果
-    final playerCards = playerResult['cards'].map((card) => card['display']).join(' ');
-    final bankerCards = bankerResult['cards'].map((card) => card['display']).join(' ');
-    final playerTotal = playerResult['total'];
-    final bankerTotal = bankerResult['total'];
+    final playerCards = _cardsToDisplay(hand.playerCards);
+    final bankerCards = _cardsToDisplay(hand.bankerCards);
+    final playerTotal = hand.playerTotal;
+    final bankerTotal = hand.bankerTotal;
 
     String winner;
     String currentResult;
@@ -245,7 +281,6 @@ class BaccaratSimulationController extends GetxController with GetSingleTickerPr
       currentResult = '和局 ($playerTotal vs $bankerTotal)';
     }
 
-    // 更新状态
     updateGameResult(
       playerCards: playerCards,
       bankerCards: bankerCards,
@@ -255,32 +290,22 @@ class BaccaratSimulationController extends GetxController with GetSingleTickerPr
       currentResult: currentResult,
     );
 
-    // 添加到历史记录
-    final gameRecord = {
+    addGameRecord({
       'playerCards': playerCards,
       'bankerCards': bankerCards,
       'playerTotal': playerTotal,
       'bankerTotal': bankerTotal,
       'winner': winner,
       'timestamp': DateTime.now(),
-    };
+    });
 
-    addGameRecord(gameRecord);
-
-    // 更新大路
-    debugPrint('🎰 Controller: 准备更新大路，winner: $winner');
     updateBigRoad(winner);
-    update(); // 触发GetBuilder更新
-
-    // 自动滚动到当前位置
+    update();
     scrollToCurrentPosition(state.currentCol);
 
-    await Future.delayed(const Duration(milliseconds: 1000));
-
-    // 完成动画状态
+    await Future.delayed(const Duration(milliseconds: 300));
     endAnimation();
-    update(); // 触发UI更新
-    animationController.reset();
+    update();
   }
 
   /// 更新大路图
@@ -349,12 +374,15 @@ class BaccaratSimulationController extends GetxController with GetSingleTickerPr
     state.currentResult = '';
     state.playerCards = '';
     state.bankerCards = '';
+    state.playerCardsList = [];
+    state.bankerCardsList = [];
     state.playerTotal = 0;
     state.bankerTotal = 0;
     state.winner = '';
     state.showResultArea = true;
     state.gameHistory.clear();
     state.roadMap.clear();
+    state.shoeRemaining = 0;
     _initializeBigRoad();
   }
 
@@ -415,10 +443,11 @@ class BaccaratSimulationController extends GetxController with GetSingleTickerPr
 
   /// 清空历史记录
   /// 重置所有游戏数据，清空大路图和历史记录
-  void clearHistory() {
+  Future<void> clearHistory() async {
+    if (state.isShuffling || state.isAnimating) return;
     reset();
-    update(); // 触发UI更新
-    // 滚动到起始位置
+    update();
+    await playShuffleAnimation();
     scrollToCurrentPosition(0);
   }
 }

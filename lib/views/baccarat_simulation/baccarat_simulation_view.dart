@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../my_widget/baccarat_big_road_widget.dart';
+import 'baccarat_playing_card_widget.dart';
+import 'baccarat_shuffle_overlay.dart';
 import 'baccarat_simulation_controller.dart';
 import 'baccarat_simulation_state.dart';
 
@@ -19,29 +21,44 @@ class BaccaratSimulationView extends GetView<BaccaratSimulationController> {
         actions: [
           IconButton(
             icon: const Icon(Icons.clear_all),
-            onPressed: controller.clearHistory,
+            onPressed: () {
+              if (controller.state.isShuffling || controller.state.isAnimating) return;
+              controller.clearHistory();
+            },
             tooltip: '清空历史',
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            // 路子图
-            _buildRoadMap(),
-            const SizedBox(height: 24),
-            // 开奖结果区域
-            _buildResultSection(),
-            const SizedBox(height: 24),
-            // 开始按钮
-            _buildStartButton(),
-            const SizedBox(height: 24),
-            // 历史记录
-            _buildHistorySection(),
-          ],
-        ),
+      body: Stack(
+        children: [
+          SingleChildScrollView(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                // 路子图
+                _buildRoadMap(),
+                const SizedBox(height: 24),
+                // 开奖结果区域
+                _buildResultSection(),
+                const SizedBox(height: 24),
+                // 开始按钮
+                _buildStartButton(),
+                const SizedBox(height: 24),
+                // 历史记录
+                _buildHistorySection(),
+              ],
+            ),
+          ),
+          GetBuilder<BaccaratSimulationController>(
+            builder: (controller) {
+              if (!controller.state.isShuffling) {
+                return const SizedBox.shrink();
+              }
+              return const BaccaratShuffleOverlay();
+            },
+          ),
+        ],
       ),
     );
   }
@@ -205,24 +222,16 @@ class BaccaratSimulationView extends GetView<BaccaratSimulationController> {
             ),
             GetBuilder<BaccaratSimulationController>(
               builder: (controller) {
-                if (!controller.state.showResultArea) {
-                  return const SizedBox.shrink();
-                }
-                return AnimatedBuilder(
-                  animation: controller.animationController,
-                  builder: (context, child) {
-                    return Transform.scale(
-                      scale: controller.scaleAnimation.value,
-                      child: _buildResultDisplay(),
-                    );
-                  },
-                );
-              },
-            ),
-            GetBuilder<BaccaratSimulationController>(
-              builder: (controller) {
-                if (controller.state.playerCards.isEmpty) {
-                  return const SizedBox.shrink();
+                final hasCards = controller.state.playerCardsList.isNotEmpty ||
+                    controller.state.bankerCardsList.isNotEmpty;
+                if (!hasCards && !controller.state.isAnimating) {
+                  return Padding(
+                    padding: const EdgeInsets.only(top: 12),
+                    child: Text(
+                      '点击开始模拟',
+                      style: TextStyle(fontSize: 14, color: Colors.grey.shade500),
+                    ),
+                  );
                 }
                 return Column(
                   children: [
@@ -238,37 +247,6 @@ class BaccaratSimulationView extends GetView<BaccaratSimulationController> {
     );
   }
 
-  // 构建结果显示
-  Widget _buildResultDisplay() {
-    return GetBuilder<BaccaratSimulationController>(
-      builder: (controller) {
-        return Container(
-          padding: const EdgeInsets.symmetric(
-            horizontal: 32,
-            vertical: 12,
-          ),
-          decoration: BoxDecoration(
-            color: _getResultColor(controller.state.winner).withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: _getResultColor(controller.state.winner),
-              width: 2,
-            ),
-          ),
-          child: Text(
-            controller.state.currentResult.isEmpty ? '点击开始模拟' : controller.state.currentResult,
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: _getResultColor(controller.state.winner),
-            ),
-            textAlign: TextAlign.center,
-          ),
-        );
-      },
-    );
-  }
-
   // 获取结果颜色
   Color _getResultColor(String winner) {
     switch (winner) {
@@ -281,22 +259,22 @@ class BaccaratSimulationView extends GetView<BaccaratSimulationController> {
     }
   }
 
-  // 构建玩家卡片
   Widget _buildPlayerCards() {
     return GetBuilder<BaccaratSimulationController>(
       builder: (controller) {
         return Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildPlayerCard(
               '闲家',
-              controller.state.playerCards,
+              controller.state.playerCardsList,
               controller.state.playerTotal,
               Colors.blue,
             ),
             _buildPlayerCard(
               '庄家',
-              controller.state.bankerCards,
+              controller.state.bankerCardsList,
               controller.state.bankerTotal,
               Colors.red,
             ),
@@ -306,17 +284,17 @@ class BaccaratSimulationView extends GetView<BaccaratSimulationController> {
     );
   }
 
-  // 构建单个玩家卡片
   Widget _buildPlayerCard(
     String title,
-    String cards,
+    List<Map<String, dynamic>> cards,
     int total,
     Color color,
   ) {
     return Container(
       padding: const EdgeInsets.all(12),
+      constraints: const BoxConstraints(minWidth: 150),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
+        color: color.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(8),
         border: Border.all(color: color, width: 1),
       ),
@@ -330,17 +308,39 @@ class BaccaratSimulationView extends GetView<BaccaratSimulationController> {
               color: color,
             ),
           ),
-          const SizedBox(height: 8),
-          Text(
-            cards,
-            style: const TextStyle(fontSize: 20),
+          const SizedBox(height: 10),
+          SizedBox(
+            height: 76,
+            child: cards.isEmpty
+                ? Center(
+                    child: Text(
+                      '待发牌',
+                      style: TextStyle(fontSize: 14, color: Colors.grey.shade400),
+                    ),
+                  )
+                : Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      for (var i = 0; i < cards.length; i++)
+                        BaccaratPlayingCardWidget(
+                          key: ValueKey('${title}_${i}_${cards[i]['display']}'),
+                          display: cards[i]['display'] as String,
+                          suit: cards[i]['suit'] as String,
+                        ),
+                    ],
+                  ),
           ),
-          Text(
-            '点数: $total',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: color,
+          const SizedBox(height: 6),
+          AnimatedSwitcher(
+            duration: const Duration(milliseconds: 220),
+            child: Text(
+              cards.isEmpty ? '点数: -' : '点数: $total',
+              key: ValueKey('$title-$total-${cards.length}'),
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: color,
+              ),
             ),
           ),
         ],
@@ -348,29 +348,46 @@ class BaccaratSimulationView extends GetView<BaccaratSimulationController> {
     );
   }
 
-  // 构建开始按钮
   Widget _buildStartButton() {
     return GetBuilder<BaccaratSimulationController>(
       builder: (controller) {
-        return ElevatedButton.icon(
-          onPressed: controller.state.isAnimating ? null : controller.startSimulation,
-          icon: controller.state.isAnimating
-              ? const SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                )
-              : const Icon(Icons.casino),
-          label: Text(controller.state.isAnimating ? '模拟中...' : '开始模拟'),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.amber.shade600,
-            foregroundColor: Colors.white,
-            padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-            minimumSize: const Size(200, 50),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
+        return Column(
+          children: [
+            ElevatedButton.icon(
+              onPressed: (controller.state.isAnimating || controller.state.isShuffling)
+                  ? null
+                  : controller.startSimulation,
+              icon: controller.state.isAnimating || controller.state.isShuffling
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Icons.casino),
+              label: Text(
+                controller.state.isShuffling
+                    ? '洗牌中...'
+                    : (controller.state.isAnimating ? '模拟中...' : '开始模拟'),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.amber.shade600,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                minimumSize: const Size(200, 50),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
             ),
-          ),
+            const SizedBox(height: 8),
+            Text(
+              controller.state.isShuffling
+                  ? '8副牌牌靴 · 正在洗牌'
+                  : '8副牌牌靴 · 剩余 ${controller.state.shoeRemaining}/${BaccaratSimulationState.shoeTotalCards} 张'
+                      '${controller.state.shoeRemaining > 0 && controller.state.shoeRemaining <= BaccaratSimulationState.shoeCutCardRemaining ? '（下局换靴）' : ''}',
+              style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
+            ),
+          ],
         );
       },
     );

@@ -10,6 +10,15 @@ class BaccaratSimulationState {
   /// 每个格子的宽度（像素）
   static const double cellWidth = 20.0;
 
+  /// 牌靴副数
+  static const int shoeDeckCount = 8;
+
+  /// 牌靴总张数（8 × 52）
+  static const int shoeTotalCards = 416;
+
+  /// 切牌换靴阈值（剩余张数）
+  static const int shoeCutCardRemaining = 14;
+
   // ***********== 游戏状态 ***********==
   /// 是否正在播放动画
   bool isAnimating = false;
@@ -23,6 +32,12 @@ class BaccaratSimulationState {
   /// 庄家手牌显示文本（如：♦2 ♣5）
   String bankerCards = '';
 
+  /// 发牌动画：当前已展示的闲家牌
+  List<Map<String, dynamic>> playerCardsList = [];
+
+  /// 发牌动画：当前已展示的庄家牌
+  List<Map<String, dynamic>> bankerCardsList = [];
+
   /// 闲家总点数（0-9）
   int playerTotal = 0;
 
@@ -34,6 +49,12 @@ class BaccaratSimulationState {
 
   /// 是否显示开奖结果区域
   bool showResultArea = true;
+
+  /// 当前牌靴剩余张数
+  int shoeRemaining = 0;
+
+  /// 是否正在播放洗牌动画
+  bool isShuffling = false;
 
   // ***********== 历史记录和路子图 ***********==
   /// 游戏历史记录列表（最多保存20局）

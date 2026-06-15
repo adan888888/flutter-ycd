@@ -152,7 +152,7 @@ class _SimulationScreenState extends State<SimulationScreen> {
               children: [
                 ElevatedButton(
                   onPressed: isSimulating ? null : startSimulation,
-                  child: const Text('开始模拟'),
+                  child: const Text('开始'),
                 ),
                 const SizedBox(width: 16),
                 ElevatedButton(
