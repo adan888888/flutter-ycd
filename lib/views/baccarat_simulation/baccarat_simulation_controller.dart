@@ -174,6 +174,17 @@ class BaccaratSimulationController extends GetxController {
     var playerTotal = _calculateBaccaratTotal(playerCards);
     var bankerTotal = _calculateBaccaratTotal(bankerCards);
 
+    // 天牌（例牌）：任一方前两张为 8 或 9，双方均不补牌
+    if (playerTotal >= 8 || bankerTotal >= 8) {
+      return _BaccaratHandResult(
+        playerCards: playerCards,
+        bankerCards: bankerCards,
+        playerTotal: playerTotal,
+        bankerTotal: bankerTotal,
+        steps: steps,
+      );
+    }
+
     // 第三张牌规则
     final playerGetsThird = playerTotal <= 5;
     if (playerGetsThird) {
