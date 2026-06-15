@@ -16,8 +16,9 @@ class BaccaratSimulationState {
   /// 牌靴总张数（8 × 52）
   static const int shoeTotalCards = 416;
 
-  /// 切牌换靴阈值（剩余张数）
-  static const int shoeCutCardRemaining = 14;
+  /// 切牌剩余张数随机范围
+  static const int shoeCutCardMinRemaining = 12;
+  static const int shoeCutCardMaxRemaining = 20;
 
   // ***********== 游戏状态 ***********==
   /// 是否正在播放动画
@@ -52,6 +53,15 @@ class BaccaratSimulationState {
 
   /// 当前牌靴剩余张数
   int shoeRemaining = 0;
+
+  /// 本靴切牌位（剩余 ≤ 该值时换靴，洗牌后点击随机）
+  int shoeCutCardRemaining = shoeCutCardMaxRemaining;
+
+  /// 洗牌完成，等待用户随机切牌位后方可发牌
+  bool awaitingCutCard = false;
+
+  /// 本靴切牌位是否已随机
+  bool shoeCutCardChosen = false;
 
   /// 是否正在播放洗牌动画
   bool isShuffling = false;

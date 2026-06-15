@@ -221,6 +221,9 @@ class BaccaratSimulationView extends GetView<BaccaratSimulationController> {
               ),
             ),
             GetBuilder<BaccaratSimulationController>(
+              builder: (controller) => _buildShoeInfoPanel(controller),
+            ),
+            GetBuilder<BaccaratSimulationController>(
               builder: (controller) {
                 final hasCards =
                     controller.state.playerCardsList.isNotEmpty || controller.state.bankerCardsList.isNotEmpty;
@@ -245,6 +248,90 @@ class BaccaratSimulationView extends GetView<BaccaratSimulationController> {
         ),
       ),
     );
+  }
+
+  Widget _buildShoeInfoPanel(BaccaratSimulationController controller) {
+    final state = controller.state;
+    if (state.isShuffling) {
+      return Padding(
+        padding: const EdgeInsets.only(top: 10),
+        child: Text(
+          '8副牌牌靴 · 正在洗牌',
+          style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
+        ),
+      );
+    }
+    if (state.awaitingCutCard) {
+      return Container(
+        width: double.infinity,
+        margin: const EdgeInsets.only(top: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        decoration: BoxDecoration(
+          color: Colors.blue.shade50,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: Colors.blue.shade200),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              '洗牌完成',
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: Colors.grey.shade800,
+              ),
+            ),
+            const SizedBox(height: 6),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  '牌靴剩余',
+                  style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
+                ),
+                Text(
+                  '${state.shoeRemaining}/${BaccaratSimulationState.shoeTotalCards} 张',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.blue.shade800,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 4),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  '切牌位',
+                  style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
+                ),
+                Text(
+                  state.shoeCutCardChosen
+                      ? '≤ ${state.shoeCutCardRemaining} 张'
+                      : '请点击随机',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: state.shoeCutCardChosen ? Colors.blue.shade800 : Colors.grey.shade500,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            FilledButton.icon(
+              onPressed: controller.randomizeCutCard,
+              icon: const Icon(Icons.content_cut, size: 18),
+              label: const Text('随机切牌'),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return const SizedBox.shrink();
   }
 
   // 获取结果颜色
@@ -292,8 +379,11 @@ class BaccaratSimulationView extends GetView<BaccaratSimulationController> {
         return Column(
           children: [
             ElevatedButton.icon(
-              onPressed:
-                  (controller.state.isAnimating || controller.state.isShuffling) ? null : controller.startSimulation,
+              onPressed: (controller.state.isAnimating ||
+                      controller.state.isShuffling ||
+                      controller.state.awaitingCutCard)
+                  ? null
+                  : controller.startSimulation,
               icon: controller.state.isAnimating || controller.state.isShuffling
                   ? const SizedBox(
                       width: 20,
@@ -302,7 +392,11 @@ class BaccaratSimulationView extends GetView<BaccaratSimulationController> {
                     )
                   : const Icon(Icons.casino),
               label: Text(
-                controller.state.isShuffling ? '洗牌中...' : (controller.state.isAnimating ? '发牌中...' : '发牌'),
+                controller.state.isShuffling
+                    ? '洗牌中...'
+                    : (controller.state.isAnimating
+                        ? '发牌中...'
+                        : (controller.state.awaitingCutCard ? '请先切牌' : '发牌')),
               ),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.amber.shade600,
@@ -318,8 +412,11 @@ class BaccaratSimulationView extends GetView<BaccaratSimulationController> {
             Text(
               controller.state.isShuffling
                   ? '8副牌牌靴 · 正在洗牌'
-                  : '8副牌牌靴 · 剩余 ${controller.state.shoeRemaining}/${BaccaratSimulationState.shoeTotalCards} 张'
-                      '${controller.state.shoeRemaining > 0 && controller.state.shoeRemaining <= BaccaratSimulationState.shoeCutCardRemaining ? '（本靴已发完）' : ''}',
+                  : controller.state.awaitingCutCard
+                      ? '8副牌牌靴 · 洗牌完成，请先随机切牌位'
+                      : '8副牌牌靴 · 剩余 ${controller.state.shoeRemaining}/${BaccaratSimulationState.shoeTotalCards} 张'
+                          ' · 切牌≤${controller.state.shoeCutCardRemaining}'
+                          '${controller.state.shoeRemaining > 0 && controller.state.shoeRemaining <= controller.state.shoeCutCardRemaining ? '（本靴已发完）' : ''}',
               style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
             ),
           ],

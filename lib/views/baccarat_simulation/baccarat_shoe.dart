@@ -8,8 +8,9 @@ class BaccaratShoe {
   static const int cardsPerDeck = 52;
   static const int totalCards = deckCount * cardsPerDeck;
 
-  /// 剩余张数 ≤ 该值时，下一局开始前换新靴（常见切牌约 14 张）
-  static const int cutCardRemaining = 14;
+  /// 切牌剩余张数随机范围（含两端）
+  static const int cutCardMinRemaining = 12;
+  static const int cutCardMaxRemaining = 20;
 
   /// 单局最多发 6 张，低于此值必须换靴
   static const int minCardsPerHand = 6;
@@ -21,12 +22,25 @@ class BaccaratShoe {
   final List<Map<String, dynamic>> _cards = [];
   int _drawIndex = 0;
 
+  /// 本靴切牌位：剩余张数 ≤ 该值时换靴（洗牌后由用户点击随机）
+  int _cutCardRemaining = cutCardMaxRemaining;
+
   int get remaining => _cards.length - _drawIndex;
 
-  bool get needsReshuffle =>
-      remaining == 0 || remaining < minCardsPerHand || remaining <= cutCardRemaining;
+  int get cutCardRemaining => _cutCardRemaining;
 
-  /// 新靴：8 副共 416 张，洗牌
+  bool get hasActiveShoe => _cards.isNotEmpty && remaining > 0;
+
+  bool get needsReshuffle =>
+      !hasActiveShoe || remaining < minCardsPerHand || remaining <= _cutCardRemaining;
+
+  /// 随机本靴切牌位（12～20 张）
+  void randomizeCutCard() {
+    _cutCardRemaining = cutCardMinRemaining +
+        _random.nextInt(cutCardMaxRemaining - cutCardMinRemaining + 1);
+  }
+
+  /// 新靴：8 副共 416 张洗牌（切牌在洗牌之后进行）
   void shuffle() {
     _cards.clear();
     _drawIndex = 0;

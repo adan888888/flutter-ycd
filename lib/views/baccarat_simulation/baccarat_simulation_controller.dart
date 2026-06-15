@@ -60,7 +60,7 @@ class BaccaratSimulationController extends GetxController {
   @override
   void onReady() {
     super.onReady();
-    unawaited(playShuffleAnimation());
+    unawaited(startNewShoe());
   }
 
   @override
@@ -114,8 +114,33 @@ class BaccaratSimulationController extends GetxController {
     });
   }
 
-  void _syncShoeRemaining() {
+  void _syncShoeState() {
     state.shoeRemaining = _shoe.remaining;
+    state.shoeCutCardRemaining = _shoe.cutCardRemaining;
+  }
+
+  /// 开始新靴：先洗牌，再等待用户随机切牌位
+  Future<void> startNewShoe() async {
+    if (state.isShuffling) return;
+
+    await playShuffleAnimation();
+
+    state.awaitingCutCard = true;
+    state.shoeCutCardChosen = false;
+    state.shoeCutCardRemaining = 0;
+    _syncShoeState();
+    update();
+  }
+
+  /// 随机本靴切牌位（12～20 张），完成后可发牌
+  void randomizeCutCard() {
+    if (!state.awaitingCutCard || state.isShuffling) return;
+
+    _shoe.randomizeCutCard();
+    state.shoeCutCardChosen = true;
+    state.awaitingCutCard = false;
+    _syncShoeState();
+    update();
   }
 
   /// 播放 8 副牌洗牌动画（动画开始时立即洗牌）
@@ -125,7 +150,7 @@ class BaccaratSimulationController extends GetxController {
     state.isShuffling = true;
     state.isAnimating = true;
     _shoe.shuffle();
-    _syncShoeRemaining();
+    _syncShoeState();
     update();
 
     await Future.delayed(BaccaratShuffleOverlay.animationDuration);
@@ -260,7 +285,9 @@ class BaccaratSimulationController extends GetxController {
       AlertDialog(
         title: const Text('本靴牌已发完'),
         content: Text(
-          '当前剩余 ${_shoe.remaining} 张，已不足继续发牌。\n是否开始下一靴？',
+          '当前剩余 ${_shoe.remaining} 张（本靴切牌位：≤ ${_shoe.cutCardRemaining} 张），\n'
+          '已不足继续发牌。是否开始下一靴？\n\n'
+          '确认后将先洗牌，再随机切牌位。',
         ),
         actions: [
           TextButton(
@@ -277,8 +304,8 @@ class BaccaratSimulationController extends GetxController {
     );
 
     if (confirmed != true) return false;
-    await playShuffleAnimation();
-    return true;
+    unawaited(startNewShoe());
+    return false;
   }
 
   Future<void> _revealDealSteps(List<_DealStep> steps) async {
@@ -301,7 +328,7 @@ class BaccaratSimulationController extends GetxController {
   /// 开始模拟
   /// 按百家乐顺序逐张发牌并播放动画
   Future<void> startSimulation() async {
-    if (state.isAnimating || state.isShuffling) return;
+    if (state.isAnimating || state.isShuffling || state.awaitingCutCard) return;
 
     if (_shoe.needsReshuffleBeforeHand()) {
       final ok = await _promptStartNextShoe();
@@ -310,12 +337,12 @@ class BaccaratSimulationController extends GetxController {
 
     startAnimation();
     _clearDealingBoard();
-    _syncShoeRemaining();
+    _syncShoeState();
     update();
 
     final hand = _prepareBaccaratHand();
     await _revealDealSteps(hand.steps);
-    _syncShoeRemaining();
+    _syncShoeState();
 
     final playerCards = _cardsToDisplay(hand.playerCards);
     final bankerCards = _cardsToDisplay(hand.bankerCards);
@@ -508,8 +535,7 @@ class BaccaratSimulationController extends GetxController {
   Future<void> clearHistory() async {
     if (state.isShuffling || state.isAnimating) return;
     reset();
-    update();
-    await playShuffleAnimation();
     scrollToCurrentPosition(0);
+    await startNewShoe();
   }
 }
