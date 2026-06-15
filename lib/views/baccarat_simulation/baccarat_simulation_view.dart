@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../my_widget/baccarat_big_road_widget.dart';
-import 'baccarat_playing_card_widget.dart';
+import 'baccarat_hand_panel.dart';
 import 'baccarat_shuffle_overlay.dart';
 import 'baccarat_simulation_controller.dart';
 import 'baccarat_simulation_state.dart';
@@ -266,85 +266,23 @@ class BaccaratSimulationView extends GetView<BaccaratSimulationController> {
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildPlayerCard(
-              '闲家',
-              controller.state.playerCardsList,
-              controller.state.playerTotal,
-              Colors.blue,
+            BaccaratHandPanel(
+              title: '闲家',
+              cards: controller.state.playerCardsList,
+              total: controller.state.playerTotal,
+              color: Colors.blue,
+              flash: controller.state.winnerFlashSide == 'player',
             ),
-            _buildPlayerCard(
-              '庄家',
-              controller.state.bankerCardsList,
-              controller.state.bankerTotal,
-              Colors.red,
+            BaccaratHandPanel(
+              title: '庄家',
+              cards: controller.state.bankerCardsList,
+              total: controller.state.bankerTotal,
+              color: Colors.red,
+              flash: controller.state.winnerFlashSide == 'banker',
             ),
           ],
         );
       },
-    );
-  }
-
-  Widget _buildPlayerCard(
-    String title,
-    List<Map<String, dynamic>> cards,
-    int total,
-    Color color,
-  ) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      constraints: const BoxConstraints(minWidth: 150),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: color, width: 1),
-      ),
-      child: Column(
-        children: [
-          Text(
-            title,
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: color,
-            ),
-          ),
-          const SizedBox(height: 10),
-          SizedBox(
-            height: 76,
-            child: cards.isEmpty
-                ? Center(
-                    child: Text(
-                      '待发牌',
-                      style: TextStyle(fontSize: 14, color: Colors.grey.shade400),
-                    ),
-                  )
-                : Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      for (var i = 0; i < cards.length; i++)
-                        BaccaratPlayingCardWidget(
-                          key: ValueKey('${title}_${i}_${cards[i]['display']}'),
-                          display: cards[i]['display'] as String,
-                          suit: cards[i]['suit'] as String,
-                        ),
-                    ],
-                  ),
-          ),
-          const SizedBox(height: 6),
-          AnimatedSwitcher(
-            duration: const Duration(milliseconds: 220),
-            child: Text(
-              cards.isEmpty ? '点数: -' : '点数: $total',
-              key: ValueKey('$title-$total-${cards.length}'),
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: color,
-              ),
-            ),
-          ),
-        ],
-      ),
     );
   }
 

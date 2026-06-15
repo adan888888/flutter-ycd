@@ -56,6 +56,9 @@ class BaccaratSimulationState {
   /// 是否正在播放洗牌动画
   bool isShuffling = false;
 
+  /// 发牌结束后闪动底包：player / banker / 空
+  String winnerFlashSide = '';
+
   // ***********== 历史记录和路子图 ***********==
   /// 游戏历史记录列表（最多保存20局）
   List<Map<String, dynamic>> gameHistory = [];

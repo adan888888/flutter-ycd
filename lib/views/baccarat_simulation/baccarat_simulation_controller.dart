@@ -224,6 +224,21 @@ class BaccaratSimulationController extends GetxController {
     state.bankerTotal = 0;
     state.winner = '';
     state.currentResult = '';
+    state.winnerFlashSide = '';
+  }
+
+  Future<void> _playWinnerFlash(String winner) async {
+    if (winner == '闲家') {
+      state.winnerFlashSide = 'player';
+    } else if (winner == '庄家') {
+      state.winnerFlashSide = 'banker';
+    } else {
+      return;
+    }
+    update();
+    await Future.delayed(const Duration(milliseconds: 900));
+    state.winnerFlashSide = '';
+    update();
   }
 
   Future<void> _revealDealSteps(List<_DealStep> steps) async {
@@ -289,6 +304,8 @@ class BaccaratSimulationController extends GetxController {
       winner: winner,
       currentResult: currentResult,
     );
+
+    await _playWinnerFlash(winner);
 
     addGameRecord({
       'playerCards': playerCards,
@@ -379,6 +396,7 @@ class BaccaratSimulationController extends GetxController {
     state.playerTotal = 0;
     state.bankerTotal = 0;
     state.winner = '';
+    state.winnerFlashSide = '';
     state.showResultArea = true;
     state.gameHistory.clear();
     state.roadMap.clear();
