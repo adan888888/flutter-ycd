@@ -272,7 +272,9 @@ class HttpService {
   }) {
     if (ApiCodePolicy.isSuccess(model.code)) {
       final dynamic d = model.data;
-      final listResult = d is List ? List<dynamic>.from(d) : <dynamic>[];
+      final listResult = d is List
+          ? List<dynamic>.from(d)
+          : (d is Map ? [d] : <dynamic>[]);
       if (onModel == null) {
         success(true, model.code, model.msg, List<T>.from(listResult));
       } else {

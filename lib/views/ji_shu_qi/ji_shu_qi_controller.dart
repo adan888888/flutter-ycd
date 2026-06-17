@@ -586,15 +586,31 @@ class JiShuQiController extends GetxController {
     Get.bottomSheet(SinglePicker(darkTextColor: state.darkTextColor));
   }
 
+  double _commissionRate() {
+    if (state.totalValue.length <= 31) return 0.95;
+    final raw = state.totalValue[31].toString();
+    if (raw.isEmpty || raw == '31') return 0.95;
+    return double.tryParse(raw) ?? 0.95;
+  }
+
+  double? _parseStatDouble(dynamic raw) {
+    final s = MyCharacter.removeChineseCharacters(raw.toString()).trim();
+    if (s.isEmpty || s == '-') return null;
+    return double.tryParse(s);
+  }
+
   String pVal2() {
     if (state.bettingMoney.isEmpty || !state.bettingMoney.isNum) return '';
-    var val = state.randomValue == '庄'
-        ? (double.parse(textEditingController.text) * double.parse(state.totalValue[31])).toStringAsFixed(2)
+    final bet = double.tryParse(textEditingController.text);
+    if (bet == null) return '';
+    final val = state.randomValue == '庄'
+        ? (bet * _commissionRate()).toStringAsFixed(2)
         : textEditingController.text;
-    var x = double.parse(state.totalValue[18]); //总输赢
-    var y = double.parse(val); //输入框下注额
-    var z = double.parse(MyCharacter.removeChineseCharacters(state.totalValue[14])); //净胜
-    var z1 = double.parse(MyCharacter.removeChineseCharacters(state.totalValue[14])).abs(); //净胜绝对值
+    final x = _parseStatDouble(state.totalValue[18]); //总输赢
+    final y = double.tryParse(val); //输入框下注额
+    final z = _parseStatDouble(state.totalValue[14]); //净胜
+    if (x == null || y == null || z == null) return '';
+    final z1 = z.abs(); //净胜绝对值
     if (z == 0) {
       return "回合结束";
     } else if (z > 0) /*赢>输的情况*/ {
@@ -612,13 +628,16 @@ class JiShuQiController extends GetxController {
 
   String pVal1() {
     if (state.bettingMoney.isEmpty || !state.bettingMoney.isNum) return '';
-    var val = state.randomValue == '庄'
-        ? (double.parse(textEditingController.text) * double.parse(state.totalValue[31])).toStringAsFixed(2)
+    final bet = double.tryParse(textEditingController.text);
+    if (bet == null) return '';
+    final val = state.randomValue == '庄'
+        ? (bet * _commissionRate()).toStringAsFixed(2)
         : textEditingController.text;
-    var x = double.parse(state.totalValue[17]); //总输赢
-    var y = double.parse(val); //输入框下注额
-    var z = double.parse(MyCharacter.removeChineseCharacters(state.totalValue[13])); //净胜
-    var z1 = double.parse(MyCharacter.removeChineseCharacters(state.totalValue[13])).abs(); //净胜绝对值
+    final x = _parseStatDouble(state.totalValue[17]); //总输赢
+    final y = double.tryParse(val); //输入框下注额
+    final z = _parseStatDouble(state.totalValue[13]); //净胜
+    if (x == null || y == null || z == null) return '';
+    final z1 = z.abs(); //净胜绝对值
     if (z == 0) {
       return "回合结束";
     } else if (z > 0) /*赢>输的情况*/ {
@@ -823,7 +842,11 @@ class JiShuQiController extends GetxController {
             ..addAll({"user_id": int.parse(GetStore.getInstance().userModel.userId)}),
           success: (isSuccess, code, message, results) {
             if (results.isNotEmpty) {
-              state.table2List.add(results.first..seq = state.table2List.last.seq! + 1);
+              final row = results.first;
+              row.seq = state.table2List.isEmpty
+                  ? 1
+                  : (state.table2List.last.seq ?? state.table2List.length) + 1;
+              state.table2List.add(row);
             }
             update(); // 先让 ListView 用新 itemCount 布局，再滚到底才准
             scrollBettingListToBottom();
@@ -1244,9 +1267,13 @@ class JiShuQiController extends GetxController {
         );
         break;
       case 5: //重置流水
+        if (state.table2List.isEmpty) {
+          BXLoading.showToast('暂无投注记录');
+          break;
+        }
         BXPost(
           Api.resetliushui,
-          params: {"resetIndex": (state.table2List.last.id)},
+          params: {"resetIndex": state.table2List.last.id},
           success: (bool isSuccess, int code, String message, List<dynamic> results) {},
         );
         break;
