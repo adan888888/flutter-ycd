@@ -131,13 +131,24 @@ class JiShuQiState {
   Color get buttonLossTextColor => negativeColor;
 
   /// 根据值判断字体颜色
-  Color getValueColor(String value) {
-    return value.startsWith('-') ? negativeColor : positiveColor;
+  Color getValueColor(dynamic value) {
+    if (value is num) {
+      return value < 0 ? negativeColor : positiveColor;
+    }
+    final text = value?.toString() ?? '';
+    return text.startsWith('-') ? negativeColor : positiveColor;
   }
 
   /// 输赢列展示：小数不足两位时补足两位；已满两位或更多则保持原样
-  String formatShuyingzhiColumn(String? raw) {
-    if (raw == null || raw.trim().isEmpty) return '';
+  String formatShuyingzhiColumn(dynamic raw) {
+    if (raw == null) return '';
+    if (raw is num) {
+      final n = raw.toDouble();
+      if (n == 0) return '0.00';
+      final body = n.abs().toStringAsFixed(2);
+      return n < 0 ? '-$body' : '+$body';
+    }
+    if (raw is! String) return raw.toString();
     final s = raw.trim();
     final negative = s.startsWith('-');
     final positive = s.startsWith('+');
@@ -189,11 +200,10 @@ class JiShuQiState {
         '7.备份数据',
         '8.重启系统',
         '9.修改期望值',
-        '10.恢复数据',
-        '11.修改赔率',
-        '12.退出程序',
-        isSeqVisible ? '13.隐藏序号' : '13.显示序号',
-        isRedWinGreenLose ? '14.红输绿赢' : '14.红赢绿输',
+        '10.修改赔率',
+        '11.退出程序',
+        isSeqVisible ? '12.隐藏序号' : '12.显示序号',
+        isRedWinGreenLose ? '13.红输绿赢' : '13.红赢绿输',
       ];
   var description = [
     {"本金", "总局数", "回合局数", "流水"},

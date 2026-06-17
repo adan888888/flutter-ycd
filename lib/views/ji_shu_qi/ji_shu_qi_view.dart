@@ -452,7 +452,7 @@ class JiShuQiView extends GetView<JiShuQiController> {
           final isRestartRow = restartSnapshot.isNotEmpty;
           final rowId = controller.state.table2List[index].id;
           final isEyeRow = rowId != null && rowId != 0 && rowId == controller.state.currentTempIndex;
-          final shuyingRaw = controller.state.table2List[index].colmunShuyingzhi?.toString() ?? '';
+          final shuyingRaw = controller.state.table2List[index].shuyingzhi;
           final shuyingDisplay = controller.state.formatShuyingzhiColumn(shuyingRaw);
 
           return Container(
@@ -579,42 +579,49 @@ class JiShuQiView extends GetView<JiShuQiController> {
                 // 消数列：与输赢列均分剩余宽度；数字区过长缩小字体，右侧保留删除图标
                 Expanded(
                   flex: 1,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Expanded(
-                        child: Align(
-                          alignment: Alignment.centerRight,
-                          child: FittedBox(
-                            fit: BoxFit.scaleDown,
-                            alignment: Alignment.centerRight,
-                            child: Text(
-                              "${controller.state.table2List[index].colmunShuyingzhiD}",
-                              maxLines: 1,
-                              textAlign: TextAlign.right,
-                              style: TextStyle(
-                                fontSize: 12.5,
-                                fontWeight: FontWeight.w200,
-                                color: controller.state
-                                    .getValueColor(controller.state.table2List[index].colmunShuyingzhiD.toString()),
+                  child: Builder(
+                    builder: (context) {
+                      final xiaoshu = controller.state.table2List[index].shuyingzhiXiaoshu;
+                      final xiaoshuText = controller.state.formatShuyingzhiColumn(xiaoshu);
+                      return Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Expanded(
+                            child: Align(
+                              alignment: Alignment.centerRight,
+                              child: FittedBox(
+                                fit: BoxFit.scaleDown,
+                                alignment: Alignment.centerRight,
+                                child: Text(
+                                  xiaoshuText,
+                                  maxLines: 1,
+                                  textAlign: TextAlign.right,
+                                  style: TextStyle(
+                                    fontSize: 12.5,
+                                    fontWeight: FontWeight.w200,
+                                    color: xiaoshuText.isEmpty
+                                        ? controller.state.currentTextColor.withValues(alpha: 0.0)
+                                        : controller.state.getValueColor(xiaoshu),
+                                  ),
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                      ),
-                      Visibility(
-                        visible: (controller.state.table2List[index].colmunShuyingzhiD ?? '').isNotEmpty,
-                        child: GestureDetector(
-                          onTap: () => controller.updateLists(index),
-                          child: Icon(
-                            Icons.close,
-                            size: 16,
-                            color: controller.state.currentTextColor.withValues(alpha: 0.75),
-                          ),
-                        ),
-                      )
-                    ],
+                          Visibility(
+                            visible: xiaoshu != null,
+                            child: GestureDetector(
+                              onTap: () => controller.updateLists(index),
+                              child: Icon(
+                                Icons.close,
+                                size: 16,
+                                color: controller.state.currentTextColor.withValues(alpha: 0.75),
+                              ),
+                            ),
+                          )
+                        ],
+                      );
+                    },
                   ),
                 ),
                 //下注值列：宽约 5 个数字；过长时整体缩小字体（与统计区 FittedBox 一致）
@@ -626,7 +633,7 @@ class JiShuQiView extends GetView<JiShuQiController> {
                       fit: BoxFit.scaleDown,
                       alignment: Alignment.centerRight,
                       child: Text(
-                        "${controller.state.table2List[index].columnXiazhujine}",
+                        "${controller.state.table2List[index].xiazhujine}",
                         maxLines: 1,
                         textAlign: TextAlign.right,
                         style: TextStyle(
@@ -671,8 +678,8 @@ class JiShuQiView extends GetView<JiShuQiController> {
 
   _sflContainer(int index) => GetBuilder<JiShuQiController>(
         builder: (controller) {
-          final isZhengDa = controller.state.table2List[index].colmunShengfulu == '正打';
-          final isLose = controller.state.table2List[index].colmunRemark?.startsWith('-') ?? false;
+          final isZhengDa = controller.state.table2List[index].shengfulu == '正打';
+          final isLose = controller.state.table2List[index].remark?.startsWith('-') ?? false;
           final dividerColor = controller.state.isDarkMode ? Colors.white24 : Colors.grey.withValues(alpha: 0.5);
 
           if (isZhengDa) {
@@ -1129,7 +1136,7 @@ class JiShuQiView extends GetView<JiShuQiController> {
   Widget _buildShuyingzhiText({
     required JiShuQiController controller,
     required String display,
-    required String raw,
+    required dynamic raw,
     required double fontSize,
   }) {
     final color = controller.state.getValueColor(raw);

@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 
@@ -8,11 +7,8 @@ import 'package:easy_refresh/easy_refresh.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screen_lock/flutter_screen_lock.dart';
 import 'package:get/get.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:sqflite/sqflite.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 import 'package:ycd/model/linechart_data_model.dart';
-import 'package:ycd/my_db/db_helper.dart';
 import 'package:ycd/my_db/table1_model.dart';
 import 'package:ycd/my_db/table2_model.dart';
 import 'package:ycd/my_widget/custom_dialog.dart';
@@ -30,7 +26,6 @@ class JiShuQiController extends GetxController {
   EasyRefreshController refreshcontroller = EasyRefreshController(
       controlFinishRefresh: true, controlFinishLoad: true);
   final JiShuQiState state = JiShuQiState();
-  Future<Database>? _instance;
 
   final scrollController = ScrollController();
   final textEditingController = TextEditingController();
@@ -511,8 +506,8 @@ class JiShuQiController extends GetxController {
           state.table1List.clear();
           if (value.isNotEmpty) {
             state.table1List = value;
-            state.totalValue[0] = '${state.table1List.last.columnBenjin}'; //本金
-            state.totalValue[19] = '${state.table1List.last.columnMean}'; //期望值
+            state.totalValue[0] = '${state.table1List.last.benjin}'; //本金
+            state.totalValue[19] = '${state.table1List.last.mean}'; //期望值
             // 折线形状必须由 [_getLineCharts]（table2 末尾或 linechartData）提供；此处若用本金铺满 75 点，
             // 会在接口已画出真实曲线之后覆盖成一条水平线（本金为 0 时即为「全 0」）。
             _syncLocalTempIndexWithBackendState();
@@ -572,35 +567,31 @@ class JiShuQiController extends GetxController {
     final table = tableName == 'table2'
         ? Table2Model(
             id: state.table2List.length + 1,
-            //mysql数据库下标是从1开始的
-            columnXiazhujine: state.bettingMoney,
-            //记录开出的庄闲
-            colmunZx: (i == 2 || i == 3) ? '庄' : '闲',
-            //输（-） 赢 （+）
-            colmunRemark: (i == 1 || i == 2) ? "1" : "-1",
-            colmunShengfulu:
+            xiazhujine: double.tryParse(state.bettingMoney),
+            zx: (i == 2 || i == 3) ? '庄' : '闲',
+            remark: (i == 1 || i == 2) ? "1" : "-1",
+            shengfulu:
                 ((i == 1 || i == 3) && (state.randomValue == '闲')) ||
                         ((i == 2 || i == 4) && (state.randomValue == '庄'))
                     ? "正打"
                     : "反打",
-            colmunShuyingzhi: syzL(i),
-            colmunShuyingzhiD: syzL(i),
-            columnCurrentJin:
-                getCurrentJin(i, double.parse(state.bettingMoney)).toString(),
+            shuyingzhi: syzLAmount(i),
+            shuyingzhiXiaoshu: syzLAmount(i),
+            currentJin: getCurrentJin(i, double.parse(state.bettingMoney)),
           )
         : Table1Model(
-            columnBenjin: "10000",
-            columnYongJin: "0.95",
-            columnMean: "0.08",
-            columnRestartIndex: "0",
-            columnLiushuiIndex: "10");
+            benjin: 10000,
+            yongjin: 0.95,
+            mean: 0.08,
+            restartIndex: 0,
+            liushuiIndex: 10);
 
     ///改变成插入远程数据库
     if (tableName == 'table1') {
       BXPut<Table1Model>(Api.inserttable1,
           params: (table as Table1Model).toJson()
             ..addAll(
-                {"UserID": int.parse(GetStore.getInstance().userModel.userId)}),
+                {"user_id": int.parse(GetStore.getInstance().userModel.userId)}),
           success: (isSuccess, code, message, results) =>
               BXLoading.showToast("操作表1"),
           failed: (p0, p1) => state.isCanPress = true,
@@ -611,7 +602,7 @@ class JiShuQiController extends GetxController {
           params: (table as Table2Model).toJson()
             ..remove("table2Id")
             ..addAll(
-                {"UserID": int.parse(GetStore.getInstance().userModel.userId)}),
+                {"user_id": int.parse(GetStore.getInstance().userModel.userId)}),
           success: (isSuccess, code, message, results) {
             if (results.isNotEmpty) {
               state.table2List
@@ -633,7 +624,7 @@ class JiShuQiController extends GetxController {
   void _getLineCharts({bool applyStatsTail = false}) {
     final gen = ++_lineChartRequestGen;
     final benjin = state.table1List.isNotEmpty
-        ? double.tryParse(state.table1List.last.columnBenjin.toString())
+        ? double.tryParse(state.table1List.last.benjin.toString())
         : null;
     void resetChartPad(double p) {
       if (state.chartData.length != 75) {
@@ -655,12 +646,9 @@ class JiShuQiController extends GetxController {
       final n = list.length;
       final start = n - 75;
       for (var k = 0; k < 75; k++) {
-        final v = list[start + k].columnCurrentJin;
-        if (v != null && v.isNotEmpty) {
-          final parsed = double.tryParse(v);
-          if (parsed != null) {
-            state.chartData[k].sales = parsed;
-          }
+        final v = list[start + k].currentJin;
+        if (v != null) {
+          state.chartData[k].sales = v;
         }
       }
       if (applyStatsTail) {
@@ -729,22 +717,34 @@ class JiShuQiController extends GetxController {
     }
   }
 
-  syzL(int i) {
+  double? syzLAmount(int i) {
+    final bet = double.tryParse(state.bettingMoney);
+    if (bet == null) return null;
     switch (i) {
-      case 1: //闲赢
-        return '+${state.bettingMoney}';
-      case 2: //庄赢：下注×赔率（不含加回本金）。注意不可用 toStringAsFixed(2)，否则 0.095 会变成 0.10
-        double parse = double.parse(state.bettingMoney);
-        final xx = parse *
-            double.parse(
-                state.totalValue[31] == "31" || state.totalValue[31] == ""
-                    ? "0.95"
-                    : state.totalValue[31]);
-        return '+${_formatZhuangYingShuying(xx)}';
+      case 1:
+        return bet;
+      case 2:
+        final odds = double.tryParse(
+                state.totalValue[31] == "31" || state.totalValue[31] == "" ? "0.95" : state.totalValue[31]) ??
+            0.95;
+        return bet * odds;
       case 3:
       case 4:
-        return '-${state.bettingMoney}';
+        return -bet;
+      default:
+        return null;
     }
+  }
+
+  String syzL(int i) {
+    final amount = syzLAmount(i);
+    if (amount == null) return '';
+    if (amount > 0) {
+      return amount == double.parse(state.bettingMoney) && i == 1
+          ? '+${state.bettingMoney}'
+          : '+${_formatZhuangYingShuying(amount)}';
+    }
+    return '-${state.bettingMoney}';
   }
 
   /// 庄赢输赢字符串：去掉末尾多余 0，避免 0.095 被格式化成与 0.1 混淆。
@@ -792,10 +792,10 @@ class JiShuQiController extends GetxController {
       Api.xiaoshu,
       isShowLoading: false,
       params: state.table2List[index].toJson()
-        ..update("colmun_shuyingzhi_d", (value) => ""),
+        ..update("shuyingzhi_xiaoshu", (value) => null),
       success: (isSuccess, code, message, results) {
         if (isSuccess) {
-          state.table2List[index].colmunShuyingzhiD = "";
+          state.table2List[index].shuyingzhiXiaoshu = null;
           Future.delayed(const Duration(milliseconds: 500), () {
             BXLoading.dismiss();
             update();
@@ -878,7 +878,7 @@ class JiShuQiController extends GetxController {
         if (isSuccess) {
           state.table1List = value;
           state.table2List = state.table2List
-              .map((element) => element..colmunShuyingzhiD = "")
+              .map((element) => element..shuyingzhiXiaoshu = null)
               .toList();
           if (snapshot.isNotEmpty && state.table2List.isNotEmpty) {
             state.table2List.last.restartStatSnapshot = snapshot;
@@ -941,7 +941,7 @@ class JiShuQiController extends GetxController {
       params: {"benjin": b},
       success: (isSuccess, code, message, value) {
         if (isSuccess) {
-          BXLoading.showToast("${value.last.columnBenjin}");
+          BXLoading.showToast("${value.last.benjin}");
           state.totalValue[0] = b;
           state.totalValue[4] = (double.parse(state.totalValue[0]) +
                   double.parse(state.totalValue[17]))
@@ -977,7 +977,7 @@ class JiShuQiController extends GetxController {
       case 1: //清除数据（消数列数据全部清除）
         int count = 0;
         for (var _ in state.table2List) {
-          state.table2List[count].colmunShuyingzhiD = "";
+          state.table2List[count].shuyingzhiXiaoshu = null;
           update();
           count++;
         }
@@ -1105,11 +1105,7 @@ class JiShuQiController extends GetxController {
         }
         updateQiWangZhi(s);
         break;
-      case 9: //恢复数据
-        BXLoading.show(douyinStyle: true);
-        getString();
-        break;
-      case 10: //修改赔率
+      case 9: //修改赔率
         BXLoading.show(douyinStyle: true);
         if (s.isEmpty) {
           BXLoading.showToast('请输入赔率 ${textEditingController.text} ');
@@ -1121,7 +1117,7 @@ class JiShuQiController extends GetxController {
         }
         updateOdds(s);
         break;
-      case 11: //退出程序
+      case 10: //退出程序
         GetStore.getInstance().cleanUser();
         Get.offAndToNamed(AppRoutes.login);
         break;
@@ -1138,31 +1134,14 @@ class JiShuQiController extends GetxController {
         for (int i = 0; i < n; i++) {
           final idx = m - n + i;
           if (idx < 0 || idx >= m) {
-            state.table2List[i].colmunShuyingzhiD = '';
+            state.table2List[i].shuyingzhiXiaoshu = null;
             continue;
           }
-          state.table2List[i].colmunShuyingzhiD = list[idx];
+          state.table2List[i].shuyingzhiXiaoshu = double.tryParse(list[idx].toString());
         }
         update();
       }
     });
-  }
-
-  void dropAll() {
-    state.table2List.clear();
-    state.randomValue = '';
-    List.generate(32, (index) => state.totalValue[index] = index.toString());
-    _instance
-        ?.then((db) => db.insert(
-            DbHelper.table1,
-            Table1Model(
-                    columnBenjin: "5000",
-                    columnYongJin: "0.95",
-                    columnMean: "0.08",
-                    columnRestartIndex: "0",
-                    columnLiushuiIndex: "0")
-                .toJson()))
-        .then((value) => BXLoading.dismiss());
   }
 
   void updateQiWangZhi(String qiwangzhi) {
@@ -1177,56 +1156,6 @@ class JiShuQiController extends GetxController {
         _getStatisticalAreasData(-2);
       }
     });
-  }
-
-  /// 利用文件存储数据
-  saveString(String s) async {
-    final file = await getFile('file.text');
-    //写入字符串
-    file.writeAsString(s).then((value) {
-      BXLoading.dismiss();
-      debugPrint('=====备份完成=====');
-    });
-  }
-
-  /// 获取存在文件中的数据
-  Future getString() async {
-    final file = await getFile('file.text');
-    if (!await file.exists()) {
-      BXLoading.dismiss();
-      BXLoading.showToast('文件不存在');
-      return;
-    }
-    var filePath = file.path;
-    file.readAsString().then((String value) {
-      var s = '文件存储路径：$filePath';
-      debugPrint(s);
-      var split1 = value.split('\n')[0];
-      debugPrint(jsonDecode(split1).length);
-      debugPrint(split1);
-      var split2 = value.split('\n')[1];
-      debugPrint(jsonDecode(split2).length);
-      debugPrint(split2);
-      for (var element in jsonDecode(split1)) {
-        _instance?.then((db) => db.insert(DbHelper.table1, element));
-      }
-      for (var element in jsonDecode(split2)) {
-        _instance?.then((db) => db.insert(DbHelper.table2, element));
-      }
-      debugPrint('=====写入数据库完成====');
-    });
-  }
-
-  /// 初始化文件路径
-  Future<File> getFile(String fileName) async {
-    //获取应用文件目录类似于Ios的NSDocumentDirectory和Android上的 AppData目录
-    final fileDirectory = await getApplicationDocumentsDirectory();
-
-    //获取存储路径
-    final filePath = fileDirectory.path;
-
-    //或者file对象（操作文件记得导入import 'dart:io'）
-    return File("$filePath/$fileName");
   }
 
   lockScreen() {
@@ -1408,7 +1337,7 @@ class JiShuQiController extends GetxController {
   //重新加载路子图
   _reloadLuZiTu() {
     var list = state.table2List
-        .map((e) => e.colmunShuyingzhi!.startsWith("-") ? "闲家" : "庄家")
+        .map((e) => (e.shuyingzhi ?? 0) < 0 ? "闲家" : "庄家")
         .toList();
     state.initializeBigRoad();
     for (var value in list) {

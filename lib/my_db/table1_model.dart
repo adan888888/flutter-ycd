@@ -1,41 +1,62 @@
 import 'package:ycd/utils/types_of.dart';
 
+double? _parseAmount(dynamic value) {
+  if (value == null) return null;
+  if (value is num) return value.toDouble();
+  final s = value.toString().trim().replaceFirst('+', '');
+  if (s.isEmpty) return null;
+  return double.tryParse(s);
+}
+
+num? _amountToJson(double? value) {
+  if (value == null) return null;
+  return value;
+}
+
+int? _parseIndex(dynamic value) {
+  if (value == null) return null;
+  if (value is int) return value;
+  if (value is num) return value.toInt();
+  return int.tryParse(value.toString().trim());
+}
+
 class Table1Model {
   int? id;
-  String? columnBenjin;
-  String? columnYongJin; //赔率
-  String? columnMean;
-  String? columnRestartIndex;
-  String? columnLiushuiIndex;
-  String? tempIndex; //存储局部平衡的位置
+  double? benjin;
+  double? yongjin; // 赔率
+  double? mean;
+  int? restartIndex;
+  int? liushuiIndex;
+  String? tempIndex; // 存储局部平衡的位置
 
-  Table1Model(
-      {this.id,
-      this.columnBenjin,
-      this.columnYongJin,
-      this.columnMean,
-      this.columnRestartIndex,
-      this.columnLiushuiIndex,
-      this.tempIndex});
+  Table1Model({
+    this.id,
+    this.benjin,
+    this.yongjin,
+    this.mean,
+    this.restartIndex,
+    this.liushuiIndex,
+    this.tempIndex,
+  });
 
   Table1Model.fromJson(Map<String, dynamic> json) {
     id = bxGetInt(json['id']);
-    columnBenjin = bxGetString(json['column_benjin']);
-    columnYongJin = bxGetString(json['column_yongJin']);
-    columnMean = bxGetString(json['column_mean']);
-    columnRestartIndex = bxGetString(json['column_restart_index']);
-    columnLiushuiIndex = bxGetString(json['column_liushui_index']);
+    benjin = _parseAmount(json['benjin']);
+    yongjin = _parseAmount(json['yongjin']);
+    mean = _parseAmount(json['mean']);
+    restartIndex = _parseIndex(json['restart_index']);
+    liushuiIndex = _parseIndex(json['liushui_index']);
     tempIndex = bxGetString(json['temp_index']);
   }
 
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = <String, dynamic>{};
     data['ID'] = id;
-    data['column_benjin'] = columnBenjin;
-    data['column_yongJin'] = columnYongJin;
-    data['column_mean'] = columnMean;
-    data['column_restart_index'] = columnRestartIndex;
-    data['column_liushui_index'] = columnLiushuiIndex;
+    data['benjin'] = _amountToJson(benjin);
+    data['yongjin'] = _amountToJson(yongjin);
+    data['mean'] = _amountToJson(mean);
+    data['restart_index'] = restartIndex;
+    data['liushui_index'] = liushuiIndex;
     data['temp_index'] = tempIndex;
     return data;
   }

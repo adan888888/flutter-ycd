@@ -1,38 +1,51 @@
+double? _parseAmount(dynamic value) {
+  if (value == null) return null;
+  if (value is num) return value.toDouble();
+  final s = value.toString().trim().replaceFirst('+', '');
+  if (s.isEmpty) return null;
+  return double.tryParse(s);
+}
+
+num? _amountToJson(double? value) {
+  if (value == null) return null;
+  return value;
+}
+
 class Table2Model {
   int? id;
   int? seq; // 每个用户自己的序号（后端计算的行号）
-  String? columnXiazhujine; //下注金额
-  String? colmunShuyingzhi; //输赢值
-  String? colmunShuyingzhiD; //输赢值(消数列的)
-  String? colmunShengfulu;
-  String? colmunZx;
+  double? xiazhujine; // 下注金额
+  double? shuyingzhi; // 输赢值
+  double? shuyingzhiXiaoshu; // 消数列
+  String? shengfulu;
+  String? zx;
   String? restartStatSnapshot; // 重启统计快照（2/6/14/18，其中 18 保留 1 位小数）
-  String? colmunRemark; //输赢标记
-  String? columnCurrentJin;
+  String? remark; // 输赢标记
+  double? currentJin;
 
   Table2Model({
     required this.id,
     this.seq,
-    this.columnXiazhujine,
-    this.colmunShuyingzhi,
-    this.colmunShuyingzhiD,
-    this.colmunShengfulu,
-    this.colmunZx,
-    this.colmunRemark,
-    this.columnCurrentJin,
+    this.xiazhujine,
+    this.shuyingzhi,
+    this.shuyingzhiXiaoshu,
+    this.shengfulu,
+    this.zx,
+    this.remark,
+    this.currentJin,
     this.restartStatSnapshot,
   });
 
   Table2Model.fromJson(Map<String, dynamic> json) {
     id = json['id'];
     seq = json['seq'];
-    columnXiazhujine = json['column_xiazhujine'];
-    colmunShuyingzhi = json['colmun_shuyingzhi'];
-    colmunShuyingzhiD = json['colmun_shuyingzhi_d'];
-    colmunShengfulu = json['colmun_shengfulu'];
-    colmunZx = json['colmun_zx'];
-    colmunRemark = json['colmun_remark'];
-    columnCurrentJin = json['column_current_jin'];
+    xiazhujine = _parseAmount(json['xiazhujine']);
+    shuyingzhi = _parseAmount(json['shuyingzhi']);
+    shuyingzhiXiaoshu = _parseAmount(json['shuyingzhi_xiaoshu']);
+    shengfulu = json['shengfulu'];
+    zx = json['zx'];
+    remark = json['remark'];
+    currentJin = _parseAmount(json['current_jin']);
     restartStatSnapshot = json['restartStatSnapshot'];
   }
 
@@ -40,13 +53,13 @@ class Table2Model {
     final Map<String, dynamic> data = <String, dynamic>{};
     data['id'] = id;
     data['seq'] = seq;
-    data['column_xiazhujine'] = columnXiazhujine;
-    data['colmun_shuyingzhi'] = colmunShuyingzhi;
-    data['colmun_shuyingzhi_d'] = colmunShuyingzhiD;
-    data['colmun_shengfulu'] = colmunShengfulu;
-    data['colmun_zx'] = colmunZx;
-    data['colmun_remark'] = colmunRemark;
-    data['column_current_jin'] = columnCurrentJin;
+    data['xiazhujine'] = _amountToJson(xiazhujine);
+    data['shuyingzhi'] = _amountToJson(shuyingzhi);
+    data['shuyingzhi_xiaoshu'] = _amountToJson(shuyingzhiXiaoshu);
+    data['shengfulu'] = shengfulu;
+    data['zx'] = zx;
+    data['remark'] = remark;
+    data['current_jin'] = _amountToJson(currentJin);
     data['restartStatSnapshot'] = restartStatSnapshot;
     return data;
   }
