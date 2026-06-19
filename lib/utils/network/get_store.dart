@@ -1,13 +1,16 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/foundation.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+
 import '../../model/config_model.dart';
 import '../../model/user_model.dart';
 import '../storage_util.dart';
 
+/// 本地数据存储管理类，管理用户信息、配置等业务数据（单例）
 class GetStore {
   // --- 单例模式 ---
   static GetStore? _instance;
@@ -36,15 +39,9 @@ class GetStore {
   static String prefKey(String shortKey) => '$_storageKeyPrefix$shortKey';
 
   static String? _readPrefWithLegacyMigrate(String shortKey) {
-    final namespaced = prefKey(shortKey);
-    final primary = StorageUtil.getString(namespaced);
+    final primary = StorageUtil.getString(shortKey);
     if (primary != null && primary.isNotEmpty) return primary;
-    final legacy = StorageUtil.getString(shortKey);
-    if (legacy != null && legacy.isNotEmpty) {
-      unawaited(StorageUtil.saveString(namespaced, legacy));
-      unawaited(StorageUtil.remove(shortKey));
-      return legacy;
-    }
+    // 注意：由于 StorageUtil 现在自动添加前缀，旧的无前缀数据无法直接迁移
     return null;
   }
 
@@ -82,14 +79,11 @@ class GetStore {
   /// 保存用户信息到本地
   void saveUser(UserModel userModel) {
     cacheUserModel = userModel;
-    final key = prefKey('bx_user');
-    StorageUtil.saveString(key, jsonEncode(userModel.toJson()));
-    if (key != 'bx_user') unawaited(StorageUtil.remove('bx_user'));
+    StorageUtil.saveString('bx_user', jsonEncode(userModel.toJson()));
   }
 
   /// 清除用户信息
   void cleanUser() {
-    unawaited(StorageUtil.remove(prefKey('bx_user')));
     unawaited(StorageUtil.remove('bx_user'));
     cacheUserModel = null;
   }
@@ -116,9 +110,7 @@ class GetStore {
   /// 保存用户信息到本地
   void saveConfig(ConfigModel configModel) {
     cacheConfigModel = configModel;
-    final key = prefKey('bx_config');
-    StorageUtil.saveString(key, jsonEncode(configModel.toJson()));
-    if (key != 'bx_config') unawaited(StorageUtil.remove('bx_config'));
+    StorageUtil.saveString('bx_config', jsonEncode(configModel.toJson()));
   }
 
   // --- 登录状态管理 ---
@@ -139,12 +131,12 @@ class GetStore {
   final StreamController<bool> jumpDepositPageController = StreamController<bool>.broadcast();
 
   // --- 设备信息管理 ---
-  String get storeKey => prefKey('bx_bw');
+  String get storeKey => 'bx_bw';
 
   Future<String> getDeviceId() async {
     DeviceInfoPlugin info = DeviceInfoPlugin();
     String? deviceId;
-    
+
     if (kIsWeb) {
       // Web 平台使用浏览器信息作为设备ID
       WebBrowserInfo webInfo = await info.webBrowserInfo;
@@ -156,7 +148,7 @@ class GetStore {
       IosDeviceInfo iosInfo = await info.iosInfo;
       deviceId = iosInfo.identifierForVendor;
     }
-    
+
     return deviceId ?? "unknown_device";
   }
 }

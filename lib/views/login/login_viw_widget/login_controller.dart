@@ -21,8 +21,6 @@ class LoginController extends GetxController {
   final TextEditingController userNameController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
 
-  String _prefKey(String shortKey) => GetStore.prefKey(shortKey);
-
   @override
   void onInit() {
     super.onInit();
@@ -38,12 +36,12 @@ class LoginController extends GetxController {
   }
 
   void _loadSavedCredentials() {
-    final autoLogin = StorageUtil.getBool(_prefKey(_keyAutoLogin)) ?? false;
+    final autoLogin = StorageUtil.getBool(_keyAutoLogin) ?? false;
     state.autoLogin.value = autoLogin;
     if (!autoLogin) return;
 
-    final username = StorageUtil.getString(_prefKey(_keySavedUsername));
-    final password = StorageUtil.getString(_prefKey(_keySavedPassword));
+    final username = StorageUtil.getString(_keySavedUsername);
+    final password = StorageUtil.getString(_keySavedPassword);
     if (username != null && username.isNotEmpty) {
       userNameController.text = username;
     }
@@ -54,13 +52,13 @@ class LoginController extends GetxController {
 
   Future<void> _persistLoginCredentials(String username, String password) async {
     if (state.autoLogin.value) {
-      await StorageUtil.saveBool(_prefKey(_keyAutoLogin), true);
-      await StorageUtil.saveString(_prefKey(_keySavedUsername), username);
-      await StorageUtil.saveString(_prefKey(_keySavedPassword), password);
+      await StorageUtil.saveBool(_keyAutoLogin, true);
+      await StorageUtil.saveString(_keySavedUsername, username);
+      await StorageUtil.saveString(_keySavedPassword, password);
     } else {
-      await StorageUtil.saveBool(_prefKey(_keyAutoLogin), false);
-      await StorageUtil.remove(_prefKey(_keySavedUsername));
-      await StorageUtil.remove(_prefKey(_keySavedPassword));
+      await StorageUtil.saveBool(_keyAutoLogin, false);
+      await StorageUtil.remove(_keySavedUsername);
+      await StorageUtil.remove(_keySavedPassword);
     }
   }
 
