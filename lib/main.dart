@@ -48,6 +48,8 @@ class MyApp extends StatelessWidget {
           primaryColor: Colors.green,
           useMaterial3: true,
         ),
+        locale: const Locale('zh', 'CN'),
+        fallbackLocale: const Locale('en', 'US'),
         initialRoute: AppRoutes.login,
         getPages: AppPages.pages,
         builder: EasyLoading.init(),

@@ -447,6 +447,10 @@ class AddPasswordDialog extends GetView<DigitalPasswordBookController> {
                   border: OutlineInputBorder(),
                 ),
                 maxLines: 3,
+                keyboardType: TextInputType.multiline,
+                textInputAction: TextInputAction.newline,
+                autocorrect: false,
+                enableSuggestions: false,
               ),
               const SizedBox(height: 24),
 
@@ -501,7 +505,7 @@ class EditPasswordDialog extends GetView<DigitalPasswordBookController> {
 
               // 标题
               TextField(
-                controller: TextEditingController(text: controller.state.editTitle.value),
+                controller: controller.editTitleController,
                 onChanged: (value) => controller.state.editTitle.value = value,
                 decoration: const InputDecoration(
                   labelText: '标题 *',
@@ -512,7 +516,7 @@ class EditPasswordDialog extends GetView<DigitalPasswordBookController> {
 
               // 用户名
               TextField(
-                controller: TextEditingController(text: controller.state.editUsername.value),
+                controller: controller.editUsernameController,
                 onChanged: (value) => controller.state.editUsername.value = value,
                 decoration: const InputDecoration(
                   labelText: '用户名 *',
@@ -523,19 +527,19 @@ class EditPasswordDialog extends GetView<DigitalPasswordBookController> {
 
               // 密码
               TextField(
-                controller: TextEditingController(text: controller.state.editPassword.value),
+                controller: controller.editPasswordController,
                 onChanged: (value) => controller.state.editPassword.value = value,
                 decoration: const InputDecoration(
                   labelText: '密码 *',
                   border: OutlineInputBorder(),
                 ),
-                obscureText: true,
+                obscureText: false,
               ),
               const SizedBox(height: 16),
 
               // 网站
               TextField(
-                controller: TextEditingController(text: controller.state.editWebsite.value),
+                controller: controller.editWebsiteController,
                 onChanged: (value) => controller.state.editWebsite.value = value,
                 decoration: const InputDecoration(
                   labelText: '网站',
@@ -546,13 +550,17 @@ class EditPasswordDialog extends GetView<DigitalPasswordBookController> {
 
               // 备注
               TextField(
-                controller: TextEditingController(text: controller.state.editNotes.value),
+                controller: controller.editNotesController,
                 onChanged: (value) => controller.state.editNotes.value = value,
                 decoration: const InputDecoration(
                   labelText: '备注',
                   border: OutlineInputBorder(),
                 ),
                 maxLines: 3,
+                keyboardType: TextInputType.multiline,
+                textInputAction: TextInputAction.newline,
+                autocorrect: false,
+                enableSuggestions: false,
               ),
               const SizedBox(height: 24),
 

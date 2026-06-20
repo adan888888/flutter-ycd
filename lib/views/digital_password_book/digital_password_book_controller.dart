@@ -9,6 +9,11 @@ import 'digital_password_book_state.dart';
 class DigitalPasswordBookController extends GetxController {
   final state = DigitalPasswordBookState();
   final searchTextController = TextEditingController(); // 搜索输入框控制器
+  final editTitleController = TextEditingController(); // 编辑标题控制器
+  final editUsernameController = TextEditingController(); // 编辑用户名控制器
+  final editPasswordController = TextEditingController(); // 编辑密码控制器
+  final editWebsiteController = TextEditingController(); // 编辑网站控制器
+  final editNotesController = TextEditingController(); // 编辑备注控制器
 
   @override
   void onInit() {
@@ -19,6 +24,11 @@ class DigitalPasswordBookController extends GetxController {
   @override
   void onClose() {
     searchTextController.dispose(); // 释放资源
+    editTitleController.dispose();
+    editUsernameController.dispose();
+    editPasswordController.dispose();
+    editWebsiteController.dispose();
+    editNotesController.dispose();
     super.onClose();
   }
 
@@ -95,6 +105,11 @@ class DigitalPasswordBookController extends GetxController {
   // 编辑密码
   void editPassword(PasswordItem item) {
     state.selectedItem.value = item;
+    editTitleController.text = item.title;
+    editUsernameController.text = item.username;
+    editPasswordController.text = item.password;
+    editWebsiteController.text = item.website;
+    editNotesController.text = item.notes;
     state.editTitle.value = item.title;
     state.editUsername.value = item.username;
     state.editPassword.value = item.password;
