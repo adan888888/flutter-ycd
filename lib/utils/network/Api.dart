@@ -2,10 +2,11 @@ import 'package:flutter/foundation.dart';
 
 class Api {
   /// **真机 / 另一台电脑访问本机后端**：`localhost` 指向设备自己，必然连不上。
-  /// 请把电脑与手机连同一 WiFi，查电脑局域网 IP（如 macOS：`ifconfig | grep inet`），然后：
+  /// Docker 部署时 H5 经 Nginx 反代 `/api`；Flutter 真机用 ngrok 公网地址：
   ///
   /// ```bash
-  /// flutter run --dart-define=API_BASE_URL=http://192.168.1.5:3000/api
+  /// flutter run --dart-define=API_BASE_URL=https://xxxx.ngrok-free.app/api
+  /// flutter run --dart-define=API_BASE_URL=http://192.168.1.5:8080/api
   /// ```
   /// **macOS 打包**：`scripts/build_macos_app.sh both|all|1|2|3 [API_BASE_URL]`（第二参数为可选地址；`all` 会打 计数器1/2/3）。
   static String get baseUrl {
@@ -23,7 +24,7 @@ class Api {
         defaultTargetPlatform == TargetPlatform.linux) {
       return "http://localhost:3000/api";
     }
-    return "http://192.168.100.61:3000/api";
+    return "https://verbose-exhume-cringe.ngrok-free.dev/api";
   }
 
   static String config = "/tenant/get";
