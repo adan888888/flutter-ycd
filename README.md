@@ -1,4 +1,4 @@
-# flutter_ycd
+# flutter-ycd
 
 一个新 Flutter 项目.
 测试账号：

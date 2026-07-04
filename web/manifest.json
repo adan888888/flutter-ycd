@@ -1,6 +1,6 @@
 {
-    "name": "flutter_ycd",
-    "short_name": "flutter_ycd",
+    "name": "flutter-ycd",
+    "short_name": "flutter-ycd",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
