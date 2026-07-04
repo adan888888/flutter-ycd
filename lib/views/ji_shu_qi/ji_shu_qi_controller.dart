@@ -24,6 +24,11 @@ import 'package:ycd/utils/network/http_mgr.dart';
 import 'ji_shu_qi_state.dart';
 
 class JiShuQiController extends GetxController {
+  static const int _tempIndexCmdInit = -20;
+  static const int _tempIndexCmdKeep = -21;
+  static const int _tempIndexCmdCancel = -22;
+  static const int _tempIndexCmdReset = -23;
+
   EasyRefreshController refreshcontroller = EasyRefreshController(controlFinishRefresh: true, controlFinishLoad: true);
 
   /// 统计区下拉刷新（与投注列表同款 EasyRefresh 样式，独立 controller）
@@ -88,7 +93,7 @@ class JiShuQiController extends GetxController {
 
     await Future.wait([
       track(_queryMysqlTable1(isShowLoading: false, showError: false)),
-      track(_getStatisticalAreasData(-10000, isShowLoading: false, showError: false)),
+      track(_getStatisticalAreasData(_tempIndexCmdInit, isShowLoading: false, showError: false)),
       track(_reloadBettingListTail(isShowLoading: false, showError: false)),
     ]);
 
@@ -478,41 +483,43 @@ class JiShuQiController extends GetxController {
 
   /// 局部平衡锚点（投注列表「眼睛」行 id）：以后端 **table_yanchendao1.temp_index** 为准，
   /// 对应客户端 `table1List.last.tempIndex`；值为整数且 **>2** 视为有效 table2 主键 id。
-  /// **temp_index 为 -1**：取消局部平衡，`currentTempIndex` 固定为 **0**。
+  /// **temp_index 为 cancel/reset 指令**：`currentTempIndex` 固定为 **0**。
   /// 若无 table1 数据则退回统计接口回填的 `totalValue[29]`（兼容冷启动顺序）。
   /// **锚点 id 不在当前 `table2List` 时**：不处理列表窗口（不保证眼睛可见）；仅保持 `currentTempIndex` 与配置一致。
   void _syncLocalTempIndexWithBackendState() {
     if (state.table1List.isNotEmpty) {
       final raw = state.table1List.last.tempIndex?.trim() ?? '';
       final v = int.tryParse(raw);
-      // 后端 temp_index 为 -1：取消局部平衡，锚点归零
-      if (v == -1) {
+      // 后端 temp_index 为清空指令：锚点归零
+      if (_isClearLocalTempIndex(v)) {
         state.currentTempIndex = 0;
         return;
       }
-      state.currentTempIndex = (v != null && v > 2) ? v : 0;
+      state.currentTempIndex = _isEffectiveLocalTempIndex(v) ? v! : 0;
       return;
     }
     if (state.totalValue.length > 29) {
       final raw = state.totalValue[29].toString().trim();
       if (raw.isEmpty) return;
       final v = int.tryParse(raw);
-      if (v == -1) {
+      if (_isClearLocalTempIndex(v)) {
         state.currentTempIndex = 0;
         return;
       }
-      if (v != null && v > 2) {
-        state.currentTempIndex = v;
-      }
+      if (_isEffectiveLocalTempIndex(v)) state.currentTempIndex = v!;
     }
   }
 
-  /// *
-  ///  tempIndex -10000 app第一次进来
-  ///  tempIndex -1 取消局部平衡/重启...
-  ///  tempIndex -2 确保不会破坏局部平衡-->每次下注后（recordbutton() ，改变数据库里面的值等 ...）
-  ///  tempIndex >2 点击进行局部平衡
-  ///
+  bool _isClearLocalTempIndex(int? tempIndex) => tempIndex == _tempIndexCmdCancel || tempIndex == _tempIndexCmdReset;
+
+  bool _isEffectiveLocalTempIndex(int? tempIndex) => tempIndex != null && tempIndex > 2;
+
+  /// tempIndex 指令协议：
+  /// - init(-20)：页面首次加载，恢复后端已保存的锚点。
+  /// - keep(-21)：数据变化后刷新统计，但保留当前锚点。
+  /// - cancel(-22)：用户主动取消局部平衡。
+  /// - reset(-23)：重启/重置局部数据并清空锚点。
+  /// - anchor(>2)：选中投注记录 id 作为局部平衡锚点。
   Future<void> _getStatisticalAreasData(
     int? tempIndex, {
     bool isShowLoading = true,
@@ -553,10 +560,10 @@ class JiShuQiController extends GetxController {
           }
         }
 
-        // 取消局部平衡(-1) 或 选中锚点行(>2) 时后端会更新 table1.temp_index；须先拉 table1 再同步，
+        // cancel/reset 指令或选中锚点行(>2) 时后端会更新 table1.temp_index；须先拉 table1 再同步，
         // 否则会沿用内存里旧的 temp_index，把 currentTempIndex 又写回去（取消失效）。
         final ti = tempIndex;
-        final needsFreshTable1 = ti == -1 || (ti != null && ti > 2);
+        final needsFreshTable1 = _isClearLocalTempIndex(ti) || _isEffectiveLocalTempIndex(ti);
         if (needsFreshTable1) {
           _queryMysqlTable1().then((_) => continueAfterStatsReady()).catchError((_) => continueAfterStatsReady());
         } else {
@@ -603,9 +610,7 @@ class JiShuQiController extends GetxController {
     if (state.bettingMoney.isEmpty || !state.bettingMoney.isNum) return '';
     final bet = double.tryParse(textEditingController.text);
     if (bet == null) return '';
-    final val = state.randomValue == '庄'
-        ? (bet * _commissionRate()).toStringAsFixed(2)
-        : textEditingController.text;
+    final val = state.randomValue == '庄' ? (bet * _commissionRate()).toStringAsFixed(2) : textEditingController.text;
     final x = _parseStatDouble(state.totalValue[18]); //总输赢
     final y = double.tryParse(val); //输入框下注额
     final z = _parseStatDouble(state.totalValue[14]); //净胜
@@ -630,9 +635,7 @@ class JiShuQiController extends GetxController {
     if (state.bettingMoney.isEmpty || !state.bettingMoney.isNum) return '';
     final bet = double.tryParse(textEditingController.text);
     if (bet == null) return '';
-    final val = state.randomValue == '庄'
-        ? (bet * _commissionRate()).toStringAsFixed(2)
-        : textEditingController.text;
+    final val = state.randomValue == '庄' ? (bet * _commissionRate()).toStringAsFixed(2) : textEditingController.text;
     final x = _parseStatDouble(state.totalValue[17]); //总输赢
     final y = double.tryParse(val); //输入框下注额
     final z = _parseStatDouble(state.totalValue[13]); //净胜
@@ -819,12 +822,7 @@ class JiShuQiController extends GetxController {
             shuyingzhiXiaoshu: syzLAmount(i),
             currentJin: getCurrentJin(i, double.parse(state.bettingMoney)),
           )
-        : Table1Model(
-            benjin: 10000,
-            yongjin: 0.95,
-            mean: 0.08,
-            restartIndex: 0,
-            liushuiIndex: 10);
+        : Table1Model(benjin: 10000, yongjin: 0.95, mean: 0.08, restartIndex: 0, liushuiIndex: 10);
 
     ///改变成插入远程数据库
     if (tableName == 'table1') {
@@ -843,14 +841,12 @@ class JiShuQiController extends GetxController {
           success: (isSuccess, code, message, results) {
             if (results.isNotEmpty) {
               final row = results.first;
-              row.seq = state.table2List.isEmpty
-                  ? 1
-                  : (state.table2List.last.seq ?? state.table2List.length) + 1;
+              row.seq = state.table2List.isEmpty ? 1 : (state.table2List.last.seq ?? state.table2List.length) + 1;
               state.table2List.add(row);
             }
             update(); // 先让 ListView 用新 itemCount 布局，再滚到底才准
             scrollBettingListToBottom();
-            _getStatisticalAreasData(-2, isShowLoading: false).whenComplete(BXLoading.dismiss);
+            _getStatisticalAreasData(_tempIndexCmdKeep, isShowLoading: false).whenComplete(BXLoading.dismiss);
           },
           failed: (p0, p1) {
             state.isCanPress = true;
@@ -1013,7 +1009,7 @@ class JiShuQiController extends GetxController {
                 }
                 state.js1 = state.js1 - 1;
                 state.totalValue[28] = "${state.js1}/${state.js2}";
-                _getStatisticalAreasData(-2, isShowLoading: false);
+                _getStatisticalAreasData(_tempIndexCmdKeep, isShowLoading: false);
                 _reloadLuZiTu();
                 update();
               },
@@ -1118,7 +1114,7 @@ class JiShuQiController extends GetxController {
             state.table2List.last.restartStatSnapshot = snapshot;
           }
           state.currentTempIndex = 0;
-          _getStatisticalAreasData(-1);
+          _getStatisticalAreasData(_tempIndexCmdReset);
           update();
         } else {
           BXLoading.showToast(message.isNotEmpty ? message : '重启失败');
@@ -1176,7 +1172,7 @@ class JiShuQiController extends GetxController {
           BXLoading.showToast("${value.last.benjin}");
           state.totalValue[0] = b;
           state.totalValue[4] = (double.parse(state.totalValue[0]) + double.parse(state.totalValue[17])).toString();
-          _getStatisticalAreasData(-2);
+          _getStatisticalAreasData(_tempIndexCmdKeep);
         }
       },
       onModel: (m) => Table1Model.fromJson(m),
@@ -1190,7 +1186,7 @@ class JiShuQiController extends GetxController {
         BXLoading.showToast(message);
         debugPrint("赔率值是=${(results[0]["odds"])}");
         state.totalValue[31] = (results[0]["odds"]).toString();
-        _getStatisticalAreasData(-2); //和recordButton里面传一样的参数，确保不会破坏局部平衡
+        _getStatisticalAreasData(_tempIndexCmdKeep); //和recordButton里面传一样的参数，确保不会破坏局部平衡
       }
     });
   }
@@ -1260,7 +1256,7 @@ class JiShuQiController extends GetxController {
                 state.table2List.clear();
                 state.randomValue = '';
                 List.generate(32, (index) => state.totalValue[index] = index.toString());
-                _getStatisticalAreasData(-1, isShowLoading: false);
+                _getStatisticalAreasData(_tempIndexCmdReset, isShowLoading: false);
               }
             });
           },
@@ -1390,7 +1386,7 @@ class JiShuQiController extends GetxController {
         debugPrint("期望值是=${(results[0]["mean"])}");
         state.totalValue[19] = (results[0]["mean"]).toString();
         // 修改期望值后，重新刷新统计区数据，保持界面数据和后台一致
-        _getStatisticalAreasData(-2);
+        _getStatisticalAreasData(_tempIndexCmdKeep);
       }
     });
   }
@@ -1484,10 +1480,10 @@ class JiShuQiController extends GetxController {
     if (focusNode.hasFocus || _lastKeyboardInset > 0) {
       _skipKeyboardDismissScroll = true;
     }
-    final targetIndex = index != -1 && state.currentTempIndex == index ? -1 : index;
+    final targetIndex = index != _tempIndexCmdCancel && state.currentTempIndex == index ? _tempIndexCmdCancel : index;
 
-    //-1 取消局部平衡
-    if (targetIndex == -1) {
+    // cancel 指令：取消局部平衡
+    if (targetIndex == _tempIndexCmdCancel) {
       if (state.currentTempIndex == 0) {
         return;
       }
@@ -1506,7 +1502,7 @@ class JiShuQiController extends GetxController {
     var success = true;
     try {
       await _queryMysqlTable1(isShowLoading: false);
-      await _getStatisticalAreasData(-2, isShowLoading: false);
+      await _getStatisticalAreasData(_tempIndexCmdKeep, isShowLoading: false);
       await _reloadBettingListTail(isShowLoading: false);
     } catch (_) {
       success = false;
