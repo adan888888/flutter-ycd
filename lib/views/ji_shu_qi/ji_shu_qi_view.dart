@@ -787,7 +787,7 @@ class JiShuQiView extends GetView<JiShuQiController> {
                 final cellWidget = GestureDetector(
                   onTap: () {
                     if (row == 0 && column == 2) {
-                      controller.juBuPingHeng(-1, v: controller.state.totalValue[29]);
+                      controller.juBuPingHeng(JiShuQiState.tempIndexCmdCancel, v: controller.state.totalValue[29]);
                     }
                   },
                   child: Align(

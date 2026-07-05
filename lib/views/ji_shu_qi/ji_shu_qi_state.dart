@@ -6,6 +6,11 @@ import 'package:ycd/my_db/table1_model.dart';
 import 'package:ycd/my_db/table2_model.dart';
 
 class JiShuQiState {
+  static const String tempIndexCmdInit = 'init'; // 页面首次加载：恢复后端已保存的局部平衡锚点
+  static const String tempIndexCmdKeep = 'keep'; // 数据变化后刷新统计：保留当前局部平衡锚点
+  static const String tempIndexCmdCancel = '取消'; // 用户主动取消局部平衡
+  static const String tempIndexCmdReset = '重启'; // 重启局部数据后清空局部平衡锚点
+
   var ratio = 50; //庄闲占比(50=50%庄 50%闲；70=70%庄 30%闲，)
   static const OFFSET8431 = 8431; //庄闲占比是 庄60% 闲40%
   static const double height = 16 / 3;
@@ -177,9 +182,7 @@ class JiShuQiState {
       ? const Color(0xFF4F4A4A) // 暗黑模式：深棕灰色
       : const Color(0xFFC0BCBC); // 白色模式：稍深的棕灰色
 
-  Color get deleteLastIconColor => isDarkMode
-      ? darkTextColor.withValues(alpha: 0.7)
-      : Colors.black45;
+  Color get deleteLastIconColor => isDarkMode ? darkTextColor.withValues(alpha: 0.7) : Colors.black45;
 
   var totalValue /*统计区*/ = <String>[];
   var chartData /*图表数据*/ = <LineChartDataModel>[];
