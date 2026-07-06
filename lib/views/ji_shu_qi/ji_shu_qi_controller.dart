@@ -994,7 +994,7 @@ class JiShuQiController extends GetxController {
         onCancel: () {},
         onConfirm: () {
           Get.back();
-          BXDelete<JsqBetRecordModel>(Api.deletelast,
+          BXDelete<JsqBetRecordModel>(Api.deleteLast,
               success: (isSuccess, code, message, results) {
                 if (!isSuccess) return;
                 if (results.isNotEmpty) {
@@ -1022,7 +1022,7 @@ class JiShuQiController extends GetxController {
   void updateLists(int index) {
     BXLoading.show();
     BXPost(
-      Api.xiaoshu,
+      Api.xiaoShu,
       isShowLoading: false,
       params: state.betRecordList[index].toJson()..update("shuyingzhi_xiaoshu", (value) => null),
       success: (isSuccess, code, message, results) {
@@ -1248,7 +1248,7 @@ class JiShuQiController extends GetxController {
           onCancel: () {},
           onConfirm: () {
             Get.back();
-            BXDelete(Api.deleteall, success: (isSuccess, code, message, results) {
+            BXDelete(Api.deleteAll, success: (isSuccess, code, message, results) {
               if (isSuccess) {
                 BXLoading.showToast(message);
                 state.operationRecordList.clear();
@@ -1267,7 +1267,7 @@ class JiShuQiController extends GetxController {
           break;
         }
         BXPost(
-          Api.resetliushui,
+          Api.resetLiuShui,
           params: {"resetIndex": state.betRecordList.last.id},
           success: (bool isSuccess, int code, String message, List<dynamic> results) {},
         );
@@ -1358,7 +1358,7 @@ class JiShuQiController extends GetxController {
 
   sort() {
     //改成接口，不用model接收值
-    BXPost(Api.sortxiaoshu, success: (isSuccess, code, message, results) {
+    BXPost(Api.sortXiaoShu, success: (isSuccess, code, message, results) {
       if (isSuccess) {
         // BXLoading.showToast(message);
         var list = (results.first as Map<String, dynamic>)["sorted_sequence"];

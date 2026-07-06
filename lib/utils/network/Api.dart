@@ -33,7 +33,7 @@ class Api {
   static String login = "/auth/login";
 
   //初始化程序 创建表
-  static String createtables = "/jsq/create-table";
+  static String createTables = "/jsq/create-table";
 
   //获取操作记录
   static String getOperationRecords = "/jsq/operation-records";
@@ -48,22 +48,22 @@ class Api {
   static String updateLastRowRestartStatSnapshot = "/jsq/update-restart-stat-snapshot";
 
   //删除最后一行
-  static String deletelast = "/jsq/delete-last";
+  static String deleteLast = "/jsq/delete-last";
 
   //重新启动
   static String restart = "/jsq/restart";
 
   //排序消数列
-  static String sortxiaoshu = "/jsq/sort-xiaoshu";
+  static String sortXiaoShu = "/jsq/sort-xiao-shu";
 
   //消数
-  static String xiaoshu = "/jsq/xiaoshu";
+  static String xiaoShu = "/jsq/xiao-shu";
 
   //删除本页
-  static String deleteall = "/jsq/delete-all";
+  static String deleteAll = "/jsq/delete-all";
 
   //重置流水
-  static String resetliushui = "/jsq/reset-liushui";
+  static String resetLiuShui = "/jsq/reset-liu-shui";
 
   //修改个性期望值
   static String updateQiWangValue = "/jsq/update-qiwang-value";
