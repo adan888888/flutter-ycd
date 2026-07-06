@@ -2,8 +2,8 @@
 import 'package:easy_refresh/easy_refresh.dart';
 import 'package:flutter/material.dart';
 import 'package:ycd/model/linechart_data_model.dart';
-import 'package:ycd/my_db/table1_model.dart';
-import 'package:ycd/my_db/table2_model.dart';
+import 'package:ycd/my_db/jsq_operation_record_model.dart';
+import 'package:ycd/my_db/jsq_bet_record_model.dart';
 
 class JiShuQiState {
   static const String tempIndexCmdInit = 'init'; // 页面首次加载：恢复后端已保存的局部平衡锚点

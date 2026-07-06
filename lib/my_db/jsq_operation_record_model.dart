@@ -23,6 +23,7 @@ int? _parseIndex(dynamic value) {
 class Table1Model {
   int? id;
   double? benjin;
+  double? initialBet;
   double? yongjin; // 赔率
   double? mean;
   int? restartIndex;
@@ -32,6 +33,7 @@ class Table1Model {
   Table1Model({
     this.id,
     this.benjin,
+    this.initialBet,
     this.yongjin,
     this.mean,
     this.restartIndex,
@@ -42,6 +44,7 @@ class Table1Model {
   Table1Model.fromJson(Map<String, dynamic> json) {
     id = bxGetInt(json['id']);
     benjin = _parseAmount(json['benjin']);
+    initialBet = _parseAmount(json['initial_bet']);
     yongjin = _parseAmount(json['yongjin']);
     mean = _parseAmount(json['mean']);
     restartIndex = _parseIndex(json['restart_index']);
@@ -53,6 +56,7 @@ class Table1Model {
     final Map<String, dynamic> data = <String, dynamic>{};
     data['ID'] = id;
     data['benjin'] = _amountToJson(benjin);
+    data['initial_bet'] = _amountToJson(initialBet);
     data['yongjin'] = _amountToJson(yongjin);
     data['mean'] = _amountToJson(mean);
     data['restart_index'] = restartIndex;

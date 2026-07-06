@@ -10,8 +10,8 @@ import 'package:flutter_screen_lock/flutter_screen_lock.dart';
 import 'package:get/get.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 import 'package:ycd/model/linechart_data_model.dart';
-import 'package:ycd/my_db/table1_model.dart';
-import 'package:ycd/my_db/table2_model.dart';
+import 'package:ycd/my_db/jsq_operation_record_model.dart';
+import 'package:ycd/my_db/jsq_bet_record_model.dart';
 import 'package:ycd/my_widget/custom_dialog.dart';
 import 'package:ycd/my_widget/single_picker.dart';
 import 'package:ycd/routes/app_routes.dart';
@@ -476,7 +476,7 @@ class JiShuQiController extends GetxController {
     Future.delayed(const Duration(milliseconds: 560), apply);
   }
 
-  /// 局部平衡锚点（投注列表「眼睛」行 id）：以后端 **table_yanchendao1.temp_index** 为准，
+  /// 局部平衡锚点（投注列表「眼睛」行 id）：以后端“jsq_operation_records.temp_index”为准，
   /// 对应客户端 `table1List.last.tempIndex`；值为整数且 **>2** 视为有效 table2 主键 id。
   /// **temp_index 为取消或重启指令**：`currentTempIndex` 固定为 **0**。
   /// 若无 table1 数据则退回统计接口回填的 `totalValue[29]`（兼容冷启动顺序）。
