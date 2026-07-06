@@ -20,7 +20,7 @@ int? _parseIndex(dynamic value) {
   return int.tryParse(value.toString().trim());
 }
 
-class Table1Model {
+class JsqOperationRecordModel {
   int? id;
   double? benjin;
   double? initialBet;
@@ -30,7 +30,7 @@ class Table1Model {
   int? liushuiIndex;
   String? tempIndex; // 存储局部平衡的位置
 
-  Table1Model({
+  JsqOperationRecordModel({
     this.id,
     this.benjin,
     this.initialBet,
@@ -41,7 +41,7 @@ class Table1Model {
     this.tempIndex,
   });
 
-  Table1Model.fromJson(Map<String, dynamic> json) {
+  JsqOperationRecordModel.fromJson(Map<String, dynamic> json) {
     id = bxGetInt(json['id']);
     benjin = _parseAmount(json['benjin']);
     initialBet = _parseAmount(json['initial_bet']);

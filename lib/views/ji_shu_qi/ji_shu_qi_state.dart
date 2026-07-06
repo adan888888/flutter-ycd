@@ -22,7 +22,7 @@ class JiShuQiState {
   var bettingMoney = '';
   var js1 = 0; //随机总数
   var js2 = 0;
-  int currentTempIndex = 0; // 局部平衡锚点行 id（与列表眼睛一致）；持久化为服务端 table1.temp_index → Table1Model.tempIndex
+  int currentTempIndex = 0; // 局部平衡锚点行 id（与列表眼睛一致）；持久化为服务端 operationRecord.tempIndex → JsqOperationRecordModel.tempIndex
 
   /// 列表各列固定宽度（ji_shu_qi_view 投注记录行；过长用 FittedBox 缩小字体）
   static const double seqColMaxWidth = 34; // 序号+眼睛，约 4 个数字
@@ -188,9 +188,9 @@ class JiShuQiState {
   var chartData /*图表数据*/ = <LineChartDataModel>[];
 
   // List<SalesData> chartData/*图表数据*/ = List.generate(70, (index) =>SalesData(index.toString(),Random().nextInt(1).toDouble() )).toList().obs;
-  var table1List = <Table1Model>[];
+  var operationRecordList = <JsqOperationRecordModel>[];
 
-  var table2List = <Table2Model>[];
+  var betRecordList = <JsqBetRecordModel>[];
   var selectIndex = 7;
 
   List<String> get functionTypes => [

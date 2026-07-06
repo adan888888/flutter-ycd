@@ -11,7 +11,7 @@ num? _amountToJson(double? value) {
   return value;
 }
 
-class Table2Model {
+class JsqBetRecordModel {
   int? id;
   int? seq; // 每个用户自己的序号（后端计算的行号）
   double? xiazhujine; // 下注金额
@@ -23,7 +23,7 @@ class Table2Model {
   String? remark; // 输赢标记
   double? currentJin;
 
-  Table2Model({
+  JsqBetRecordModel({
     required this.id,
     this.seq,
     this.xiazhujine,
@@ -36,7 +36,7 @@ class Table2Model {
     this.restartStatSnapshot,
   });
 
-  Table2Model.fromJson(Map<String, dynamic> json) {
+  JsqBetRecordModel.fromJson(Map<String, dynamic> json) {
     id = json['id'];
     seq = json['seq'];
     xiazhujine = _parseAmount(json['xiazhujine']);

@@ -229,7 +229,7 @@ class JiShuQiView extends GetView<JiShuQiController> {
                                               showMessage: true,
                                             ),
                                             onRefresh: () async => controller.onLoadMore(),
-                                            child: controller.state.table2List.isEmpty
+                                            child: controller.state.betRecordList.isEmpty
                                                 ? Center(
                                                     child: Image.asset(
                                                       JiShuQiState.emptyBettingListAsset,
@@ -243,7 +243,7 @@ class JiShuQiView extends GetView<JiShuQiController> {
                                                     ),
                                                     reverse: false,
                                                     controller: controller.scrollController,
-                                                    itemCount: controller.state.table2List.length,
+                                                    itemCount: controller.state.betRecordList.length,
                                                     itemBuilder: (BuildContext context, int index) => _buildItem(index),
                                                   ),
                                           ),
@@ -440,7 +440,7 @@ class JiShuQiView extends GetView<JiShuQiController> {
   _buildItem(int index) => GetBuilder<JiShuQiController>(
         builder: (controller) {
           // 由于ListView是reverse的，需要转换index来获取正确的交替颜色
-          final actualIndex = controller.state.table2List.length - 1 - index;
+          final actualIndex = controller.state.betRecordList.length - 1 - index;
           // 根据index的奇偶性设置不同的背景色
           final backgroundColor = actualIndex % 2 == 0
               ? (controller.state.isDarkMode
@@ -448,11 +448,11 @@ class JiShuQiView extends GetView<JiShuQiController> {
                   : Colors.grey.shade50) // 浅灰白色
               : (controller.state.isDarkMode ? controller.state.darkListViewColor : Colors.grey.shade200); // 稍深一点的浅灰色
           // 重启标记线：该行有重启统计快照则显示底部分隔线
-          final restartSnapshot = controller.state.table2List[index].restartStatSnapshot?.trim() ?? '';
+          final restartSnapshot = controller.state.betRecordList[index].restartStatSnapshot?.trim() ?? '';
           final isRestartRow = restartSnapshot.isNotEmpty;
-          final rowId = controller.state.table2List[index].id;
+          final rowId = controller.state.betRecordList[index].id;
           final isEyeRow = rowId != null && rowId != 0 && rowId == controller.state.currentTempIndex;
-          final shuyingRaw = controller.state.table2List[index].shuyingzhi;
+          final shuyingRaw = controller.state.betRecordList[index].shuyingzhi;
           final shuyingDisplay = controller.state.formatShuyingzhiColumn(shuyingRaw);
 
           return Container(
@@ -473,9 +473,9 @@ class JiShuQiView extends GetView<JiShuQiController> {
                 // 序号列：显示序号时含眼睛与局部平衡点击；隐藏时仅占位
                 if (controller.state.isSeqVisible)
                   GestureDetector(
-                    onTap: () => controller.juBuPingHeng(controller.state.table2List[index].id!),
-                    child: controller.state.table2List[index].id != null &&
-                            controller.state.table2List[index].id == controller.state.currentTempIndex
+                    onTap: () => controller.juBuPingHeng(controller.state.betRecordList[index].id!),
+                    child: controller.state.betRecordList[index].id != null &&
+                            controller.state.betRecordList[index].id == controller.state.currentTempIndex
                         ? SizedBox(
                             width: JiShuQiState.seqColMaxWidth,
                             child: Column(
@@ -491,7 +491,7 @@ class JiShuQiView extends GetView<JiShuQiController> {
                                   fit: BoxFit.scaleDown,
                                   alignment: Alignment.center,
                                   child: Text(
-                                    "${controller.state.table2List[index].seq}",
+                                    "${controller.state.betRecordList[index].seq}",
                                     maxLines: 1,
                                     style: TextStyle(
                                       fontSize: 10,
@@ -512,7 +512,7 @@ class JiShuQiView extends GetView<JiShuQiController> {
                               fit: BoxFit.scaleDown,
                               alignment: Alignment.center,
                               child: Text(
-                                "${controller.state.table2List[index].seq}",
+                                "${controller.state.betRecordList[index].seq}",
                                 maxLines: 1,
                                 style: TextStyle(
                                   fontSize: 11,
@@ -534,12 +534,12 @@ class JiShuQiView extends GetView<JiShuQiController> {
                   child: GestureDetector(
                     onTap: controller.state.isSeqVisible
                         ? null
-                        : () => controller.juBuPingHeng(controller.state.table2List[index].id!),
+                        : () => controller.juBuPingHeng(controller.state.betRecordList[index].id!),
                     child: Align(
                       alignment: Alignment.centerRight,
                       child: !controller.state.isSeqVisible &&
-                              controller.state.table2List[index].id != null &&
-                              controller.state.table2List[index].id == controller.state.currentTempIndex
+                              controller.state.betRecordList[index].id != null &&
+                              controller.state.betRecordList[index].id == controller.state.currentTempIndex
                           ? Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               mainAxisSize: MainAxisSize.max,
@@ -581,7 +581,7 @@ class JiShuQiView extends GetView<JiShuQiController> {
                   flex: 1,
                   child: Builder(
                     builder: (context) {
-                      final xiaoshu = controller.state.table2List[index].shuyingzhiXiaoshu;
+                      final xiaoshu = controller.state.betRecordList[index].shuyingzhiXiaoshu;
                       final xiaoshuText = controller.state.formatShuyingzhiColumn(xiaoshu);
                       return Row(
                         mainAxisAlignment: MainAxisAlignment.end,
@@ -633,7 +633,7 @@ class JiShuQiView extends GetView<JiShuQiController> {
                       fit: BoxFit.scaleDown,
                       alignment: Alignment.centerRight,
                       child: Text(
-                        "${controller.state.table2List[index].xiazhujine}",
+                        "${controller.state.betRecordList[index].xiazhujine}",
                         maxLines: 1,
                         textAlign: TextAlign.right,
                         style: TextStyle(
@@ -678,8 +678,8 @@ class JiShuQiView extends GetView<JiShuQiController> {
 
   _sflContainer(int index) => GetBuilder<JiShuQiController>(
         builder: (controller) {
-          final isZhengDa = controller.state.table2List[index].shengfulu == '正打';
-          final isLose = controller.state.table2List[index].remark?.startsWith('-') ?? false;
+          final isZhengDa = controller.state.betRecordList[index].shengfulu == '正打';
+          final isLose = controller.state.betRecordList[index].remark?.startsWith('-') ?? false;
           final dividerColor = controller.state.isDarkMode ? Colors.white24 : Colors.grey.withValues(alpha: 0.5);
 
           if (isZhengDa) {
@@ -1197,16 +1197,16 @@ class JiShuQiView extends GetView<JiShuQiController> {
             onPressed: () {
               switch (i) {
                 case 1: //闲赢
-                  controller.betRecordButton(1, 'table2');
+                  controller.betRecordButton(1, 'betRecord');
                   break;
                 case 2: //庄赢
-                  controller.betRecordButton(2, 'table2');
+                  controller.betRecordButton(2, 'betRecord');
                   break;
                 case 3: //闲输
-                  controller.betRecordButton(3, 'table2');
+                  controller.betRecordButton(3, 'betRecord');
                   break;
                 case 4: //庄输
-                  controller.betRecordButton(4, 'table2');
+                  controller.betRecordButton(4, 'betRecord');
                   break;
               }
             },

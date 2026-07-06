@@ -33,61 +33,61 @@ class Api {
   static String login = "/auth/login";
 
   //初始化程序 创建表
-  static String createtables = "/jsq/createtable";
+  static String createtables = "/jsq/create-table";
 
-  //获取表一数据
-  static String getTable1 = "/jsq/table1";
+  //获取操作记录
+  static String getOperationRecords = "/jsq/operation-records";
 
-  //插入表一数据
-  static String inserttable1 = "/jsq/inserttable1";
+  //插入操作记录
+  static String createOperationRecord = "/jsq/operation-records";
 
-  //插入表二数据
-  static String inserttable2 = "/jsq/inserttable2";
+  //插入投注记录
+  static String createBetRecord = "/jsq/bet-records";
 
   // 更新重启统计快照
-  static String updateLastRowRestartStatSnapshot = "/jsq/updaterestartstatsnapshot";
+  static String updateLastRowRestartStatSnapshot = "/jsq/update-restart-stat-snapshot";
 
   //删除最后一行
-  static String deletelast = "/jsq/deletelast";
+  static String deletelast = "/jsq/delete-last";
 
   //重新启动
   static String restart = "/jsq/restart";
 
   //排序消数列
-  static String sortxiaoshu = "/jsq/sortxiaoshu";
+  static String sortxiaoshu = "/jsq/sort-xiaoshu";
 
   //消数
   static String xiaoshu = "/jsq/xiaoshu";
 
   //删除本页
-  static String deleteall = "/jsq/deleteall";
+  static String deleteall = "/jsq/delete-all";
 
   //重置流水
-  static String resetliushui = "/jsq/resetliushui";
+  static String resetliushui = "/jsq/reset-liushui";
 
   //修改个性期望值
-  static String updateQiWangValue = "/jsq/updateqiwangvalue";
+  static String updateQiWangValue = "/jsq/update-qiwang-value";
 
   //修改赔率
-  static String updateOdds = "/jsq/updateodds";
+  static String updateOdds = "/jsq/update-odds";
 
   //修改本金
-  static String updateBenjin = "/jsq/updatebenjin";
+  static String updateBenjin = "/jsq/update-benjin";
 
   //加载更多历史数据
-  static String loadMore = "/jsq/loadmore";
+  static String loadMore = "/jsq/load-more";
 
   //加载更多历史数据
-  static String getStatisticalAreasData = "/jsq/getStatisticalAreasData";
+  static String getStatisticalAreasData = "/jsq/statistical-areas-data";
 
   //折线图数据
-  static String getLinechartData = "/jsq/linechartData";
+  static String getLinechartData = "/jsq/line-chart-data";
 
   //清除数据（消数列数据全部清除）
-  static String cleanDataD = "/jsq/cleanDataD";
+  static String cleanDataD = "/jsq/clean-data";
 
   //随机庄闲接口
-  static String randomBankerPlayer = "/jsq/randomBankerPlayer";
+  static String randomBankerPlayer = "/jsq/random-banker-player";
 
   static String buyRecords = "/buyRecords";
 

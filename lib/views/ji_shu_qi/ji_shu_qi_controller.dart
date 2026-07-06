@@ -87,7 +87,7 @@ class JiShuQiController extends GetxController {
         });
 
     await Future.wait([
-      track(_queryMysqlTable1(isShowLoading: false, showError: false)),
+      track(_queryOperationRecords(isShowLoading: false, showError: false)),
       track(_getStatisticalAreasData(JiShuQiState.tempIndexCmdInit, isShowLoading: false, showError: false)),
       track(_reloadBettingListTail(isShowLoading: false, showError: false)),
     ]);
@@ -117,29 +117,29 @@ class JiShuQiController extends GetxController {
 
   /// 按最新一页重新拉取投注记录（`last_id: -1`，与进入页面时一致）。
   /// [minCount] 至少条数；若已通过上拉加载更多历史，则用当前条数避免刷新后列表变短。
-  /// **局部平衡锚点 id 若不在本窗口内**：不扩列表、不特殊处理；该行不在 `table2List` 时眼睛不出现即可。
+  /// **局部平衡锚点 id 若不在本窗口内**：不扩列表、不特殊处理；该行不在 `betRecordList` 时眼睛不出现即可。
   Future<void> _reloadBettingListTail({
     int minCount = 66,
     bool isShowLoading = false,
     bool showError = true,
   }) async {
     final completer = Completer<void>();
-    final n = state.table2List.length > minCount ? state.table2List.length : minCount;
-    BXGet<Table2Model>(
+    final n = state.betRecordList.length > minCount ? state.betRecordList.length : minCount;
+    BXGet<JsqBetRecordModel>(
       Api.loadMore,
       params: {"last_id": -1, "uid": GetStore.getInstance().userModel.userId, "c": n},
       success: (isSuccess, code, message, results) {
         if (isSuccess) {
           if (results.isEmpty) {
-            state.table2List.clear();
+            state.betRecordList.clear();
             _reloadLuZiTu();
             if (!state.isBigRoad) {
               _getLineCharts(applyStatsTail: true);
             }
             update();
           } else {
-            state.table2List.clear();
-            state.table2List = List<Table2Model>.from(results);
+            state.betRecordList.clear();
+            state.betRecordList = List<JsqBetRecordModel>.from(results);
             _reloadLuZiTu();
             if (!state.isBigRoad) {
               _getLineCharts(applyStatsTail: true);
@@ -159,7 +159,7 @@ class JiShuQiController extends GetxController {
       },
       isShowLoading: isShowLoading,
       showError: showError,
-      onModel: (m) => Table2Model.fromJson(m),
+      onModel: (m) => JsqBetRecordModel.fromJson(m),
     );
     return completer.future;
   }
@@ -315,13 +315,13 @@ class JiShuQiController extends GetxController {
 
     /// 仍未挂上 Scrollable；或已与底部相差较大：再试。extent 尚为 0 但条数较多时视为未布局完。
     bool needsAnotherTry() {
-      if (!scrollController.hasClients) return state.table2List.isNotEmpty;
-      if (state.table2List.isEmpty) return false;
+      if (!scrollController.hasClients) return state.betRecordList.isNotEmpty;
+      if (state.betRecordList.isEmpty) return false;
       final pos = scrollController.position;
       final max = pos.maxScrollExtent;
       if (!max.isFinite) return true;
       if (max <= 0.5) {
-        return state.table2List.length > 8;
+        return state.betRecordList.length > 8;
       }
       return max - pos.pixels > 1.5;
     }
@@ -390,7 +390,7 @@ class JiShuQiController extends GetxController {
     final tempIndex = state.currentTempIndex;
     if (tempIndex == 0) return;
 
-    int idx = state.table2List.indexWhere((e) => e.id != null && e.id == tempIndex);
+    int idx = state.betRecordList.indexWhere((e) => e.id != null && e.id == tempIndex);
     // 如果眼睛的位置不在列表中，则加载更多数据，再滚动到眼睛的位置
     if (idx < 0) {
       unawaited(_loadMoreForTempIndex(tempIndex));
@@ -400,8 +400,8 @@ class JiShuQiController extends GetxController {
   }
 
   Future<void> _loadMoreForTempIndex(int tempIndex) async {
-    if (state.table2List.isEmpty) return;
-    final firstId = state.table2List.first.id;
+    if (state.betRecordList.isEmpty) return;
+    final firstId = state.betRecordList.first.id;
     if (firstId == null) return;
     // 目标 id 比当前最旧 id 还新，说明不存在“往前加载更多”空间。
     if (tempIndex >= firstId) return;
@@ -417,7 +417,7 @@ class JiShuQiController extends GetxController {
     // 加载后按最新列表重算一次索引再滚动。
     await WidgetsBinding.instance.endOfFrame;
     if (!scrollController.hasClients) return;
-    final idx = state.table2List.indexWhere((e) => e.id != null && e.id == tempIndex);
+    final idx = state.betRecordList.indexWhere((e) => e.id != null && e.id == tempIndex);
     if (idx >= 0) {
       _scrollToTempIndexRow(idx);
     }
@@ -477,13 +477,13 @@ class JiShuQiController extends GetxController {
   }
 
   /// 局部平衡锚点（投注列表「眼睛」行 id）：以后端“jsq_operation_records.temp_index”为准，
-  /// 对应客户端 `table1List.last.tempIndex`；值为整数且 **>2** 视为有效 table2 主键 id。
+  /// 对应客户端 `operationRecordList.last.tempIndex`；值为整数且 **>2** 视为有效 投注记录主键 id。
   /// **temp_index 为取消或重启指令**：`currentTempIndex` 固定为 **0**。
-  /// 若无 table1 数据则退回统计接口回填的 `totalValue[29]`（兼容冷启动顺序）。
-  /// **锚点 id 不在当前 `table2List` 时**：不处理列表窗口（不保证眼睛可见）；仅保持 `currentTempIndex` 与配置一致。
+  /// 若无 操作记录数据则退回统计接口回填的 `totalValue[29]`（兼容冷启动顺序）。
+  /// **锚点 id 不在当前 `betRecordList` 时**：不处理列表窗口（不保证眼睛可见）；仅保持 `currentTempIndex` 与配置一致。
   void _syncLocalTempIndexWithBackendState() {
-    if (state.table1List.isNotEmpty) {
-      final raw = state.table1List.last.tempIndex?.trim() ?? '';
+    if (state.operationRecordList.isNotEmpty) {
+      final raw = state.operationRecordList.last.tempIndex?.trim() ?? '';
       // 后端 temp_index 为清空指令：锚点归零
       if (_isClearLocalTempIndex(raw)) {
         state.currentTempIndex = 0;
@@ -556,12 +556,12 @@ class JiShuQiController extends GetxController {
           }
         }
 
-        // 取消、重启或选中锚点行(>2) 时后端会更新 table1.temp_index；须先拉 table1 再同步，
+        // 取消、重启或选中锚点行(>2) 时后端会更新 operationRecord.tempIndex；须先拉 operationRecord 再同步，
         // 否则会沿用内存里旧的 temp_index，把 currentTempIndex 又写回去（取消失效）。
         final ti = tempIndex;
-        final needsFreshTable1 = _isClearLocalTempIndex(ti) || _isEffectiveLocalTempIndex(ti);
-        if (needsFreshTable1) {
-          _queryMysqlTable1().then((_) => continueAfterStatsReady()).catchError((_) => continueAfterStatsReady());
+        final needsFreshOperationRecords = _isClearLocalTempIndex(ti) || _isEffectiveLocalTempIndex(ti);
+        if (needsFreshOperationRecords) {
+          _queryOperationRecords().then((_) => continueAfterStatsReady()).catchError((_) => continueAfterStatsReady());
         } else {
           continueAfterStatsReady();
         }
@@ -734,21 +734,21 @@ class JiShuQiController extends GetxController {
 
   _next(int min, int max) => min + Random().nextInt(max - min + 1);
 
-  Future<void> _queryMysqlTable1({
+  Future<void> _queryOperationRecords({
     bool isShowLoading = false,
     bool showError = true,
   }) {
     final completer = Completer<void>();
-    BXGet<Table1Model>(Api.getTable1,
+    BXGet<JsqOperationRecordModel>(Api.getOperationRecords,
         isShowLoading: isShowLoading,
         showError: showError,
         success: (isSuccess, code, message, value) {
-          state.table1List.clear();
+          state.operationRecordList.clear();
           if (value.isNotEmpty) {
-            state.table1List = value;
-            state.totalValue[0] = '${state.table1List.last.benjin}'; //本金
-            state.totalValue[19] = '${state.table1List.last.mean}'; //期望值
-            // 折线形状必须由 [_getLineCharts]（table2 末尾或 linechartData）提供；此处若用本金铺满 75 点，
+            state.operationRecordList = value;
+            state.totalValue[0] = '${state.operationRecordList.last.benjin}'; //本金
+            state.totalValue[19] = '${state.operationRecordList.last.mean}'; //期望值
+            // 折线形状必须由 [_getLineCharts]（投注记录末尾或 linechartData）提供；此处若用本金铺满 75 点，
             // 会在接口已画出真实曲线之后覆盖成一条水平线（本金为 0 时即为「全 0」）。
             _syncLocalTempIndexWithBackendState();
           } else {
@@ -766,11 +766,11 @@ class JiShuQiController extends GetxController {
             completer.completeError(p0);
           }
         },
-        onModel: (m) => Table1Model.fromJson(m));
+        onModel: (m) => JsqOperationRecordModel.fromJson(m));
     return completer.future;
   }
 
-  betRecordButton(int i, String tableName, {Table1Model? table1, Table2Model? table2}) {
+  betRecordButton(int i, String recordType, {JsqOperationRecordModel? operationRecord, JsqBetRecordModel? betRecord}) {
     if (state.randomValue.isEmpty) {
       Get.snackbar("温馨提示", '请摇塞子',
           duration: const Duration(seconds: 2),
@@ -804,9 +804,9 @@ class JiShuQiController extends GetxController {
     BXLoading.show(douyinStyle: true);
     state.isCanPress = false;
     state.js1 = state.js1 + 1;
-    final table = tableName == 'table2'
-        ? Table2Model(
-            id: state.table2List.length + 1,
+    final table = recordType == 'betRecord'
+        ? JsqBetRecordModel(
+            id: state.betRecordList.length + 1,
             xiazhujine: double.tryParse(state.bettingMoney),
             zx: (i == 2 || i == 3) ? '庄' : '闲',
             remark: (i == 1 || i == 2) ? "1" : "-1",
@@ -818,27 +818,28 @@ class JiShuQiController extends GetxController {
             shuyingzhiXiaoshu: syzLAmount(i),
             currentJin: getCurrentJin(i, double.parse(state.bettingMoney)),
           )
-        : Table1Model(benjin: 10000, yongjin: 0.95, mean: 0.08, restartIndex: 0, liushuiIndex: 10);
+        : JsqOperationRecordModel(benjin: 10000, yongjin: 0.95, mean: 0.08, restartIndex: 0, liushuiIndex: 10);
 
     ///改变成插入远程数据库
-    if (tableName == 'table1') {
-      BXPut<Table1Model>(Api.inserttable1,
-          params: (table as Table1Model).toJson()
+    if (recordType == 'operationRecord') {
+      BXPut<JsqOperationRecordModel>(Api.createOperationRecord,
+          params: (table as JsqOperationRecordModel).toJson()
             ..addAll({"user_id": int.parse(GetStore.getInstance().userModel.userId)}),
-          success: (isSuccess, code, message, results) => BXLoading.showToast("操作表1"),
+          success: (isSuccess, code, message, results) => BXLoading.showToast("操作记录"),
           failed: (p0, p1) => state.isCanPress = true,
-          onModel: (m) => Table1Model.fromJson(m));
+          onModel: (m) => JsqOperationRecordModel.fromJson(m));
     } else {
-      BXPut<Table2Model>(Api.inserttable2,
+      BXPut<JsqBetRecordModel>(Api.createBetRecord,
           isShowLoading: false,
-          params: (table as Table2Model).toJson()
-            ..remove("table2Id")
+          params: (table as JsqBetRecordModel).toJson()
+            ..remove("betRecordId")
             ..addAll({"user_id": int.parse(GetStore.getInstance().userModel.userId)}),
           success: (isSuccess, code, message, results) {
             if (results.isNotEmpty) {
               final row = results.first;
-              row.seq = state.table2List.isEmpty ? 1 : (state.table2List.last.seq ?? state.table2List.length) + 1;
-              state.table2List.add(row);
+              row.seq =
+                  state.betRecordList.isEmpty ? 1 : (state.betRecordList.last.seq ?? state.betRecordList.length) + 1;
+              state.betRecordList.add(row);
             }
             update(); // 先让 ListView 用新 itemCount 布局，再滚到底才准
             scrollBettingListToBottom();
@@ -849,17 +850,18 @@ class JiShuQiController extends GetxController {
             state.isCanPress = true;
             BXLoading.dismiss();
           },
-          onModel: (m) => Table2Model.fromJson(m));
+          onModel: (m) => JsqBetRecordModel.fromJson(m));
     }
   }
 
   /// 折线：需要完整 75 个点。
-  /// - 本地已加载 ≥75 条时，用 table2List 末尾 75 条（时间升序，与列表一致）。
+  /// - 本地已加载 ≥75 条时，用 betRecordList 末尾 75 条（时间升序，与列表一致）。
   /// - 否则（如首屏只拉 66 条）走 linechartData 接口，从库中取最近 75 笔（id 降序返回，从尾到头填入）。
   /// - [applyStatsTail]：在刚从统计接口回填后，将最右一点强制为 [totalValue[4]]（本金+累计输赢），与统计区「当前金额」一致。
   void _getLineCharts({bool applyStatsTail = false}) {
     final gen = ++_lineChartRequestGen;
-    final benjin = state.table1List.isNotEmpty ? double.tryParse(state.table1List.last.benjin.toString()) : null;
+    final benjin =
+        state.operationRecordList.isNotEmpty ? double.tryParse(state.operationRecordList.last.benjin.toString()) : null;
     void resetChartPad(double p) {
       if (state.chartData.length != 75) {
         state.chartData = List.generate(75, (index) => LineChartDataModel(index, p));
@@ -873,7 +875,7 @@ class JiShuQiController extends GetxController {
     final pad = benjin ?? (state.chartData.isNotEmpty ? state.chartData[0].sales : 0.0);
     resetChartPad(pad);
 
-    final list = state.table2List;
+    final list = state.betRecordList;
     if (list.length >= 75) {
       final n = list.length;
       final start = n - 75;
@@ -925,7 +927,7 @@ class JiShuQiController extends GetxController {
   }
 
   getCurrentJin(int i, double playMoney) {
-    var lastJinE = state.table2List.isEmpty ? 5000 : double.parse(state.totalValue[4].toString());
+    var lastJinE = state.betRecordList.isEmpty ? 5000 : double.parse(state.totalValue[4].toString());
     switch (i) {
       case 1:
         return (lastJinE + playMoney);
@@ -978,7 +980,7 @@ class JiShuQiController extends GetxController {
   }
 
   void deleteLast() {
-    if (state.table2List.isNotEmpty) {
+    if (state.betRecordList.isNotEmpty) {
       Get.defaultDialog(
         barrierDismissible: false,
         backgroundColor: state.isDarkMode ? const Color(0xFF1E2A3A) : Colors.white,
@@ -992,16 +994,16 @@ class JiShuQiController extends GetxController {
         onCancel: () {},
         onConfirm: () {
           Get.back();
-          BXDelete<Table2Model>(Api.deletelast,
+          BXDelete<JsqBetRecordModel>(Api.deletelast,
               success: (isSuccess, code, message, results) {
                 if (!isSuccess) return;
                 if (results.isNotEmpty) {
                   final deletedId = results.first.id;
-                  final idx = deletedId == null ? -1 : state.table2List.indexWhere((e) => e.id == deletedId);
+                  final idx = deletedId == null ? -1 : state.betRecordList.indexWhere((e) => e.id == deletedId);
                   if (idx >= 0) {
-                    state.table2List.removeAt(idx);
-                  } else if (state.table2List.isNotEmpty) {
-                    state.table2List.removeLast();
+                    state.betRecordList.removeAt(idx);
+                  } else if (state.betRecordList.isNotEmpty) {
+                    state.betRecordList.removeLast();
                   }
                 }
                 state.js1 = state.js1 - 1;
@@ -1011,7 +1013,7 @@ class JiShuQiController extends GetxController {
                 update();
               },
               failed: (_, __) {},
-              onModel: (m) => Table2Model.fromJson(m));
+              onModel: (m) => JsqBetRecordModel.fromJson(m));
         },
       );
     }
@@ -1022,10 +1024,10 @@ class JiShuQiController extends GetxController {
     BXPost(
       Api.xiaoshu,
       isShowLoading: false,
-      params: state.table2List[index].toJson()..update("shuyingzhi_xiaoshu", (value) => null),
+      params: state.betRecordList[index].toJson()..update("shuyingzhi_xiaoshu", (value) => null),
       success: (isSuccess, code, message, results) {
         if (isSuccess) {
-          state.table2List[index].shuyingzhiXiaoshu = null;
+          state.betRecordList[index].shuyingzhiXiaoshu = null;
           Future.delayed(const Duration(milliseconds: 500), () {
             BXLoading.dismiss();
             update();
@@ -1065,7 +1067,7 @@ class JiShuQiController extends GetxController {
     required VoidCallback onDone,
     VoidCallback? onFail,
   }) {
-    if (state.table2List.isEmpty) {
+    if (state.betRecordList.isEmpty) {
       onFail?.call();
       return;
     }
@@ -1080,8 +1082,8 @@ class JiShuQiController extends GetxController {
       params: {'restartStatSnapshot': snapshot},
       success: (isSuccess, code, message, results) {
         if (isSuccess) {
-          if (state.table2List.isNotEmpty) {
-            state.table2List.last.restartStatSnapshot = snapshot;
+          if (state.betRecordList.isNotEmpty) {
+            state.betRecordList.last.restartStatSnapshot = snapshot;
           }
           onDone();
         } else {
@@ -1094,21 +1096,21 @@ class JiShuQiController extends GetxController {
   }
 
   void _callRestartApi(String snapshot) {
-    if (state.table2List.isEmpty) {
+    if (state.betRecordList.isEmpty) {
       BXLoading.dismiss();
       return;
     }
-    BXPost<Table1Model>(
+    BXPost<JsqOperationRecordModel>(
       Api.restart,
       isShowLoading: false,
-      params: {"index": state.table2List.last.id},
+      params: {"index": state.betRecordList.last.id},
       success: (isSuccess, code, message, value) {
         BXLoading.dismiss();
         if (isSuccess) {
-          state.table1List = value;
-          state.table2List = state.table2List.map((element) => element..shuyingzhiXiaoshu = null).toList();
-          if (snapshot.isNotEmpty && state.table2List.isNotEmpty) {
-            state.table2List.last.restartStatSnapshot = snapshot;
+          state.operationRecordList = value;
+          state.betRecordList = state.betRecordList.map((element) => element..shuyingzhiXiaoshu = null).toList();
+          if (snapshot.isNotEmpty && state.betRecordList.isNotEmpty) {
+            state.betRecordList.last.restartStatSnapshot = snapshot;
           }
           state.currentTempIndex = 0;
           _getStatisticalAreasData(JiShuQiState.tempIndexCmdReset);
@@ -1118,7 +1120,7 @@ class JiShuQiController extends GetxController {
         }
       },
       failed: (_, __) => BXLoading.dismiss(),
-      onModel: (m) => Table1Model.fromJson(m),
+      onModel: (m) => JsqOperationRecordModel.fromJson(m),
     );
   }
 
@@ -1137,7 +1139,7 @@ class JiShuQiController extends GetxController {
       onCancel: () {},
       onConfirm: () {
         Get.back();
-        if (state.table2List.isEmpty) {
+        if (state.betRecordList.isEmpty) {
           BXLoading.showToast('暂无投注记录，无法重启');
           return;
         }
@@ -1148,7 +1150,7 @@ class JiShuQiController extends GetxController {
         BXLoading.show(douyinStyle: true);
         final snapshot = _buildRestartStatSnapshot();
         if (snapshot.isNotEmpty) {
-          state.table2List.last.restartStatSnapshot = snapshot;
+          state.betRecordList.last.restartStatSnapshot = snapshot;
           update();
         }
         _saveLastRowRestartStatSnapshot(
@@ -1161,7 +1163,7 @@ class JiShuQiController extends GetxController {
   }
 
   void updateBenJin(String b) {
-    BXPost<Table1Model>(
+    BXPost<JsqOperationRecordModel>(
       Api.updateBenjin,
       params: {"benjin": b},
       success: (isSuccess, code, message, value) {
@@ -1172,7 +1174,7 @@ class JiShuQiController extends GetxController {
           _getStatisticalAreasData(JiShuQiState.tempIndexCmdKeep);
         }
       },
-      onModel: (m) => Table1Model.fromJson(m),
+      onModel: (m) => JsqOperationRecordModel.fromJson(m),
     );
   }
 
@@ -1199,8 +1201,8 @@ class JiShuQiController extends GetxController {
         break;
       case 1: //清除数据（消数列数据全部清除）
         int count = 0;
-        for (var _ in state.table2List) {
-          state.table2List[count].shuyingzhiXiaoshu = null;
+        for (var _ in state.betRecordList) {
+          state.betRecordList[count].shuyingzhiXiaoshu = null;
           update();
           count++;
         }
@@ -1249,8 +1251,8 @@ class JiShuQiController extends GetxController {
             BXDelete(Api.deleteall, success: (isSuccess, code, message, results) {
               if (isSuccess) {
                 BXLoading.showToast(message);
-                state.table1List.clear();
-                state.table2List.clear();
+                state.operationRecordList.clear();
+                state.betRecordList.clear();
                 state.randomValue = '';
                 List.generate(32, (index) => state.totalValue[index] = index.toString());
                 _getStatisticalAreasData(JiShuQiState.tempIndexCmdReset, isShowLoading: false);
@@ -1260,13 +1262,13 @@ class JiShuQiController extends GetxController {
         );
         break;
       case 5: //重置流水
-        if (state.table2List.isEmpty) {
+        if (state.betRecordList.isEmpty) {
           BXLoading.showToast('暂无投注记录');
           break;
         }
         BXPost(
           Api.resetliushui,
-          params: {"resetIndex": state.table2List.last.id},
+          params: {"resetIndex": state.betRecordList.last.id},
           success: (bool isSuccess, int code, String message, List<dynamic> results) {},
         );
         break;
@@ -1360,15 +1362,15 @@ class JiShuQiController extends GetxController {
       if (isSuccess) {
         // BXLoading.showToast(message);
         var list = (results.first as Map<String, dynamic>)["sorted_sequence"];
-        final n = state.table2List.length;
+        final n = state.betRecordList.length;
         final m = list.length;
         for (int i = 0; i < n; i++) {
           final idx = m - n + i;
           if (idx < 0 || idx >= m) {
-            state.table2List[i].shuyingzhiXiaoshu = null;
+            state.betRecordList[i].shuyingzhiXiaoshu = null;
             continue;
           }
-          state.table2List[i].shuyingzhiXiaoshu = double.tryParse(list[idx].toString());
+          state.betRecordList[i].shuyingzhiXiaoshu = double.tryParse(list[idx].toString());
         }
         update();
       }
@@ -1491,7 +1493,7 @@ class JiShuQiController extends GetxController {
       state.currentTempIndex = targetIndex as int;
     }
     update();
-    if (state.table2List.isNotEmpty) _getStatisticalAreasData(targetIndex);
+    if (state.betRecordList.isNotEmpty) _getStatisticalAreasData(targetIndex);
   }
 
   //统计区的下拉刷新（网络错误 Toast 由 HttpService 统一处理）
@@ -1500,7 +1502,7 @@ class JiShuQiController extends GetxController {
     update();
     var success = true;
     try {
-      await _queryMysqlTable1(isShowLoading: false);
+      await _queryOperationRecords(isShowLoading: false);
       await _getStatisticalAreasData(JiShuQiState.tempIndexCmdKeep, isShowLoading: false);
       await _reloadBettingListTail(isShowLoading: false);
     } catch (_) {
@@ -1528,8 +1530,8 @@ class JiShuQiController extends GetxController {
     final completer = Completer<int>();
     // id 为 null 时 Dio 会发出 last_id= 无值，后端会走错分支；空列表用 -1。
     // 与后端 LoadMore 一致：数据为 created_at 升序，分页游标为当前已加载中最旧一条（first）的 id。
-    final anchorId = state.table2List.isEmpty ? -1 : (state.table2List.first.id ?? -1);
-    BXGet<Table2Model>(Api.loadMore,
+    final anchorId = state.betRecordList.isEmpty ? -1 : (state.betRecordList.first.id ?? -1);
+    BXGet<JsqBetRecordModel>(Api.loadMore,
         params: {"last_id": anchorId, "uid": GetStore.getInstance().userModel.userId, "c": count}, //"c"每页多少个数据
         success: (isSuccess, code, message, results) {
           if (!isSuccess) {
@@ -1539,7 +1541,7 @@ class JiShuQiController extends GetxController {
           }
 
           if (results.isEmpty) {
-            if (state.table2List.isEmpty) {
+            if (state.betRecordList.isEmpty) {
               update();
             }
             refreshcontroller.finishRefresh(IndicatorResult.noMore, true);
@@ -1552,7 +1554,7 @@ class JiShuQiController extends GetxController {
             if (scrollController.hasClients) {
               keptPixels = scrollController.position.pixels;
             }
-            state.table2List.insertAll(0, results);
+            state.betRecordList.insertAll(0, results);
             if (!state.isBigRoad) {
               _getLineCharts(applyStatsTail: true);
             }
@@ -1568,7 +1570,7 @@ class JiShuQiController extends GetxController {
           refreshcontroller.finishRefresh(IndicatorResult.fail, true);
           if (!completer.isCompleted) completer.complete(0);
         },
-        onModel: (m) => Table2Model.fromJson(m));
+        onModel: (m) => JsqBetRecordModel.fromJson(m));
     return completer.future;
   }
 
@@ -1587,7 +1589,7 @@ class JiShuQiController extends GetxController {
 
   //重新加载路子图
   _reloadLuZiTu() {
-    var list = state.table2List.map((e) => (e.shuyingzhi ?? 0) < 0 ? "闲家" : "庄家").toList();
+    var list = state.betRecordList.map((e) => (e.shuyingzhi ?? 0) < 0 ? "闲家" : "庄家").toList();
     state.initializeBigRoad();
     for (var value in list) {
       updateBigRoad(value);
