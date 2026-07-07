@@ -1,10 +1,12 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:ycd/utils/network/api.dart';
 import 'package:ycd/utils/network/http_mgr.dart';
 import 'package:ycd/utils/permission_util.dart';
+import 'package:ycd/utils/storage_util.dart';
 
 import 'buy_records_currency.dart';
 import 'buy_records_market_service.dart';
@@ -12,11 +14,21 @@ import 'buy_records_state.dart';
 
 /// 买入记录页面控制器
 class BuyRecordsController extends GetxController {
+  static const _baseAmountsStorageKey = 'buy_records_base_amounts';
+
   /// 状态管理
   final BuyRecordsState state = BuyRecordsState();
 
   BuyRecordsCurrency get currentCurrencyConfig =>
       findBuyRecordsCurrency(state.currentCurrency) ?? defaultBuyRecordsCurrency;
+
+  double get effectiveBaseAmount => baseAmountFor(currentCurrencyConfig);
+
+  double baseAmountFor(BuyRecordsCurrency currency) =>
+      state.customBaseAmounts[currency.id] ?? currency.baseAmount;
+
+  bool hasCustomBaseAmount(String currencyId) =>
+      state.customBaseAmounts.containsKey(currencyId);
 
   Map<String, String> get _marketHeaders => const {
     'User-Agent':
@@ -29,7 +41,71 @@ class BuyRecordsController extends GetxController {
   void onInit() {
     super.onInit();
     if (!PermissionUtil.guardProFeature()) return;
+    _loadCustomBaseAmounts();
     _initializeData();
+  }
+
+  void _loadCustomBaseAmounts() {
+    final raw = StorageUtil.getString(_baseAmountsStorageKey);
+    if (raw == null || raw.isEmpty) return;
+    try {
+      final map = jsonDecode(raw) as Map<String, dynamic>;
+      state.customBaseAmounts = map.map(
+        (key, value) => MapEntry(key, (value as num).toDouble()),
+      );
+    } catch (e) {
+      debugPrint('加载基准买入配置失败: $e');
+    }
+  }
+
+  Future<void> updateBaseAmount(String currencyId, double amount) async {
+    if (amount <= 0) return;
+    state.customBaseAmounts[currencyId] = amount;
+    await StorageUtil.saveString(
+      _baseAmountsStorageKey,
+      jsonEncode(state.customBaseAmounts),
+    );
+    update();
+  }
+
+  Future<void> resetBaseAmount(String currencyId) async {
+    state.customBaseAmounts.remove(currencyId);
+    await StorageUtil.saveString(
+      _baseAmountsStorageKey,
+      jsonEncode(state.customBaseAmounts),
+    );
+    update();
+  }
+
+  Future<double?> fetchMaDeviationPercentFor(BuyRecordsCurrency config) async {
+    try {
+      final quote = await fetchMarketQuote(config, _marketHeaders);
+      final price = quote.price;
+      final ma = quote.ma200;
+      if (price == null || ma == null || ma == 0) return null;
+      return ((price - ma) / ma) * 100;
+    } catch (e) {
+      debugPrint('获取${config.label}偏离失败: $e');
+      return null;
+    }
+  }
+
+  String formatSuggestedBuyAmountFor(double baseAmount, {double? deviationPercent}) {
+    final deviation = deviationPercent ?? ma200DailyDeviationPercent;
+    final amount = suggestedBuyAmountUsdt(deviation, baseAmount);
+    if (amount == null) return '—';
+    if (amount == 0) return '停止买入';
+    return formatBuyAmountUsdt(amount);
+  }
+
+  Color suggestedBuyAmountColorFor(double baseAmount, {double? deviationPercent}) {
+    final deviation = deviationPercent ?? ma200DailyDeviationPercent;
+    final amount = suggestedBuyAmountUsdt(deviation, baseAmount);
+    if (amount == null) return Colors.grey;
+    if (amount == 0) return Colors.orange;
+    if (amount > baseAmount) return Colors.green;
+    if (amount < baseAmount) return Colors.deepOrange;
+    return Colors.black;
   }
 
   /// 初始化数据，确保两个接口都完成后再进行计算
@@ -89,24 +165,13 @@ class BuyRecordsController extends GetxController {
 
   /// 相对 200 日均线偏离档位给出的建议买入金额（USDT）
   double? get suggestedBuyAmount =>
-      suggestedBuyAmountUsdt(ma200DailyDeviationPercent, currentCurrencyConfig.baseAmount);
+      suggestedBuyAmountUsdt(ma200DailyDeviationPercent, effectiveBaseAmount);
 
-  String formatSuggestedBuyAmount() {
-    final amount = suggestedBuyAmount;
-    if (amount == null) return '—';
-    if (amount == 0) return '停止买入';
-    return formatBuyAmountUsdt(amount);
-  }
+  String formatSuggestedBuyAmount() =>
+      formatSuggestedBuyAmountFor(effectiveBaseAmount);
 
-  Color suggestedBuyAmountColor() {
-    final amount = suggestedBuyAmount;
-    final base = currentCurrencyConfig.baseAmount;
-    if (amount == null) return Colors.grey;
-    if (amount == 0) return Colors.orange;
-    if (amount > base) return Colors.green;
-    if (amount < base) return Colors.deepOrange;
-    return Colors.black;
-  }
+  Color suggestedBuyAmountColor() =>
+      suggestedBuyAmountColorFor(effectiveBaseAmount);
 
   /// 获取买入记录数据
   Future<void> _fetchBuyRecords() async {

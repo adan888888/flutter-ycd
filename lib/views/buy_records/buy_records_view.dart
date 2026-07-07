@@ -14,7 +14,7 @@ class BuyRecordsView extends StatelessWidget {
 
   double get _cardPadding => 10.0;
 
-  double get _currencyCardHeight => 72.0;
+  double get _currencyCardHeight => 84.0;
 
   double get _currencyCardWidth => 76.0;
 
@@ -273,19 +273,14 @@ class BuyRecordsView extends StatelessWidget {
   }
 
   Widget _buildStatsPanel(BuyRecordsController controller) {
-    final hasRecordStats =
-        controller.state.buyRecords.isNotEmpty && controller.state.currentPrice != null;
-    final profitStats =
-        hasRecordStats ? controller.calculateCurrentProfitStatsForRow(0) : <String, dynamic>{};
-    final cumulativeStats =
-        hasRecordStats ? controller.calculateCumulativeStatsForRow(0) : <String, dynamic>{};
+    final hasRecordStats = controller.state.buyRecords.isNotEmpty && controller.state.currentPrice != null;
+    final profitStats = hasRecordStats ? controller.calculateCurrentProfitStatsForRow(0) : <String, dynamic>{};
+    final cumulativeStats = hasRecordStats ? controller.calculateCumulativeStatsForRow(0) : <String, dynamic>{};
 
     final profit = profitStats['profit'] as double?;
     final isProfit = profit != null && profit >= 0;
     final profitLabel = isProfit ? '浮盈' : '浮亏';
-    final profitColor = profit == null
-        ? Colors.grey
-        : (isProfit ? Colors.green : Colors.red);
+    final profitColor = profit == null ? Colors.grey : (isProfit ? Colors.green : Colors.red);
     final maDeviation = controller.ma200DailyDeviationPercent;
     final maColor = maDeviation == null ? Colors.grey : (maDeviation >= 0 ? Colors.green : Colors.red);
     final maText = maDeviation == null ? '—' : '${maDeviation >= 0 ? '+' : ''}${maDeviation.toStringAsFixed(2)}%';
@@ -343,16 +338,12 @@ class BuyRecordsView extends StatelessWidget {
                   children: [
                     _buildStatItem(
                       '累计金额',
-                      cumulativeStats.isEmpty
-                          ? '—'
-                          : controller.formatPriceInteger(cumulativeStats['totalCost']),
+                      cumulativeStats.isEmpty ? '—' : controller.formatPriceInteger(cumulativeStats['totalCost']),
                       Colors.black,
                     ),
                     _buildStatItem(
                       '收益      ',
-                      profitStats.isEmpty
-                          ? '—'
-                          : '${profitStats['profitPercentage'].toStringAsFixed(2)}%',
+                      profitStats.isEmpty ? '—' : '${profitStats['profitPercentage'].toStringAsFixed(2)}%',
                       profitColor,
                     ),
                     Row(
@@ -380,9 +371,7 @@ class BuyRecordsView extends StatelessWidget {
                   children: [
                     _buildStatItem(
                       '成本',
-                      cumulativeStats.isEmpty
-                          ? '—'
-                          : controller.formatCostPrice(cumulativeStats['averagePrice']),
+                      cumulativeStats.isEmpty ? '—' : controller.formatCostPrice(cumulativeStats['averagePrice']),
                       Colors.black,
                     ),
                     _buildStatItem(
@@ -419,8 +408,12 @@ class BuyRecordsView extends StatelessWidget {
             ),
             SizedBox(height: _smallPadding),
             Text(
-              '200MA 为支撑线，建议买入按偏离档位计算（${controller.currentCurrencyConfig.label} 基准 ${formatBuyAmountUsdt(controller.currentCurrencyConfig.baseAmount)}）',
+              '(${controller.currentCurrencyConfig.label} 基准 ${formatBuyAmountUsdt(controller.effectiveBaseAmount)}）',
               style: _smallLabelStyle,
+            ),
+            Text(
+              '长按币种可修改基准金额',
+              style: _smallLabelStyle.copyWith(color: Colors.blueGrey),
             ),
             SizedBox(height: _defaultPadding),
             SizedBox(
@@ -430,7 +423,7 @@ class BuyRecordsView extends StatelessWidget {
                 itemCount: buyRecordsCurrencies.length,
                 separatorBuilder: (_, __) => const SizedBox(width: 8),
                 itemBuilder: (context, index) {
-                  return _buildCurrencyCard(controller, buyRecordsCurrencies[index]);
+                  return _buildCurrencyCard(context, controller, buyRecordsCurrencies[index]);
                 },
               ),
             ),
@@ -440,12 +433,17 @@ class BuyRecordsView extends StatelessWidget {
     );
   }
 
-  Widget _buildCurrencyCard(BuyRecordsController controller, BuyRecordsCurrency currency) {
+  Widget _buildCurrencyCard(
+    BuildContext context,
+    BuyRecordsController controller,
+    BuyRecordsCurrency currency,
+  ) {
     final isSelected = controller.state.currentCurrency == currency.id;
     final color = currency.color;
 
     return InkWell(
       onTap: () => controller.switchCurrency(currency.id),
+      onLongPress: () => _showBaseAmountDialog(context, controller, currency),
       borderRadius: BorderRadius.circular(12),
       child: Container(
         width: _currencyCardWidth,
@@ -478,6 +476,15 @@ class BuyRecordsView extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 2),
+            Text(
+              formatBuyAmountUsdt(controller.baseAmountFor(currency)),
+              style: TextStyle(
+                color: isSelected ? color.withValues(alpha: 0.9) : Colors.grey[600],
+                fontSize: 9,
+                fontWeight: controller.hasCustomBaseAmount(currency.id) ? FontWeight.bold : FontWeight.normal,
+              ),
+            ),
+            const SizedBox(height: 2),
             Icon(
               Icons.show_chart,
               size: _currencyIconSize,
@@ -486,6 +493,167 @@ class BuyRecordsView extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+
+  void _showBaseAmountDialog(
+    BuildContext context,
+    BuyRecordsController controller,
+    BuyRecordsCurrency currency,
+  ) {
+    showDialog<void>(
+      context: context,
+      builder: (_) => _BaseAmountEditDialog(
+        controller: controller,
+        currency: currency,
+      ),
+    );
+  }
+}
+
+class _BaseAmountEditDialog extends StatefulWidget {
+  const _BaseAmountEditDialog({
+    required this.controller,
+    required this.currency,
+  });
+
+  final BuyRecordsController controller;
+  final BuyRecordsCurrency currency;
+
+  @override
+  State<_BaseAmountEditDialog> createState() => _BaseAmountEditDialogState();
+}
+
+class _BaseAmountEditDialogState extends State<_BaseAmountEditDialog> {
+  late final TextEditingController _textController;
+  double? _deviationPercent;
+  bool _loadingDeviation = true;
+
+  BuyRecordsController get controller => widget.controller;
+  BuyRecordsCurrency get currency => widget.currency;
+
+  @override
+  void initState() {
+    super.initState();
+    final base = controller.baseAmountFor(currency);
+    _textController = TextEditingController(
+      text: base == base.roundToDouble() ? base.toStringAsFixed(0) : base.toString(),
+    );
+    _loadDeviation();
+  }
+
+  Future<void> _loadDeviation() async {
+    final deviation = await controller.fetchMaDeviationPercentFor(currency);
+    if (!mounted) return;
+    setState(() {
+      _deviationPercent = deviation;
+      _loadingDeviation = false;
+    });
+  }
+
+  @override
+  void dispose() {
+    _textController.dispose();
+    super.dispose();
+  }
+
+  double? get _inputBaseAmount {
+    final text = _textController.text.trim();
+    if (text.isEmpty) return null;
+    return double.tryParse(text);
+  }
+
+  String get _deviationText {
+    if (_loadingDeviation) return '加载中...';
+    if (_deviationPercent == null) return '—';
+    final value = _deviationPercent!;
+    return '${value >= 0 ? '+' : ''}${value.toStringAsFixed(2)}%';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final inputBase = _inputBaseAmount;
+    final suggestedText = inputBase == null || inputBase <= 0
+        ? '请输入有效基准金额'
+        : controller.formatSuggestedBuyAmountFor(
+            inputBase,
+            deviationPercent: _deviationPercent,
+          );
+    final suggestedColor = inputBase == null || inputBase <= 0
+        ? Colors.grey
+        : controller.suggestedBuyAmountColorFor(
+            inputBase,
+            deviationPercent: _deviationPercent,
+          );
+
+    return AlertDialog(
+      title: Text('${currency.label} 基准买入'),
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            TextField(
+              controller: _textController,
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              autofocus: true,
+              decoration: const InputDecoration(
+                labelText: '基准金额 (USDT)',
+                hintText: '例如 100',
+                border: OutlineInputBorder(),
+              ),
+              onChanged: (_) => setState(() {}),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              '默认基准: ${formatBuyAmountUsdt(currency.baseAmount)}',
+              style: const TextStyle(fontSize: 12, color: Colors.grey),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              '200MA 偏离: $_deviationText',
+              style: const TextStyle(fontSize: 13),
+            ),
+            const SizedBox(height: 4),
+            Row(
+              children: [
+                const Text('建议买入: ', style: TextStyle(fontSize: 13)),
+                Text(
+                  suggestedText,
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: suggestedColor,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        if (controller.hasCustomBaseAmount(currency.id))
+          TextButton(
+            onPressed: () async {
+              await controller.resetBaseAmount(currency.id);
+              if (context.mounted) Navigator.of(context).pop();
+            },
+            child: const Text('恢复默认'),
+          ),
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('取消'),
+        ),
+        FilledButton(
+          onPressed: inputBase == null || inputBase <= 0
+              ? null
+              : () async {
+                  await controller.updateBaseAmount(currency.id, inputBase);
+                  if (context.mounted) Navigator.of(context).pop();
+                },
+          child: const Text('确定'),
+        ),
+      ],
     );
   }
 }
