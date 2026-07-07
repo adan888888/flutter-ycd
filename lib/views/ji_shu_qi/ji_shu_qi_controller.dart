@@ -39,6 +39,7 @@ class JiShuQiController extends GetxController {
   double _lastKeyboardInset = 0;
   Timer? _keyboardOpenSettleTimer;
   bool _skipKeyboardDismissScroll = false;
+  DateTime? _ignoreTapOutsideUntil;
 
   FixedExtentScrollController? fixedExtentScrollController;
 
@@ -101,18 +102,31 @@ class JiShuQiController extends GetxController {
   }
 
   void _onInputFocusChanged() {
-    if (!focusNode.hasFocus) {
-      update();
-      if (_skipKeyboardDismissScroll) {
-        if (_lastKeyboardInset == 0) {
-          _skipKeyboardDismissScroll = false;
-        }
-        return;
-      }
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        scrollBettingListToBottom();
-      });
+    if (focusNode.hasFocus) {
+      // 刚聚焦时短暂忽略 onTapOutside，避免 Android 弹出键盘瞬间误触收回。
+      _ignoreTapOutsideUntil = DateTime.now().add(const Duration(milliseconds: 280));
+      return;
     }
+    if (_skipKeyboardDismissScroll) {
+      if (_lastKeyboardInset == 0) {
+        _skipKeyboardDismissScroll = false;
+      }
+      return;
+    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (focusNode.hasFocus) return;
+      scrollBettingListToBottom();
+    });
+  }
+
+  bool get shouldIgnoreTapOutside {
+    final until = _ignoreTapOutsideUntil;
+    return until != null && DateTime.now().isBefore(until);
+  }
+
+  void onInputTapOutside() {
+    if (shouldIgnoreTapOutside) return;
+    guardAgainstKeyboardPop();
   }
 
   /// 按最新一页重新拉取投注记录（`last_id: -1`，与进入页面时一致）。
@@ -297,6 +311,7 @@ class JiShuQiController extends GetxController {
 
   /// 右下角悬浮钮：在底部时向上滚到眼睛行，否则向下滚到列表最底。
   void onBettingListJumpFabTap() {
+    dismissKeyboard();
     if (state.isBettingListAtBottom) {
       jumpToCurrentTempIndexRow();
     } else {
@@ -353,8 +368,21 @@ class JiShuQiController extends GetxController {
   /// 点击列表等空白区域时收起键盘（不用 TextField.onTapOutside，避免弹出瞬间误触收回）。
   void dismissKeyboard() {
     if (focusNode.hasFocus) {
-      focusNode.unfocus();
+      focusNode.unfocus(disposition: UnfocusDisposition.scope);
     }
+    final primary = FocusManager.instance.primaryFocus;
+    if (primary != null && primary.hasFocus) {
+      primary.unfocus(disposition: UnfocusDisposition.scope);
+    }
+  }
+
+  /// 底部键盘展开或输入框仍聚焦时：释放焦点，并跳过收键盘后的列表滚动。
+  /// 用于点骰子、关庄闲弹窗等场景，避免输入框再次被激活、键盘又顶起来。
+  /// 若键盘本就没开，则不做任何事。
+  void guardAgainstKeyboardPop() {
+    if (!focusNode.hasFocus && _lastKeyboardInset <= 0) return;
+    _skipKeyboardDismissScroll = true;
+    dismissKeyboard();
   }
 
   /// 键盘“弹出完成后”再滚到底，避免动画过程中触发布局抖动。
@@ -375,7 +403,6 @@ class JiShuQiController extends GetxController {
     if (closing) {
       _keyboardOpenSettleTimer = Timer(const Duration(milliseconds: 220), () {
         if (focusNode.hasFocus) return;
-        update();
         if (_skipKeyboardDismissScroll) {
           _skipKeyboardDismissScroll = false;
           return;
@@ -584,7 +611,7 @@ class JiShuQiController extends GetxController {
   }
 
   showBottomFunction() {
-    focusNode.nextFocus();
+    dismissKeyboard();
     fixedExtentScrollController = FixedExtentScrollController(initialItem: state.selectIndex);
     Get.bottomSheet(SinglePicker(darkTextColor: state.darkTextColor));
   }
@@ -691,6 +718,7 @@ class JiShuQiController extends GetxController {
     if (!state.isCanPress) {
       return;
     }
+    guardAgainstKeyboardPop();
     _playRandomSound();
     state.isCanPress = false;
     state.js2 = state.js2 + 1;
@@ -718,7 +746,7 @@ class JiShuQiController extends GetxController {
           ),
           barrierDismissible: false,
           barrierColor: Colors.black.withValues(alpha: 0.18),
-        );
+        ).then((_) => guardAgainstKeyboardPop());
         state.isCanPress = true;
 
         ///总体
@@ -980,6 +1008,7 @@ class JiShuQiController extends GetxController {
   }
 
   void deleteLast() {
+    dismissKeyboard();
     if (state.betRecordList.isNotEmpty) {
       Get.defaultDialog(
         barrierDismissible: false,
@@ -1020,6 +1049,7 @@ class JiShuQiController extends GetxController {
   }
 
   void updateLists(int index) {
+    dismissKeyboard();
     BXLoading.show();
     BXPost(
       Api.xiaoShu,
@@ -1126,6 +1156,7 @@ class JiShuQiController extends GetxController {
 
   //重启局部数据
   void reStart() {
+    dismissKeyboard();
     Get.defaultDialog(
       barrierDismissible: false,
       backgroundColor: state.isDarkMode ? const Color(0xFF1E2A3A) : Colors.white,
@@ -1357,6 +1388,7 @@ class JiShuQiController extends GetxController {
   }
 
   sort() {
+    dismissKeyboard();
     //改成接口，不用model接收值
     BXPost(Api.sortXiaoShu, success: (isSuccess, code, message, results) {
       if (isSuccess) {
@@ -1441,6 +1473,7 @@ class JiShuQiController extends GetxController {
 
   /// 切换暗黑主题
   void toggleDarkMode() {
+    dismissKeyboard();
     state.isDarkMode = !state.isDarkMode;
     BXLoading.syncTheme(state.isDarkMode);
     update();
@@ -1448,6 +1481,7 @@ class JiShuQiController extends GetxController {
 
   /// 切换图表显示/隐藏
   void toggleChartVisibility() {
+    dismissKeyboard();
     state.isChartVisible = !state.isChartVisible;
     update();
   }
@@ -1476,9 +1510,7 @@ class JiShuQiController extends GetxController {
 
   //(取消)局部平衡
   juBuPingHeng(Object index, {v}) {
-    if (focusNode.hasFocus || _lastKeyboardInset > 0) {
-      _skipKeyboardDismissScroll = true;
-    }
+    guardAgainstKeyboardPop();
     final targetIndex = index != JiShuQiState.tempIndexCmdCancel && state.currentTempIndex == index
         ? JiShuQiState.tempIndexCmdCancel
         : index;
@@ -1575,6 +1607,7 @@ class JiShuQiController extends GetxController {
   }
 
   changeChart() {
+    dismissKeyboard();
     _reloadLuZiTu();
     state.isBigRoad = !state.isBigRoad;
     if (!state.isBigRoad) {

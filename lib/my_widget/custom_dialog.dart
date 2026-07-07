@@ -25,8 +25,11 @@ class _ZhuangXianDialogState extends State<ZhuangXianDialog> {
 
   @override
   Widget build(BuildContext context) {
-    timer ??= Timer.periodic(const Duration(milliseconds: 500),
-        (timer) => setState(() => Get.back()));
+    timer ??= Timer(const Duration(milliseconds: 500), () {
+      if (!mounted) return;
+      Get.find<JiShuQiController>().guardAgainstKeyboardPop();
+      Get.back();
+    });
     final gameController = Get.find<JiShuQiController>();
     return Center(
       child: Text(

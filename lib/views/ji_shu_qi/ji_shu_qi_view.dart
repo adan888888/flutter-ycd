@@ -42,6 +42,7 @@ class JiShuQiView extends GetView<JiShuQiController> {
                   child: FloatingActionButton(
                     backgroundColor: Colors.transparent,
                     onPressed: () {
+                      controller.guardAgainstKeyboardPop();
                       // 触发点击动画：放大1.5倍再缩小
                       controller.state.floatButtonScale = 2;
                       controller.update();
@@ -66,21 +67,30 @@ class JiShuQiView extends GetView<JiShuQiController> {
                   automaticallyImplyLeading: false,
                   actions: [
                     GestureDetector(
-                        onTap: () => controller.toggleDarkMode(),
+                        onTap: () {
+                          controller.dismissKeyboard();
+                          controller.toggleDarkMode();
+                        },
                         child: Icon(
                           controller.state.isDarkMode ? Icons.light_mode : Icons.dark_mode,
                           size: 20,
                           color: controller.state.isDarkMode ? Colors.white : Colors.black87,
                         )),
                     GestureDetector(
-                        onTap: () => controller.lockScreen(),
+                        onTap: () {
+                          controller.dismissKeyboard();
+                          controller.lockScreen();
+                        },
                         child: Icon(
                           Icons.lock,
                           size: 20,
                           color: controller.state.isDarkMode ? Colors.white : Colors.black87,
                         )),
                     GestureDetector(
-                        onTap: () => controller.showBottomFunction(),
+                        onTap: () {
+                          controller.dismissKeyboard();
+                          controller.showBottomFunction();
+                        },
                         child: Icon(
                           Icons.edit,
                           size: 20,
@@ -306,6 +316,7 @@ class JiShuQiView extends GetView<JiShuQiController> {
                                                       focusNode: controller.focusNode,
                                                       autofocus: false,
                                                       controller: controller.textEditingController,
+                                                      onTapOutside: (_) => controller.onInputTapOutside(),
                                                       onChanged: (value) {},
                                                       keyboardType:
                                                           const TextInputType.numberWithOptions(decimal: true),
