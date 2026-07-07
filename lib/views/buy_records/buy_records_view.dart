@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import 'buy_records_controller.dart';
+import 'buy_records_currency.dart';
 
 class BuyRecordsView extends StatelessWidget {
   const BuyRecordsView({super.key});
@@ -13,7 +14,9 @@ class BuyRecordsView extends StatelessWidget {
 
   double get _cardPadding => 10.0;
 
-  double get _currencyCardHeight => 80.0;
+  double get _currencyCardHeight => 72.0;
+
+  double get _currencyCardWidth => 76.0;
 
   double get _iconSize => 64.0;
 
@@ -184,12 +187,11 @@ class BuyRecordsView extends StatelessWidget {
   }
 
   Widget _buildTopStatsPanel(BuyRecordsController controller) {
-    if (controller.state.buyRecords.isEmpty || controller.state.currentPrice == null) {
+    if (controller.state.isLoading) {
       return const SizedBox.shrink();
     }
 
-    // 列表已按 [最新...最旧] 排序，统计信息展示顶部最新一笔对应的累计结果。
-    return _buildCurrentProfitStats(controller, 0);
+    return _buildStatsPanel(controller);
   }
 
   Widget _buildStickyStatsSliver(BuyRecordsController controller) {
@@ -201,7 +203,7 @@ class BuyRecordsView extends StatelessWidget {
     return SliverPersistentHeader(
       pinned: true,
       delegate: _StatsHeaderDelegate(
-        extent: 100,
+        extent: 118,
         child: ColoredBox(
           color: Theme.of(Get.context!).scaffoldBackgroundColor,
           child: Padding(
@@ -270,18 +272,24 @@ class BuyRecordsView extends StatelessWidget {
     );
   }
 
-  Widget _buildCurrentProfitStats(BuyRecordsController controller, int index) {
-    final profitStats = controller.calculateCurrentProfitStatsForRow(index);
-    if (profitStats.isEmpty) return const SizedBox.shrink();
+  Widget _buildStatsPanel(BuyRecordsController controller) {
+    final hasRecordStats =
+        controller.state.buyRecords.isNotEmpty && controller.state.currentPrice != null;
+    final profitStats =
+        hasRecordStats ? controller.calculateCurrentProfitStatsForRow(0) : <String, dynamic>{};
+    final cumulativeStats =
+        hasRecordStats ? controller.calculateCumulativeStatsForRow(0) : <String, dynamic>{};
 
-    final cumulativeStats = controller.calculateCumulativeStatsForRow(index);
-    final profit = profitStats['profit'] as double;
-    final isProfit = profit >= 0;
+    final profit = profitStats['profit'] as double?;
+    final isProfit = profit != null && profit >= 0;
     final profitLabel = isProfit ? '浮盈' : '浮亏';
-    final profitColor = isProfit ? Colors.green : Colors.red;
+    final profitColor = profit == null
+        ? Colors.grey
+        : (isProfit ? Colors.green : Colors.red);
     final maDeviation = controller.ma200DailyDeviationPercent;
     final maColor = maDeviation == null ? Colors.grey : (maDeviation >= 0 ? Colors.green : Colors.red);
     final maText = maDeviation == null ? '—' : '${maDeviation >= 0 ? '+' : ''}${maDeviation.toStringAsFixed(2)}%';
+    final currentPrice = controller.state.currentPrice;
 
     return Container(
       width: double.infinity,
@@ -317,7 +325,7 @@ class BuyRecordsView extends StatelessWidget {
                   children: [
                     Text('当前价格', style: _labelStyle),
                     Text(
-                      controller.formatCurrentPrice(controller.state.currentPrice!),
+                      currentPrice == null ? '—' : controller.formatCurrentPrice(currentPrice),
                       style: _valueStyle.copyWith(color: Colors.blue),
                     ),
                   ],
@@ -335,12 +343,16 @@ class BuyRecordsView extends StatelessWidget {
                   children: [
                     _buildStatItem(
                       '累计金额',
-                      cumulativeStats.isEmpty ? '—' : controller.formatPriceInteger(cumulativeStats['totalCost']),
+                      cumulativeStats.isEmpty
+                          ? '—'
+                          : controller.formatPriceInteger(cumulativeStats['totalCost']),
                       Colors.black,
                     ),
                     _buildStatItem(
                       '收益      ',
-                      '${profitStats['profitPercentage'].toStringAsFixed(2)}%',
+                      profitStats.isEmpty
+                          ? '—'
+                          : '${profitStats['profitPercentage'].toStringAsFixed(2)}%',
                       profitColor,
                     ),
                     Row(
@@ -354,6 +366,11 @@ class BuyRecordsView extends StatelessWidget {
                         ),
                       ],
                     ),
+                    _buildStatItem(
+                      '建议买入',
+                      controller.formatSuggestedBuyAmount(),
+                      controller.suggestedBuyAmountColor(),
+                    ),
                   ],
                 ),
               ),
@@ -363,12 +380,14 @@ class BuyRecordsView extends StatelessWidget {
                   children: [
                     _buildStatItem(
                       '成本',
-                      cumulativeStats.isEmpty ? '—' : controller.formatCostPrice(cumulativeStats['averagePrice']),
+                      cumulativeStats.isEmpty
+                          ? '—'
+                          : controller.formatCostPrice(cumulativeStats['averagePrice']),
                       Colors.black,
                     ),
                     _buildStatItem(
                       profitLabel,
-                      controller.formatPriceFourDecimals(profit),
+                      profit == null ? '—' : controller.formatPriceFourDecimals(profit),
                       profitColor,
                     ),
                     _buildStatItem(
@@ -398,17 +417,22 @@ class BuyRecordsView extends StatelessWidget {
               '选择币种',
               style: _titleStyle.copyWith(color: Colors.grey[700]),
             ),
+            SizedBox(height: _smallPadding),
+            Text(
+              '200MA 为支撑线，建议买入按偏离档位计算（${controller.currentCurrencyConfig.label} 基准 ${formatBuyAmountUsdt(controller.currentCurrencyConfig.baseAmount)}）',
+              style: _smallLabelStyle,
+            ),
             SizedBox(height: _defaultPadding),
-            Row(
-              children: [
-                _buildCurrencyCard(controller, 'btc', 'BTC', Colors.orange),
-                const SizedBox(width: 12),
-                _buildCurrencyCard(controller, 'eth', 'ETH', Colors.blue),
-                const SizedBox(width: 12),
-                _buildCurrencyCard(controller, 'ada', 'ADA', Colors.green),
-                const SizedBox(width: 12),
-                _buildCurrencyCard(controller, 'trx', 'TRX', Colors.red),
-              ],
+            SizedBox(
+              height: _currencyCardHeight,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                itemCount: buyRecordsCurrencies.length,
+                separatorBuilder: (_, __) => const SizedBox(width: 8),
+                itemBuilder: (context, index) {
+                  return _buildCurrencyCard(controller, buyRecordsCurrencies[index]);
+                },
+              ),
             ),
           ],
         ),
@@ -416,42 +440,50 @@ class BuyRecordsView extends StatelessWidget {
     );
   }
 
-  Widget _buildCurrencyCard(BuyRecordsController controller, String currency, String label, Color color) {
-    final isSelected = controller.state.currentCurrency == currency;
+  Widget _buildCurrencyCard(BuyRecordsController controller, BuyRecordsCurrency currency) {
+    final isSelected = controller.state.currentCurrency == currency.id;
+    final color = currency.color;
 
-    return Expanded(
-      child: InkWell(
-        onTap: () => controller.switchCurrency(currency),
-        borderRadius: BorderRadius.circular(12),
-        child: Container(
-          height: _currencyCardHeight,
-          decoration: BoxDecoration(
-            color: isSelected ? color.withValues(alpha: 0.1) : Colors.grey[100],
-            border: Border.all(
-              color: isSelected ? color : Colors.grey[300]!,
-              width: isSelected ? 2 : 1,
+    return InkWell(
+      onTap: () => controller.switchCurrency(currency.id),
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        width: _currencyCardWidth,
+        height: _currencyCardHeight,
+        decoration: BoxDecoration(
+          color: isSelected ? color.withValues(alpha: 0.12) : Colors.grey[100],
+          border: Border.all(
+            color: isSelected ? color : Colors.grey[300]!,
+            width: isSelected ? 2 : 1,
+          ),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              currency.label,
+              style: TextStyle(
+                color: isSelected ? color : Colors.grey[800],
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                fontSize: 12,
+              ),
             ),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                '($label)',
-                style: TextStyle(
-                  color: isSelected ? color : Colors.grey[600],
-                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                  fontSize: 12,
-                ),
+            const SizedBox(height: 2),
+            Text(
+              currency.exchangeName,
+              style: TextStyle(
+                color: isSelected ? color.withValues(alpha: 0.85) : Colors.grey[500],
+                fontSize: 9,
               ),
-              const SizedBox(height: 4),
-              Icon(
-                Icons.attach_money,
-                size: _currencyIconSize,
-                color: isSelected ? color : Colors.grey[600],
-              ),
-            ],
-          ),
+            ),
+            const SizedBox(height: 2),
+            Icon(
+              Icons.show_chart,
+              size: _currencyIconSize,
+              color: isSelected ? color : Colors.grey[600],
+            ),
+          ],
         ),
       ),
     );

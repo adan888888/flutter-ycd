@@ -1,22 +1,22 @@
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:http/http.dart' as http;
 import 'package:ycd/utils/network/api.dart';
 import 'package:ycd/utils/network/http_mgr.dart';
 import 'package:ycd/utils/permission_util.dart';
 
+import 'buy_records_currency.dart';
+import 'buy_records_market_service.dart';
 import 'buy_records_state.dart';
 
 /// 买入记录页面控制器
 class BuyRecordsController extends GetxController {
-  static const int _smaPeriod = 200;
-  static const int _dailyKlineLimit = 1000;
-
   /// 状态管理
   final BuyRecordsState state = BuyRecordsState();
+
+  BuyRecordsCurrency get currentCurrencyConfig =>
+      findBuyRecordsCurrency(state.currentCurrency) ?? defaultBuyRecordsCurrency;
 
   Map<String, String> get _marketHeaders => const {
     'User-Agent':
@@ -24,14 +24,6 @@ class BuyRecordsController extends GetxController {
     'Accept': 'application/json',
     'Accept-Language': 'en-US,en;q=0.9',
   };
-
-  String get _currentSymbol => switch (state.currentCurrency) {
-        'btc' => 'BTCUSDT',
-        'eth' => 'ETHUSDT',
-        'ada' => 'ADAUSDT',
-        'trx' => 'TRXUSDT',
-        _ => 'BTCUSDT',
-      };
 
   @override
   void onInit() {
@@ -57,91 +49,35 @@ class BuyRecordsController extends GetxController {
     }
   }
 
-  /// 获取当前价格
+  /// 获取当前价格与 200 日均线
   Future<void> _fetchCurrentPrice() async {
-    try {
-      state.ma200Daily = null;
-      final symbol = _currentSymbol;
-      final responses = await Future.wait([
-        http
-            .get(
-              Uri.parse('https://api.binance.com/api/v3/ticker/price?symbol=$symbol'),
-              headers: _marketHeaders,
-            )
-            .timeout(const Duration(seconds: 30)),
-        http
-            .get(
-              Uri.parse(
-                'https://api.binance.com/api/v3/klines?symbol=$symbol&interval=1d&limit=$_dailyKlineLimit',
-              ),
-              headers: _marketHeaders,
-            )
-            .timeout(const Duration(seconds: 30)),
-      ]);
+    final currencyId = state.currentCurrency;
+    final config = currentCurrencyConfig;
 
-      final priceResponse = responses[0];
-      if (priceResponse.statusCode == 200) {
-        final data = json.decode(priceResponse.body);
-        if (data is Map && data['price'] != null) {
-          state.currentPrice = double.parse(data['price'].toString());
-          debugPrint('当前${state.currentCurrency.toUpperCase()}价格: ${state.currentPrice}');
-        } else {
-          debugPrint('价格数据格式错误');
-        }
+    try {
+      state.currentPrice = null;
+      state.ma200Daily = null;
+
+      final quote = await fetchMarketQuote(config, _marketHeaders);
+      if (state.currentCurrency != currencyId) return;
+
+      state.currentPrice = quote.price;
+      state.ma200Daily = quote.ma200;
+
+      if (quote.price != null) {
+        debugPrint('当前${config.label}价格(${config.exchangeName}): ${quote.price}');
       } else {
-        debugPrint('获取价格失败，状态码: ${priceResponse.statusCode}');
+        debugPrint('获取${config.label}价格失败 (${config.exchangeName})');
       }
 
-      final klineResponse = responses[1];
-      if (klineResponse.statusCode == 200) {
-        final data = json.decode(klineResponse.body);
-        if (data is List && data.length >= _smaPeriod) {
-          final closes = _extractClosedDailyCloses(data);
-
-          if (closes.length >= _smaPeriod) {
-            state.ma200Daily = _calculateSma(closes, _smaPeriod);
-            debugPrint('当前${state.currentCurrency.toUpperCase()} SMA200(1d): ${state.ma200Daily}');
-          } else {
-            debugPrint('已收盘日K数量不足，无法计算 SMA$_smaPeriod');
-          }
-        }
-      } else {
-        debugPrint('获取K线失败，状态码: ${klineResponse.statusCode}');
+      if (quote.ma200 != null) {
+        debugPrint('当前${config.label} SMA200(1d): ${quote.ma200}');
+      } else if (quote.price != null) {
+        debugPrint('${config.label} 已收盘日K数量不足，无法计算 SMA200');
       }
     } catch (e) {
-      debugPrint('获取当前价格失败: $e');
-      // 价格获取失败不影响主要功能，只是无法显示收益统计
+      debugPrint('获取${config.label}行情失败: $e');
     }
-  }
-
-  double _calculateSma(List<double> values, int period) {
-    assert(values.length >= period);
-    var sum = 0.0;
-    final slice = values.sublist(values.length - period);
-    for (final v in slice) {
-      sum += v;
-    }
-    return sum / period;
-  }
-
-  List<double> _extractClosedDailyCloses(List<dynamic> candles) {
-    final nowMs = DateTime.now().millisecondsSinceEpoch;
-    final closes = <double>[];
-
-    for (final item in candles) {
-      if (item is! List || item.length <= 6) continue;
-
-      final closeTime = int.tryParse(item[6].toString());
-      final closePrice = double.tryParse(item[4].toString());
-      if (closeTime == null || closePrice == null) continue;
-
-      // 排除尚未收盘的日线，尽量与常见图表默认展示的日线指标口径一致。
-      if (closeTime > nowMs) continue;
-
-      closes.add(closePrice);
-    }
-
-    return closes;
   }
 
   double? get ma200DailyDeviationPercent {
@@ -149,6 +85,27 @@ class BuyRecordsController extends GetxController {
     final ma = state.ma200Daily;
     if (current == null || ma == null || ma == 0) return null;
     return ((current - ma) / ma) * 100;
+  }
+
+  /// 相对 200 日均线偏离档位给出的建议买入金额（USDT）
+  double? get suggestedBuyAmount =>
+      suggestedBuyAmountUsdt(ma200DailyDeviationPercent, currentCurrencyConfig.baseAmount);
+
+  String formatSuggestedBuyAmount() {
+    final amount = suggestedBuyAmount;
+    if (amount == null) return '—';
+    if (amount == 0) return '停止买入';
+    return formatBuyAmountUsdt(amount);
+  }
+
+  Color suggestedBuyAmountColor() {
+    final amount = suggestedBuyAmount;
+    final base = currentCurrencyConfig.baseAmount;
+    if (amount == null) return Colors.grey;
+    if (amount == 0) return Colors.orange;
+    if (amount > base) return Colors.green;
+    if (amount < base) return Colors.deepOrange;
+    return Colors.black;
   }
 
   /// 获取买入记录数据
@@ -184,12 +141,11 @@ class BuyRecordsController extends GetxController {
     await completer.future;
   }
 
-  /// 格式化成本价（TRX 保留五位小数，其他三位）
+  /// 格式化成本价
   String formatCostPrice(dynamic price) {
     try {
       if (price is num) {
-        final decimals = state.currentCurrency == 'trx' ? 5 : 3;
-        return '\$${price.toStringAsFixed(decimals)}';
+        return '\$${price.toStringAsFixed(currentCurrencyConfig.costDecimals)}';
       }
       return price.toString();
     } catch (e) {
@@ -197,12 +153,11 @@ class BuyRecordsController extends GetxController {
     }
   }
 
-  /// 格式化当前价格（TRX 保留四位小数，其他两位）
+  /// 格式化当前价格
   String formatCurrentPrice(dynamic price) {
     try {
       if (price is num) {
-        final decimals = state.currentCurrency == 'trx' ? 4 : 2;
-        return '\$${price.toStringAsFixed(decimals)}';
+        return '\$${price.toStringAsFixed(currentCurrencyConfig.priceDecimals)}';
       }
       return price.toString();
     } catch (e) {
@@ -210,12 +165,11 @@ class BuyRecordsController extends GetxController {
     }
   }
 
-  /// 格式化 SMA200（TRX 保留四位小数，其他两位）
+  /// 格式化 SMA200（200 日均线 / 支撑线）
   String formatMaPrice(dynamic price) {
     try {
       if (price is num) {
-        final decimals = state.currentCurrency == 'trx' ? 4 : 2;
-        return '\$${price.toStringAsFixed(decimals)}';
+        return '\$${price.toStringAsFixed(currentCurrencyConfig.maDecimals)}';
       }
       return price.toString();
     } catch (e) {
@@ -235,12 +189,11 @@ class BuyRecordsController extends GetxController {
     }
   }
 
-  /// 格式化成交价格（TRX 保留五位小数，其他三位）
+  /// 格式化成交价格
   String formatTransactionPrice(dynamic price) {
     try {
       if (price is num) {
-        final decimals = state.currentCurrency == 'trx' ? 5 : 3;
-        return '\$${price.toStringAsFixed(decimals)}';
+        return '\$${price.toStringAsFixed(currentCurrencyConfig.costDecimals)}';
       }
       return price.toString();
     } catch (e) {
@@ -325,8 +278,8 @@ class BuyRecordsController extends GetxController {
     final n = state.buyRecords.length - reversedIndex;
     debugPrint('累计统计调试 (时间最早起共$n笔到当前行):');
     debugPrint('总成本: $totalCost USDT');
-    debugPrint('总数量: $totalQuantity BTC');
-    debugPrint('均价: $averagePrice USDT/BTC');
+    debugPrint('总数量: $totalQuantity ${currentCurrencyConfig.label}');
+    debugPrint('均价: $averagePrice USDT/${currentCurrencyConfig.label}');
 
     return {'totalCost': totalCost, 'totalQuantity': totalQuantity, 'averagePrice': averagePrice};
   }
@@ -363,7 +316,7 @@ class BuyRecordsController extends GetxController {
 
     debugPrint('累计收益调试 (时间最早起共$n笔到当前行):');
     debugPrint('累计买入金额: $totalBuyAmount');
-    debugPrint('累计BTC数量: $totalBtcQuantity');
+    debugPrint('累计${currentCurrencyConfig.label}数量: $totalBtcQuantity');
     debugPrint('当前价格: ${state.currentPrice}');
     debugPrint('累计当前价值: $currentValue');
     debugPrint('累计收益: $profit');
