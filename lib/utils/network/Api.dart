@@ -5,7 +5,7 @@ class Api {
   /// Docker 部署时 H5 经 Nginx 反代 `/api`；Flutter 真机用 ngrok 公网地址：
   ///
   /// ```bash
-  /// flutter run --dart-define=API_BASE_URL=https://xxxx.ngrok-free.app/api
+  /// flutter run --dart-define=API_BASE_URL=https://verbose-exhume-cringe.ngrok-free.dev/api
   /// flutter run --dart-define=API_BASE_URL=http://192.168.1.5:8080/api
   /// ```
   /// **macOS 打包**：`scripts/build_macos_app.sh both|all|1|2|3 [API_BASE_URL]`（第二参数为可选地址；`all` 会打 计数器1/2/3）。

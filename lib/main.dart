@@ -43,7 +43,7 @@ class MyApp extends StatelessWidget {
       minTextAdapt: true,
       child: GetMaterialApp(
         debugShowCheckedModeBanner: false,
-        title: 'Flutter Demo',
+        title: '计数器',
         theme: ThemeData(
           primaryColor: Colors.green,
           useMaterial3: true,
