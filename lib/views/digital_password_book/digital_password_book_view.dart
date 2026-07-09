@@ -222,6 +222,9 @@ class DigitalPasswordBookView extends GetView<DigitalPasswordBookController> {
                     PopupMenuButton<String>(
                       onSelected: (value) {
                         switch (value) {
+                          case 'copy':
+                            controller.copyEntry(item);
+                            break;
                           case 'edit':
                             controller.editPassword(item);
                             break;
@@ -231,6 +234,16 @@ class DigitalPasswordBookView extends GetView<DigitalPasswordBookController> {
                         }
                       },
                       itemBuilder: (context) => [
+                        const PopupMenuItem(
+                          value: 'copy',
+                          child: Row(
+                            children: [
+                              Icon(Icons.copy_all, size: 20),
+                              SizedBox(width: 8),
+                              Text('复制'),
+                            ],
+                          ),
+                        ),
                         const PopupMenuItem(
                           value: 'edit',
                           child: Row(

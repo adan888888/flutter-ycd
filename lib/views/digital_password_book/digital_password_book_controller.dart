@@ -211,6 +211,19 @@ class DigitalPasswordBookController extends GetxController {
     Get.snackbar('成功', '用户名已复制到剪贴板');
   }
 
+  // 一键复制标题、用户名、密码、网站
+  void copyEntry(PasswordItem item) {
+    final buffer = StringBuffer()
+      ..writeln('标题：${item.title}')
+      ..writeln('用户名：${item.username}')
+      ..writeln('密码：${item.password}');
+    if (item.website.isNotEmpty) {
+      buffer.writeln('网站：${item.website}');
+    }
+    Clipboard.setData(ClipboardData(text: buffer.toString().trimRight()));
+    Get.snackbar('成功', '账号信息已复制');
+  }
+
   // 切换密码显示状态
   void togglePasswordVisibility(int id) {
     state.showPassword[id] = !(state.showPassword[id] ?? false);
