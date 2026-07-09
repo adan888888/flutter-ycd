@@ -25,6 +25,7 @@ class AuthRequiredMiddleware extends GetMiddleware {
     GetStore.getInstance().checkLoginStatus();
     final isLogin = GetStore.getInstance().isLogin;
     if (!isLogin) {
+      BXLoading.reset();
       return const RouteSettings(name: AppRoutes.login);
     }
     return null;

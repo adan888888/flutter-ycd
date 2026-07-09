@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get_navigation/src/root/get_material_app.dart';
+import 'package:ycd/utils/bx_loading.dart';
 import 'package:ycd/utils/local_util.dart';
 import 'package:ycd/utils/network/get_store.dart';
 import 'package:ycd/utils/storage_util.dart';
@@ -52,6 +53,12 @@ class MyApp extends StatelessWidget {
         fallbackLocale: const Locale('en', 'US'),
         initialRoute: AppRoutes.login,
         getPages: AppPages.pages,
+        routingCallback: (routing) {
+          // token 过期 / 主动退出等场景：进入登录页时强制清掉残留 Loading
+          if (routing?.current == AppRoutes.login) {
+            BXLoading.reset();
+          }
+        },
         builder: EasyLoading.init(),
       ),
     );

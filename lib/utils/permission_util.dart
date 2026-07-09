@@ -2,6 +2,7 @@ import 'package:get/get.dart';
 
 import '../routes/app_routes.dart';
 import 'bx_loading.dart';
+import 'network/api_session_handler.dart';
 import 'network/get_store.dart';
 
 /// 专业版及以上功能权限校验
@@ -19,9 +20,7 @@ abstract final class PermissionUtil {
     if (!store.isLogin) {
       BXLoading.showToast('请先登录');
       Future.microtask(() {
-        if (Get.currentRoute != AppRoutes.login) {
-          Get.offAllNamed(AppRoutes.login);
-        }
+        ApiSessionHandler.goLogin();
       });
       return false;
     }

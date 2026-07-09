@@ -300,6 +300,7 @@ class HttpService {
         showError: showError,
         isAuthApi: isAuthApi,
       );
+      failed?.call(model.msg, model);
       return true;
     }
 

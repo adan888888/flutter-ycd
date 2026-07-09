@@ -82,7 +82,10 @@ class BXLoading {
   }
 
   static dismiss() {
-    if (_refCount <= 0) return;
+    if (_refCount <= 0) {
+      EasyLoading.dismiss();
+      return;
+    }
     _refCount--;
     if (_refCount == 0) {
       EasyLoading.dismiss();

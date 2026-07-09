@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:ycd/routes/app_routes.dart';
 import 'package:ycd/utils/bx_loading.dart';
+import 'package:ycd/utils/network/api_session_handler.dart';
 import 'package:ycd/utils/network/get_store.dart';
 import 'package:ycd/utils/permission_util.dart';
 import 'package:ycd/utils/user_role.dart';
@@ -28,7 +29,7 @@ class HomeView extends StatelessWidget {
                   if (Get.key.currentState?.canPop() ?? false) {
                     Get.back();
                   } else {
-                    Get.offAllNamed(AppRoutes.login);
+                    ApiSessionHandler.goLogin();
                   }
                 },
               )
@@ -283,7 +284,7 @@ class HomeView extends StatelessWidget {
             onPressed: () {
               Get.back();
               GetStore.getInstance().logout();
-              Get.offAllNamed(AppRoutes.login);
+              ApiSessionHandler.goLogin();
             },
             child: const Text('退出'),
           ),
@@ -314,6 +315,7 @@ class HomeView extends StatelessWidget {
         if (!canAccess) {
           if (!store.isLogin) {
             BXLoading.showToast('请先登录');
+            BXLoading.reset();
             Get.toNamed(AppRoutes.login);
             return;
           }

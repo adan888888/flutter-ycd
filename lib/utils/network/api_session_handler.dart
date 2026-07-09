@@ -8,6 +8,17 @@ import 'get_store.dart';
 
 /// 全局业务码副作用：Toast + 清 session + 路由跳转。
 abstract final class ApiSessionHandler {
+  /// 统一跳转登录：先关 Loading，避免 token 过期后遮罩残留。
+  static void goLogin({bool clearStack = true}) {
+    BXLoading.reset();
+    if (Get.currentRoute == AppRoutes.login) return;
+    if (clearStack) {
+      Get.offAllNamed(AppRoutes.login);
+    } else {
+      Get.offAndToNamed(AppRoutes.login);
+    }
+  }
+
   static void handleGlobal(int code, String msg, {required bool showError, bool isAuthApi = false}) {
     switch (code) {
       case ApiCode.jsqExpired:
@@ -23,15 +34,13 @@ abstract final class ApiSessionHandler {
 
   static void _onUnauthorized(String msg, bool showError) {
     GetStore.getInstance().cleanUser();
+    BXLoading.reset();
     if (showError && msg.isNotEmpty) BXLoading.showToast(msg);
-    Future.delayed(const Duration(seconds: 1), () {
-      if (Get.currentRoute != AppRoutes.login) {
-        Get.offAndToNamed(AppRoutes.login);
-      }
-    });
+    Future.delayed(const Duration(seconds: 1), () => goLogin(clearStack: false));
   }
 
   static void _onForbidden(String msg) {
+    BXLoading.reset();
     if (msg.isNotEmpty) BXLoading.showError(toast: msg);
     Future.delayed(const Duration(milliseconds: 300), () {
       if (Get.currentRoute != AppRoutes.home) {
@@ -44,13 +53,10 @@ abstract final class ApiSessionHandler {
     if (!isAuthApi) {
       GetStore.getInstance().cleanUser();
     }
+    BXLoading.reset();
     if (showError && msg.isNotEmpty) BXLoading.showToast(msg);
     if (isAuthApi) return;
-    Future.delayed(const Duration(milliseconds: 500), () {
-      if (Get.currentRoute != AppRoutes.login) {
-        Get.offAllNamed(AppRoutes.login);
-      }
-    });
+    Future.delayed(const Duration(milliseconds: 500), () => goLogin(clearStack: true));
   }
 
   static void handleBusinessFail(

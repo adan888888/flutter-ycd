@@ -14,10 +14,10 @@ import 'package:ycd/my_db/jsq_operation_record_model.dart';
 import 'package:ycd/my_db/jsq_bet_record_model.dart';
 import 'package:ycd/my_widget/custom_dialog.dart';
 import 'package:ycd/my_widget/single_picker.dart';
-import 'package:ycd/routes/app_routes.dart';
 import 'package:ycd/utils/bx_loading.dart';
 import 'package:ycd/utils/my_character.dart';
 import 'package:ycd/utils/network/api.dart';
+import 'package:ycd/utils/network/api_session_handler.dart';
 import 'package:ycd/utils/network/get_store.dart';
 import 'package:ycd/utils/network/http_mgr.dart';
 
@@ -83,17 +83,19 @@ class JiShuQiController extends GetxController {
   Future<void> _bootstrapPageData() async {
     BXLoading.show();
     String? errorMsg;
-    Future<void> track(Future<void> future) => future.catchError((e) {
-          errorMsg ??= e is String ? e : e.toString();
-        });
+    try {
+      Future<void> track(Future<void> future) => future.catchError((e) {
+            errorMsg ??= e is String ? e : e.toString();
+          });
 
-    await Future.wait([
-      track(_queryOperationRecords(isShowLoading: false, showError: false)),
-      track(_getStatisticalAreasData(JiShuQiState.tempIndexCmdInit, isShowLoading: false, showError: false)),
-      track(_reloadBettingListTail(isShowLoading: false, showError: false)),
-    ]);
-
-    BXLoading.reset();
+      await Future.wait([
+        track(_queryOperationRecords(isShowLoading: false, showError: false)),
+        track(_getStatisticalAreasData(JiShuQiState.tempIndexCmdInit, isShowLoading: false, showError: false)),
+        track(_reloadBettingListTail(isShowLoading: false, showError: false)),
+      ]);
+    } finally {
+      BXLoading.reset();
+    }
     if (errorMsg != null && errorMsg!.isNotEmpty) {
       BXLoading.showToast(errorMsg!);
     }
@@ -853,8 +855,16 @@ class JiShuQiController extends GetxController {
       BXPut<JsqOperationRecordModel>(Api.createOperationRecord,
           params: (table as JsqOperationRecordModel).toJson()
             ..addAll({"user_id": int.parse(GetStore.getInstance().userModel.userId)}),
-          success: (isSuccess, code, message, results) => BXLoading.showToast("操作记录"),
-          failed: (p0, p1) => state.isCanPress = true,
+          isShowLoading: false,
+          success: (isSuccess, code, message, results) {
+            BXLoading.dismiss();
+            state.isCanPress = true;
+            if (isSuccess) BXLoading.showToast("操作记录");
+          },
+          failed: (p0, p1) {
+            state.isCanPress = true;
+            BXLoading.dismiss();
+          },
           onModel: (m) => JsqOperationRecordModel.fromJson(m));
     } else {
       BXPut<JsqBetRecordModel>(Api.createBetRecord,
@@ -1197,7 +1207,9 @@ class JiShuQiController extends GetxController {
     BXPost<JsqOperationRecordModel>(
       Api.updateBenjin,
       params: {"benjin": b},
+      isShowLoading: false,
       success: (isSuccess, code, message, value) {
+        BXLoading.dismiss();
         if (isSuccess) {
           BXLoading.showToast("${value.last.benjin}");
           state.totalValue[0] = b;
@@ -1205,20 +1217,25 @@ class JiShuQiController extends GetxController {
           _getStatisticalAreasData(JiShuQiState.tempIndexCmdKeep);
         }
       },
+      failed: (_, __) => BXLoading.dismiss(),
       onModel: (m) => JsqOperationRecordModel.fromJson(m),
     );
   }
 
   void updateOdds(String b) {
-    BXPost/*<Map<String,dynamic>>*/(Api.updateOdds, params: {"odds": b},
+    BXPost/*<Map<String,dynamic>>*/(Api.updateOdds,
+        params: {"odds": b},
+        isShowLoading: false,
         success: (isSuccess, int code, String message, List<dynamic> results) {
-      if (isSuccess) {
-        BXLoading.showToast(message);
-        debugPrint("赔率值是=${(results[0]["odds"])}");
-        state.totalValue[31] = (results[0]["odds"]).toString();
-        _getStatisticalAreasData(JiShuQiState.tempIndexCmdKeep); //和recordButton里面传一样的参数，确保不会破坏局部平衡
-      }
-    });
+          BXLoading.dismiss();
+          if (isSuccess) {
+            BXLoading.showToast(message);
+            debugPrint("赔率值是=${(results[0]["odds"])}");
+            state.totalValue[31] = (results[0]["odds"]).toString();
+            _getStatisticalAreasData(JiShuQiState.tempIndexCmdKeep); //和recordButton里面传一样的参数，确保不会破坏局部平衡
+          }
+        },
+        failed: (_, __) => BXLoading.dismiss());
   }
 
   //底部选项
@@ -1250,10 +1267,12 @@ class JiShuQiController extends GetxController {
       case 2: //修改本金
         BXLoading.show(douyinStyle: true);
         if (s.isEmpty) {
+          BXLoading.dismiss();
           BXLoading.showToast('请输入金额 ${textEditingController.text} ');
           break;
         }
         if (!s.isNum) {
+          BXLoading.dismiss();
           BXLoading.showToast('请输入数字 ${textEditingController.text} ');
           break;
         }
@@ -1307,6 +1326,7 @@ class JiShuQiController extends GetxController {
         BXLoading.show(douyinStyle: true);
         BXPost(
           Api.backupManual,
+          isShowLoading: false,
           success: (isSuccess, code, message, results) {
             debugPrint('=====备份完成===== ${results.first}');
             BXLoading.dismiss();
@@ -1341,7 +1361,6 @@ class JiShuQiController extends GetxController {
               duration: const Duration(seconds: 3),
             );
           },
-          isShowLoading: false, // 使用自定义的Loading
         );
         break;
       case 7:
@@ -1361,10 +1380,12 @@ class JiShuQiController extends GetxController {
       case 9: //修改赔率
         BXLoading.show(douyinStyle: true);
         if (s.isEmpty) {
+          BXLoading.dismiss();
           BXLoading.showToast('请输入赔率 ${textEditingController.text} ');
           break;
         }
         if (!s.isNum) {
+          BXLoading.dismiss();
           BXLoading.showToast('请输入赔率 ${textEditingController.text} ');
           break;
         }
@@ -1372,7 +1393,7 @@ class JiShuQiController extends GetxController {
         break;
       case 10: //退出程序
         GetStore.getInstance().cleanUser();
-        Get.offAndToNamed(AppRoutes.login);
+        ApiSessionHandler.goLogin(clearStack: false);
         break;
       case 11: //隐藏/显示序号
         state.isSeqVisible = !state.isSeqVisible;
@@ -1389,28 +1410,32 @@ class JiShuQiController extends GetxController {
 
   sort() {
     dismissKeyboard();
-    //改成接口，不用model接收值
-    BXPost(Api.sortXiaoShu, success: (isSuccess, code, message, results) {
-      if (isSuccess) {
-        // BXLoading.showToast(message);
-        var list = (results.first as Map<String, dynamic>)["sorted_sequence"];
-        final n = state.betRecordList.length;
-        final m = list.length;
-        for (int i = 0; i < n; i++) {
-          final idx = m - n + i;
-          if (idx < 0 || idx >= m) {
-            state.betRecordList[i].shuyingzhiXiaoshu = null;
-            continue;
+    BXPost(
+      Api.sortXiaoShu,
+      isShowLoading: false,
+      success: (isSuccess, code, message, results) {
+        BXLoading.dismiss();
+        if (isSuccess) {
+          var list = (results.first as Map<String, dynamic>)["sorted_sequence"];
+          final n = state.betRecordList.length;
+          final m = list.length;
+          for (int i = 0; i < n; i++) {
+            final idx = m - n + i;
+            if (idx < 0 || idx >= m) {
+              state.betRecordList[i].shuyingzhiXiaoshu = null;
+              continue;
+            }
+            state.betRecordList[i].shuyingzhiXiaoshu = double.tryParse(list[idx].toString());
           }
-          state.betRecordList[i].shuyingzhiXiaoshu = double.tryParse(list[idx].toString());
+          update();
         }
-        update();
-      }
-    });
+      },
+      failed: (_, __) => BXLoading.dismiss(),
+    );
   }
 
   void updateQiWangZhi(String qiwangzhi) {
-    BXPost/*<Map<String,dynamic>>*/(Api.updateQiWangValue, params: {"mean": qiwangzhi},
+    BXPost/*<Map<String,dynamic>>*/(Api.updateQiWangValue, params: {"mean": qiwangzhi}, isShowLoading: false,
         success: (isSuccess, int code, String message, List<dynamic> results) {
       if (isSuccess) {
         BXLoading.showToast(message);
