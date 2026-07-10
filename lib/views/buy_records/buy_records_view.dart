@@ -10,9 +10,9 @@ class BuyRecordsView extends StatelessWidget {
   // 使用 getter 替代 late final（兼容 const 构造函数）
   double get _defaultPadding => 16.0;
 
-  double get _smallPadding => 8.0;
+  double get _smallPadding => 4.0;
 
-  double get _cardPadding => 10.0;
+  double get _recordRowPaddingV => 8.0;
 
   double get _currencyCardHeight => 84.0;
 
@@ -142,11 +142,12 @@ class BuyRecordsView extends StatelessWidget {
 
     return SliverPadding(
       padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-      sliver: SliverList.builder(
+      sliver: SliverList.separated(
         itemCount: controller.state.buyRecords.length,
+        separatorBuilder: (_, __) => const Divider(height: 1, thickness: 1),
         itemBuilder: (context, index) {
           final record = controller.state.buyRecords[index];
-          return _buildRecordCard(controller, record, index);
+          return _buildRecordRow(controller, record, index);
         },
       ),
     );
@@ -165,23 +166,16 @@ class BuyRecordsView extends StatelessWidget {
     );
   }
 
-  Widget _buildRecordCard(BuyRecordsController controller, Map<String, dynamic> record, int index) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 8),
-      child: Padding(
-        padding: EdgeInsets.only(
-          left: _cardPadding,
-          right: _cardPadding,
-          top: 0,
-          bottom: _cardPadding,
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildRecordHeader(controller, index),
-            _buildCompactRecordDetails(controller, record),
-          ],
-        ),
+  Widget _buildRecordRow(BuyRecordsController controller, Map<String, dynamic> record, int index) {
+    return Padding(
+      padding: EdgeInsets.symmetric(vertical: _recordRowPaddingV),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildRecordHeader(controller, index),
+          SizedBox(height: _smallPadding),
+          _buildCompactRecordDetails(controller, record),
+        ],
       ),
     );
   }

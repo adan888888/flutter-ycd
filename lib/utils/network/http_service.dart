@@ -314,7 +314,9 @@ class HttpService {
   }
 
   bool _isAuthApi(String api) {
-    return api.contains('/auth/login') || api.contains('/auth/register');
+    return api.contains('/auth/login') ||
+        api.contains('/auth/register') ||
+        api.contains('/auth/logout');
   }
 
   String? _backendMsg(dynamic data) {

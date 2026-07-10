@@ -9,6 +9,8 @@ import 'package:package_info_plus/package_info_plus.dart';
 import '../../model/config_model.dart';
 import '../../model/user_model.dart';
 import '../storage_util.dart';
+import 'api.dart';
+import 'http_service.dart';
 
 /// 本地数据存储管理类，管理用户信息、配置等业务数据（单例）
 class GetStore {
@@ -119,7 +121,20 @@ class GetStore {
 
   bool get isLogin => _isLogin;
 
-  void logout() {
+  Future<void> logout() async {
+    checkLoginStatus();
+    if (_isLogin && userModel.token.isNotEmpty) {
+      try {
+        await HttpService.getInstance().post<dynamic>(
+          Api.logout,
+          isShowLoading: false,
+          showError: false,
+          success: (_, __, ___, ____) {},
+        );
+      } catch (_) {
+        // 网络失败或 token 已失效时仍清本地会话
+      }
+    }
     cleanUser();
     _isLogin = false;
   }

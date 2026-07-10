@@ -278,73 +278,53 @@ class DigitalPasswordBookController extends GetxController {
   void _updateSearchPd() {
     if (state.searchKeyword.value.isEmpty) {
       state.searchPd.value = '';
+      return;
+    }
+
+    final keyword = state.searchKeyword.value.toUpperCase();
+    // 仅处理 A-Z，含其他字符则不做转换
+    if (!_isAllLetters(keyword)) {
+      state.searchPd.value = '';
+      return;
+    }
+
+    if (state.isReverseMatch.value) {
+      state.searchPd.value = _searchFromReverse(keyword);
     } else {
-      final keyword = state.searchKeyword.value.toUpperCase();
-      final keywordLength = keyword.length;
-
-      // 如果输入长度超过序列长度，返回空字符串
-      if (keywordLength > state.randomSequence2.length) {
-        state.searchPd.value = '';
-        return;
-      }
-
-      if (state.isReverseMatch.value) {
-        // 从后面往前面匹配
-        state.searchPd.value = _searchFromReverse(keyword);
-      } else {
-        // 从前面往后匹配
-        state.searchPd.value = _searchFromForward(keyword);
-      }
+      state.searchPd.value = _searchFromForward(keyword);
     }
   }
 
-  // 从前面往后匹配（每个关键词字符在序列中找未使用的、首字母匹配的项，取第二字）
-  String _searchFromForward(String keyword) {
+  bool _isAllLetters(String keyword) {
+    for (int i = 0; i < keyword.length; i++) {
+      final code = keyword.codeUnitAt(i);
+      if (code < 'A'.codeUnitAt(0) || code > 'Z'.codeUnitAt(0)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  String _searchFromReverse(String keyword) {
     String result = '';
-    final usedIndices = <int>{};
 
     for (int i = 0; i < keyword.length; i++) {
-      final keywordChar = keyword[i];
-      bool found = false;
-
-      for (int j = 0; j < state.randomSequence2.length; j++) {
-        if (usedIndices.contains(j)) continue;
-        final sequenceItem = state.randomSequence2[j];
-        if (sequenceItem.startsWith(keywordChar)) {
-          result += sequenceItem[1];
-          usedIndices.add(j);
-          found = true;
-          break;
-        }
-      }
-
-      if (!found) return '';
+      final index = keyword.codeUnitAt(i) - 'A'.codeUnitAt(0);
+      final mapped = state.randomSequence[index]; // 1-26
+      result += String.fromCharCode('A'.codeUnitAt(0) + mapped - 1);
     }
 
     return result;
   }
 
-  // 从后面往前面匹配（输入第二字，在序列中找未使用的、尾字匹配的项，取第一字）
-  String _searchFromReverse(String keyword) {
+  String _searchFromForward(String keyword) {
     String result = '';
-    final usedIndices = <int>{};
 
     for (int i = 0; i < keyword.length; i++) {
-      final keywordChar = keyword[i];
-      bool found = false;
-
-      for (int j = 0; j < state.randomSequence2.length; j++) {
-        if (usedIndices.contains(j)) continue;
-        final sequenceItem = state.randomSequence2[j];
-        if (sequenceItem.endsWith(keywordChar)) {
-          result += sequenceItem[0];
-          usedIndices.add(j);
-          found = true;
-          break;
-        }
-      }
-
-      if (!found) return '';
+      final target = keyword.codeUnitAt(i) - 'A'.codeUnitAt(0) + 1; // 1-26
+      final index = state.randomSequence.indexOf(target);
+      if (index < 0) return '';
+      result += String.fromCharCode('A'.codeUnitAt(0) + index);
     }
 
     return result;

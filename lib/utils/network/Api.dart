@@ -32,6 +32,9 @@ class Api {
   ///登录
   static String login = "/auth/login";
 
+  ///登出（服务端拉黑 token）
+  static String logout = "/auth/logout";
+
   //初始化程序 创建表
   static String createTables = "/jsq/create-table";
 

@@ -32,34 +32,6 @@ class DigitalPasswordBookState {
     16,
     26,
   ];
-  var randomSequence2 = <String>[
-    'RA',
-    'EB',
-    'VC',
-    'ID',
-    'AE',
-    'NF',
-    'YG',
-    'GH',
-    'KI',
-    'BJ',
-    'TK',
-    'OL',
-    'CM',
-    'SN',
-    'XO',
-    'JP',
-    'FQ',
-    'WR',
-    'LS',
-    'DT',
-    'QU',
-    'HV',
-    'UW',
-    'MX',
-    'PY',
-    'ZZ',
-  ];
 
   // 搜索关键词
   var searchKeyword = ''.obs;

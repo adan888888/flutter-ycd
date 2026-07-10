@@ -308,10 +308,11 @@ class AesEncryptView extends GetView<AesEncryptController> {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'Base64格式:',
-                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.grey),
-                  ),
+                  if (controller.isEncryptMode.value)
+                    const Text(
+                      'Base64格式:',
+                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.grey),
+                    ),
                   const SizedBox(height: 4),
                   SelectableText(
                     controller.result.value,

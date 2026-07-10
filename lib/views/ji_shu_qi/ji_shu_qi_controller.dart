@@ -1392,7 +1392,7 @@ class JiShuQiController extends GetxController {
         updateOdds(s);
         break;
       case 10: //退出程序
-        GetStore.getInstance().cleanUser();
+        await GetStore.getInstance().logout();
         ApiSessionHandler.goLogin(clearStack: false);
         break;
       case 11: //隐藏/显示序号

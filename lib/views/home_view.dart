@@ -281,9 +281,9 @@ class HomeView extends StatelessWidget {
         actions: [
           TextButton(onPressed: Get.back, child: const Text('取消')),
           TextButton(
-            onPressed: () {
+            onPressed: () async {
               Get.back();
-              GetStore.getInstance().logout();
+              await GetStore.getInstance().logout();
               ApiSessionHandler.goLogin();
             },
             child: const Text('退出'),
