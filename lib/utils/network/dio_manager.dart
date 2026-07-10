@@ -8,6 +8,8 @@ import 'api.dart';
 import 'get_store.dart';
 
 class DioManager {
+  static const _refreshedTokenHeader = 'x-refreshed-token';
+
   static DioManager? _instance;
   late Dio _dio;
 
@@ -54,6 +56,7 @@ class DioManager {
         handler.next(options);
       },
       onResponse: (response, handler) {
+        _applyRefreshedToken(response);
         handler.next(response);
       },
       onError: (error, handler) {
@@ -61,6 +64,16 @@ class DioManager {
         handler.next(error);
       },
     ));
+  }
+
+  void _applyRefreshedToken(Response response) {
+    final newToken = response.headers.value(_refreshedTokenHeader);
+    if (newToken == null || newToken.isEmpty) return;
+    final store = GetStore.getInstance();
+    if (!store.isLogin) return;
+    final user = store.userModel;
+    user.token = newToken;
+    store.saveUser(user);
   }
 
   Future<Map<String, String>> _getHeaders() async {
