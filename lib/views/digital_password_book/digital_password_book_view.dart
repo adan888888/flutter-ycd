@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import 'digital_password_book_controller.dart';
+import 'digital_password_book_state.dart';
 
 class DigitalPasswordBookView extends GetView<DigitalPasswordBookController> {
   const DigitalPasswordBookView({super.key});
@@ -19,9 +20,7 @@ class DigitalPasswordBookView extends GetView<DigitalPasswordBookController> {
           actions: [
             IconButton(
               icon: const Icon(Icons.refresh),
-              onPressed: () {
-                controller.refreshPasswordList();
-              },
+              onPressed: controller.refreshPasswordList,
               tooltip: '刷新密码列表',
             ),
             IconButton(
@@ -35,17 +34,13 @@ class DigitalPasswordBookView extends GetView<DigitalPasswordBookController> {
           children: [
             Column(
               children: [
-                // 搜索框
                 _buildSearchBar(),
-                // 密码列表
                 Expanded(child: _buildPasswordList()),
                 Obx(() => Text(controller.state.searchPd.value.toLowerCase())),
                 const SizedBox(height: 20),
               ],
             ),
-            // 添加密码对话框
             const AddPasswordDialog(),
-            // 编辑密码对话框
             const EditPasswordDialog(),
           ],
         ),
@@ -57,7 +52,6 @@ class DigitalPasswordBookView extends GetView<DigitalPasswordBookController> {
     );
   }
 
-  // 构建搜索框
   Widget _buildSearchBar() {
     return Container(
       padding: const EdgeInsets.all(16),
@@ -65,12 +59,11 @@ class DigitalPasswordBookView extends GetView<DigitalPasswordBookController> {
             children: [
               Expanded(
                 child: TextField(
-                  controller: controller.searchTextController, // 绑定 TextEditingController
+                  controller: controller.searchTextController,
                   onChanged: (value) {
                     try {
                       controller.searchPasswords(value);
                     } catch (e) {
-                      // 忽略键盘相关的错误
                       if (!e.toString().contains('HardwareKeyboard') && !e.toString().contains('KeyUpEvent')) {
                         rethrow;
                       }
@@ -96,22 +89,17 @@ class DigitalPasswordBookView extends GetView<DigitalPasswordBookController> {
               const SizedBox(width: 8),
               Switch(
                 value: controller.state.isReverseMatch.value,
-                onChanged: (value) {
-                  controller.toggleMatchDirection();
-                },
+                onChanged: (_) => controller.toggleMatchDirection(),
               ),
             ],
           )),
     );
   }
 
-  // 构建密码列表
   Widget _buildPasswordList() {
     return Obx(() {
       if (controller.state.isLoading.value) {
-        return const Center(
-          child: CircularProgressIndicator(),
-        );
+        return const Center(child: CircularProgressIndicator());
       }
 
       final filteredList = controller.filteredPasswordList;
@@ -120,7 +108,6 @@ class DigitalPasswordBookView extends GetView<DigitalPasswordBookController> {
         return RefreshIndicator(
           onRefresh: () async {
             controller.refreshPasswordList();
-            // 等待一段时间让用户看到刷新效果
             await Future.delayed(const Duration(milliseconds: 500));
           },
           child: SingleChildScrollView(
@@ -131,36 +118,23 @@ class DigitalPasswordBookView extends GetView<DigitalPasswordBookController> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(
-                      Icons.lock_outline,
-                      size: 64,
-                      color: Colors.grey[400],
-                    ),
+                    Icon(Icons.lock_outline, size: 64, color: Colors.grey[400]),
                     const SizedBox(height: 16),
                     Text(
                       controller.state.searchKeyword.value.isEmpty ? '暂无密码记录' : '未找到匹配的密码',
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Colors.grey[600],
-                      ),
+                      style: TextStyle(fontSize: 16, color: Colors.grey[600]),
                     ),
                     if (controller.state.searchKeyword.value.isEmpty) ...[
                       const SizedBox(height: 8),
                       Text(
                         '点击右下角按钮添加第一个密码',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey[500],
-                        ),
+                        style: TextStyle(fontSize: 14, color: Colors.grey[500]),
                       ),
                     ],
                     const SizedBox(height: 16),
                     Text(
                       '下拉刷新',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey[400],
-                      ),
+                      style: TextStyle(fontSize: 12, color: Colors.grey[400]),
                     ),
                   ],
                 ),
@@ -173,127 +147,109 @@ class DigitalPasswordBookView extends GetView<DigitalPasswordBookController> {
       return RefreshIndicator(
         onRefresh: () async {
           controller.refreshPasswordList();
-          // 等待一段时间让用户看到刷新效果
           await Future.delayed(const Duration(milliseconds: 500));
         },
         child: ListView.builder(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           itemCount: filteredList.length,
-          itemBuilder: (context, index) {
-            final item = filteredList[index];
-            return _buildPasswordCard(item);
-          },
+          itemBuilder: (context, index) => _buildPasswordCard(filteredList[index]),
         ),
       );
     });
   }
 
-  // 构建密码卡片
-  Widget _buildPasswordCard(item) {
+  Widget _buildPasswordCard(PasswordItem item) {
     return Obx(() {
       final isSelected = controller.state.currentSelectedItem.value?.id == item.id;
-      return GestureDetector(
-        onTap: () {
-          controller.setCurrentSelectedItem(item);
-        },
-        child: Card(
-          margin: const EdgeInsets.only(bottom: 12),
-          elevation: isSelected ? 4 : 2,
-          color: isSelected ? Colors.blue.withValues(alpha: 0.1) : null,
+
+      return Card(
+        margin: const EdgeInsets.only(bottom: 12),
+        elevation: isSelected ? 4 : 2,
+        color: isSelected ? Colors.blue.withValues(alpha: 0.08) : null,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(12),
+          onTap: () => controller.openPasswordDetail(item),
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 10),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            child: Row(
               children: [
-                // 标题和操作按钮
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
                         item.title,
                         style: TextStyle(
-                          fontSize: 18,
+                          fontSize: 17,
                           fontWeight: FontWeight.bold,
                           color: isSelected ? Colors.blue : null,
                         ),
                       ),
-                    ),
-                    PopupMenuButton<String>(
-                      onSelected: (value) {
-                        switch (value) {
-                          case 'copy':
-                            controller.copyEntry(item);
-                            break;
-                          case 'edit':
-                            controller.editPassword(item);
-                            break;
-                          case 'delete':
-                            controller.deletePassword(item);
-                            break;
-                        }
-                      },
-                      itemBuilder: (context) => [
-                        const PopupMenuItem(
-                          value: 'copy',
-                          child: Row(
-                            children: [
-                              Icon(Icons.copy_all, size: 20),
-                              SizedBox(width: 8),
-                              Text('复制'),
-                            ],
-                          ),
-                        ),
-                        const PopupMenuItem(
-                          value: 'edit',
-                          child: Row(
-                            children: [
-                              Icon(Icons.edit, size: 20),
-                              SizedBox(width: 8),
-                              Text('编辑'),
-                            ],
-                          ),
-                        ),
-                        const PopupMenuItem(
-                          value: 'delete',
-                          child: Row(
-                            children: [
-                              Icon(Icons.delete, size: 20, color: Colors.red),
-                              SizedBox(width: 8),
-                              Text('删除', style: TextStyle(color: Colors.red)),
-                            ],
-                          ),
+                      const SizedBox(height: 4),
+                      Text(
+                        item.username,
+                        style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                      ),
+                      if (item.website.isNotEmpty) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          item.website,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(fontSize: 12, color: Colors.grey[500]),
                         ),
                       ],
+                    ],
+                  ),
+                ),
+                PopupMenuButton<String>(
+                  onSelected: (value) {
+                    switch (value) {
+                      case 'copy':
+                        controller.copyEntry(item);
+                        break;
+                      case 'edit':
+                        controller.editPassword(item);
+                        break;
+                      case 'delete':
+                        controller.deletePassword(item);
+                        break;
+                    }
+                  },
+                  itemBuilder: (context) => const [
+                    PopupMenuItem(
+                      value: 'copy',
+                      child: Row(
+                        children: [
+                          Icon(Icons.copy_all, size: 20),
+                          SizedBox(width: 8),
+                          Text('复制'),
+                        ],
+                      ),
+                    ),
+                    PopupMenuItem(
+                      value: 'edit',
+                      child: Row(
+                        children: [
+                          Icon(Icons.edit, size: 20),
+                          SizedBox(width: 8),
+                          Text('编辑'),
+                        ],
+                      ),
+                    ),
+                    PopupMenuItem(
+                      value: 'delete',
+                      child: Row(
+                        children: [
+                          Icon(Icons.delete, size: 20, color: Colors.red),
+                          SizedBox(width: 8),
+                          Text('删除', style: TextStyle(color: Colors.red)),
+                        ],
+                      ),
                     ),
                   ],
                 ),
-
-                // 用户名
-                _buildInfoRow(
-                  icon: Icons.person,
-                  label: '用户名',
-                  value: item.username,
-                  onCopy: () => controller.copyUsername(item.username),
-                ),
-                // 密码
-                _buildPasswordRow(item),
-                // 网站
-                if (item.website.isNotEmpty)
-                  _buildInfoRow(
-                    icon: Icons.language,
-                    label: '网站',
-                    value: item.website,
-                  ),
-
-                // 备注
-                if (item.notes.isNotEmpty)
-                  _buildInfoRow(
-                    icon: Icons.note,
-                    label: '备注',
-                    value: item.notes,
-                  ),
-                const SizedBox(height: 8),
+                Icon(Icons.chevron_right, color: Colors.grey[400]),
               ],
             ),
           ),
@@ -301,91 +257,8 @@ class DigitalPasswordBookView extends GetView<DigitalPasswordBookController> {
       );
     });
   }
-
-  // 构建信息行
-  Widget _buildInfoRow({
-    required IconData icon,
-    required String label,
-    required String value,
-    VoidCallback? onCopy,
-  }) {
-    return SizedBox(
-      height: 24,
-      child: Row(
-        children: [
-          Icon(icon, size: 16, color: Colors.grey[600]),
-          const SizedBox(width: 8),
-          Text(
-            '$label: ',
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.grey[600],
-            ),
-          ),
-          Expanded(
-            child: Text(
-              value,
-              style: const TextStyle(fontSize: 14),
-            ),
-          ),
-          if (onCopy != null)
-            IconButton(
-              icon: const Icon(Icons.copy, size: 16),
-              onPressed: onCopy,
-              padding: EdgeInsets.zero,
-              constraints: const BoxConstraints(),
-            ),
-        ],
-      ),
-    );
-  }
-
-  // 构建密码行
-  Widget _buildPasswordRow(item) {
-    return Obx(() {
-      final isVisible = controller.state.showPassword[item.id] ?? false;
-      return SizedBox(
-        height: 24,
-        child: Row(
-          children: [
-            Icon(Icons.lock, size: 16, color: Colors.grey[600]),
-            const SizedBox(width: 8),
-            const Text(
-              '密码: ',
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey,
-              ),
-            ),
-            Expanded(
-              child: Text(
-                isVisible ? item.password : '••••••••',
-                style: const TextStyle(fontSize: 14),
-              ),
-            ),
-            IconButton(
-              icon: Icon(
-                isVisible ? Icons.visibility_off : Icons.visibility,
-                size: 16,
-              ),
-              onPressed: () => controller.togglePasswordVisibility(item.id),
-              padding: EdgeInsets.zero,
-              constraints: const BoxConstraints(),
-            ),
-            IconButton(
-              icon: const Icon(Icons.copy, size: 16),
-              onPressed: () => controller.copyPassword(item.password),
-              padding: EdgeInsets.zero,
-              constraints: const BoxConstraints(),
-            ),
-          ],
-        ),
-      );
-    });
-  }
 }
 
-// 添加密码对话框
 class AddPasswordDialog extends GetView<DigitalPasswordBookController> {
   const AddPasswordDialog({super.key});
 
@@ -404,14 +277,9 @@ class AddPasswordDialog extends GetView<DigitalPasswordBookController> {
             children: [
               const Text(
                 '添加新密码',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 20),
-
-              // 标题
               TextField(
                 onChanged: (value) => controller.state.newTitle.value = value,
                 decoration: const InputDecoration(
@@ -420,8 +288,6 @@ class AddPasswordDialog extends GetView<DigitalPasswordBookController> {
                 ),
               ),
               const SizedBox(height: 16),
-
-              // 用户名
               TextField(
                 onChanged: (value) => controller.state.newUsername.value = value,
                 decoration: const InputDecoration(
@@ -430,8 +296,6 @@ class AddPasswordDialog extends GetView<DigitalPasswordBookController> {
                 ),
               ),
               const SizedBox(height: 16),
-
-              // 密码
               TextField(
                 onChanged: (value) => controller.state.newPassword.value = value,
                 decoration: const InputDecoration(
@@ -441,8 +305,6 @@ class AddPasswordDialog extends GetView<DigitalPasswordBookController> {
                 obscureText: true,
               ),
               const SizedBox(height: 16),
-
-              // 网站
               TextField(
                 onChanged: (value) => controller.state.newWebsite.value = value,
                 decoration: const InputDecoration(
@@ -451,8 +313,6 @@ class AddPasswordDialog extends GetView<DigitalPasswordBookController> {
                 ),
               ),
               const SizedBox(height: 16),
-
-              // 备注
               TextField(
                 onChanged: (value) => controller.state.newNotes.value = value,
                 decoration: const InputDecoration(
@@ -466,8 +326,6 @@ class AddPasswordDialog extends GetView<DigitalPasswordBookController> {
                 enableSuggestions: false,
               ),
               const SizedBox(height: 24),
-
-              // 按钮
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
@@ -490,7 +348,6 @@ class AddPasswordDialog extends GetView<DigitalPasswordBookController> {
   }
 }
 
-// 编辑密码对话框
 class EditPasswordDialog extends GetView<DigitalPasswordBookController> {
   const EditPasswordDialog({super.key});
 
@@ -509,14 +366,9 @@ class EditPasswordDialog extends GetView<DigitalPasswordBookController> {
             children: [
               const Text(
                 '编辑密码',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 20),
-
-              // 标题
               TextField(
                 controller: controller.editTitleController,
                 onChanged: (value) => controller.state.editTitle.value = value,
@@ -526,8 +378,6 @@ class EditPasswordDialog extends GetView<DigitalPasswordBookController> {
                 ),
               ),
               const SizedBox(height: 16),
-
-              // 用户名
               TextField(
                 controller: controller.editUsernameController,
                 onChanged: (value) => controller.state.editUsername.value = value,
@@ -537,8 +387,6 @@ class EditPasswordDialog extends GetView<DigitalPasswordBookController> {
                 ),
               ),
               const SizedBox(height: 16),
-
-              // 密码
               TextField(
                 controller: controller.editPasswordController,
                 onChanged: (value) => controller.state.editPassword.value = value,
@@ -549,8 +397,6 @@ class EditPasswordDialog extends GetView<DigitalPasswordBookController> {
                 obscureText: false,
               ),
               const SizedBox(height: 16),
-
-              // 网站
               TextField(
                 controller: controller.editWebsiteController,
                 onChanged: (value) => controller.state.editWebsite.value = value,
@@ -560,8 +406,6 @@ class EditPasswordDialog extends GetView<DigitalPasswordBookController> {
                 ),
               ),
               const SizedBox(height: 16),
-
-              // 备注
               TextField(
                 controller: controller.editNotesController,
                 onChanged: (value) => controller.state.editNotes.value = value,
@@ -576,8 +420,6 @@ class EditPasswordDialog extends GetView<DigitalPasswordBookController> {
                 enableSuggestions: false,
               ),
               const SizedBox(height: 24),
-
-              // 按钮
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [

@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import 'package:ycd/utils/network/api.dart';
 import 'package:ycd/utils/network/http_mgr.dart';
 
+import 'digital_password_book_detail_view.dart';
 import 'digital_password_book_state.dart';
 
 class DigitalPasswordBookController extends GetxController {
@@ -167,7 +168,7 @@ class DigitalPasswordBookController extends GetxController {
   }
 
   // 删除密码
-  void deletePassword(PasswordItem item) {
+  void deletePassword(PasswordItem item, {VoidCallback? onDeleted}) {
     Get.dialog(
       AlertDialog(
         title: const Text('确认删除'),
@@ -186,6 +187,7 @@ class DigitalPasswordBookController extends GetxController {
                     state.passwordList.removeWhere((e) => e.id == item.id);
                     Get.back();
                     Get.snackbar('成功', '密码已删除');
+                    onDeleted?.call();
                   }
                 },
                 isShowLoading: true,
@@ -209,6 +211,13 @@ class DigitalPasswordBookController extends GetxController {
   void copyUsername(String username) {
     Clipboard.setData(ClipboardData(text: username));
     Get.snackbar('成功', '用户名已复制到剪贴板');
+  }
+
+  // 复制网站、备注等字段到剪贴板
+  void copyField(String text, String label) {
+    if (text.isEmpty) return;
+    Clipboard.setData(ClipboardData(text: text));
+    Get.snackbar('成功', '$label已复制到剪贴板');
   }
 
   // 一键复制标题、用户名、密码、网站
@@ -378,6 +387,15 @@ class DigitalPasswordBookController extends GetxController {
     state.currentSelectedItem.value = item;
   }
 
+  // 进入密码详情页
+  void openPasswordDetail(PasswordItem item) {
+    setCurrentSelectedItem(item);
+    Get.to(
+      () => const DigitalPasswordBookDetailView(),
+      arguments: item,
+    );
+  }
+
   // 处理键盘快捷键
   void handleKeyEvent(KeyEvent event) {
     if (event is KeyDownEvent) {
@@ -388,11 +406,11 @@ class DigitalPasswordBookController extends GetxController {
           deletePassword(selectedItem);
         }
       }
-      // 处理 Enter 键编辑
+      // 处理 Enter 键进入详情
       else if (event.logicalKey == LogicalKeyboardKey.enter) {
         final selectedItem = state.currentSelectedItem.value;
         if (selectedItem != null) {
-          editPassword(selectedItem);
+          openPasswordDetail(selectedItem);
         }
       }
     }
