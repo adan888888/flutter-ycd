@@ -16,7 +16,7 @@ class AesEncryptController extends GetxController {
   // 结果
   final RxString result = ''.obs;
   final RxString resultHex = ''.obs; // 16进制格式的结果
-  final RxBool isEncryptMode = true.obs; // true: 加密模式, false: 解密模式
+  final RxBool isEncryptMode = false.obs; // true: 加密模式, false: 解密模式
   final RxString errorMessage = ''.obs;
 
   // 用于实时显示输入长度
@@ -162,4 +162,3 @@ class AesEncryptController extends GetxController {
     }
   }
 }
-
