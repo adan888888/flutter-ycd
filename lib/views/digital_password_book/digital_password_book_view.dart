@@ -44,10 +44,6 @@ class DigitalPasswordBookView extends GetView<DigitalPasswordBookController> {
             const EditPasswordDialog(),
           ],
         ),
-        floatingActionButton: FloatingActionButton(
-          onPressed: controller.showAddPasswordDialog,
-          child: const Icon(Icons.add),
-        ),
       ),
     );
   }
@@ -105,55 +101,32 @@ class DigitalPasswordBookView extends GetView<DigitalPasswordBookController> {
       final filteredList = controller.filteredPasswordList;
 
       if (filteredList.isEmpty) {
-        return RefreshIndicator(
-          onRefresh: () async {
-            controller.refreshPasswordList();
-            await Future.delayed(const Duration(milliseconds: 500));
-          },
-          child: SingleChildScrollView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            child: SizedBox(
-              height: MediaQuery.of(Get.context!).size.height * 0.6,
-              child: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.lock_outline, size: 64, color: Colors.grey[400]),
-                    const SizedBox(height: 16),
-                    Text(
-                      controller.state.searchKeyword.value.isEmpty ? '暂无密码记录' : '未找到匹配的密码',
-                      style: TextStyle(fontSize: 16, color: Colors.grey[600]),
-                    ),
-                    if (controller.state.searchKeyword.value.isEmpty) ...[
-                      const SizedBox(height: 8),
-                      Text(
-                        '点击右下角按钮添加第一个密码',
-                        style: TextStyle(fontSize: 14, color: Colors.grey[500]),
-                      ),
-                    ],
-                    const SizedBox(height: 16),
-                    Text(
-                      '下拉刷新',
-                      style: TextStyle(fontSize: 12, color: Colors.grey[400]),
-                    ),
-                  ],
-                ),
+        return Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.lock_outline, size: 64, color: Colors.grey[400]),
+              const SizedBox(height: 16),
+              Text(
+                controller.state.searchKeyword.value.isEmpty ? '暂无密码记录' : '未找到匹配的密码',
+                style: TextStyle(fontSize: 16, color: Colors.grey[600]),
               ),
-            ),
+              if (controller.state.searchKeyword.value.isEmpty) ...[
+                const SizedBox(height: 8),
+                Text(
+                  '点击右上角 + 添加第一个密码',
+                  style: TextStyle(fontSize: 14, color: Colors.grey[500]),
+                ),
+              ],
+            ],
           ),
         );
       }
 
-      return RefreshIndicator(
-        onRefresh: () async {
-          controller.refreshPasswordList();
-          await Future.delayed(const Duration(milliseconds: 500));
-        },
-        child: ListView.builder(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          itemCount: filteredList.length,
-          itemBuilder: (context, index) => _buildPasswordCard(filteredList[index]),
-        ),
+      return ListView.builder(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        itemCount: filteredList.length,
+        itemBuilder: (context, index) => _buildPasswordCard(filteredList[index]),
       );
     });
   }
