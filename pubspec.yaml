@@ -53,6 +53,11 @@ flutter_launcher_icons:
   ios: true
   android: true
   image_path: "assets/images/counter_app_icon.png"
+  adaptive_icon_foreground: "assets/images/counter_app_icon.png"
+  adaptive_icon_background: "#075477"
+  # Keep the artwork inside Android's adaptive-icon safe zone so launchers
+  # can apply rounded-square/circle masks without making it look cramped.
+  adaptive_icon_foreground_inset: 14
   remove_alpha_ios: true
   macos:
     generate: true

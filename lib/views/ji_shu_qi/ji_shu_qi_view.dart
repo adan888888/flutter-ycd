@@ -187,7 +187,7 @@ class JiShuQiView extends GetView<JiShuQiController> {
                                 GestureDetector(
                                   onTap: controller.deleteLast,
                                   child: Padding(
-                                    padding: const EdgeInsets.symmetric(vertical: 0.0, horizontal: 4.0),
+                                    padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 4.0),
                                     child: Image.asset(
                                       'assets/images/delete_last.png',
                                       height: 22,
