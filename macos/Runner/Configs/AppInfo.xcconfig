@@ -1,4 +1,4 @@
-// 主应用配置（计数器1）
-PRODUCT_NAME = 计数器1
+// 主应用配置（数策1）
+PRODUCT_NAME = 数策1
 PRODUCT_BUNDLE_IDENTIFIER = com.like.flutterYcd
 PRODUCT_COPYRIGHT = Copyright © 2024 com.like. All rights reserved.

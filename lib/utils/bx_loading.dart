@@ -16,7 +16,7 @@ class BXLoading {
   static const int val = 2;
   static int _refCount = 0;
 
-  /// 与计数器页 `state.isDarkMode` 同步，供抖音风 Loading 自动配色。
+  /// 与投资分析工具页 `state.isDarkMode` 同步，供抖音风 Loading 自动配色。
   static bool isDarkMode = true;
 
   static void syncTheme(bool dark) {

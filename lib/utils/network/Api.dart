@@ -8,7 +8,7 @@ class Api {
   /// flutter run --dart-define=API_BASE_URL=https://verbose-exhume-cringe.ngrok-free.dev/api
   /// flutter run --dart-define=API_BASE_URL=http://192.168.1.5:8080/api
   /// ```
-  /// **macOS 打包**：`scripts/build_macos_app.sh both|all|1|2|3 [API_BASE_URL]`（第二参数为可选地址；`all` 会打 计数器1/2/3）。
+  /// **macOS 打包**：`scripts/build_macos_app.sh both|all|1|2|3 [API_BASE_URL]`（第二参数为可选地址；`all` 会打 数策1/2/3）。
   static String get baseUrl {
     const fromEnv = String.fromEnvironment('API_BASE_URL', defaultValue: '');
     if (fromEnv.isNotEmpty) {

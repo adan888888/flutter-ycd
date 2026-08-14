@@ -1,4 +1,4 @@
 // 副本3：独立 Bundle ID，数据互不干扰
-PRODUCT_NAME = 计数器3
+PRODUCT_NAME = 数策3
 PRODUCT_BUNDLE_IDENTIFIER = com.like.flutterYcd3
 PRODUCT_COPYRIGHT = Copyright © 2024 com.like. All rights reserved.

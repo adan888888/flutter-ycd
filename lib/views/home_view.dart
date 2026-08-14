@@ -191,7 +191,7 @@ class HomeView extends StatelessWidget {
                 context,
                 icon: Icons.games,
                 imagePath: 'assets/images/temp_dice.png',
-                title: '计数器',
+                title: '投资分析工具',
                 subtitle: '让你游戏数据更加清晰',
                 color: Colors.red,
                 onTap: () => Get.toNamed(AppRoutes.jiShuQiHome),

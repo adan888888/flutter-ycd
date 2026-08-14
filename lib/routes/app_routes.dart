@@ -1,5 +1,7 @@
 import 'package:get/get_navigation/src/routes/get_route.dart';
 import 'package:ycd/utils/app_middleware.dart';
+import 'package:ycd/views/aes_encrypt/aes_encrypt_binding.dart';
+import 'package:ycd/views/aes_encrypt/aes_encrypt_view.dart';
 import 'package:ycd/views/baccarat_simulation/baccarat_simulation_binding.dart';
 import 'package:ycd/views/baccarat_simulation/baccarat_simulation_view.dart';
 import 'package:ycd/views/buy_records/buy_records_binding.dart';
@@ -8,19 +10,17 @@ import 'package:ycd/views/currency_converter/currency_converter_binding.dart';
 import 'package:ycd/views/currency_converter/currency_converter_view.dart';
 import 'package:ycd/views/digital_password_book/digital_password_book_binding.dart';
 import 'package:ycd/views/digital_password_book/digital_password_book_view.dart';
-import 'package:ycd/views/ji_shu_qi/ji_shu_qi_binding.dart';
-import 'package:ycd/views/ji_shu_qi/ji_shu_qi_view.dart';
 import 'package:ycd/views/home_view.dart';
 import 'package:ycd/views/investment_calculator/investment_calculator_binding.dart';
 import 'package:ycd/views/investment_calculator/investment_calculator_view.dart';
+import 'package:ycd/views/ji_shu_qi/ji_shu_qi_binding.dart';
+import 'package:ycd/views/ji_shu_qi/ji_shu_qi_view.dart';
 import 'package:ycd/views/login/login_viw_widget/login_binding.dart';
 import 'package:ycd/views/login/login_viw_widget/login_view.dart';
 import 'package:ycd/views/rsi_analysis/rsi_analysis_binding.dart';
 import "package:ycd/views/rsi_analysis/rsi_analysis_view.dart";
 import 'package:ycd/views/rsi_strategy_backtest/rsi_strategy_backtest_binding.dart';
 import 'package:ycd/views/rsi_strategy_backtest/rsi_strategy_backtest_view.dart';
-import 'package:ycd/views/aes_encrypt/aes_encrypt_binding.dart';
-import 'package:ycd/views/aes_encrypt/aes_encrypt_view.dart';
 
 /// 应用路由配置
 class AppRoutes {
@@ -30,7 +30,7 @@ class AppRoutes {
   // 认证相关
   static const String login = '/login';
 
-  // 计数器（jsq）
+  // 投资分析工具（jsq）
   static const String jiShuQiHome = '/jiShuQiHome';
 
   // 投资工具
@@ -65,7 +65,7 @@ class AppPages {
       ],
     ),
 
-    // 计数器页面
+    // 投资分析工具页面
     GetPage(
       name: AppRoutes.jiShuQiHome,
       page: () => const JiShuQiView(title: 'v2.0'),

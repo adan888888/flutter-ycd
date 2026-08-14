@@ -90,12 +90,12 @@ BEGIN
         BLOCK "040904e4"
         BEGIN
             VALUE "CompanyName", "com.like" "\0"
-            VALUE "FileDescription", "flutter_ycd" "\0"
+            VALUE "FileDescription", "数策" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
             VALUE "InternalName", "flutter_ycd" "\0"
             VALUE "LegalCopyright", "Copyright (C) 2024 com.like. All rights reserved." "\0"
             VALUE "OriginalFilename", "flutter_ycd.exe" "\0"
-            VALUE "ProductName", "flutter_ycd" "\0"
+            VALUE "ProductName", "数策" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END

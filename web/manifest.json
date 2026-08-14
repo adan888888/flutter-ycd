@@ -1,11 +1,11 @@
 {
-    "name": "flutter-ycd",
-    "short_name": "flutter-ycd",
+    "name": "数策",
+    "short_name": "数策",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0D7377",
     "theme_color": "#0D7377",
-    "description": "一个新 Flutter 项目.",
+    "description": "投资计算与数据分析工具",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

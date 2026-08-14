@@ -44,7 +44,7 @@ class MyApp extends StatelessWidget {
       minTextAdapt: true,
       child: GetMaterialApp(
         debugShowCheckedModeBanner: false,
-        title: '计数器',
+        title: '数策',
         theme: ThemeData(
           primaryColor: Colors.green,
           useMaterial3: true,
