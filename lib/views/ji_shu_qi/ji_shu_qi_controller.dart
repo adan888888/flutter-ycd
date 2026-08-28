@@ -39,7 +39,7 @@ class JiShuQiController extends GetxController {
   final focusNode = FocusNode();
   double _lastKeyboardInset = 0;
   Timer? _keyboardOpenSettleTimer;
-  bool _skipKeyboardDismissScroll = false;
+  int _bettingListScrollGeneration = 0;
   DateTime? _ignoreTapOutsideUntil;
 
   FixedExtentScrollController? fixedExtentScrollController;
@@ -105,21 +105,9 @@ class JiShuQiController extends GetxController {
   }
 
   void _onInputFocusChanged() {
-    if (focusNode.hasFocus) {
-      // 刚聚焦时短暂忽略 onTapOutside，避免 Android 弹出键盘瞬间误触收回。
-      _ignoreTapOutsideUntil = DateTime.now().add(const Duration(milliseconds: 280));
-      return;
-    }
-    if (_skipKeyboardDismissScroll) {
-      if (_lastKeyboardInset == 0) {
-        _skipKeyboardDismissScroll = false;
-      }
-      return;
-    }
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (focusNode.hasFocus) return;
-      scrollBettingListToBottom();
-    });
+    if (!focusNode.hasFocus) return;
+    // 刚聚焦时短暂忽略 onTapOutside，避免 Android 弹出键盘瞬间误触收回。
+    _ignoreTapOutsideUntil = DateTime.now().add(const Duration(milliseconds: 280));
   }
 
   bool get shouldIgnoreTapOutside {
@@ -324,8 +312,11 @@ class JiShuQiController extends GetxController {
 
   /// 投注列表时间升序（最新在底部）。多帧 + 延迟重试，避免刚 `update()` 后 extent 未算准、或未挂上 Scrollable。
   void scrollBettingListToBottom() {
+    final generation = ++_bettingListScrollGeneration;
+    bool isCurrentRequest() => generation == _bettingListScrollGeneration;
+
     void jumpToEnd() {
-      if (!scrollController.hasClients) return;
+      if (!isCurrentRequest() || !scrollController.hasClients) return;
       final max = scrollController.position.maxScrollExtent;
       if (!max.isFinite || max < 0) return;
       scrollController.jumpTo(max);
@@ -333,6 +324,7 @@ class JiShuQiController extends GetxController {
 
     /// 仍未挂上 Scrollable；或已与底部相差较大：再试。extent 尚为 0 但条数较多时视为未布局完。
     bool needsAnotherTry() {
+      if (!isCurrentRequest()) return false;
       if (!scrollController.hasClients) return state.betRecordList.isNotEmpty;
       if (state.betRecordList.isEmpty) return false;
       final pos = scrollController.position;
@@ -345,27 +337,33 @@ class JiShuQiController extends GetxController {
     }
 
     void scheduleFrames(int left) {
-      if (left <= 0) return;
+      if (left <= 0 || !isCurrentRequest()) return;
       WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!isCurrentRequest()) return;
         jumpToEnd();
         final more = needsAnotherTry() && left > 1;
         if (more) scheduleFrames(left - 1);
       });
     }
 
+    void retryAfterDelay() {
+      if (!isCurrentRequest()) return;
+      jumpToEnd();
+      if (isCurrentRequest()) {
+        _syncBettingListAtBottom(atBottom: true);
+      }
+    }
+
     scheduleFrames(10);
-    Future.delayed(const Duration(milliseconds: 50), () {
-      jumpToEnd();
-      _syncBettingListAtBottom(atBottom: true);
-    });
-    Future.delayed(const Duration(milliseconds: 180), () {
-      jumpToEnd();
-      _syncBettingListAtBottom(atBottom: true);
-    });
-    Future.delayed(const Duration(milliseconds: 420), () {
-      jumpToEnd();
-      _syncBettingListAtBottom(atBottom: true);
-    });
+    Future.delayed(const Duration(milliseconds: 50), retryAfterDelay);
+    Future.delayed(const Duration(milliseconds: 180), retryAfterDelay);
+    Future.delayed(const Duration(milliseconds: 420), retryAfterDelay);
+  }
+
+  /// 用户开始触摸列表/页面后，旧的自动滚动重试不得再抢占拖动手势。
+  void cancelPendingBettingListAutoScroll() {
+    _keyboardOpenSettleTimer?.cancel();
+    _bettingListScrollGeneration++;
   }
 
   /// 点击列表等空白区域时收起键盘（不用 TextField.onTapOutside，避免弹出瞬间误触收回）。
@@ -379,12 +377,11 @@ class JiShuQiController extends GetxController {
     }
   }
 
-  /// 底部键盘展开或输入框仍聚焦时：释放焦点，并跳过收键盘后的列表滚动。
+  /// 底部键盘展开或输入框仍聚焦时释放焦点。
   /// 用于点骰子、关庄闲弹窗等场景，避免输入框再次被激活、键盘又顶起来。
   /// 若键盘本就没开，则不做任何事。
   void guardAgainstKeyboardPop() {
     if (!focusNode.hasFocus && _lastKeyboardInset <= 0) return;
-    _skipKeyboardDismissScroll = true;
     dismissKeyboard();
   }
 
@@ -393,27 +390,14 @@ class JiShuQiController extends GetxController {
     final previousInset = _lastKeyboardInset;
     if (previousInset == inset) return;
 
-    final closing = previousInset > 0 && inset == 0;
     _lastKeyboardInset = inset;
 
-    _keyboardOpenSettleTimer?.cancel();
-    if (inset > 0) {
-      // 键盘动画会连续上报多次非零 inset。每次变化都重新计时，
+    cancelPendingBettingListAutoScroll();
+    if (inset > previousInset) {
+      // 键盘打开动画会连续上报多次递增的 inset。每次增长都重新计时，
       // 确保使用最终的列表视口高度滚到底，而不是让首帧任务被后续帧取消。
       _keyboardOpenSettleTimer = Timer(const Duration(milliseconds: 260), () {
         if (!focusNode.hasFocus || _lastKeyboardInset <= 0) return;
-        scrollBettingListToBottom();
-      });
-      return;
-    }
-
-    if (closing) {
-      _keyboardOpenSettleTimer = Timer(const Duration(milliseconds: 220), () {
-        if (focusNode.hasFocus) return;
-        if (_skipKeyboardDismissScroll) {
-          _skipKeyboardDismissScroll = false;
-          return;
-        }
         scrollBettingListToBottom();
       });
     }
@@ -688,9 +672,9 @@ class JiShuQiController extends GetxController {
 
   @override
   void onClose() {
+    cancelPendingBettingListAutoScroll();
     scrollController.removeListener(_onBettingListScroll);
     focusNode.removeListener(_onInputFocusChanged);
-    _keyboardOpenSettleTimer?.cancel();
     _timer?.cancel();
     _diceSoundPlayer.dispose();
     statsRefreshController.dispose();
@@ -1484,6 +1468,7 @@ class JiShuQiController extends GetxController {
   }
 
   void onUserInteraction() {
+    cancelPendingBettingListAutoScroll();
     // 取消之前的计时器
     _timer?.cancel();
     // 设置新的计时器，时间设置为你想要的锁屏延时时间
