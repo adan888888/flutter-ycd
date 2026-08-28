@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="ic_launcher_background">#075477</color>
+    <!-- 与 launch_image 四周的纯色一致，居中的启动图可以和背景无缝衔接 -->
+    <color name="launch_background">#1A9748</color>
 </resources>

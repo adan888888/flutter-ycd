@@ -5,6 +5,12 @@
         <!-- Show a splash screen on the activity. Automatically removed when
              the Flutter engine draws its first frame -->
         <item name="android:windowBackground">@drawable/launch_background</item>
+        <!-- 让启动图铺到状态栏/导航栏底下，避免顶部一条黑边。
+             注意：不要为这个主题加 values-v31 的 windowSplashScreen* 配置，
+             那会让 Android 12+ 改用「纯色 + 图标」的系统启动屏，整张图就没机会显示了 -->
+        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
     </style>
     <!-- Theme applied to the Android Window as soon as the process has started.
          This theme determines the color of the Android Window while your
@@ -13,6 +19,9 @@
 
          This Theme is only used starting with V2 of Flutter's Android embedding. -->
     <style name="NormalTheme" parent="@android:style/Theme.Light.NoTitleBar">
-        <item name="android:windowBackground">?android:colorBackground</item>
+        <!-- Flutter 在 onCreate 里会把主题从 LaunchTheme 换成 NormalTheme，
+             这里同样挂整张启动图，Dart 侧首帧画出来之前窗口上就一直是这张图。
+             首帧之后 MainActivity 会把它换成纯色，释放这张大图 -->
+        <item name="android:windowBackground">@drawable/launch_background</item>
     </style>
 </resources>

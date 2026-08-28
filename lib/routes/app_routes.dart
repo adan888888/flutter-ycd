@@ -21,9 +21,13 @@ import 'package:ycd/views/rsi_analysis/rsi_analysis_binding.dart';
 import "package:ycd/views/rsi_analysis/rsi_analysis_view.dart";
 import 'package:ycd/views/rsi_strategy_backtest/rsi_strategy_backtest_binding.dart';
 import 'package:ycd/views/rsi_strategy_backtest/rsi_strategy_backtest_view.dart';
+import 'package:ycd/views/splash/splash_view.dart';
 
 /// 应用路由配置
 class AppRoutes {
+  // 启动页
+  static const String splash = '/splash';
+
   // 主页面
   static const String home = '/home';
 
@@ -49,6 +53,12 @@ class AppRoutes {
 /// 应用页面配置
 class AppPages {
   static final pages = [
+    // 启动页
+    GetPage(
+      name: AppRoutes.splash,
+      page: () => const SplashView(),
+    ),
+
     // 主页面
     GetPage(
       name: AppRoutes.home,

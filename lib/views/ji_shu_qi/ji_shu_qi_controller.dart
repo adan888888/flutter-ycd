@@ -6,6 +6,7 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:easy_refresh/easy_refresh.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_screen_lock/flutter_screen_lock.dart';
 import 'package:get/get.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
@@ -712,7 +713,7 @@ class JiShuQiController extends GetxController {
     }());
   }
 
-  void _playRandomSound() => _playSound('sounds/kaijiang.mp3', volume: 0.4);
+  void _randomFeedback() => unawaited(HapticFeedback.lightImpact());
 
   void _playDiceRollSound() => _playSound('sounds/zhuotou.mp3');
 
@@ -721,7 +722,7 @@ class JiShuQiController extends GetxController {
       return;
     }
     guardAgainstKeyboardPop();
-    _playRandomSound();
+    _randomFeedback();
     state.isCanPress = false;
     state.js2 = state.js2 + 1;
     state.totalValue[28] = "${state.js1}/${state.js2}";

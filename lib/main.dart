@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -6,6 +8,7 @@ import 'package:ycd/utils/bx_loading.dart';
 import 'package:ycd/utils/local_util.dart';
 import 'package:ycd/utils/network/get_store.dart';
 import 'package:ycd/utils/storage_util.dart';
+import 'package:ycd/views/splash/splash_view.dart';
 
 import 'routes/app_routes.dart'; // 导入新的路由配置文件
 
@@ -32,7 +35,23 @@ Future<void> main() async {
   GetStore.getInstance().checkLoginStatus();
   //加载默认语言
   LocalUtil.loadDefaultLan();
+  // 先解好启动图再起首帧，避免系统启动屏退场后先闪一下纯色背景
+  await _precacheSplashImage();
   runApp(const MyApp());
+}
+
+Future<void> _precacheSplashImage() async {
+  final completer = Completer<void>();
+  final stream = const AssetImage(SplashView.imageAsset).resolve(ImageConfiguration.empty);
+  late final ImageStreamListener listener;
+  void done() {
+    stream.removeListener(listener);
+    if (!completer.isCompleted) completer.complete();
+  }
+
+  listener = ImageStreamListener((_, __) => done(), onError: (_, __) => done());
+  stream.addListener(listener);
+  return completer.future;
 }
 
 class MyApp extends StatelessWidget {
@@ -51,7 +70,7 @@ class MyApp extends StatelessWidget {
         ),
         locale: const Locale('zh', 'CN'),
         fallbackLocale: const Locale('en', 'US'),
-        initialRoute: AppRoutes.login,
+        initialRoute: AppRoutes.splash,
         getPages: AppPages.pages,
         routingCallback: (routing) {
           // token 过期 / 主动退出等场景：进入登录页时强制清掉残留 Loading

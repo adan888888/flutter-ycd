@@ -1,12 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Modify this file to customize your launch splash screen -->
+<!-- 窗口背景直接铺满整张启动图（不加 gravity 即拉伸填满窗口），
+     和 iOS LaunchScreen 里 scaleToFill 的 imageView 表现一致 -->
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:drawable="@android:color/white" />
-
-    <!-- You can insert your own image assets here -->
-    <!-- <item>
-        <bitmap
-            android:gravity="center"
-            android:src="@mipmap/launch_image" />
-    </item> -->
+    <item android:drawable="@color/launch_background" />
+    <item android:drawable="@drawable/launch_image" />
 </layer-list>
