@@ -390,14 +390,18 @@ class JiShuQiController extends GetxController {
 
   /// 键盘“弹出完成后”再滚到底，避免动画过程中触发布局抖动。
   void onKeyboardInsetChanged(double inset) {
-    final opening = _lastKeyboardInset == 0 && inset > 0;
-    final closing = _lastKeyboardInset > 0 && inset == 0;
+    final previousInset = _lastKeyboardInset;
+    if (previousInset == inset) return;
+
+    final closing = previousInset > 0 && inset == 0;
     _lastKeyboardInset = inset;
 
     _keyboardOpenSettleTimer?.cancel();
-    if (opening) {
+    if (inset > 0) {
+      // 键盘动画会连续上报多次非零 inset。每次变化都重新计时，
+      // 确保使用最终的列表视口高度滚到底，而不是让首帧任务被后续帧取消。
       _keyboardOpenSettleTimer = Timer(const Duration(milliseconds: 260), () {
-        if (!focusNode.hasFocus) return;
+        if (!focusNode.hasFocus || _lastKeyboardInset <= 0) return;
         scrollBettingListToBottom();
       });
       return;
