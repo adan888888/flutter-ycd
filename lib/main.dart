@@ -1,19 +1,17 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get_navigation/src/root/get_material_app.dart';
 import 'package:ycd/utils/bx_loading.dart';
-import 'package:ycd/utils/local_util.dart';
-import 'package:ycd/utils/network/get_store.dart';
-import 'package:ycd/utils/storage_util.dart';
 import 'package:ycd/views/splash/splash_view.dart';
 
 import 'routes/app_routes.dart'; // 导入新的路由配置文件
 
-Future<void> main() async {
-  WidgetsFlutterBinding.ensureInitialized();
+void main() {
+  final binding = WidgetsFlutterBinding.ensureInitialized();
 
   // 添加全局错误处理，忽略键盘相关的已知错误
   FlutterError.onError = (FlutterErrorDetails details) {
@@ -28,21 +26,43 @@ Future<void> main() async {
     FlutterError.presentError(details);
   };
 
-  // 初始化存储器
-  await StorageUtil.init();
-  await GetStore.initStorageNamespace();
-  //检查登录状态
-  GetStore.getInstance().checkLoginStatus();
-  //加载默认语言
-  LocalUtil.loadDefaultLan();
-  // 先解好启动图再起首帧，避免系统启动屏退场后先闪一下纯色背景
-  await _precacheSplashImage();
+  // Android 让 Flutter 背景绘制到手势导航区域；页面内的 SafeArea 仍负责保护内容。
+  unawaited(SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge));
+  SystemChrome.setSystemUIOverlayStyle(
+    const SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      systemNavigationBarColor: Colors.transparent,
+      systemNavigationBarDividerColor: Colors.transparent,
+    ),
+  );
+
+  // Flutter 与启动图解码同时开始，只把“尚未解出完整启动图”的帧拦住。
+  // 存储和登录初始化会在 SplashView 显示期间执行，不再延长 Android 系统启动屏。
+  binding.deferFirstFrame();
+  final splashImageReady = _precacheSplashImage();
   runApp(const MyApp());
+  unawaited(_showSplashFirstFrame(binding, splashImageReady));
+}
+
+Future<void> _showSplashFirstFrame(
+  WidgetsBinding binding,
+  Future<void> splashImageReady,
+) async {
+  await splashImageReady;
+  binding.allowFirstFrame();
+
+  try {
+    // 等完整启动图真正完成一帧后再开始计算它的最短展示时间。
+    await binding.endOfFrame;
+  } finally {
+    SplashView.markFirstFrameVisible();
+  }
 }
 
 Future<void> _precacheSplashImage() async {
   final completer = Completer<void>();
-  final stream = const AssetImage(SplashView.imageAsset).resolve(ImageConfiguration.empty);
+  final stream =
+      const AssetImage(SplashView.imageAsset).resolve(ImageConfiguration.empty);
   late final ImageStreamListener listener;
   void done() {
     stream.removeListener(listener);

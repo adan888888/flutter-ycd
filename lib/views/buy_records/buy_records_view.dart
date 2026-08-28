@@ -54,7 +54,10 @@ class BuyRecordsView extends StatelessWidget {
               ),
             ],
           ),
-          body: _buildBody(controller),
+          body: SafeArea(
+            top: false,
+            child: _buildBody(controller),
+          ),
         );
       },
     );

@@ -16,34 +16,37 @@ class AesEncryptView extends GetView<AesEncryptController> {
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         centerTitle: true,
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(12.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // 模式切换
-            _buildModeSwitch(),
-            const SizedBox(height: 10),
+      body: SafeArea(
+        top: false,
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(12.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // 模式切换
+              _buildModeSwitch(),
+              const SizedBox(height: 10),
 
-            // 内容输入框
-            _buildContentInput(),
-            const SizedBox(height: 10),
+              // 内容输入框
+              _buildContentInput(),
+              const SizedBox(height: 10),
 
-            // Key输入框
-            _buildKeyInput(),
-            const SizedBox(height: 10),
+              // Key输入框
+              _buildKeyInput(),
+              const SizedBox(height: 10),
 
-            // IV输入框（可选）
-            _buildIvInput(),
-            const SizedBox(height: 10),
+              // IV输入框（可选）
+              _buildIvInput(),
+              const SizedBox(height: 10),
 
-            // 操作按钮
-            _buildActionButtons(),
-            const SizedBox(height: 10),
+              // 操作按钮
+              _buildActionButtons(),
+              const SizedBox(height: 10),
 
-            // 结果显示
-            _buildResultCard(),
-          ],
+              // 结果显示
+              _buildResultCard(),
+            ],
+          ),
         ),
       ),
     );

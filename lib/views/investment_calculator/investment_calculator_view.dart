@@ -15,20 +15,23 @@ class InvestmentCalculatorView extends GetView<InvestmentCalculatorController> {
         foregroundColor: Colors.white,
         centerTitle: true,
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // 输入表单
-            _buildInputForm(),
-            const SizedBox(height: 20),
-            // 计算按钮
-            _buildCalculateButton(),
-            const SizedBox(height: 20),
-            // 结果显示
-            _buildResultCard(),
-          ],
+      body: SafeArea(
+        top: false,
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // 输入表单
+              _buildInputForm(),
+              const SizedBox(height: 20),
+              // 计算按钮
+              _buildCalculateButton(),
+              const SizedBox(height: 20),
+              // 结果显示
+              _buildResultCard(),
+            ],
+          ),
         ),
       ),
     );

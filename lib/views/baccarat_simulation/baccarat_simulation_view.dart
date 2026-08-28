@@ -31,23 +31,26 @@ class BaccaratSimulationView extends GetView<BaccaratSimulationController> {
       ),
       body: Stack(
         children: [
-          SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                // 路子图
-                _buildRoadMap(),
-                const SizedBox(height: 24),
-                // 开奖结果区域
-                _buildResultSection(),
-                const SizedBox(height: 24),
-                // 开始按钮
-                _buildStartButton(),
-                const SizedBox(height: 24),
-                // 历史记录
-                _buildHistorySection(),
-              ],
+          SafeArea(
+            top: false,
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  // 路子图
+                  _buildRoadMap(),
+                  const SizedBox(height: 24),
+                  // 开奖结果区域
+                  _buildResultSection(),
+                  const SizedBox(height: 24),
+                  // 开始按钮
+                  _buildStartButton(),
+                  const SizedBox(height: 24),
+                  // 历史记录
+                  _buildHistorySection(),
+                ],
+              ),
             ),
           ),
           GetBuilder<BaccaratSimulationController>(
@@ -309,9 +312,7 @@ class BaccaratSimulationView extends GetView<BaccaratSimulationController> {
                   style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
                 ),
                 Text(
-                  state.shoeCutCardChosen
-                      ? '≤ ${state.shoeCutCardRemaining} 张'
-                      : '请点击随机',
+                  state.shoeCutCardChosen ? '≤ ${state.shoeCutCardRemaining} 张' : '请点击随机',
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
@@ -379,11 +380,10 @@ class BaccaratSimulationView extends GetView<BaccaratSimulationController> {
         return Column(
           children: [
             ElevatedButton.icon(
-              onPressed: (controller.state.isAnimating ||
-                      controller.state.isShuffling ||
-                      controller.state.awaitingCutCard)
-                  ? null
-                  : controller.startSimulation,
+              onPressed:
+                  (controller.state.isAnimating || controller.state.isShuffling || controller.state.awaitingCutCard)
+                      ? null
+                      : controller.startSimulation,
               icon: controller.state.isAnimating || controller.state.isShuffling
                   ? const SizedBox(
                       width: 20,
@@ -394,9 +394,7 @@ class BaccaratSimulationView extends GetView<BaccaratSimulationController> {
               label: Text(
                 controller.state.isShuffling
                     ? '洗牌中...'
-                    : (controller.state.isAnimating
-                        ? '发牌中...'
-                        : (controller.state.awaitingCutCard ? '请先切牌' : '发牌')),
+                    : (controller.state.isAnimating ? '发牌中...' : (controller.state.awaitingCutCard ? '请先切牌' : '发牌')),
               ),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.amber.shade600,

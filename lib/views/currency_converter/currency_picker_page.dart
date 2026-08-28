@@ -37,10 +37,13 @@ class CurrencyPickerSheet extends StatefulWidget {
           padding: EdgeInsets.only(bottom: viewInsets),
           child: SizedBox(
             height: h,
-            child: CurrencyPickerSheet(
-              currencies: currencies,
-              selectedCode: selectedCode,
-              title: title,
+            child: SafeArea(
+              top: false,
+              child: CurrencyPickerSheet(
+                currencies: currencies,
+                selectedCode: selectedCode,
+                title: title,
+              ),
             ),
           ),
         );
@@ -66,9 +69,7 @@ class _CurrencyPickerSheetState extends State<CurrencyPickerSheet> {
     if (q.trim().isEmpty) {
       return List<Map<String, dynamic>>.from(widget.currencies);
     }
-    return widget.currencies
-        .where((c) => CurrencyConverterController.currencyMatchesQuery(c, q))
-        .toList();
+    return widget.currencies.where((c) => CurrencyConverterController.currencyMatchesQuery(c, q)).toList();
   }
 
   @override
@@ -164,9 +165,7 @@ class _CurrencyPickerSheetState extends State<CurrencyPickerSheet> {
                       '${c['name']}',
                       style: TextStyle(fontSize: 13, color: Colors.grey[600]),
                     ),
-                    trailing: selected
-                        ? Icon(Icons.check_circle, color: Theme.of(context).colorScheme.primary)
-                        : null,
+                    trailing: selected ? Icon(Icons.check_circle, color: Theme.of(context).colorScheme.primary) : null,
                     onTap: () => Navigator.pop(context, code),
                   );
                 },

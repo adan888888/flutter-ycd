@@ -43,7 +43,8 @@ class HomeView extends StatelessWidget {
         actions: store.isLogin
             ? [
                 PopupMenuButton<String>(
-                  icon: const Icon(Icons.more_vert, color: Color(0xFF2F3A4F), size: 22),
+                  icon: const Icon(Icons.more_vert,
+                      color: Color(0xFF2F3A4F), size: 22),
                   offset: const Offset(0, 40),
                   onSelected: (value) {
                     if (value == 'logout') _confirmLogout();
@@ -53,7 +54,8 @@ class HomeView extends StatelessWidget {
                       value: 'logout',
                       child: Row(
                         children: [
-                          Icon(Icons.logout, size: 18, color: Color(0xFF2F3A4F)),
+                          Icon(Icons.logout,
+                              size: 18, color: Color(0xFF2F3A4F)),
                           SizedBox(width: 8),
                           Text('退出登录'),
                         ],
@@ -77,9 +79,11 @@ class HomeView extends StatelessWidget {
         ),
         child: SingleChildScrollView(
           padding: EdgeInsets.only(
-            top: MediaQuery.of(context).padding.top + kToolbarHeight, // 动态获取 AppBar 高度
+            top: MediaQuery.of(context).padding.top +
+                kToolbarHeight, // 动态获取 AppBar 高度
             left: 14.0,
             right: 14.0,
+            bottom: MediaQuery.viewPaddingOf(context).bottom,
           ),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.start,
@@ -237,7 +241,8 @@ class HomeView extends StatelessWidget {
 
   Widget _buildRoleBadge(GetStore store) {
     final user = store.userModel;
-    final role = user.isSuperAdmin ? UserRole.superAdmin : UserRole.normalize(user.role);
+    final role =
+        user.isSuperAdmin ? UserRole.superAdmin : UserRole.normalize(user.role);
     final label = UserRole.label(role);
 
     late Color bg;
@@ -309,7 +314,9 @@ class HomeView extends StatelessWidget {
       context,
       icon: canAccess ? icon : Icons.lock_outline,
       title: title,
-      subtitle: canAccess ? subtitle : PermissionUtil.proFeatureLockedSubtitle(isLogin: store.isLogin),
+      subtitle: canAccess
+          ? subtitle
+          : PermissionUtil.proFeatureLockedSubtitle(isLogin: store.isLogin),
       color: canAccess ? color : Colors.grey,
       onTap: () {
         if (!canAccess) {

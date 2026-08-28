@@ -15,7 +15,12 @@ class RSIStrategyBacktestView extends GetView<RSIStrategyBacktestController> {
         centerTitle: true,
       ),
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: EdgeInsets.fromLTRB(
+          16,
+          16,
+          16,
+          16 + MediaQuery.viewPaddingOf(context).bottom,
+        ),
         child: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,

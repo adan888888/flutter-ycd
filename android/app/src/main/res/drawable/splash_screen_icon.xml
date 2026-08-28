@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Android 12+ 的系统启动层只接受纯色背景和居中图标，不能铺任意全屏位图。
+  使用透明图标避免先闪出与整张启动图无关的 launcher icon；Flutter 首帧会立即接上完整图片。
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="1dp"
+    android:height="1dp"
+    android:viewportWidth="1"
+    android:viewportHeight="1">
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M0,0h1v1h-1z" />
+</vector>

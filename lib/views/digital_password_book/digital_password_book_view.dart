@@ -32,13 +32,16 @@ class DigitalPasswordBookView extends GetView<DigitalPasswordBookController> {
         ),
         body: Stack(
           children: [
-            Column(
-              children: [
-                _buildSearchBar(),
-                Expanded(child: _buildPasswordList()),
-                Obx(() => Text(controller.state.searchPd.value.toLowerCase())),
-                const SizedBox(height: 20),
-              ],
+            SafeArea(
+              top: false,
+              child: Column(
+                children: [
+                  _buildSearchBar(),
+                  Expanded(child: _buildPasswordList()),
+                  Obx(() => Text(controller.state.searchPd.value.toLowerCase())),
+                  const SizedBox(height: 20),
+                ],
+              ),
             ),
             const AddPasswordDialog(),
             const EditPasswordDialog(),

@@ -16,22 +16,25 @@ class CurrencyConverterView extends GetView<CurrencyConverterController> {
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         centerTitle: true,
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(8.0),
-        child: Column(
-          children: [
-            // 输入金额
-            _buildAmountInputCard(),
-            const SizedBox(height: 8),
-            // 货币选择（点选进入全屏币种页，页内可搜索）
-            _buildCurrencySelectionCard(context),
-            const SizedBox(height: 8),
-            // 转换结果
-            _buildResultCard(context),
-            const SizedBox(height: 8),
-            // 操作按钮
-            _buildActionButtons(),
-          ],
+      body: SafeArea(
+        top: false,
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(8.0),
+          child: Column(
+            children: [
+              // 输入金额
+              _buildAmountInputCard(),
+              const SizedBox(height: 8),
+              // 货币选择（点选进入全屏币种页，页内可搜索）
+              _buildCurrencySelectionCard(context),
+              const SizedBox(height: 8),
+              // 转换结果
+              _buildResultCard(context),
+              const SizedBox(height: 8),
+              // 操作按钮
+              _buildActionButtons(),
+            ],
+          ),
         ),
       ),
     );
