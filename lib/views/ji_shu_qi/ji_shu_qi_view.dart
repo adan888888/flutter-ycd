@@ -51,6 +51,33 @@ class JiShuQiKeyboardAwareFabLocation extends FloatingActionButtonLocation {
   int get hashCode => Object.hash(keyboardInset, viewPaddingBottom);
 }
 
+/// 吸收输入栏最右侧五分之一的触摸，避免点击骰子时误聚焦输入框。
+class JiShuQiInputTouchGuard extends StatelessWidget {
+  const JiShuQiInputTouchGuard({super.key, required this.child});
+
+  static const double disabledFraction = 2 / 7;
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        child,
+        const Align(
+          alignment: Alignment.centerRight,
+          child: FractionallySizedBox(
+            widthFactor: disabledFraction,
+            heightFactor: 1,
+            child: AbsorbPointer(child: SizedBox.expand()),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
 class JiShuQiView extends GetView<JiShuQiController> {
   const JiShuQiView({super.key, required this.title});
 
@@ -309,7 +336,8 @@ class JiShuQiView extends GetView<JiShuQiController> {
                                                       reverse: false,
                                                       controller: controller.scrollController,
                                                       itemCount: controller.state.betRecordList.length,
-                                                      itemBuilder: (BuildContext context, int index) => _buildItem(index),
+                                                      itemBuilder: (BuildContext context, int index) =>
+                                                          _buildItem(index),
                                                     ),
                                                   ),
                                           ),
@@ -341,65 +369,67 @@ class JiShuQiView extends GetView<JiShuQiController> {
                                                 bottom: BorderSide(width: 1, color: borderColor),
                                               ),
                                             ),
-                                            child: Row(
-                                              children: [
-                                                GestureDetector(
-                                                  // 排序
-                                                  onTap: () => controller.sort(),
-                                                  child: Padding(
-                                                    padding: const EdgeInsets.only(left: 5.0),
-                                                    child: Icon(
-                                                      CupertinoIcons.arrow_up_arrow_down,
-                                                      color: controller.state.currentTextColor,
-                                                      size: 20,
-                                                    ),
-                                                  ),
-                                                ),
-                                                const SizedBox(width: 5),
-                                                Expanded(
-                                                  child: Theme(
-                                                    data: Theme.of(context).copyWith(
-                                                      textSelectionTheme: TextSelectionThemeData(
-                                                        selectionColor: controller.state.isDarkMode
-                                                            ? Colors.white.withValues(alpha: 0.4)
-                                                            : Colors.blue.withValues(alpha: 0.3),
-                                                        selectionHandleColor:
-                                                            controller.state.isDarkMode ? Colors.white : Colors.blue,
+                                            child: JiShuQiInputTouchGuard(
+                                              child: Row(
+                                                children: [
+                                                  GestureDetector(
+                                                    // 排序
+                                                    onTap: () => controller.sort(),
+                                                    child: Padding(
+                                                      padding: const EdgeInsets.only(left: 5.0),
+                                                      child: Icon(
+                                                        CupertinoIcons.arrow_up_arrow_down,
+                                                        color: controller.state.currentTextColor,
+                                                        size: 20,
                                                       ),
                                                     ),
-                                                    child: TextField(
-                                                      key: const ValueKey('ji_shu_qi_bet_input'),
-                                                      focusNode: controller.focusNode,
-                                                      autofocus: false,
-                                                      controller: controller.textEditingController,
-                                                      onTapOutside: (_) => controller.onInputTapOutside(),
-                                                      onChanged: (value) {},
-                                                      keyboardType:
-                                                          const TextInputType.numberWithOptions(decimal: true),
-                                                      textInputAction: TextInputAction.done,
-                                                      inputFormatters: [
-                                                        FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),
-                                                      ],
-                                                      cursorColor:
-                                                          controller.state.isDarkMode ? Colors.white : Colors.blue,
-                                                      style: TextStyle(color: controller.state.currentTextColor),
-                                                      decoration: InputDecoration(
-                                                        contentPadding: const EdgeInsets.only(bottom: 7),
-                                                        border: InputBorder.none,
-                                                        enabledBorder: InputBorder.none,
-                                                        focusedBorder: InputBorder.none,
-                                                        hintText: "请输入下注金额",
-                                                        hintStyle: TextStyle(
-                                                          fontSize: 12,
-                                                          color: controller.state.isDarkMode
-                                                              ? controller.state.darkTextColor.withValues(alpha: 0.54)
-                                                              : Colors.grey,
+                                                  ),
+                                                  const SizedBox(width: 5),
+                                                  Expanded(
+                                                    child: Theme(
+                                                      data: Theme.of(context).copyWith(
+                                                        textSelectionTheme: TextSelectionThemeData(
+                                                          selectionColor: controller.state.isDarkMode
+                                                              ? Colors.white.withValues(alpha: 0.4)
+                                                              : Colors.blue.withValues(alpha: 0.3),
+                                                          selectionHandleColor:
+                                                              controller.state.isDarkMode ? Colors.white : Colors.blue,
+                                                        ),
+                                                      ),
+                                                      child: TextField(
+                                                        key: const ValueKey('ji_shu_qi_bet_input'),
+                                                        focusNode: controller.focusNode,
+                                                        autofocus: false,
+                                                        controller: controller.textEditingController,
+                                                        onTapOutside: (_) => controller.onInputTapOutside(),
+                                                        onChanged: (value) {},
+                                                        keyboardType:
+                                                            const TextInputType.numberWithOptions(decimal: true),
+                                                        textInputAction: TextInputAction.done,
+                                                        inputFormatters: [
+                                                          FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),
+                                                        ],
+                                                        cursorColor:
+                                                            controller.state.isDarkMode ? Colors.white : Colors.blue,
+                                                        style: TextStyle(color: controller.state.currentTextColor),
+                                                        decoration: InputDecoration(
+                                                          contentPadding: const EdgeInsets.only(bottom: 7),
+                                                          border: InputBorder.none,
+                                                          enabledBorder: InputBorder.none,
+                                                          focusedBorder: InputBorder.none,
+                                                          hintText: "请输入下注金额",
+                                                          hintStyle: TextStyle(
+                                                            fontSize: 12,
+                                                            color: controller.state.isDarkMode
+                                                                ? controller.state.darkTextColor.withValues(alpha: 0.54)
+                                                                : Colors.grey,
+                                                          ),
                                                         ),
                                                       ),
                                                     ),
                                                   ),
-                                                ),
-                                              ],
+                                                ],
+                                              ),
                                             ),
                                           );
                                         },

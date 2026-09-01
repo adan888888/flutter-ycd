@@ -3,6 +3,43 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:ycd/views/ji_shu_qi/ji_shu_qi_view.dart';
 
 void main() {
+  testWidgets('right fifth of the input bar does not accept touches',
+      (tester) async {
+    final focusNode = FocusNode();
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: Center(
+            child: SizedBox(
+              width: 500,
+              height: JiShuQiKeyboardAwareFabLocation.inputBarHeight,
+              child: JiShuQiInputTouchGuard(
+                child: TextField(focusNode: focusNode),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    final guardRect = tester.getRect(find.byType(JiShuQiInputTouchGuard));
+    await tester.tapAt(
+        Offset(guardRect.left + guardRect.width * 0.5, guardRect.center.dy));
+    await tester.pump();
+    expect(focusNode.hasFocus, isTrue);
+
+    focusNode.unfocus();
+    await tester.pump();
+    await tester.tapAt(
+        Offset(guardRect.left + guardRect.width * 0.9, guardRect.center.dy));
+    await tester.pump();
+    expect(focusNode.hasFocus, isFalse);
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    focusNode.dispose();
+  });
+
   testWidgets('random FAB moves above the input bar while the keyboard is open',
       (tester) async {
     const fabKey = ValueKey('test_random_fab');
