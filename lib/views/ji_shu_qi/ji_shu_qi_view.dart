@@ -247,14 +247,28 @@ class JiShuQiView extends GetView<JiShuQiController> {
                                                       fit: BoxFit.contain,
                                                     ),
                                                   )
-                                                : ListView.builder(
-                                                    key: const PageStorageKey<String>(
-                                                      'ji_shu_qi_betting_list',
+                                                : NotificationListener<ScrollNotification>(
+                                                    onNotification: (notification) {
+                                                      if (notification is ScrollStartNotification &&
+                                                          notification.dragDetails != null) {
+                                                        controller.onBettingListUserDragStart();
+                                                      } else if (notification is ScrollUpdateNotification &&
+                                                          notification.dragDetails != null) {
+                                                        controller.onBettingListUserDragPositionChanged();
+                                                      } else if (notification is ScrollEndNotification) {
+                                                        controller.onBettingListUserDragEnd();
+                                                      }
+                                                      return false;
+                                                    },
+                                                    child: ListView.builder(
+                                                      key: const PageStorageKey<String>(
+                                                        'ji_shu_qi_betting_list',
+                                                      ),
+                                                      reverse: false,
+                                                      controller: controller.scrollController,
+                                                      itemCount: controller.state.betRecordList.length,
+                                                      itemBuilder: (BuildContext context, int index) => _buildItem(index),
                                                     ),
-                                                    reverse: false,
-                                                    controller: controller.scrollController,
-                                                    itemCount: controller.state.betRecordList.length,
-                                                    itemBuilder: (BuildContext context, int index) => _buildItem(index),
                                                   ),
                                           ),
                                         ),

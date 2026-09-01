@@ -40,6 +40,8 @@ class JiShuQiController extends GetxController {
   double _lastKeyboardInset = 0;
   Timer? _keyboardOpenSettleTimer;
   int _bettingListScrollGeneration = 0;
+  bool _keepBettingListPinnedDuringKeyboard = false;
+  bool _bettingListUserDragActive = false;
   DateTime? _ignoreTapOutsideUntil;
 
   FixedExtentScrollController? fixedExtentScrollController;
@@ -304,8 +306,15 @@ class JiShuQiController extends GetxController {
   void onBettingListJumpFabTap() {
     dismissKeyboard();
     if (state.isBettingListAtBottom) {
+      // 没有眼睛目标或列表尚未挂载时 jump 是 no-op，此时仍要保留收键盘后的粘底校正。
+      if (scrollController.hasClients && state.currentTempIndex != 0) {
+        _stopKeepingBettingListPinned();
+      }
       jumpToCurrentTempIndexRow();
     } else {
+      if (_lastKeyboardInset > 0) {
+        _keepBettingListPinnedDuringKeyboard = true;
+      }
       scrollBettingListToBottom();
     }
   }
@@ -366,6 +375,32 @@ class JiShuQiController extends GetxController {
     _bettingListScrollGeneration++;
   }
 
+  void _stopKeepingBettingListPinned() {
+    _keepBettingListPinnedDuringKeyboard = false;
+    cancelPendingBettingListAutoScroll();
+  }
+
+  /// 列表真实拖动会暂停旧的自动滚动，但在确认离开底部前仍保留键盘会话的粘底意图。
+  void onBettingListUserDragStart() {
+    _bettingListUserDragActive = true;
+    cancelPendingBettingListAutoScroll();
+  }
+
+  void onBettingListUserDragPositionChanged() {
+    if (!_bettingListUserDragActive) return;
+    _keepBettingListPinnedDuringKeyboard =
+        _lastKeyboardInset > 0 && _computeBettingListAtBottom();
+    cancelPendingBettingListAutoScroll();
+  }
+
+  void onBettingListUserDragEnd() {
+    if (!_bettingListUserDragActive) return;
+    _bettingListUserDragActive = false;
+    _keepBettingListPinnedDuringKeyboard =
+        _lastKeyboardInset > 0 && _computeBettingListAtBottom();
+    cancelPendingBettingListAutoScroll();
+  }
+
   /// 点击列表等空白区域时收起键盘（不用 TextField.onTapOutside，避免弹出瞬间误触收回）。
   void dismissKeyboard() {
     if (focusNode.hasFocus) {
@@ -392,12 +427,35 @@ class JiShuQiController extends GetxController {
 
     _lastKeyboardInset = inset;
 
-    cancelPendingBettingListAutoScroll();
-    if (inset > previousInset) {
-      // 键盘打开动画会连续上报多次递增的 inset。每次增长都重新计时，
-      // 确保使用最终的列表视口高度滚到底，而不是让首帧任务被后续帧取消。
+    // inset 动画本身不是用户滚动，不能让它取消刚由数据更新触发的滚底重试。
+    _keyboardOpenSettleTimer?.cancel();
+    if (inset > 0) {
+      if (previousInset <= 0) {
+        _keepBettingListPinnedDuringKeyboard = true;
+      }
+      // 键盘动画或键盘类型切换会连续上报 inset。每次变化都重新计时，
+      // 确保使用稳定后的列表视口高度滚到底。
       _keyboardOpenSettleTimer = Timer(const Duration(milliseconds: 260), () {
-        if (!focusNode.hasFocus || _lastKeyboardInset <= 0) return;
+        if (!focusNode.hasFocus ||
+            _lastKeyboardInset <= 0 ||
+            !_keepBettingListPinnedDuringKeyboard) {
+          return;
+        }
+        scrollBettingListToBottom();
+      });
+    } else if (inset <= 0 && previousInset > 0) {
+      final shouldRestoreBottom = _keepBettingListPinnedDuringKeyboard;
+      _keepBettingListPinnedDuringKeyboard = false;
+      if (!shouldRestoreBottom) {
+        return;
+      }
+
+      // 键盘完全收起时图表与 SafeArea 会重新加入布局；等新 viewport 生效后再按新的 extent 滚底。
+      final generation = _bettingListScrollGeneration;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (generation != _bettingListScrollGeneration || _lastKeyboardInset > 0) {
+          return;
+        }
         scrollBettingListToBottom();
       });
     }
