@@ -15,6 +15,42 @@ import '../../my_widget/vertical_text.dart';
 import 'ji_shu_qi_controller.dart';
 import 'ji_shu_qi_state.dart';
 
+/// 键盘弹起时把骰子按钮布局到输入栏上方；键盘收起时沿用 Scaffold 原本的位置。
+class JiShuQiKeyboardAwareFabLocation extends FloatingActionButtonLocation {
+  const JiShuQiKeyboardAwareFabLocation({
+    required this.keyboardInset,
+    required this.viewPaddingBottom,
+  });
+
+  static const double inputBarHeight = 40;
+  static const double randomFabScale = 0.8;
+
+  final double keyboardInset;
+  final double viewPaddingBottom;
+
+  @override
+  Offset getOffset(ScaffoldPrelayoutGeometry scaffoldGeometry) {
+    final base = FloatingActionButtonLocation.endDocked.getOffset(scaffoldGeometry);
+    if (keyboardInset <= 0) return base;
+
+    final fabHeight = scaffoldGeometry.floatingActionButtonSize.height;
+    final fabVisualRadius = fabHeight * randomFabScale / 2;
+    final bottomObstruction = keyboardInset > viewPaddingBottom ? keyboardInset : viewPaddingBottom;
+    final inputBarTop = scaffoldGeometry.scaffoldSize.height - bottomObstruction - inputBarHeight;
+    final targetY = inputBarTop - fabHeight / 2 - fabVisualRadius;
+    return Offset(base.dx, targetY < base.dy ? targetY : base.dy);
+  }
+
+  @override
+  bool operator ==(Object other) =>
+      other is JiShuQiKeyboardAwareFabLocation &&
+      keyboardInset == other.keyboardInset &&
+      viewPaddingBottom == other.viewPaddingBottom;
+
+  @override
+  int get hashCode => Object.hash(keyboardInset, viewPaddingBottom);
+}
+
 class JiShuQiView extends GetView<JiShuQiController> {
   const JiShuQiView({super.key, required this.title});
 
@@ -22,6 +58,8 @@ class JiShuQiView extends GetView<JiShuQiController> {
 
   @override
   Widget build(BuildContext context) {
+    final keyboardInset = MediaQuery.viewInsetsOf(context).bottom;
+    final viewPaddingBottom = MediaQuery.viewPaddingOf(context).bottom;
     return Listener(
       onPointerDown: (PointerDownEvent event) => controller.onUserInteraction(),
       onPointerMove: (event) => controller.onUserInteraction(),
@@ -29,10 +67,13 @@ class JiShuQiView extends GetView<JiShuQiController> {
         builder: (controller) => Scaffold(
           backgroundColor: controller.state.currentBgColor,
           resizeToAvoidBottomInset: false,
-          floatingActionButtonLocation: FloatingActionButtonLocation.endDocked,
-          floatingActionButtonAnimator: FloatingActionButtonAnimator.scaling,
+          floatingActionButtonLocation: JiShuQiKeyboardAwareFabLocation(
+            keyboardInset: keyboardInset,
+            viewPaddingBottom: viewPaddingBottom,
+          ),
+          floatingActionButtonAnimator: FloatingActionButtonAnimator.noAnimation,
           floatingActionButton: Transform.scale(
-            scale: 0.7,
+            scale: JiShuQiKeyboardAwareFabLocation.randomFabScale,
             child: GetBuilder<JiShuQiController>(
               builder: (controller) {
                 return AnimatedScale(
@@ -40,6 +81,7 @@ class JiShuQiView extends GetView<JiShuQiController> {
                   duration: const Duration(milliseconds: 300),
                   curve: Curves.easeInOut,
                   child: FloatingActionButton(
+                    key: const ValueKey('ji_shu_qi_random_fab'),
                     backgroundColor: Colors.transparent,
                     onPressed: () {
                       controller.guardAgainstKeyboardPop();
@@ -282,7 +324,7 @@ class JiShuQiView extends GetView<JiShuQiController> {
                               top: false,
                               bottom: keyboardInset == 0,
                               child: SizedBox(
-                                height: 40,
+                                height: JiShuQiKeyboardAwareFabLocation.inputBarHeight,
                                 child: Row(
                                   children: [
                                     const SizedBox(width: 13),
