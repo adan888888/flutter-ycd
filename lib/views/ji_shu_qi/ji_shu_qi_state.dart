@@ -16,6 +16,7 @@ class JiShuQiState {
   static const double height = 16 / 3;
   int LockScreenTime = 5; //锁屏时间（分钟）
   var isLoading = false;
+  var isInitialDataLoading = true;
   var isCanPress = true;
   var randomValue = ''; //随机的出来的庄闲
   var floatButtonScale = 1.0; // 浮动按钮缩放比例，用于点击动画

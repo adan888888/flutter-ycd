@@ -15,6 +15,28 @@ import '../../my_widget/vertical_text.dart';
 import 'ji_shu_qi_controller.dart';
 import 'ji_shu_qi_state.dart';
 
+/// 首次页面数据仍在 loading 时不抢先展示空态；加载结束后才显示“暂无记录”。
+class JiShuQiBettingListEmptyState extends StatelessWidget {
+  const JiShuQiBettingListEmptyState({
+    super.key,
+    required this.isInitialDataLoading,
+  });
+
+  final bool isInitialDataLoading;
+
+  @override
+  Widget build(BuildContext context) {
+    if (isInitialDataLoading) return const SizedBox.shrink();
+    return Center(
+      child: Image.asset(
+        JiShuQiState.emptyBettingListAsset,
+        width: 80,
+        fit: BoxFit.contain,
+      ),
+    );
+  }
+}
+
 /// 键盘弹起时把骰子按钮布局到输入栏上方；键盘收起时沿用 Scaffold 原本的位置。
 class JiShuQiKeyboardAwareFabLocation extends FloatingActionButtonLocation {
   const JiShuQiKeyboardAwareFabLocation({
@@ -309,12 +331,9 @@ class JiShuQiView extends GetView<JiShuQiController> {
                                             ),
                                             onRefresh: () async => controller.onLoadMore(),
                                             child: controller.state.betRecordList.isEmpty
-                                                ? Center(
-                                                    child: Image.asset(
-                                                      JiShuQiState.emptyBettingListAsset,
-                                                      width: 80,
-                                                      fit: BoxFit.contain,
-                                                    ),
+                                                ? JiShuQiBettingListEmptyState(
+                                                    isInitialDataLoading:
+                                                        controller.state.isInitialDataLoading,
                                                   )
                                                 : NotificationListener<ScrollNotification>(
                                                     onNotification: (notification) {

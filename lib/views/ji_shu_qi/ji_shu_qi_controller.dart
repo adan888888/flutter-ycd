@@ -102,6 +102,7 @@ class JiShuQiController extends GetxController {
     if (errorMsg != null && errorMsg!.isNotEmpty) {
       BXLoading.showToast(errorMsg!);
     }
+    state.isInitialDataLoading = false;
     state.isCanPress = true;
     update();
   }
