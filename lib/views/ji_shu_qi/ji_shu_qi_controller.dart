@@ -762,6 +762,8 @@ class JiShuQiController extends GetxController {
 
   void _randomFeedback() => unawaited(HapticFeedback.lightImpact());
 
+  void _playRandomSound() => _playSound('sounds/random_ding.wav', volume: 0.4);
+
   void _playDiceRollSound() => _playSound('sounds/zhuotou.mp3');
 
   setRandom(Function(int) f) {
@@ -770,6 +772,7 @@ class JiShuQiController extends GetxController {
     }
     guardAgainstKeyboardPop();
     _randomFeedback();
+    _playRandomSound();
     state.isCanPress = false;
     state.js2 = state.js2 + 1;
     state.totalValue[28] = "${state.js1}/${state.js2}";
