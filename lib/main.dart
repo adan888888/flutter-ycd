@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get_navigation/src/root/get_material_app.dart';
@@ -9,6 +10,17 @@ import 'package:ycd/utils/bx_loading.dart';
 import 'package:ycd/views/splash/splash_view.dart';
 
 import 'routes/app_routes.dart'; // 导入新的路由配置文件
+
+const appLocale = Locale('zh', 'CN');
+const appSupportedLocales = <Locale>[
+  appLocale,
+  Locale('en', 'US'),
+];
+const appLocalizationsDelegates = <LocalizationsDelegate<dynamic>>[
+  GlobalMaterialLocalizations.delegate,
+  GlobalWidgetsLocalizations.delegate,
+  GlobalCupertinoLocalizations.delegate,
+];
 
 void main() {
   final binding = WidgetsFlutterBinding.ensureInitialized();
@@ -88,7 +100,9 @@ class MyApp extends StatelessWidget {
           primaryColor: Colors.green,
           useMaterial3: true,
         ),
-        locale: const Locale('zh', 'CN'),
+        locale: appLocale,
+        supportedLocales: appSupportedLocales,
+        localizationsDelegates: appLocalizationsDelegates,
         fallbackLocale: const Locale('en', 'US'),
         initialRoute: AppRoutes.splash,
         getPages: AppPages.pages,

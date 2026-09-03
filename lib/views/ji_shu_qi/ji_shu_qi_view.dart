@@ -15,6 +15,9 @@ import '../../my_widget/vertical_text.dart';
 import 'ji_shu_qi_controller.dart';
 import 'ji_shu_qi_state.dart';
 
+double? jiShuQiBetInputFontSize(double keyboardInset) => keyboardInset > 0 ? 46 : null;
+double? jiShuQiBetInputCursorHeight(double keyboardInset) => jiShuQiBetInputFontSize(keyboardInset);
+
 /// 首次页面数据仍在 loading 时不抢先展示空态；加载结束后才显示“暂无记录”。
 class JiShuQiBettingListEmptyState extends StatelessWidget {
   const JiShuQiBettingListEmptyState({
@@ -45,7 +48,11 @@ class JiShuQiKeyboardAwareFabLocation extends FloatingActionButtonLocation {
   });
 
   static const double inputBarHeight = 40;
+  static const double expandedInputBarHeight = 64;
   static const double randomFabScale = 0.8;
+
+  static double inputBarHeightForKeyboardInset(double keyboardInset) =>
+      keyboardInset > 0 ? expandedInputBarHeight : inputBarHeight;
 
   final double keyboardInset;
   final double viewPaddingBottom;
@@ -58,7 +65,8 @@ class JiShuQiKeyboardAwareFabLocation extends FloatingActionButtonLocation {
     final fabHeight = scaffoldGeometry.floatingActionButtonSize.height;
     final fabVisualRadius = fabHeight * randomFabScale / 2;
     final bottomObstruction = keyboardInset > viewPaddingBottom ? keyboardInset : viewPaddingBottom;
-    final inputBarTop = scaffoldGeometry.scaffoldSize.height - bottomObstruction - inputBarHeight;
+    final effectiveInputBarHeight = inputBarHeightForKeyboardInset(keyboardInset);
+    final inputBarTop = scaffoldGeometry.scaffoldSize.height - bottomObstruction - effectiveInputBarHeight;
     final targetY = inputBarTop - fabHeight / 2 - fabVisualRadius;
     return Offset(base.dx, targetY < base.dy ? targetY : base.dy);
   }
@@ -109,6 +117,7 @@ class JiShuQiView extends GetView<JiShuQiController> {
   Widget build(BuildContext context) {
     final keyboardInset = MediaQuery.viewInsetsOf(context).bottom;
     final viewPaddingBottom = MediaQuery.viewPaddingOf(context).bottom;
+    final inputBarHeight = JiShuQiKeyboardAwareFabLocation.inputBarHeightForKeyboardInset(keyboardInset);
     return Listener(
       onPointerDown: (PointerDownEvent event) => controller.onUserInteraction(),
       onPointerMove: (event) => controller.onUserInteraction(),
@@ -332,8 +341,7 @@ class JiShuQiView extends GetView<JiShuQiController> {
                                             onRefresh: () async => controller.onLoadMore(),
                                             child: controller.state.betRecordList.isEmpty
                                                 ? JiShuQiBettingListEmptyState(
-                                                    isInitialDataLoading:
-                                                        controller.state.isInitialDataLoading,
+                                                    isInitialDataLoading: controller.state.isInitialDataLoading,
                                                   )
                                                 : NotificationListener<ScrollNotification>(
                                                     onNotification: (notification) {
@@ -371,7 +379,7 @@ class JiShuQiView extends GetView<JiShuQiController> {
                               top: false,
                               bottom: keyboardInset == 0,
                               child: SizedBox(
-                                height: JiShuQiKeyboardAwareFabLocation.inputBarHeight,
+                                height: inputBarHeight,
                                 child: Row(
                                   children: [
                                     const SizedBox(width: 13),
@@ -430,7 +438,11 @@ class JiShuQiView extends GetView<JiShuQiController> {
                                                         ],
                                                         cursorColor:
                                                             controller.state.isDarkMode ? Colors.white : Colors.blue,
-                                                        style: TextStyle(color: controller.state.currentTextColor),
+                                                        cursorHeight: jiShuQiBetInputCursorHeight(keyboardInset),
+                                                        style: TextStyle(
+                                                          fontSize: jiShuQiBetInputFontSize(keyboardInset),
+                                                          color: controller.state.currentTextColor,
+                                                        ),
                                                         decoration: InputDecoration(
                                                           contentPadding: const EdgeInsets.only(bottom: 7),
                                                           border: InputBorder.none,

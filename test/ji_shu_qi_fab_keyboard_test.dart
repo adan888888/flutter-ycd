@@ -1,8 +1,26 @@
+import 'package:flutter/gestures.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ycd/views/ji_shu_qi/ji_shu_qi_view.dart';
 
 void main() {
+  test('bet input uses 46pt only while the keyboard is open', () {
+    expect(jiShuQiBetInputFontSize(300), 46);
+    expect(jiShuQiBetInputFontSize(1), 46);
+    expect(jiShuQiBetInputFontSize(0), isNull);
+    expect(jiShuQiBetInputCursorHeight(300), 46);
+    expect(jiShuQiBetInputCursorHeight(0), isNull);
+    expect(
+      JiShuQiKeyboardAwareFabLocation.inputBarHeightForKeyboardInset(300),
+      JiShuQiKeyboardAwareFabLocation.expandedInputBarHeight,
+    );
+    expect(
+      JiShuQiKeyboardAwareFabLocation.inputBarHeightForKeyboardInset(0),
+      JiShuQiKeyboardAwareFabLocation.inputBarHeight,
+    );
+  });
+
   testWidgets('right fifth of the input bar does not accept touches',
       (tester) async {
     final focusNode = FocusNode();
@@ -38,6 +56,47 @@ void main() {
 
     await tester.pumpWidget(const SizedBox.shrink());
     focusNode.dispose();
+  });
+
+  testWidgets('large iOS bet input supports a floating cursor drag',
+      (tester) async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+    final controller = TextEditingController(text: '2256');
+    addTearDown(controller.dispose);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: Align(
+            alignment: Alignment.bottomLeft,
+            child: SizedBox(
+              width: 320,
+              height: JiShuQiKeyboardAwareFabLocation.expandedInputBarHeight,
+              child: TextField(
+                controller: controller,
+                cursorHeight: jiShuQiBetInputCursorHeight(300),
+                style: TextStyle(fontSize: jiShuQiBetInputFontSize(300)),
+                decoration: const InputDecoration(
+                  contentPadding: EdgeInsets.only(bottom: 7),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    final inputCenter = tester.getCenter(find.byType(TextField));
+    final gesture = await tester.startGesture(inputCenter);
+    await tester.pump(kLongPressTimeout + const Duration(milliseconds: 100));
+    await gesture.moveBy(const Offset(20, 0));
+    await tester.pump();
+    await gesture.up();
+    await tester.pump();
+
+    final gestureException = tester.takeException();
+    debugDefaultTargetPlatformOverride = null;
+    expect(gestureException, isNull);
   });
 
   testWidgets('random FAB moves above the input bar while the keyboard is open',
@@ -93,7 +152,7 @@ void main() {
     var scaffoldBottom = tester.getBottomRight(find.byType(Scaffold)).dy;
     var inputBarTop = scaffoldBottom -
         viewPaddingBottom -
-        JiShuQiKeyboardAwareFabLocation.inputBarHeight;
+        JiShuQiKeyboardAwareFabLocation.expandedInputBarHeight;
     expect(openRect.bottom, closeTo(inputBarTop, 0.01));
     await tester.tapAt(openRect.center);
     expect(tapCount, 1);
@@ -105,7 +164,7 @@ void main() {
     scaffoldBottom = tester.getBottomRight(find.byType(Scaffold)).dy;
     inputBarTop = scaffoldBottom -
         keyboardInset -
-        JiShuQiKeyboardAwareFabLocation.inputBarHeight;
+        JiShuQiKeyboardAwareFabLocation.expandedInputBarHeight;
     expect(openRect.bottom, closeTo(inputBarTop, 0.01));
     await tester.tapAt(openRect.center);
     expect(tapCount, 2);
