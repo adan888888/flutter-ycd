@@ -1034,27 +1034,30 @@ class JiShuQiView extends GetView<JiShuQiController> {
                       padding: const EdgeInsets.only(top: 8.0, right: 0.0, bottom: 8.0), // 去掉左边内边距
                       child: Builder(
                         builder: (context) {
+                          final dataValues = controller.state.chartData.map((e) => e.sales).toList();
+                          final dataMinY = dataValues.reduce((a, b) => a < b ? a : b);
+                          final dataMaxY = dataValues.reduce((a, b) => a > b ? a : b);
+                          final dataSpan = dataMaxY - dataMinY;
+                          final fallbackSpan = dataMaxY.abs() * 0.2;
+                          final hasUsableSpan = dataSpan.isFinite && dataSpan > 0.000000001;
+                          final tickSpan = hasUsableSpan ? dataSpan : (fallbackSpan > 1.0 ? fallbackSpan : 1.0);
+                          final tickMinY = hasUsableSpan ? dataMinY : dataMinY - tickSpan / 2;
+                          final tickMaxY = hasUsableSpan ? dataMaxY : dataMaxY + tickSpan / 2;
+                          final yAxisInterval = tickSpan / 2;
+                          final axisPadding = yAxisInterval / 2;
+                          final chartMinY = tickMinY - axisPadding;
+                          final chartMaxY = tickMaxY + axisPadding;
+
                           return LineChart(
                             LineChartData(
+                              baselineY: tickMinY,
                               backgroundColor: Colors.transparent,
                               borderData: FlBorderData(show: false),
                               //网格线显示和样式
                               gridData: FlGridData(
                                 show: true,
                                 // x轴线（横线）的间隔
-                                horizontalInterval: (() {
-                                  // 动态计算水平网格线间隔
-                                  if (controller.state.chartData.isEmpty) return 1.0;
-                                  final minV =
-                                      controller.state.chartData.map((e) => e.sales).reduce((a, b) => a < b ? a : b) *
-                                          0.9;
-                                  final maxV =
-                                      controller.state.chartData.map((e) => e.sales).reduce((a, b) => a > b ? a : b) *
-                                          1.1;
-                                  final span = maxV - minV;
-                                  final step = span / 2.0;
-                                  return (step.isFinite && step > 0) ? step : 1.0;
-                                })(),
+                                horizontalInterval: yAxisInterval,
                                 // x轴线（横线）的样式
                                 getDrawingHorizontalLine: (value) {
                                   return FlLine(
@@ -1089,50 +1092,15 @@ class JiShuQiView extends GetView<JiShuQiController> {
                                   sideTitles: SideTitles(
                                     showTitles: true,
                                     reservedSize: 35, //离左边的距离
-                                    interval: (() {
-                                      if (controller.state.chartData.isEmpty) return 1.0;
-
-                                      // 强制只显示3个标签：最小值、中间值、最大值
-                                      // 使用动态间隔来避免标签重叠
-                                      if (controller.state.chartData.isEmpty) return 1.0;
-
-                                      final dataValues = controller.state.chartData.map((e) => e.sales).toList();
-                                      final minValue = dataValues.reduce((a, b) => a < b ? a : b);
-                                      final maxValue = dataValues.reduce((a, b) => a > b ? a : b);
-                                      final span = maxValue - minValue;
-
-                                      // 使用更大的间隔，但不要太大
-                                      final step = span / 1.5; // 使用1.5倍间隔
-                                      const minStep = 300.0; // 最小间隔300
-                                      final finalStep = step > minStep ? step : minStep;
-
-                                      debugPrint("---------------->$finalStep");
-                                      return finalStep;
-                                    })(),
+                                    // 最低值、中间值、最高值固定为三个内部刻度，避免边界标签重叠。
+                                    minIncluded: false,
+                                    maxIncluded: false,
+                                    interval: yAxisInterval,
                                     getTitlesWidget: (value, meta) {
-                                      // 强制只显示3个标签：最小值、中间值、最大值
-                                      if (controller.state.chartData.isEmpty) {
-                                        return const SizedBox.shrink();
-                                      }
-
-                                      final dataValues = controller.state.chartData.map((e) => e.sales).toList();
-                                      final minValue = dataValues.reduce((a, b) => a < b ? a : b);
-                                      final maxValue = dataValues.reduce((a, b) => a > b ? a : b);
-                                      final midValue = (minValue + maxValue) / 2;
-
-                                      // 只显示最小值、中间值、最大值
-                                      final tolerance = (maxValue - minValue) * 0.3; // 增加容差到30%，确保能匹配到标签
-                                      final isMin = (value - minValue).abs() < tolerance;
-                                      final isMax = (value - maxValue).abs() < tolerance;
-                                      final isMid = (value - midValue).abs() < tolerance;
-
-                                      if (!isMin && !isMax && !isMid) {
-                                        return const SizedBox.shrink(); // 隐藏其他标签
-                                      }
-
                                       return SideTitleWidget(
                                         meta: meta,
                                         space: 8,
+                                        fitInside: SideTitleFitInsideData.fromTitleMeta(meta, distanceFromEdge: 2),
                                         child: Text(
                                           _formatValue(value),
                                           maxLines: 1,
@@ -1155,12 +1123,8 @@ class JiShuQiView extends GetView<JiShuQiController> {
                               // 添加内边距
                               minX: 0,
                               maxX: controller.state.chartData.length.toDouble() + 0.5,
-                              minY: controller.state.chartData.isNotEmpty
-                                  ? controller.state.chartData.map((e) => e.sales).reduce((a, b) => a < b ? a : b) * 0.9
-                                  : 0,
-                              maxY: controller.state.chartData.isNotEmpty
-                                  ? controller.state.chartData.map((e) => e.sales).reduce((a, b) => a > b ? a : b) * 1.1
-                                  : 100,
+                              minY: chartMinY,
+                              maxY: chartMaxY,
                               // 设置图表边距
                               clipData: const FlClipData.none(),
                               // 添加一些内边距
