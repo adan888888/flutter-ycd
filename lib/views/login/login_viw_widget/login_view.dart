@@ -18,21 +18,37 @@ class LoginWidget extends GetView<LoginController> {
   @override
   Widget build(BuildContext context) {
     final c = Get.find<LoginController>();
+    final mediaQuery = MediaQuery.of(context);
+    // SafeArea keeps the bottom system inset, so only the remaining portion of
+    // the IME actually obscures its child.
+    final keyboardOcclusion =
+        mediaQuery.viewInsets.bottom > mediaQuery.viewPadding.bottom
+            ? mediaQuery.viewInsets.bottom - mediaQuery.viewPadding.bottom
+            : 0.0;
 
     return Scaffold(
       backgroundColor: Colors.black,
+      resizeToAvoidBottomInset: false,
       body: Stack(
         fit: StackFit.expand,
         children: [
           _buildBackground(),
           SafeArea(
-            child: Align(
-              alignment: const Alignment(0, 0.12),
+            maintainBottomViewPadding: true,
+            child: CustomSingleChildLayout(
+              key: const ValueKey('login-content-layout'),
+              delegate: _LoginContentLayoutDelegate(
+                keyboardOcclusion: keyboardOcclusion,
+              ),
               child: SingleChildScrollView(
+                key: const ValueKey('login-scroll-view'),
+                keyboardDismissBehavior:
+                    ScrollViewKeyboardDismissBehavior.onDrag,
                 padding: EdgeInsets.symmetric(horizontal: 28.w),
                 child: Obx(() {
                   final isLoginTab = c.state.authTabIndex.value == 0;
                   return Column(
+                    key: const ValueKey('login-content'),
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       _buildAuthTabs(c),
@@ -339,5 +355,49 @@ class LoginWidget extends GetView<LoginController> {
         ),
       ),
     );
+  }
+}
+
+class _LoginContentLayoutDelegate extends SingleChildLayoutDelegate {
+  const _LoginContentLayoutDelegate({required this.keyboardOcclusion});
+
+  static const double _restingAlignmentY = 0.12;
+
+  final double keyboardOcclusion;
+
+  @override
+  BoxConstraints getConstraintsForChild(BoxConstraints constraints) {
+    final availableHeight = constraints.maxHeight > keyboardOcclusion
+        ? constraints.maxHeight - keyboardOcclusion
+        : 0.0;
+    return BoxConstraints(
+      minWidth: constraints.maxWidth,
+      maxWidth: constraints.maxWidth,
+      maxHeight: availableHeight,
+    );
+  }
+
+  @override
+  Offset getPositionForChild(Size size, Size childSize) {
+    final restingSpace = size.height - childSize.height;
+    final restingTop = restingSpace > 0
+        ? restingSpace * ((_restingAlignmentY + 1) / 2)
+        : 0.0;
+    final availableHeight = size.height > keyboardOcclusion
+        ? size.height - keyboardOcclusion
+        : 0.0;
+    final bottomTop = availableHeight > childSize.height
+        ? availableHeight - childSize.height
+        : 0.0;
+    // Stay at the resting position until the keyboard would overlap the form.
+    // Tracking the inset continuously also prevents a rebound while it closes.
+    final top = restingTop < bottomTop ? restingTop : bottomTop;
+
+    return Offset((size.width - childSize.width) / 2, top);
+  }
+
+  @override
+  bool shouldRelayout(_LoginContentLayoutDelegate oldDelegate) {
+    return keyboardOcclusion != oldDelegate.keyboardOcclusion;
   }
 }
