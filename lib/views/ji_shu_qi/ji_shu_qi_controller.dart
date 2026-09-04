@@ -14,7 +14,7 @@ import 'package:ycd/model/linechart_data_model.dart';
 import 'package:ycd/my_db/jsq_operation_record_model.dart';
 import 'package:ycd/my_db/jsq_bet_record_model.dart';
 import 'package:ycd/my_widget/custom_dialog.dart';
-import 'package:ycd/my_widget/single_picker.dart';
+import 'package:ycd/my_widget/more_functions_dialog.dart';
 import 'package:ycd/utils/bx_loading.dart';
 import 'package:ycd/utils/my_character.dart';
 import 'package:ycd/utils/network/api.dart';
@@ -43,8 +43,6 @@ class JiShuQiController extends GetxController {
   bool _keepBettingListPinnedDuringKeyboard = false;
   bool _bettingListUserDragActive = false;
   DateTime? _ignoreTapOutsideUntil;
-
-  FixedExtentScrollController? fixedExtentScrollController;
 
 // 定义一个计时器，用于延时锁屏
   Timer? _timer;
@@ -660,10 +658,18 @@ class JiShuQiController extends GetxController {
     });
   }
 
-  showBottomFunction() {
+  void showBottomFunction() {
     dismissKeyboard();
-    fixedExtentScrollController = FixedExtentScrollController(initialItem: state.selectIndex);
-    Get.bottomSheet(SinglePicker(darkTextColor: state.darkTextColor));
+    Get.dialog<void>(
+      MoreFunctionsDialog(
+        isDarkMode: state.isDarkMode,
+        functionTypes: state.functionTypes,
+        onSelected: (index) => unawaited(functionConfirm(index)),
+      ),
+      barrierDismissible: true,
+      barrierColor: Colors.black.withValues(alpha: state.isDarkMode ? 0.62 : 0.42),
+      useSafeArea: true,
+    );
   }
 
   double _commissionRate() {

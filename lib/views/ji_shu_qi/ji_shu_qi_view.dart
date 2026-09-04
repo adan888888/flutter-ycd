@@ -272,40 +272,41 @@ class JiShuQiView extends GetView<JiShuQiController> {
                           //按钮功能区
                           SizedBox(
                             height: 35,
-                            child: Row(
-                              children: [
-                                SizedBox(width: 2),
-                                _divier2(controller.state.currentTextColor, 38),
-                                _buildButton(controller.state.buttonPositiveBgColor, "P+", 1),
-                                _divier2(controller.state.currentTextColor, 38),
-                                _buildButton(controller.state.buttonPositiveBgColor, "B+", 2),
-                                _divier2(controller.state.currentTextColor, 38),
-                                _buildButton(controller.state.buttonNegativeBgColor, "P-", 3),
-                                _divier2(controller.state.currentTextColor, 38),
-                                _buildButton(controller.state.buttonNegativeBgColor, "B-", 4),
-                                _divier2(controller.state.currentTextColor, 38),
-                                GestureDetector(
-                                  onTap: controller.deleteLast,
-                                  child: Padding(
-                                    padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 4.0),
-                                    child: Image.asset(
-                                      'assets/images/delete_last.png',
-                                      height: 22,
-                                      fit: BoxFit.contain,
-                                      color: controller.state.deleteLastIconColor,
-                                      colorBlendMode: BlendMode.srcIn,
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 4),
+                              child: Row(
+                                children: [
+                                  _buildButton(controller.state.buttonPositiveBgColor, "P+", 1),
+                                  _divier2(controller.state.currentTextColor, 38),
+                                  _buildButton(controller.state.buttonPositiveBgColor, "B+", 2),
+                                  _divier2(controller.state.currentTextColor, 38),
+                                  _buildButton(controller.state.buttonNegativeBgColor, "P-", 3),
+                                  _divier2(controller.state.currentTextColor, 38),
+                                  _buildButton(controller.state.buttonNegativeBgColor, "B-", 4),
+                                  _divier2(controller.state.currentTextColor, 38),
+                                  Expanded(
+                                    child: Semantics(
+                                      button: true,
+                                      label: '撤销最后一条投注',
+                                      child: GestureDetector(
+                                        key: const ValueKey('delete-last-button'),
+                                        behavior: HitTestBehavior.opaque,
+                                        onTap: controller.deleteLast,
+                                        onLongPress: controller.showBottomFunction,
+                                        child: Center(
+                                          child: Image.asset(
+                                            'assets/images/delete_last.png',
+                                            height: 22,
+                                            fit: BoxFit.contain,
+                                            color: controller.state.deleteLastIconColor,
+                                            colorBlendMode: BlendMode.srcIn,
+                                          ),
+                                        ),
+                                      ),
                                     ),
                                   ),
-                                ),
-                                Container(height: 25, width: 0.5, color: controller.state.currentTextColor),
-                                GestureDetector(
-                                  onTap: controller.reStart,
-                                  child: Padding(
-                                    padding: const EdgeInsets.symmetric(vertical: 0.0, horizontal: 2.0),
-                                    child: Image.asset(height: 35, width: 35, 'assets/images/restart3.png'),
-                                  ),
-                                )
-                              ],
+                                ],
+                              ),
                             ),
                           ),
                           //列表
@@ -1276,16 +1277,7 @@ class JiShuQiView extends GetView<JiShuQiController> {
           height: 32,
           child: TextButton(
             style: _buildButtonStyle(bg),
-            onLongPress: () {
-              switch (i) {
-                case 1:
-                  controller.showBottomFunction();
-                  break;
-                case 2:
-                  // controller.lockScreen();
-                  break;
-              }
-            },
+            onLongPress: controller.showBottomFunction,
             onPressed: () {
               switch (i) {
                 case 1: //闲赢
