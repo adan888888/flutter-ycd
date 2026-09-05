@@ -301,17 +301,12 @@ class HomeView extends StatelessWidget {
                   padding: const EdgeInsets.all(11),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(17),
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [
-                        accent.withValues(alpha: 0.95),
-                        accent.withValues(alpha: 0.58),
-                      ],
-                    ),
+                    // 图标本身是红色透明底，底衬用浅白避免红压红
+                    color: Colors.white.withValues(alpha: 0.85),
+                    border: Border.all(color: accent.withValues(alpha: 0.22)),
                     boxShadow: [
                       BoxShadow(
-                        color: accent.withValues(alpha: 0.32),
+                        color: accent.withValues(alpha: 0.18),
                         blurRadius: 14,
                         offset: const Offset(0, 6),
                       ),
