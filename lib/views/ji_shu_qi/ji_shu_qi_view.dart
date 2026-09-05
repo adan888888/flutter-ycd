@@ -287,19 +287,18 @@ class JiShuQiView extends GetView<JiShuQiController> {
                                   Expanded(
                                     child: Semantics(
                                       button: true,
-                                      label: '撤销最后一条投注',
+                                      label: '重启回合',
+                                      hint: '长按打开更多功能',
                                       child: GestureDetector(
-                                        key: const ValueKey('delete-last-button'),
+                                        key: const ValueKey('restart-round-button'),
                                         behavior: HitTestBehavior.opaque,
-                                        onTap: controller.deleteLast,
+                                        onTap: controller.reStart,
                                         onLongPress: controller.showBottomFunction,
                                         child: Center(
                                           child: Image.asset(
-                                            'assets/images/delete_last.png',
-                                            height: 22,
-                                            fit: BoxFit.contain,
-                                            color: controller.state.deleteLastIconColor,
-                                            colorBlendMode: BlendMode.srcIn,
+                                            'assets/images/restart3.png',
+                                            height: 35,
+                                            width: 35,
                                           ),
                                         ),
                                       ),

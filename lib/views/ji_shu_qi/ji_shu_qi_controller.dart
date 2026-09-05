@@ -1420,8 +1420,8 @@ class JiShuQiController extends GetxController {
           },
         );
         break;
-      case 7:
-        reStart();
+      case 7: //返回上步
+        deleteLast();
         break;
       case 8: //修改期望值
         if (s.isEmpty) {

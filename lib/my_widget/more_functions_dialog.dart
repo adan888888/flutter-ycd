@@ -12,9 +12,11 @@ class MoreFunctionsDialog extends StatelessWidget {
   final List<String> functionTypes;
   final ValueChanged<int> onSelected;
 
+  static const _undoIndex = 7;
+
   // 只调整展示顺序；点击时仍使用原功能索引，确保控制器逻辑不变。
   static const _displayOrder = <int>[
-    7,
+    _undoIndex,
     0,
     1,
     2,
@@ -37,7 +39,7 @@ class MoreFunctionsDialog extends StatelessWidget {
     Icons.delete_outline_rounded,
     Icons.restart_alt_rounded,
     Icons.backup_outlined,
-    Icons.refresh_rounded,
+    Icons.undo_rounded,
     Icons.track_changes_outlined,
     Icons.percent_rounded,
     Icons.logout_rounded,
@@ -53,7 +55,7 @@ class MoreFunctionsDialog extends StatelessWidget {
     '删除当前账号的全部数据，不可恢复',
     '从最后一条投注记录重置流水',
     '立即备份当前数据库',
-    '结束当前回合并开始新回合',
+    '撤销最后一条投注记录',
     '使用输入框中的数值修改期望值',
     '使用输入框中的数值修改赔率',
     '退出当前账号并返回登录页',

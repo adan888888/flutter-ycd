@@ -183,8 +183,6 @@ class JiShuQiState {
       ? const Color(0xFF4F4A4A) // 暗黑模式：深棕灰色
       : const Color(0xFFC0BCBC); // 白色模式：稍深的棕灰色
 
-  Color get deleteLastIconColor => isDarkMode ? darkTextColor.withValues(alpha: 0.7) : Colors.black45;
-
   var totalValue /*统计区*/ = <String>[];
   var chartData /*图表数据*/ = <LineChartDataModel>[];
 
@@ -202,7 +200,7 @@ class JiShuQiState {
         '5.删除所有数据',
         '6.重置流水',
         '7.备份数据',
-        '8.重启系统',
+        '8.返回上步',
         '9.修改期望值',
         '10.修改赔率',
         '11.退出程序',
