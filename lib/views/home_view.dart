@@ -145,23 +145,8 @@ class HomeView extends StatelessWidget {
     final avatarLetter =
         isLogin && displayName.isNotEmpty ? displayName.characters.first : '?';
 
-    return Container(
-      padding: const EdgeInsets.fromLTRB(16, 16, 12, 16),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(22),
-        gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Color(0xFF394B70), Color(0xFF63799F)],
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF394B70).withValues(alpha: 0.30),
-            blurRadius: 24,
-            offset: const Offset(0, 10),
-          ),
-        ],
-      ),
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(4, 4, 0, 4),
       child: Row(
         children: [
           Container(
@@ -170,13 +155,15 @@ class HomeView extends StatelessWidget {
             alignment: Alignment.center,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: Colors.white.withValues(alpha: 0.20),
-              border: Border.all(color: Colors.white.withValues(alpha: 0.45)),
+              color: const Color(0xFF63799F).withValues(alpha: 0.12),
+              border: Border.all(
+                color: const Color(0xFF63799F).withValues(alpha: 0.35),
+              ),
             ),
             child: Text(
               avatarLetter.toUpperCase(),
               style: const TextStyle(
-                color: Colors.white,
+                color: Color(0xFF2F3A4F),
                 fontSize: 19,
                 fontWeight: FontWeight.w700,
               ),
@@ -190,8 +177,8 @@ class HomeView extends StatelessWidget {
               children: [
                 Text(
                   isLogin ? '欢迎回来' : '欢迎使用',
-                  style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.75),
+                  style: const TextStyle(
+                    color: Color(0xFF7A879C),
                     fontSize: 11.5,
                     letterSpacing: 0.6,
                   ),
@@ -205,7 +192,7 @@ class HomeView extends StatelessWidget {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
-                          color: Colors.white,
+                          color: Color(0xFF2F3A4F),
                           fontSize: 17,
                           fontWeight: FontWeight.w700,
                         ),
@@ -295,23 +282,9 @@ class HomeView extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
             child: Row(
               children: [
-                Container(
+                SizedBox(
                   width: 54,
                   height: 54,
-                  padding: const EdgeInsets.all(11),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(17),
-                    // 图标本身是红色透明底，底衬用浅白避免红压红
-                    color: Colors.white.withValues(alpha: 0.85),
-                    border: Border.all(color: accent.withValues(alpha: 0.22)),
-                    boxShadow: [
-                      BoxShadow(
-                        color: accent.withValues(alpha: 0.18),
-                        blurRadius: 14,
-                        offset: const Offset(0, 6),
-                      ),
-                    ],
-                  ),
                   child: Image.asset(imagePath, fit: BoxFit.contain),
                 ),
                 const SizedBox(width: 14),
