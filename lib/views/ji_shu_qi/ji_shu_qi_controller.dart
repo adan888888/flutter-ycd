@@ -139,17 +139,11 @@ class JiShuQiController extends GetxController {
           if (results.isEmpty) {
             state.betRecordList.clear();
             _reloadLuZiTu();
-            if (!state.isBigRoad) {
-              _getLineCharts(applyStatsTail: true);
-            }
             update();
           } else {
             state.betRecordList.clear();
             state.betRecordList = List<JsqBetRecordModel>.from(results);
             _reloadLuZiTu();
-            if (!state.isBigRoad) {
-              _getLineCharts(applyStatsTail: true);
-            }
             update();
             scrollBettingListToBottom();
           }
@@ -595,6 +589,7 @@ class JiShuQiController extends GetxController {
     Object? tempIndex, {
     bool isShowLoading = true,
     bool showError = true,
+    bool skipLineChart = false,
   }) {
     final completer = Completer<void>();
     BXGet<dynamic>(
@@ -621,9 +616,10 @@ class JiShuQiController extends GetxController {
           if (state.isBigRoad) {
             _reloadLuZiTu(); //路子图直接在本地的数据处理
             update();
-          } else {
-            // 统计区 totalValue[4] 由服务端按全表重算，用作折线最右一点，避免与 column_current_jin 漂移（如大输赢后末端不更新）
+          } else if (!skipLineChart) {
             _getLineCharts(applyStatsTail: true);
+          } else {
+            update();
           }
           _delayedTask(); //必须要提一个方法放出去，不然会会卡下面的代码
           if (!completer.isCompleted) {
@@ -949,63 +945,53 @@ class JiShuQiController extends GetxController {
     }
   }
 
-  /// 折线：需要完整 75 个点。
-  /// - 本地已加载 ≥75 条时，用 betRecordList 末尾 75 条（时间升序，与列表一致）。
-  /// - 否则（如首屏只拉 66 条）走 linechartData 接口，从库中取最近 75 笔（id 降序返回，从尾到头填入）。
-  /// - [applyStatsTail]：在刚从统计接口回填后，将最右一点强制为 [totalValue[4]]（本金+累计输赢），与统计区「当前金额」一致。
+  /// 折线 75 点一律走服务端：当前本金 + 累计 shuyingzhi（改本金后整体平移，不读库内 current_jin）。
+  void _resetChartPad(double pad) {
+    if (state.chartData.length != 75) {
+      state.chartData = List.generate(75, (index) => LineChartDataModel(index, pad));
+    } else {
+      for (var i = 0; i < 75; i++) {
+        state.chartData[i].sales = pad;
+      }
+    }
+  }
+
+  void _applyLineChartSeries(List<dynamic> results, {bool applyStatsTail = false}) {
+    final benjin =
+        state.operationRecordList.isNotEmpty ? double.tryParse(state.operationRecordList.last.benjin.toString()) : null;
+    final pad = benjin ?? (state.chartData.isNotEmpty ? state.chartData[0].sales : 0.0);
+    _resetChartPad(pad);
+    var z = 0;
+    for (var i = results.length - 1; i >= 0 && z < state.chartData.length; i--) {
+      final cell = results[i].toString().trim();
+      if (cell.isNotEmpty) {
+        state.chartData[z].sales = double.parse(cell);
+      } else {
+        state.chartData[z].sales = pad;
+      }
+      z++;
+    }
+    if (applyStatsTail) {
+      _syncChartLastPointWithTotalValue();
+    }
+  }
+
   void _getLineCharts({bool applyStatsTail = false}) {
     final gen = ++_lineChartRequestGen;
     final benjin =
         state.operationRecordList.isNotEmpty ? double.tryParse(state.operationRecordList.last.benjin.toString()) : null;
-    void resetChartPad(double p) {
-      if (state.chartData.length != 75) {
-        state.chartData = List.generate(75, (index) => LineChartDataModel(index, p));
-      } else {
-        for (var i = 0; i < 75; i++) {
-          state.chartData[i].sales = p;
-        }
-      }
-    }
-
     final pad = benjin ?? (state.chartData.isNotEmpty ? state.chartData[0].sales : 0.0);
-    resetChartPad(pad);
-
-    final list = state.betRecordList;
-    if (list.length >= 75) {
-      final n = list.length;
-      final start = n - 75;
-      for (var k = 0; k < 75; k++) {
-        final v = list[start + k].currentJin;
-        if (v != null) {
-          state.chartData[k].sales = v;
-        }
-      }
-      if (applyStatsTail) {
-        _syncChartLastPointWithTotalValue();
-      }
-      update();
-      return;
-    }
+    _resetChartPad(pad);
 
     BXGet<dynamic>(
       Api.getLinechartData,
       success: (isSuccess, code, message, results) {
         if (gen != _lineChartRequestGen) return;
         if (!isSuccess) return;
-        resetChartPad(benjin ?? (state.chartData.isNotEmpty ? state.chartData[0].sales : 0.0));
-        var z = 0;
-        for (var i = results.length - 1; i >= 0 && z < state.chartData.length; i--) {
-          if (results[i].toString().isNotEmpty) {
-            state.chartData[z].sales = double.parse(results[i].toString());
-          }
-          z++;
-        }
-        if (applyStatsTail) {
-          _syncChartLastPointWithTotalValue();
-        }
+        _applyLineChartSeries(results, applyStatsTail: applyStatsTail);
         update();
       },
-      isShowLoading: false, // 第二个接口不显示loading，避免重复显示
+      isShowLoading: false,
     );
   }
 
@@ -1251,11 +1237,25 @@ class JiShuQiController extends GetxController {
       isShowLoading: false,
       success: (isSuccess, code, message, value) {
         BXLoading.dismiss();
-        if (isSuccess) {
-          BXLoading.showToast("${value.last.benjin}");
+        if (isSuccess && value.isNotEmpty) {
+          final row = value.last;
+          BXLoading.showToast("${row.benjin}");
+          final parsedBenjin = double.tryParse(b) ?? row.benjin;
+          if (state.operationRecordList.isNotEmpty && parsedBenjin != null) {
+            state.operationRecordList.last.benjin = parsedBenjin;
+          }
           state.totalValue[0] = b;
           state.totalValue[4] = (double.parse(state.totalValue[0]) + double.parse(state.totalValue[17])).toString();
-          _getStatisticalAreasData(JiShuQiState.tempIndexCmdKeep);
+          final chart = row.lineChart;
+          final hasServerChart = chart != null && chart.isNotEmpty;
+          if (hasServerChart && !state.isBigRoad) {
+            _applyLineChartSeries(chart, applyStatsTail: true);
+            update();
+          }
+          _getStatisticalAreasData(
+            JiShuQiState.tempIndexCmdKeep,
+            skipLineChart: hasServerChart && !state.isBigRoad,
+          );
         }
       },
       failed: (_, __) => BXLoading.dismiss(),
@@ -1355,10 +1355,26 @@ class JiShuQiController extends GetxController {
           BXLoading.showToast('暂无投注记录');
           break;
         }
-        BXPost(
+        final resetBetId = state.betRecordList.last.id;
+        if (resetBetId == null) {
+          BXLoading.showToast('无法获取最后一条记录');
+          break;
+        }
+        BXPost<JsqOperationRecordModel>(
           Api.resetLiuShui,
-          params: {"resetIndex": state.betRecordList.last.id},
-          success: (bool isSuccess, int code, String message, List<dynamic> results) {},
+          params: {"resetIndex": resetBetId},
+          success: (bool isSuccess, int code, String message, List<JsqOperationRecordModel> results) {
+            if (!isSuccess) return;
+            BXLoading.showToast(message.isNotEmpty ? message : '重置流水成功');
+            if (results.isNotEmpty) {
+              final latest = results.last;
+              if (state.operationRecordList.isNotEmpty) {
+                state.operationRecordList.last.liushuiIndex = latest.liushuiIndex;
+              }
+            }
+            _getStatisticalAreasData(JiShuQiState.tempIndexCmdKeep, isShowLoading: false);
+          },
+          onModel: (m) => JsqOperationRecordModel.fromJson(m),
         );
         break;
       case 6: //备份数据

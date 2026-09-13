@@ -302,6 +302,19 @@ class BuyRecordsController extends GetxController {
     }
   }
 
+  /// 格式化累计数量：大数少小数位，小数币种多保留
+  String formatQuantity(dynamic quantity) {
+    try {
+      if (quantity is! num) return quantity.toString();
+      final value = quantity.toDouble();
+      if (value >= 1000) return value.toStringAsFixed(2);
+      if (value >= 1) return value.toStringAsFixed(4);
+      return value.toStringAsFixed(8);
+    } catch (e) {
+      return quantity.toString();
+    }
+  }
+
   /// 格式化价格 (保留四位小数)
   String formatPriceFourDecimals(dynamic price) {
     try {

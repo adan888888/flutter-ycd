@@ -197,16 +197,12 @@ class BuyRecordsView extends StatelessWidget {
       return const SliverToBoxAdapter(child: SizedBox.shrink());
     }
 
-    return SliverPersistentHeader(
-      pinned: true,
-      delegate: _StatsHeaderDelegate(
-        extent: 118,
-        child: ColoredBox(
-          color: Theme.of(Get.context!).scaffoldBackgroundColor,
-          child: Padding(
-            padding: const EdgeInsets.only(bottom: 8),
-            child: statsPanel,
-          ),
+    return SliverToBoxAdapter(
+      child: ColoredBox(
+        color: Theme.of(Get.context!).scaffoldBackgroundColor,
+        child: Padding(
+          padding: const EdgeInsets.only(bottom: 4),
+          child: statsPanel,
         ),
       ),
     );
@@ -249,12 +245,36 @@ class BuyRecordsView extends StatelessWidget {
     );
   }
 
-  Widget _buildStatItem(String label, String value, Color color) {
+  Widget _buildCompactStatItem(String label, String value, Color color) {
+    return Expanded(
+      child: Padding(
+        padding: const EdgeInsets.only(right: 6, bottom: 2),
+        child: Row(
+          children: [
+            Text(label, style: _smallLabelStyle),
+            const SizedBox(width: 2),
+            Expanded(
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  value,
+                  maxLines: 1,
+                  style: _smallValueStyle.copyWith(color: color),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStatsRow(String leftLabel, String leftValue, Color leftColor, String rightLabel, String rightValue, Color rightColor) {
     return Row(
       children: [
-        Text(label, style: _labelStyle),
-        Text(value, style: _valueStyle.copyWith(color: color)),
-        SizedBox(width: _smallPadding),
+        _buildCompactStatItem(leftLabel, leftValue, leftColor),
+        _buildCompactStatItem(rightLabel, rightValue, rightColor),
       ],
     );
   }
@@ -283,15 +303,32 @@ class BuyRecordsView extends StatelessWidget {
     final maText = maDeviation == null ? '—' : '${maDeviation >= 0 ? '+' : ''}${maDeviation.toStringAsFixed(2)}%';
     final currentPrice = controller.state.currentPrice;
 
+    final totalCostText =
+        cumulativeStats.isEmpty ? '—' : controller.formatPriceInteger(cumulativeStats['totalCost']);
+    final averagePriceText =
+        cumulativeStats.isEmpty ? '—' : controller.formatCostPrice(cumulativeStats['averagePrice']);
+    final totalQuantityText = cumulativeStats.isEmpty || cumulativeStats['totalQuantity'] == null
+        ? '—'
+        : controller.formatQuantity(cumulativeStats['totalQuantity']);
+    final profitPercentText =
+        profitStats.isEmpty ? '—' : '${profitStats['profitPercentage'].toStringAsFixed(2)}%';
+    final profitAmountText = profit == null ? '—' : controller.formatPriceFourDecimals(profit);
+    final maTextValue = controller.state.ma200Daily == null
+        ? '—'
+        : controller.formatMaPrice(controller.state.ma200Daily!);
+    final suggestedBuyText = controller.formatSuggestedBuyAmount();
+    final suggestedBuyColor = controller.suggestedBuyAmountColor();
+
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(10, 6, 10, 8),
+      padding: const EdgeInsets.fromLTRB(10, 4, 10, 4),
       decoration: BoxDecoration(
         color: _statsPanelBackground,
         borderRadius: BorderRadius.circular(8),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
           Row(
             children: [
@@ -325,67 +362,11 @@ class BuyRecordsView extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 4),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildStatItem(
-                      '累计金额',
-                      cumulativeStats.isEmpty ? '—' : controller.formatPriceInteger(cumulativeStats['totalCost']),
-                      Colors.black,
-                    ),
-                    _buildStatItem(
-                      '收益      ',
-                      profitStats.isEmpty ? '—' : '${profitStats['profitPercentage'].toStringAsFixed(2)}%',
-                      profitColor,
-                    ),
-                    Row(
-                      children: [
-                        _buildStatItem(
-                          '200MA',
-                          controller.state.ma200Daily == null
-                              ? '—'
-                              : controller.formatMaPrice(controller.state.ma200Daily!),
-                          Colors.blueGrey,
-                        ),
-                      ],
-                    ),
-                    _buildStatItem(
-                      '建议买入',
-                      controller.formatSuggestedBuyAmount(),
-                      controller.suggestedBuyAmountColor(),
-                    ),
-                  ],
-                ),
-              ),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildStatItem(
-                      '成本',
-                      cumulativeStats.isEmpty ? '—' : controller.formatCostPrice(cumulativeStats['averagePrice']),
-                      Colors.black,
-                    ),
-                    _buildStatItem(
-                      profitLabel,
-                      profit == null ? '—' : controller.formatPriceFourDecimals(profit),
-                      profitColor,
-                    ),
-                    _buildStatItem(
-                      '偏离',
-                      maText,
-                      maColor,
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
+          const SizedBox(height: 2),
+          _buildStatsRow('累计金额', totalCostText, Colors.black, '成本', averagePriceText, Colors.black),
+          _buildStatsRow('累计数量', totalQuantityText, Colors.black, '收益', profitPercentText, profitColor),
+          _buildStatsRow(profitLabel, profitAmountText, profitColor, '偏离', maText, maColor),
+          _buildStatsRow('200MA', maTextValue, Colors.blueGrey, '建议买入', suggestedBuyText, suggestedBuyColor),
         ],
       ),
     );
@@ -655,28 +636,3 @@ class _BaseAmountEditDialogState extends State<_BaseAmountEditDialog> {
   }
 }
 
-class _StatsHeaderDelegate extends SliverPersistentHeaderDelegate {
-  _StatsHeaderDelegate({
-    required this.extent,
-    required this.child,
-  });
-
-  final double extent;
-  final Widget child;
-
-  @override
-  double get minExtent => extent;
-
-  @override
-  double get maxExtent => extent;
-
-  @override
-  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
-    return child;
-  }
-
-  @override
-  bool shouldRebuild(covariant _StatsHeaderDelegate oldDelegate) {
-    return extent != oldDelegate.extent || child != oldDelegate.child;
-  }
-}

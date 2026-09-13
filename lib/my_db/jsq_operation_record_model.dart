@@ -29,6 +29,8 @@ class JsqOperationRecordModel {
   int? restartIndex;
   int? liushuiIndex;
   String? tempIndex; // 存储局部平衡的位置
+  /// 改本金等接口附带：服务端动态算的 75 点折线（index 0 = 最新一笔）
+  List<String>? lineChart;
 
   JsqOperationRecordModel({
     this.id,
@@ -39,6 +41,7 @@ class JsqOperationRecordModel {
     this.restartIndex,
     this.liushuiIndex,
     this.tempIndex,
+    this.lineChart,
   });
 
   JsqOperationRecordModel.fromJson(Map<String, dynamic> json) {
@@ -50,6 +53,10 @@ class JsqOperationRecordModel {
     restartIndex = _parseIndex(json['restart_index']);
     liushuiIndex = _parseIndex(json['liushui_index']);
     tempIndex = bxGetString(json['temp_index']);
+    final rawChart = json['line_chart'];
+    if (rawChart is List) {
+      lineChart = rawChart.map((e) => e.toString()).toList();
+    }
   }
 
   Map<String, dynamic> toJson() {

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-class MoreFunctionsDialog extends StatelessWidget {
+class MoreFunctionsDialog extends StatefulWidget {
   const MoreFunctionsDialog({
     super.key,
     required this.isDarkMode,
@@ -11,6 +11,25 @@ class MoreFunctionsDialog extends StatelessWidget {
   final bool isDarkMode;
   final List<String> functionTypes;
   final ValueChanged<int> onSelected;
+
+  @override
+  State<MoreFunctionsDialog> createState() => _MoreFunctionsDialogState();
+}
+
+class _MoreFunctionsDialogState extends State<MoreFunctionsDialog> {
+  late final ScrollController _menuScrollController;
+
+  @override
+  void initState() {
+    super.initState();
+    _menuScrollController = ScrollController();
+  }
+
+  @override
+  void dispose() {
+    _menuScrollController.dispose();
+    super.dispose();
+  }
 
   static const _undoIndex = 7;
 
@@ -84,7 +103,7 @@ class MoreFunctionsDialog extends StatelessWidget {
   }
 
   Color _tileColor(int index, Color accentColor) {
-    if (isDarkMode) {
+    if (widget.isDarkMode) {
       final opacity = index == 4 || index == 10 ? 0.16 : 0.10;
       return Color.alphaBlend(
         accentColor.withValues(alpha: opacity),
@@ -103,20 +122,20 @@ class MoreFunctionsDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final orderedIndexes = <int>[
-      ..._displayOrder.where((index) => index < functionTypes.length),
-      ...List.generate(functionTypes.length, (index) => index)
+      ..._displayOrder.where((index) => index < widget.functionTypes.length),
+      ...List.generate(widget.functionTypes.length, (index) => index)
           .where((index) => !_displayOrder.contains(index)),
     ];
     final screenHeight = MediaQuery.sizeOf(context).height;
     final dialogHeight =
         screenHeight * 0.84 < 760.0 ? screenHeight * 0.84 : 760.0;
-    final surfaceColor = isDarkMode ? const Color(0xFF16212F) : Colors.white;
+    final surfaceColor = widget.isDarkMode ? const Color(0xFF16212F) : Colors.white;
     final primaryTextColor =
-        isDarkMode ? const Color(0xFFF5F7FA) : const Color(0xFF202A3A);
-    final secondaryTextColor = isDarkMode
+        widget.isDarkMode ? const Color(0xFFF5F7FA) : const Color(0xFF202A3A);
+    final secondaryTextColor = widget.isDarkMode
         ? Colors.white.withValues(alpha: 0.58)
         : const Color(0xFF7A8494);
-    final dividerColor = isDarkMode
+    final dividerColor = widget.isDarkMode
         ? Colors.white.withValues(alpha: 0.10)
         : const Color(0xFFE8EDF3);
 
@@ -167,7 +186,10 @@ class MoreFunctionsDialog extends StatelessWidget {
                 Divider(height: 1, thickness: 1, color: dividerColor),
                 Expanded(
                   child: Scrollbar(
+                    controller: _menuScrollController,
                     child: ListView.separated(
+                      controller: _menuScrollController,
+                      primary: false,
                       key: const ValueKey('more-functions-list'),
                       padding: const EdgeInsets.fromLTRB(16, 14, 16, 18),
                       itemCount: orderedIndexes.length,
@@ -183,7 +205,7 @@ class MoreFunctionsDialog extends StatelessWidget {
                         final description = actionIndex < _descriptions.length
                             ? _descriptions[actionIndex]
                             : '执行该功能';
-                        final title = _displayTitle(functionTypes[actionIndex]);
+                        final title = _displayTitle(widget.functionTypes[actionIndex]);
 
                         return Material(
                           key: ValueKey('more-function-$actionIndex'),
@@ -193,7 +215,7 @@ class MoreFunctionsDialog extends StatelessWidget {
                           child: InkWell(
                             onTap: () {
                               Navigator.of(context).pop();
-                              onSelected(actionIndex);
+                              widget.onSelected(actionIndex);
                             },
                             child: Padding(
                               padding: const EdgeInsets.symmetric(
@@ -205,7 +227,7 @@ class MoreFunctionsDialog extends StatelessWidget {
                                     height: 40,
                                     decoration: BoxDecoration(
                                       color: accentColor.withValues(
-                                          alpha: isDarkMode ? 0.16 : 0.11),
+                                          alpha: widget.isDarkMode ? 0.16 : 0.11),
                                       borderRadius: BorderRadius.circular(12),
                                     ),
                                     alignment: Alignment.center,
