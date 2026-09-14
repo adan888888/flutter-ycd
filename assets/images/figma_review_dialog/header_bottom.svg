@@ -1,0 +1,14 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="310" height="26.6667" viewBox="0 0 310 26.6667" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path id="Rectangle 1000003578" d="M20 1H290C300.493 1 309 9.50659 309 20V25.667H1V20C1 9.50659 9.50659 1 20 1Z" fill="url(#paint0_linear_0_32)" stroke="url(#paint1_linear_0_32)" stroke-width="2"/>
+<defs>
+<clipPath id="bgblur_0_0_32_clip_path" transform="translate(6.66667 6.66667)"><path d="M20 1H290C300.493 1 309 9.50659 309 20V25.667H1V20C1 9.50659 9.50659 1 20 1Z"/>
+</clipPath><linearGradient id="paint0_linear_0_32" x1="163.439" y1="5.5535" x2="163.439" y2="24.2448" gradientUnits="userSpaceOnUse">
+<stop stop-color="white" stop-opacity="0.9"/>
+<stop offset="1" stop-color="white"/>
+</linearGradient>
+<linearGradient id="paint1_linear_0_32" x1="154.916" y1="-5.99008" x2="154.916" y2="43.6444" gradientUnits="userSpaceOnUse">
+<stop stop-color="white"/>
+<stop offset="1" stop-color="white"/>
+</linearGradient>
+</defs>
+</svg>

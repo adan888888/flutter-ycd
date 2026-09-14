@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:ycd/my_widget/review_approved_dialog.dart';
 import 'package:ycd/routes/app_routes.dart';
-import 'package:ycd/utils/bx_loading.dart';
 import 'package:ycd/utils/network/api_session_handler.dart';
 import 'package:ycd/utils/network/get_store.dart';
 import 'package:ycd/utils/permission_util.dart';
@@ -482,22 +482,20 @@ class HomeView extends StatelessWidget {
   }
 
   void _confirmLogout() {
-    Get.dialog(
-      AlertDialog(
-        title: const Text('退出登录'),
-        content: const Text('确定退出当前账号？'),
-        actions: [
-          TextButton(onPressed: Get.back, child: const Text('取消')),
-          TextButton(
-            onPressed: () async {
-              Get.back();
-              await GetStore.getInstance().logout();
-              ApiSessionHandler.goLogin();
-            },
-            child: const Text('退出'),
-          ),
-        ],
+    Get.dialog<void>(
+      ReviewApprovedDialog(
+        title: '退出登录',
+        message: '确定退出当前账号？',
+        badgeText: '退出后需重新登录',
+        buttonText: '退出',
+        secondaryButtonText: '取消',
+        statusIcon: Icons.logout_rounded,
+        onConfirmed: () async {
+          await GetStore.getInstance().logout();
+          ApiSessionHandler.goLogin();
+        },
       ),
+      barrierColor: Colors.black.withValues(alpha: 0.50),
     );
   }
 
@@ -525,12 +523,28 @@ class HomeView extends StatelessWidget {
       onTap: () {
         if (!canAccess) {
           if (!store.isLogin) {
-            BXLoading.showToast('请先登录');
-            BXLoading.reset();
-            Get.toNamed(AppRoutes.login);
+            Get.dialog<void>(
+              ReviewApprovedDialog(
+                title: '请先登录',
+                message: '登录后即可使用$title及其他专业功能',
+                badgeText: '登录状态受安全保护',
+                buttonText: '去登录',
+                statusIcon: Icons.person_outline_rounded,
+                onConfirmed: () => Get.toNamed(AppRoutes.login),
+              ),
+              barrierColor: Colors.black.withValues(alpha: 0.50),
+            );
             return;
           }
-          BXLoading.showError(toast: '该功能需专业版及以上权限，请联系管理员');
+          Get.dialog<void>(
+            const ReviewApprovedDialog(
+              title: '需要专业权限',
+              message: '该功能仅对专业版及以上用户开放\n请联系管理员升级账户权限',
+              badgeText: '升级后即可正常使用',
+              statusIcon: Icons.lock_outline_rounded,
+            ),
+            barrierColor: Colors.black.withValues(alpha: 0.50),
+          );
           return;
         }
         Get.toNamed(route);

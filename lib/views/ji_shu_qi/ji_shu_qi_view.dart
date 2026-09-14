@@ -138,22 +138,33 @@ class JiShuQiView extends GetView<JiShuQiController> {
                   scale: controller.state.floatButtonScale,
                   duration: const Duration(milliseconds: 300),
                   curve: Curves.easeInOut,
-                  child: FloatingActionButton(
-                    key: const ValueKey('ji_shu_qi_random_fab'),
-                    backgroundColor: Colors.transparent,
-                    onPressed: () {
-                      controller.guardAgainstKeyboardPop();
-                      // 触发点击动画：放大1.5倍再缩小
-                      controller.state.floatButtonScale = 2;
-                      controller.update();
-                      Future.delayed(const Duration(milliseconds: 300), () {
-                        controller.state.floatButtonScale = 1.0;
-                        controller.update();
-                      });
-                      // 执行随机逻辑
-                      controller.setRandom((int _) => debugPrint(_.toString()));
-                    },
-                    child: Image.asset('assets/images/shai.png'),
+                  child: Semantics(
+                    button: true,
+                    label: '随机庄闲',
+                    hint: '长按打开更多功能',
+                    child: GestureDetector(
+                      onLongPress: () {
+                        controller.guardAgainstKeyboardPop();
+                        controller.showBottomFunction();
+                      },
+                      child: FloatingActionButton(
+                        key: const ValueKey('ji_shu_qi_random_fab'),
+                        backgroundColor: Colors.transparent,
+                        onPressed: () {
+                          controller.guardAgainstKeyboardPop();
+                          // 触发点击动画：放大1.5倍再缩小
+                          controller.state.floatButtonScale = 2;
+                          controller.update();
+                          Future.delayed(const Duration(milliseconds: 300), () {
+                            controller.state.floatButtonScale = 1.0;
+                            controller.update();
+                          });
+                          // 执行随机逻辑
+                          controller.setRandom((int _) => debugPrint(_.toString()));
+                        },
+                        child: Image.asset('assets/images/shai.png'),
+                      ),
+                    ),
                   ),
                 );
               },

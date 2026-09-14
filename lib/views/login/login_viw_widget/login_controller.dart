@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:ycd/model/user_model.dart';
+import 'package:ycd/my_widget/review_approved_dialog.dart';
 import 'package:ycd/routes/app_routes.dart';
 import 'package:ycd/utils/network/api.dart';
 import 'package:ycd/utils/network/get_store.dart';
 import 'package:ycd/utils/network/http_mgr.dart';
 import 'package:ycd/utils/storage_util.dart';
-import 'package:ycd/utils/bx_loading.dart';
 
 import 'login_state.dart';
 
@@ -83,20 +83,23 @@ class LoginController extends GetxController {
   }
 
   void showContactAdminTip() {
-    Get.snackbar(
-      '提示',
-      '请联系管理员',
-      snackPosition: SnackPosition.TOP,
-      backgroundColor: const Color(0xFF2A2218).withValues(alpha: 0.1),
-      colorText: Colors.white,
-      duration: const Duration(seconds: 2),
+    _showNotice(
+      title: '联系客服',
+      message: '如需帮助，请联系管理员处理',
+      badgeText: '我们会妥善保护您的账户信息',
+      icon: Icons.support_agent_rounded,
     );
   }
 
   void registerNotAvailable() {
     if (!formKey.currentState!.validate()) return;
 
-    BXLoading.showToast('暂不开放');
+    _showNotice(
+      title: '暂未开放',
+      message: '注册功能正在准备中，请稍后再试',
+      badgeText: '感谢您的耐心等待',
+      icon: Icons.schedule_rounded,
+    );
   }
 
   Future<void> login() async {
@@ -121,13 +124,11 @@ class LoginController extends GetxController {
             params: {"username": usrname, "password": password},
             failed: (msg, _) {
               if (msg.isEmpty) return;
-              Get.snackbar(
-                '',
-                msg,
-                snackPosition: SnackPosition.TOP,
-                backgroundColor: Colors.red.withValues(alpha: 0.8),
-                colorText: Colors.white,
-                duration: const Duration(seconds: 3),
+              _showNotice(
+                title: '登录失败',
+                message: msg,
+                badgeText: '请检查账号信息后重新尝试',
+                useFailureArtwork: true,
               );
             },
             success: (isSuccess, code, message, results) {
@@ -141,18 +142,37 @@ class LoginController extends GetxController {
             onModel: (m) => UserModel.fromJson(m));
       } catch (e) {
         // 处理异常
-        Get.snackbar(
-          '登录失败',
-          '网络连接错误，请稍后重试',
-          snackPosition: SnackPosition.TOP,
-          backgroundColor: Colors.red.withValues(alpha: 0.8),
-          colorText: Colors.white,
-          duration: const Duration(seconds: 3),
+        _showNotice(
+          title: '登录失败',
+          message: '网络连接错误，请稍后重试',
+          badgeText: '请检查网络连接',
+          useFailureArtwork: true,
         );
       } finally {
         // 重置加载状态
         state.isLoading.value = false;
       }
     }
+  }
+
+  void _showNotice({
+    required String title,
+    required String message,
+    required String badgeText,
+    IconData? icon,
+    bool useFailureArtwork = false,
+  }) {
+    if (Get.isDialogOpen ?? false) return;
+    FocusManager.instance.primaryFocus?.unfocus();
+    Get.dialog<void>(
+      ReviewApprovedDialog(
+        title: title,
+        message: message,
+        badgeText: badgeText,
+        statusIcon: useFailureArtwork ? null : icon,
+        useFailureArtwork: useFailureArtwork,
+      ),
+      barrierColor: Colors.black.withValues(alpha: 0.50),
+    );
   }
 }

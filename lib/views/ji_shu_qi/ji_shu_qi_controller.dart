@@ -15,6 +15,7 @@ import 'package:ycd/my_db/jsq_operation_record_model.dart';
 import 'package:ycd/my_db/jsq_bet_record_model.dart';
 import 'package:ycd/my_widget/custom_dialog.dart';
 import 'package:ycd/my_widget/more_functions_dialog.dart';
+import 'package:ycd/my_widget/review_approved_dialog.dart';
 import 'package:ycd/utils/bx_loading.dart';
 import 'package:ycd/utils/my_character.dart';
 import 'package:ycd/utils/network/api.dart';
@@ -1194,39 +1195,38 @@ class JiShuQiController extends GetxController {
   //重启局部数据
   void reStart() {
     dismissKeyboard();
-    Get.defaultDialog(
-      barrierDismissible: false,
-      backgroundColor: state.isDarkMode ? const Color(0xFF1E2A3A) : Colors.white,
-      title: '警告',
-      content: Text(
-        '是否重启局部数据',
-        style: TextStyle(color: state.isDarkMode ? state.darkTextColor : Colors.black),
+    Get.dialog<void>(
+      ReviewApprovedDialog(
+        title: '警告',
+        message: '是否重启局部数据',
+        badgeText: '重启后局部统计将重新计算',
+        buttonText: '确定',
+        secondaryButtonText: '取消',
+        useRestartArtwork: true,
+        onConfirmed: () {
+          if (state.betRecordList.isEmpty) {
+            BXLoading.showToast('暂无投注记录，无法重启');
+            return;
+          }
+          if (_isRoundStatsEmpty()) {
+            BXLoading.showToast('回合数据为空，无需重启');
+            return;
+          }
+          BXLoading.show(douyinStyle: true);
+          final snapshot = _buildRestartStatSnapshot();
+          if (snapshot.isNotEmpty) {
+            state.betRecordList.last.restartStatSnapshot = snapshot;
+            update();
+          }
+          _saveLastRowRestartStatSnapshot(
+            snapshot,
+            onDone: () => _callRestartApi(snapshot),
+            onFail: BXLoading.dismiss,
+          );
+        },
       ),
-      titleStyle: TextStyle(color: state.isDarkMode ? state.darkTextColor : Colors.black),
-      contentPadding: const EdgeInsets.all(20),
-      onCancel: () {},
-      onConfirm: () {
-        Get.back();
-        if (state.betRecordList.isEmpty) {
-          BXLoading.showToast('暂无投注记录，无法重启');
-          return;
-        }
-        if (_isRoundStatsEmpty()) {
-          BXLoading.showToast('回合数据为空，无需重启');
-          return;
-        }
-        BXLoading.show(douyinStyle: true);
-        final snapshot = _buildRestartStatSnapshot();
-        if (snapshot.isNotEmpty) {
-          state.betRecordList.last.restartStatSnapshot = snapshot;
-          update();
-        }
-        _saveLastRowRestartStatSnapshot(
-          snapshot,
-          onDone: () => _callRestartApi(snapshot),
-          onFail: BXLoading.dismiss,
-        );
-      },
+      barrierDismissible: false,
+      barrierColor: Colors.black.withValues(alpha: 0.50),
     );
   }
 
@@ -1324,30 +1324,29 @@ class JiShuQiController extends GetxController {
         BXLoading.dismiss();
         break;
       case 4: //删除全部数据（当前用户下）
-        Get.defaultDialog(
-          barrierDismissible: false,
-          backgroundColor: state.isDarkMode ? const Color(0xFF1E2A3A) : Colors.white,
-          title: '警告',
-          content: Text(
-            '是否删除全部数据',
-            style: TextStyle(color: state.isDarkMode ? state.darkTextColor : Colors.black),
+        Get.dialog<void>(
+          ReviewApprovedDialog(
+            title: '警告',
+            message: '是否删除全部数据',
+            badgeText: '删除后无法恢复，请谨慎操作',
+            buttonText: '删除',
+            secondaryButtonText: '取消',
+            statusIcon: Icons.delete_outline_rounded,
+            onConfirmed: () {
+              BXDelete(Api.deleteAll, success: (isSuccess, code, message, results) {
+                if (isSuccess) {
+                  BXLoading.showToast(message);
+                  state.operationRecordList.clear();
+                  state.betRecordList.clear();
+                  state.randomValue = '';
+                  List.generate(32, (index) => state.totalValue[index] = index.toString());
+                  _getStatisticalAreasData(JiShuQiState.tempIndexCmdReset, isShowLoading: false);
+                }
+              });
+            },
           ),
-          titleStyle: TextStyle(color: state.isDarkMode ? state.darkTextColor : Colors.black),
-          contentPadding: const EdgeInsets.all(20),
-          onCancel: () {},
-          onConfirm: () {
-            Get.back();
-            BXDelete(Api.deleteAll, success: (isSuccess, code, message, results) {
-              if (isSuccess) {
-                BXLoading.showToast(message);
-                state.operationRecordList.clear();
-                state.betRecordList.clear();
-                state.randomValue = '';
-                List.generate(32, (index) => state.totalValue[index] = index.toString());
-                _getStatisticalAreasData(JiShuQiState.tempIndexCmdReset, isShowLoading: false);
-              }
-            });
-          },
+          barrierDismissible: false,
+          barrierColor: Colors.black.withValues(alpha: 0.50),
         );
         break;
       case 5: //重置流水
