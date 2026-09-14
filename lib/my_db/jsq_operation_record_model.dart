@@ -20,6 +20,13 @@ int? _parseIndex(dynamic value) {
   return int.tryParse(value.toString().trim());
 }
 
+/// 与后端迁移一致：占位 0、1 表示未设置；其余为下注记录 id 锚点。
+int? _parseAnchorIndex(dynamic value) {
+  final parsed = _parseIndex(value);
+  if (parsed == null || parsed == 0 || parsed == 1) return null;
+  return parsed;
+}
+
 class JsqOperationRecordModel {
   int? id;
   double? benjin;
@@ -50,8 +57,8 @@ class JsqOperationRecordModel {
     initialBet = _parseAmount(json['initial_bet']);
     yongjin = _parseAmount(json['yongjin']);
     mean = _parseAmount(json['mean']);
-    restartIndex = _parseIndex(json['restart_index']);
-    liushuiIndex = _parseIndex(json['liushui_index']);
+    restartIndex = _parseAnchorIndex(json['restart_index']);
+    liushuiIndex = _parseAnchorIndex(json['liushui_index']);
     tempIndex = bxGetString(json['temp_index']);
     final rawChart = json['line_chart'];
     if (rawChart is List) {

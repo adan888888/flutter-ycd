@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:ycd/routes/app_routes.dart';
 import 'package:ycd/utils/bx_loading.dart';
@@ -36,7 +37,7 @@ class HomeView extends StatelessWidget {
             : null,
         iconTheme: const IconThemeData(color: Color(0xFF2F3A4F)),
         title: const Text(
-          '数据策略分析工具 🔧',
+          '策略工具箱',
           style: TextStyle(color: Color(0xFF2F3A4F), fontSize: 18),
         ),
         centerTitle: true,
@@ -83,7 +84,8 @@ class HomeView extends StatelessWidget {
                 kToolbarHeight, // 动态获取 AppBar 高度
             left: 14.0,
             right: 14.0,
-            bottom: MediaQuery.viewPaddingOf(context).bottom,
+            // 底部安全区之外保留空间，明确传达列表仍可继续滚动。
+            bottom: MediaQuery.viewPaddingOf(context).bottom + 28,
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -94,7 +96,7 @@ class HomeView extends StatelessWidget {
 
               _staggered(
                 1,
-                // 资金管理工具：首页主推入口，用渐变大卡与其它工具拉开层次
+                // 保留资金管理工具原有的品牌图标。
                 _buildFeaturedCard(
                   imagePath: 'assets/images/temp_dice.png',
                   title: '资金管理工具',
@@ -207,11 +209,14 @@ class HomeView extends StatelessWidget {
               ],
             ),
           ),
-          Image.asset(
-            'assets/images/polyline.png',
-            width: 92,
-            height: 52,
-            fit: BoxFit.contain,
+          Opacity(
+            opacity: 0.68,
+            child: Image.asset(
+              'assets/images/polyline.png',
+              width: 74,
+              height: 42,
+              fit: BoxFit.contain,
+            ),
           ),
         ],
       ),
@@ -243,30 +248,25 @@ class HomeView extends StatelessWidget {
     );
   }
 
-  /// 主推入口：与普通卡片同为浅色玻璃卡，靠更大的尺寸与「常用」标签突出
+  /// 主推入口：保留品牌图标，以尺寸与标签建立优先级。
   Widget _buildFeaturedCard({
     required String imagePath,
     required String title,
     required String subtitle,
     required VoidCallback onTap,
   }) {
-    const accent = Color(0xFFE0484D);
+    const accent = Color(0xFF257A78);
 
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(20),
-        color: Colors.white.withValues(alpha: 0.42),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.55)),
+        color: Colors.white.withValues(alpha: 0.70),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.72)),
         boxShadow: [
           BoxShadow(
-            color: accent.withValues(alpha: 0.16),
-            blurRadius: 22,
-            offset: const Offset(0, 10),
-          ),
-          BoxShadow(
-            color: const Color(0xFF2F3A4F).withValues(alpha: 0.05),
-            blurRadius: 6,
-            offset: const Offset(0, 2),
+            color: const Color(0xFF2F3A4F).withValues(alpha: 0.09),
+            blurRadius: 14,
+            offset: const Offset(0, 6),
           ),
         ],
       ),
@@ -275,7 +275,10 @@ class HomeView extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         clipBehavior: Clip.antiAlias,
         child: InkWell(
-          onTap: onTap,
+          onTap: () {
+            HapticFeedback.selectionClick();
+            onTap();
+          },
           splashColor: accent.withValues(alpha: 0.10),
           highlightColor: accent.withValues(alpha: 0.06),
           child: Padding(
@@ -283,8 +286,8 @@ class HomeView extends StatelessWidget {
             child: Row(
               children: [
                 SizedBox(
-                  width: 54,
-                  height: 54,
+                  width: 49,
+                  height: 49,
                   child: Image.asset(imagePath, fit: BoxFit.contain),
                 ),
                 const SizedBox(width: 14),
@@ -316,7 +319,7 @@ class HomeView extends StatelessWidget {
                               borderRadius: BorderRadius.circular(5),
                             ),
                             child: const Text(
-                              '常用',
+                              '推荐',
                               style: TextStyle(
                                 color: accent,
                                 fontSize: 10,
@@ -345,7 +348,7 @@ class HomeView extends StatelessWidget {
                   height: 28,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: accent.withValues(alpha: 0.12),
+                    color: accent.withValues(alpha: 0.18),
                   ),
                   child: const Icon(
                     Icons.arrow_forward_ios_rounded,
@@ -452,8 +455,8 @@ class HomeView extends StatelessWidget {
         bg = const Color(0xFFFFEBEE);
         fg = const Color(0xFFC62828);
       case UserRole.pro:
-        bg = const Color(0xFFFFF3E0);
-        fg = const Color(0xFFE65100);
+        bg = const Color(0xFFE8F0F7);
+        fg = const Color(0xFF416B8A);
       default:
         bg = const Color(0xFFECEFF1);
         fg = const Color(0xFF546E7A);
@@ -518,6 +521,7 @@ class HomeView extends StatelessWidget {
           ? subtitle
           : PermissionUtil.proFeatureLockedSubtitle(isLogin: store.isLogin),
       color: canAccess ? color : Colors.grey,
+      locked: !canAccess,
       onTap: () {
         if (!canAccess) {
           if (!store.isLogin) {
@@ -540,24 +544,19 @@ class HomeView extends StatelessWidget {
       required String title,
       required String subtitle,
       required Color color,
+      bool locked = false,
       required VoidCallback onTap}) {
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(18),
-        color: Colors.white.withValues(alpha: 0.48),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.55)),
+        color: Colors.white.withValues(alpha: 0.68),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.72)),
         boxShadow: [
-          // 主阴影带上入口自身的主题色，让整列卡片有彩色辉光
           BoxShadow(
-            color: color.withValues(alpha: 0.13),
-            blurRadius: 18,
-            offset: const Offset(0, 8),
-          ),
-          BoxShadow(
-            color: const Color(0xFF2F3A4F).withValues(alpha: 0.05),
-            blurRadius: 6,
-            offset: const Offset(0, 2),
+            color: const Color(0xFF2F3A4F).withValues(alpha: 0.08),
+            blurRadius: 12,
+            offset: const Offset(0, 5),
           ),
         ],
       ),
@@ -566,7 +565,10 @@ class HomeView extends StatelessWidget {
         borderRadius: BorderRadius.circular(18),
         clipBehavior: Clip.antiAlias,
         child: InkWell(
-          onTap: onTap,
+          onTap: () {
+            HapticFeedback.selectionClick();
+            onTap();
+          },
           splashColor: color.withValues(alpha: 0.10),
           highlightColor: color.withValues(alpha: 0.06),
           child: Padding(
@@ -589,9 +591,9 @@ class HomeView extends StatelessWidget {
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: color.withValues(alpha: 0.32),
-                        blurRadius: 12,
-                        offset: const Offset(0, 5),
+                        color: color.withValues(alpha: 0.18),
+                        blurRadius: 8,
+                        offset: const Offset(0, 4),
                       ),
                     ],
                   ),
@@ -636,10 +638,12 @@ class HomeView extends StatelessWidget {
                   height: 26,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: color.withValues(alpha: 0.12),
+                    color: color.withValues(alpha: 0.20),
                   ),
                   child: Icon(
-                    Icons.arrow_forward_ios_rounded,
+                    locked
+                        ? Icons.lock_outline_rounded
+                        : Icons.arrow_forward_ios_rounded,
                     color: color,
                     size: 12,
                   ),

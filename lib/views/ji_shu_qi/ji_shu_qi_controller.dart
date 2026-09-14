@@ -901,7 +901,7 @@ class JiShuQiController extends GetxController {
             shuyingzhiXiaoshu: syzLAmount(i),
             currentJin: getCurrentJin(i, double.parse(state.bettingMoney)),
           )
-        : JsqOperationRecordModel(benjin: 10000, yongjin: 0.95, mean: 0.08, restartIndex: 0, liushuiIndex: 10);
+        : JsqOperationRecordModel(benjin: 10000, yongjin: 0.95, mean: 0.08, restartIndex: null, liushuiIndex: null);
 
     ///改变成插入远程数据库
     if (recordType == 'operationRecord') {
