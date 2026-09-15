@@ -11,6 +11,7 @@ import 'package:flutter_screen_lock/flutter_screen_lock.dart';
 import 'package:get/get.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 import 'package:ycd/model/linechart_data_model.dart';
+import 'package:ycd/model/user_model.dart';
 import 'package:ycd/my_db/jsq_operation_record_model.dart';
 import 'package:ycd/my_db/jsq_bet_record_model.dart';
 import 'package:ycd/my_widget/custom_dialog.dart';
@@ -580,6 +581,24 @@ class JiShuQiController extends GetxController {
 
   bool _isEffectiveLocalTempIndex(Object? tempIndex) => tempIndex is int && tempIndex > 2;
 
+  void _applyTodayBetCountFromStatsPayload(dynamic payload) {
+    if (payload is! Map) return;
+    final map = Map<String, dynamic>.from(payload);
+    if (!map.containsKey('today_bet_count')) return;
+    state.todayBetCount = int.tryParse(map['today_bet_count']?.toString() ?? '') ?? 0;
+  }
+
+  List<dynamic> _statisticalAreasFromResults(List<dynamic> results) {
+    if (results.isEmpty) return results;
+    final first = results.first;
+    if (first is Map && first.containsKey('areas')) {
+      _applyTodayBetCountFromStatsPayload(first);
+      final areas = first['areas'];
+      if (areas is List) return List<dynamic>.from(areas);
+    }
+    return results;
+  }
+
   /// tempIndex 指令协议：
   /// - init：页面首次加载，恢复后端已保存的锚点。
   /// - keep：数据变化后刷新统计，但保留当前锚点。
@@ -599,7 +618,8 @@ class JiShuQiController extends GetxController {
       isShowLoading: isShowLoading,
       showError: showError,
       success: (isSuccess, code, message, results) {
-        state.totalValue = results.map((e) => e.toString()).toList();
+        final areas = _statisticalAreasFromResults(results);
+        state.totalValue = areas.map((e) => e.toString()).toList();
         state.totalValue[28] = "${state.js1}/${state.js2}";
 
         void continueAfterStatsReady() {
@@ -782,6 +802,10 @@ class JiShuQiController extends GetxController {
     BXGet(
       Api.randomBankerPlayer,
       success: (isSuccess, code, message, results) {
+        if (!isSuccess || results.isEmpty) {
+          _rollbackRandomPress();
+          return;
+        }
         var result = (results.first as Map)["result"].toString();
 
         if (result.isNotEmpty) {
@@ -812,8 +836,16 @@ class JiShuQiController extends GetxController {
         state.totalValue[24] = pVal2();
         update();
       },
+      failed: (_, __) => _rollbackRandomPress(),
       isShowLoading: false, // 使用自定义的Loading
     );
+  }
+
+  void _rollbackRandomPress() {
+    if (state.js2 > 0) state.js2 = state.js2 - 1;
+    state.totalValue[28] = "${state.js1}/${state.js2}";
+    state.isCanPress = true;
+    update();
   }
 
   _next(int min, int max) => min + Random().nextInt(max - min + 1);
@@ -1189,6 +1221,91 @@ class JiShuQiController extends GetxController {
       },
       failed: (_, __) => BXLoading.dismiss(),
       onModel: (m) => JsqOperationRecordModel.fromJson(m),
+    );
+  }
+
+  String get todayBetProgressLabel {
+    final goal = GetStore.getInstance().userModel.effectiveDailyBetGoal;
+    final count = state.todayBetCount;
+    if (goal <= 0) return '今日 $count';
+    final pct = (count * 100 / goal).clamp(0, 999).toStringAsFixed(0);
+    return '今日 $count/$goal ($pct%)';
+  }
+
+  void showDailyBetGoalEditor() {
+    dismissKeyboard();
+    final store = GetStore.getInstance();
+    final input = TextEditingController(
+      text: store.userModel.dailyBetGoal?.toString() ?? '',
+    );
+    Get.dialog<void>(
+      AlertDialog(
+        title: const Text('每日目标（下注次数）'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            TextField(
+              controller: input,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(
+                hintText: '留空则使用默认 ${UserModel.defaultDailyBetGoal}',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              '当前完成：$todayBetProgressLabel',
+              style: TextStyle(fontSize: 12, color: Colors.grey.shade700),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: Get.back, child: const Text('取消')),
+          TextButton(
+            onPressed: () {
+              final raw = input.text.trim();
+              int? goal;
+              if (raw.isNotEmpty) {
+                goal = int.tryParse(raw);
+                if (goal == null || goal < 1) {
+                  BXLoading.showToast('请输入 1 以上的整数');
+                  return;
+                }
+              }
+              Get.back();
+              _saveDailyBetGoal(goal);
+            },
+            child: const Text('保存'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _saveDailyBetGoal(int? goal) {
+    BXPost<dynamic>(
+      Api.updateDailyBetGoal,
+      params: {'daily_bet_goal': goal},
+      isShowLoading: true,
+      success: (isSuccess, _, message, results) {
+        if (!isSuccess) return;
+        final store = GetStore.getInstance();
+        final user = store.userModel;
+        user.dailyBetGoal = goal;
+        if (results.isNotEmpty && results.first is Map) {
+          final row = Map<String, dynamic>.from(results.first as Map);
+          if (row['daily_bet_goal'] == null) {
+            user.dailyBetGoal = null;
+          } else {
+            user.dailyBetGoal = int.tryParse(row['daily_bet_goal'].toString());
+          }
+        }
+        store.saveUser(user);
+        update();
+        BXLoading.showToast(message.isNotEmpty ? message : '每日目标已更新');
+      },
+      onModel: (m) => m,
     );
   }
 

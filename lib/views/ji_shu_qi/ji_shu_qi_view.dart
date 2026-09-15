@@ -217,11 +217,19 @@ class JiShuQiView extends GetView<JiShuQiController> {
                   backgroundColor: controller.state.isBigRoad
                       ? controller.state.currentBgColor
                       : controller.state.currentChartBgColor,
-                  title: Text(
-                    "  $title ${GetStore.getInstance().userModel.nickname}",
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: controller.state.isDarkMode ? controller.state.darkTextColor : Colors.black87,
+                  title: GestureDetector(
+                    onTap: () {
+                      controller.dismissKeyboard();
+                      controller.showDailyBetGoalEditor();
+                    },
+                    child: Text(
+                      "  $title ${GetStore.getInstance().userModel.nickname}  ${controller.todayBetProgressLabel}",
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: controller.state.isDarkMode ? controller.state.darkTextColor : Colors.black87,
+                      ),
                     ),
                   )),
             ),

@@ -2,6 +2,8 @@ import '../utils/types_of.dart';
 import '../utils/user_role.dart';
 
 class UserModel {
+  static const int defaultDailyBetGoal = 300;
+
   String userId = "";
   String token = "";
   String refreshToken = "";
@@ -17,7 +19,12 @@ class UserModel {
   bool isPermanent = false;
   String expiresAt = "";
   String role = "";
+  int? dailyBetGoal;
+
   UserModel();
+
+  /// 未设置时使用 [defaultDailyBetGoal]。
+  int get effectiveDailyBetGoal => dailyBetGoal ?? defaultDailyBetGoal;
 
   /// 是否超级管理员
   bool get isSuperAdmin => UserRole.isSuperAdmin(role) || isPermanent;
@@ -84,6 +91,11 @@ class UserModel {
       role = UserRole.superAdmin;
     }
     role = UserRole.normalize(role);
+    if (map.containsKey('daily_bet_goal') && map['daily_bet_goal'] != null) {
+      dailyBetGoal = bxGetInt(map['daily_bet_goal']);
+    } else {
+      dailyBetGoal = null;
+    }
   }
 
   Map<String, dynamic> toJson() => {
@@ -101,6 +113,7 @@ class UserModel {
         "is_permanent": isPermanent,
         "expires_at": expiresAt,
         "role": role,
+        "daily_bet_goal": dailyBetGoal,
       };
 }
 

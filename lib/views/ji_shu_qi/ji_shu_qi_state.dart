@@ -23,6 +23,9 @@ class JiShuQiState {
   var bettingMoney = '';
   var js1 = 0; //随机总数
   var js2 = 0;
+
+  /// 今日下注次数（来自 /jsq/statistical-areas-data 的 today_bet_count）
+  int todayBetCount = 0;
   int currentTempIndex = 0; // 局部平衡锚点行 id（与列表眼睛一致）；持久化为服务端 operationRecord.tempIndex → JsqOperationRecordModel.tempIndex
 
   /// 列表各列固定宽度（ji_shu_qi_view 投注记录行；过长用 FittedBox 缩小字体）

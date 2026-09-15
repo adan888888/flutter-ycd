@@ -77,6 +77,9 @@ class Api {
   //修改本金
   static String updateBenjin = "/jsq/update-benjin";
 
+  /// 每日目标（下注次数）；今日次数随 /jsq/statistical-areas-data 返回
+  static String updateDailyBetGoal = "/jsq/update-daily-bet-goal";
+
   //加载更多历史数据
   static String loadMore = "/jsq/load-more";
 

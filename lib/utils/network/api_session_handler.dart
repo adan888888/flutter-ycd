@@ -1,6 +1,8 @@
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../model/base_model.dart';
+import '../../my_widget/review_approved_dialog.dart';
 import '../../routes/app_routes.dart';
 import '../bx_loading.dart';
 import 'api_code.dart';
@@ -54,9 +56,30 @@ abstract final class ApiSessionHandler {
       GetStore.getInstance().cleanUser();
     }
     BXLoading.reset();
-    if (showError && msg.isNotEmpty) BXLoading.showToast(msg);
-    if (isAuthApi) return;
-    Future.delayed(const Duration(milliseconds: 500), () => goLogin(clearStack: true));
+    if (!showError) {
+      if (!isAuthApi) goLogin(clearStack: true);
+      return;
+    }
+    final body = msg.trim().isNotEmpty ? msg.trim() : '服务已到期，请联系管理员';
+    if (Get.isDialogOpen ?? false) {
+      if (!isAuthApi) goLogin(clearStack: true);
+      return;
+    }
+    Get.dialog<void>(
+      ReviewApprovedDialog(
+        title: '服务已到期',
+        message: body.replaceAll('，', '\n'),
+        badgeText: '请联系管理员续期',
+        buttonText: '我知道了',
+        useFailureArtwork: true,
+        onConfirmed: () {
+          Get.back<void>();
+          if (!isAuthApi) goLogin(clearStack: true);
+        },
+      ),
+      barrierDismissible: false,
+      barrierColor: Colors.black.withValues(alpha: 0.50),
+    );
   }
 
   static void handleBusinessFail(
