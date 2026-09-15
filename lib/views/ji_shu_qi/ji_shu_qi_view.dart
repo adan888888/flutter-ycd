@@ -333,56 +333,71 @@ class JiShuQiView extends GetView<JiShuQiController> {
                                         onTap: controller.dismissKeyboard,
                                         child: ColoredBox(
                                           color: controller.state.currentListViewColor,
-                                          child: EasyRefresh(
-                                            controller: controller.refreshcontroller,
-                                            header: controller.state.pullRefreshHeader(
-                                              backgroundColor: controller.state.currentListViewColor,
-                                            ),
-                                            footer: const ClassicFooter(
-                                              clamping: true,
-                                              infiniteOffset: null,
-                                              triggerWhenReach: false,
-                                              triggerWhenRelease: true,
-                                              dragText: '上拉加载',
-                                              armedText: '松开加载',
-                                              readyText: '加载中...',
-                                              processingText: '加载中...',
-                                              processedText: '加载成功',
-                                              noMoreText: '没有更多了',
-                                              failedText: '加载失败',
-                                              messageText: '更新时间 %T',
-                                              showMessage: true,
-                                            ),
-                                            onRefresh: () async => controller.onLoadMore(),
-                                            child: controller.state.betRecordList.isEmpty
-                                                ? JiShuQiBettingListEmptyState(
-                                                    isInitialDataLoading: controller.state.isInitialDataLoading,
-                                                  )
-                                                : NotificationListener<ScrollNotification>(
-                                                    onNotification: (notification) {
-                                                      if (notification is ScrollStartNotification &&
-                                                          notification.dragDetails != null) {
-                                                        controller.onBettingListUserDragStart();
-                                                      } else if (notification is ScrollUpdateNotification &&
-                                                          notification.dragDetails != null) {
-                                                        controller.onBettingListUserDragPositionChanged();
-                                                      } else if (notification is ScrollEndNotification) {
-                                                        controller.onBettingListUserDragEnd();
-                                                      }
-                                                      return false;
-                                                    },
-                                                    child: ListView.builder(
-                                                      key: const PageStorageKey<String>(
-                                                        'ji_shu_qi_betting_list',
+                                          child: controller.state.betRecordList.isEmpty
+                                              ? JiShuQiBettingListEmptyState(
+                                                  isInitialDataLoading: controller.state.isInitialDataLoading,
+                                                )
+                                              : Stack(
+                                                  fit: StackFit.expand,
+                                                  children: [
+                                                    NotificationListener<ScrollNotification>(
+                                                      onNotification: (notification) {
+                                                        if (notification is ScrollStartNotification &&
+                                                            notification.dragDetails != null) {
+                                                          controller.onBettingListUserDragStart();
+                                                        } else if (notification is ScrollUpdateNotification &&
+                                                            notification.dragDetails != null) {
+                                                          controller.onBettingListUserDragPositionChanged();
+                                                        } else if (notification is ScrollEndNotification) {
+                                                          controller.onBettingListUserDragEnd();
+                                                        }
+                                                        return false;
+                                                      },
+                                                      child: ListView.builder(
+                                                        key: const PageStorageKey<String>(
+                                                          'ji_shu_qi_betting_list',
+                                                        ),
+                                                        reverse: false,
+                                                        controller: controller.scrollController,
+                                                        itemCount: controller.state.betRecordList.length,
+                                                        itemBuilder: (BuildContext context, int index) => _buildItem(index),
                                                       ),
-                                                      reverse: false,
-                                                      controller: controller.scrollController,
-                                                      itemCount: controller.state.betRecordList.length,
-                                                      itemBuilder: (BuildContext context, int index) =>
-                                                          _buildItem(index),
                                                     ),
-                                                  ),
-                                          ),
+                                                    if (controller.isLoadingBettingHistory)
+                                                      Positioned(
+                                                        top: 8,
+                                                        left: 0,
+                                                        right: 0,
+                                                        child: IgnorePointer(
+                                                          child: Center(
+                                                            child: Semantics(
+                                                              label: '加载历史记录',
+                                                              child: Container(
+                                                                padding: const EdgeInsets.all(7),
+                                                                decoration: BoxDecoration(
+                                                                  color: controller.state.currentListViewColor,
+                                                                  shape: BoxShape.circle,
+                                                                  boxShadow: const [
+                                                                    BoxShadow(
+                                                                      color: Colors.black26,
+                                                                      blurRadius: 5,
+                                                                    ),
+                                                                  ],
+                                                                ),
+                                                                child: SizedBox.square(
+                                                                  dimension: 20,
+                                                                  child: CircularProgressIndicator(
+                                                                    strokeWidth: 2.3,
+                                                                    color: controller.state.currentTextColor,
+                                                                  ),
+                                                                ),
+                                                              ),
+                                                            ),
+                                                          ),
+                                                        ),
+                                                      ),
+                                                  ],
+                                                ),
                                         ),
                                       ),
                                     )),

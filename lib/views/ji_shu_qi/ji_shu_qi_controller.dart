@@ -29,8 +29,6 @@ import 'package:ycd/utils/network/http_mgr.dart';
 import 'ji_shu_qi_state.dart';
 
 class JiShuQiController extends GetxController {
-  EasyRefreshController refreshcontroller = EasyRefreshController(controlFinishRefresh: true, controlFinishLoad: true);
-
   /// 统计区下拉刷新（与投注列表同款 EasyRefresh 样式，独立 controller）
   EasyRefreshController statsRefreshController = EasyRefreshController(controlFinishRefresh: true);
   final JiShuQiState state = JiShuQiState();
@@ -46,7 +44,12 @@ class JiShuQiController extends GetxController {
   int _bettingListScrollGeneration = 0;
   bool _keepBettingListPinnedDuringKeyboard = false;
   bool _bettingListUserDragActive = false;
+  bool _didRequestBettingHistoryDuringCurrentDrag = false;
+  bool _isLoadingBettingHistory = false;
+  bool _hasMoreBettingHistory = true;
   DateTime? _ignoreTapOutsideUntil;
+
+  bool get isLoadingBettingHistory => _isLoadingBettingHistory;
 
 // 定义一个计时器，用于延时锁屏
   Timer? _timer;
@@ -129,7 +132,7 @@ class JiShuQiController extends GetxController {
   }
 
   /// 按最新一页重新拉取投注记录（`last_id: -1`，与进入页面时一致）。
-  /// [minCount] 至少条数；若已通过上拉加载更多历史，则用当前条数避免刷新后列表变短。
+  /// [minCount] 至少条数；若已静默加载更多历史，则用当前条数避免刷新后列表变短。
   /// **局部平衡锚点 id 若不在本窗口内**：不扩列表、不特殊处理；该行不在 `betRecordList` 时眼睛不出现即可。
   Future<void> _reloadBettingListTail({
     int minCount = 66,
@@ -144,10 +147,12 @@ class JiShuQiController extends GetxController {
       success: (isSuccess, code, message, results) {
         if (isSuccess) {
           if (results.isEmpty) {
+            _hasMoreBettingHistory = false;
             state.betRecordList.clear();
             _reloadLuZiTu();
             update();
           } else {
+            _hasMoreBettingHistory = true;
             state.betRecordList.clear();
             state.betRecordList = List<JsqBetRecordModel>.from(results);
             _reloadLuZiTu();
@@ -278,6 +283,7 @@ class JiShuQiController extends GetxController {
   }
 
   static const double _bettingListBottomThreshold = 1.5;
+  static const double _bettingHistoryPrefetchExtent = JiShuQiState.bettingTableRowHeight * 8;
 
   bool _computeBettingListAtBottom() {
     if (!scrollController.hasClients) return state.isBettingListAtBottom;
@@ -290,9 +296,39 @@ class JiShuQiController extends GetxController {
 
   void _onBettingListScroll() {
     final atBottom = _computeBettingListAtBottom();
-    if (atBottom == state.isBettingListAtBottom) return;
-    state.isBettingListAtBottom = atBottom;
+    if (atBottom != state.isBettingListAtBottom) {
+      state.isBettingListAtBottom = atBottom;
+      update();
+    }
+    if (_bettingListUserDragActive) {
+      _maybeLoadBettingHistorySilently();
+    }
+  }
+
+  void _maybeLoadBettingHistorySilently() {
+    if (_isLoadingBettingHistory ||
+        _didRequestBettingHistoryDuringCurrentDrag ||
+        !_hasMoreBettingHistory ||
+        state.betRecordList.isEmpty ||
+        !scrollController.hasClients) {
+      return;
+    }
+    final extentBefore = scrollController.position.extentBefore;
+    if (!extentBefore.isFinite || extentBefore > _bettingHistoryPrefetchExtent) return;
+    _didRequestBettingHistoryDuringCurrentDrag = true;
+    unawaited(_loadBettingHistorySilently());
+  }
+
+  Future<void> _loadBettingHistorySilently() async {
+    if (_isLoadingBettingHistory || !_hasMoreBettingHistory) return;
+    _isLoadingBettingHistory = true;
     update();
+    try {
+      await onLoadMore();
+    } finally {
+      _isLoadingBettingHistory = false;
+      update();
+    }
   }
 
   void _syncBettingListAtBottom({bool? atBottom}) {
@@ -383,6 +419,7 @@ class JiShuQiController extends GetxController {
   /// 列表真实拖动会暂停旧的自动滚动，但在确认离开底部前仍保留键盘会话的粘底意图。
   void onBettingListUserDragStart() {
     _bettingListUserDragActive = true;
+    _didRequestBettingHistoryDuringCurrentDrag = false;
     cancelPendingBettingListAutoScroll();
   }
 
@@ -391,10 +428,12 @@ class JiShuQiController extends GetxController {
     _keepBettingListPinnedDuringKeyboard =
         _lastKeyboardInset > 0 && _computeBettingListAtBottom();
     cancelPendingBettingListAutoScroll();
+    _maybeLoadBettingHistorySilently();
   }
 
   void onBettingListUserDragEnd() {
     if (!_bettingListUserDragActive) return;
+    _maybeLoadBettingHistorySilently();
     _bettingListUserDragActive = false;
     _keepBettingListPinnedDuringKeyboard =
         _lastKeyboardInset > 0 && _computeBettingListAtBottom();
@@ -529,8 +568,8 @@ class JiShuQiController extends GetxController {
     unawaited(tryEnsure());
   }
 
-  /// 顶部插入历史行后恢复视口：用固定行高累计增量（避免 LazyList / EasyRefresh 回弹时 maxScrollExtent 不准）。
-  /// 下拉刷新时 [keptPixels] 可能为负，按 0 处理。
+  /// 顶部插入历史行后恢复视口：用固定行高累计增量，避免 LazyList 重新布局时视口跳动。
+  /// 用户越界拖动时 [keptPixels] 可能为负，按 0 处理。
   void _schedulePreserveScrollAfterPrepend(double keptPixels, int insertedCount) {
     if (insertedCount <= 0 || !keptPixels.isFinite) return;
     final delta = JiShuQiState.bettingTableRowHeight * insertedCount;
@@ -547,7 +586,7 @@ class JiShuQiController extends GetxController {
       apply();
       WidgetsBinding.instance.addPostFrameCallback((_) => apply());
     });
-    // EasyRefresh 收起头部时还会改一次 offset，晚一点再对齐
+    // 等待 LazyList 完成后续布局后再校正两次。
     Future.delayed(const Duration(milliseconds: 320), apply);
     Future.delayed(const Duration(milliseconds: 560), apply);
   }
@@ -890,7 +929,6 @@ class JiShuQiController extends GetxController {
           }
         },
         failed: (p0, p1) {
-          refreshcontroller.finishRefresh(IndicatorResult.fail);
           state.isCanPress = true;
           if (!completer.isCompleted) {
             completer.completeError(p0);
@@ -1863,7 +1901,7 @@ class JiShuQiController extends GetxController {
     refreshStatsArea();
   }
 
-  //加载更多
+  // 静默加载更多历史记录
   Future<int> onLoadMore({
     int count = 250,
     bool preserveViewport = true,
@@ -1872,20 +1910,31 @@ class JiShuQiController extends GetxController {
     // id 为 null 时 Dio 会发出 last_id= 无值，后端会走错分支；空列表用 -1。
     // 与后端 LoadMore 一致：数据为 created_at 升序，分页游标为当前已加载中最旧一条（first）的 id。
     final anchorId = state.betRecordList.isEmpty ? -1 : (state.betRecordList.first.id ?? -1);
+    var networkLoadingVisible = true;
+    void dismissNetworkLoading() {
+      if (!networkLoadingVisible) return;
+      networkLoadingVisible = false;
+      BXLoading.dismiss();
+    }
+
+    // 保留列表顶部的小 Loading，同时显示项目统一的抖音双球网络 Loading。
+    BXLoading.show(douyinStyle: true);
     BXGet<JsqBetRecordModel>(Api.loadMore,
         params: {"last_id": anchorId, "uid": GetStore.getInstance().userModel.userId, "c": count}, //"c"每页多少个数据
+        isShowLoading: false,
+        showError: false,
         success: (isSuccess, code, message, results) {
+          dismissNetworkLoading();
           if (!isSuccess) {
-            refreshcontroller.finishRefresh(IndicatorResult.fail, true);
             if (!completer.isCompleted) completer.complete(0);
             return;
           }
 
           if (results.isEmpty) {
+            _hasMoreBettingHistory = false;
             if (state.betRecordList.isEmpty) {
               update();
             }
-            refreshcontroller.finishRefresh(IndicatorResult.noMore, true);
             if (!completer.isCompleted) completer.complete(0);
             return;
           }
@@ -1896,11 +1945,7 @@ class JiShuQiController extends GetxController {
               keptPixels = scrollController.position.pixels;
             }
             state.betRecordList.insertAll(0, results);
-            if (!state.isBigRoad) {
-              _getLineCharts(applyStatsTail: true);
-            }
             update();
-            refreshcontroller.finishRefresh(IndicatorResult.success, true);
             if (preserveViewport && keptPixels != null) {
               _schedulePreserveScrollAfterPrepend(keptPixels, results.length);
             }
@@ -1908,7 +1953,7 @@ class JiShuQiController extends GetxController {
           if (!completer.isCompleted) completer.complete(results.length);
         },
         failed: (_, __) {
-          refreshcontroller.finishRefresh(IndicatorResult.fail, true);
+          dismissNetworkLoading();
           if (!completer.isCompleted) completer.complete(0);
         },
         onModel: (m) => JsqBetRecordModel.fromJson(m));
