@@ -1,5 +1,6 @@
 // ignore_for_file: prefer_const_constructors
 import 'dart:io';
+import 'dart:math' as math;
 
 import 'package:easy_refresh/easy_refresh.dart';
 import 'package:fl_chart/fl_chart.dart';
@@ -116,22 +117,45 @@ class JiShuQiView extends GetView<JiShuQiController> {
   /// 「今日目标」、Y 轴刻度与屏幕左缘的统一留白
   static const double _contentLeftInset = 5;
 
-  /// 轴标列与绘图区 / 进度条间距（与 SideTitleWidget space 一致）
-  static const double _chartLeftAxisLabelGap = 2;
+  /// 「今日目标」与进度条间距
+  static const double _topBarLabelProgressGap = 2;
 
-  /// 轴标列宽（与 fl_chart leftTitles.reservedSize 一致，按最宽刻度估算）
-  double _yAxisLabelColumnWidth(TextStyle axisStyle) {
-    const probe = '888.8k';
+  /// Y 轴刻度列与折线绘图区间隙（SideTitleWidget.space）
+  static const double _chartAxisToPlotGap = 3;
+
+  double _measureAxisTextWidth(String text, TextStyle style) {
     final painter = TextPainter(
-      text: TextSpan(text: probe, style: axisStyle),
+      text: TextSpan(text: text, style: style),
       textDirection: TextDirection.ltr,
       maxLines: 1,
     )..layout();
     return painter.width;
   }
 
-  double _yAxisTitlesReservedWidth(TextStyle axisStyle) =>
-      _yAxisLabelColumnWidth(axisStyle) + _chartLeftAxisLabelGap;
+  /// 无折线上下文时的列宽兜底（大路图昵称等）
+  double _yAxisLabelColumnWidth(TextStyle axisStyle) =>
+      _measureAxisTextWidth('888.8k', axisStyle);
+
+  /// 与 SideTitles（min/maxIncluded: false + interval）一致，遍历会绘制的刻度取最宽
+  double _yAxisLabelColumnWidthForChart(
+    TextStyle axisStyle, {
+    required double chartMinY,
+    required double chartMaxY,
+    required double yAxisInterval,
+  }) {
+    if (!yAxisInterval.isFinite || yAxisInterval <= 0) {
+      return _yAxisLabelColumnWidth(axisStyle);
+    }
+    var maxW = 0.0;
+    for (var y = chartMinY + yAxisInterval; y < chartMaxY; y += yAxisInterval) {
+      maxW = math.max(maxW, _measureAxisTextWidth(_formatValue(y), axisStyle));
+    }
+    if (maxW <= 0) return _yAxisLabelColumnWidth(axisStyle);
+    return maxW + 2; // 避免末位字符（如 -200）贴边被裁
+  }
+
+  double _yAxisTitlesReservedWidth(TextStyle axisStyle, {double? labelColumnWidth}) =>
+      (labelColumnWidth ?? _yAxisLabelColumnWidth(axisStyle)) + _chartAxisToPlotGap;
 
   double _plotAreaLeftFromScreen(TextStyle axisStyle) =>
       _contentLeftInset + _yAxisTitlesReservedWidth(axisStyle);
@@ -1045,7 +1069,7 @@ class JiShuQiView extends GetView<JiShuQiController> {
                       overflow: TextOverflow.clip,
                       style: axisStyle,
                     ),
-                    const SizedBox(width: _chartLeftAxisLabelGap),
+                    const SizedBox(width: _topBarLabelProgressGap),
                     Expanded(
                       child: DailyGoalProgressBar(
                         progress: controller.todayBetProgressFraction,
@@ -1227,8 +1251,16 @@ class JiShuQiView extends GetView<JiShuQiController> {
                           final chartMinY = tickMinY - axisPadding;
                           final chartMaxY = tickMaxY + axisPadding;
                           final axisStyle = _chartAxisLikeTextStyle(controller);
-                          final yAxisColW = _yAxisLabelColumnWidth(axisStyle);
-                          final yAxisReserved = _yAxisTitlesReservedWidth(axisStyle);
+                          final yAxisColW = _yAxisLabelColumnWidthForChart(
+                            axisStyle,
+                            chartMinY: chartMinY,
+                            chartMaxY: chartMaxY,
+                            yAxisInterval: yAxisInterval,
+                          );
+                          final yAxisReserved = _yAxisTitlesReservedWidth(
+                            axisStyle,
+                            labelColumnWidth: yAxisColW,
+                          );
 
                           return Stack(
                             clipBehavior: Clip.none,
@@ -1282,19 +1314,20 @@ class JiShuQiView extends GetView<JiShuQiController> {
                                     maxIncluded: false,
                                     interval: yAxisInterval,
                                     getTitlesWidget: (value, meta) {
-                                      // 列宽贴刻度文字，避免绘图区与轴标之间大块空白
+                                      // 子组件宽度须等于 reservedSize，SideTitleWidget 才不会把刻度整体右移；
+                                      // 列内左对齐，与顶栏「今日目标」同起点。
                                       return SideTitleWidget(
                                         meta: meta,
-                                        space: _chartLeftAxisLabelGap,
+                                        space: _chartAxisToPlotGap,
                                         fitInside: SideTitleFitInsideData.fromTitleMeta(meta, distanceFromEdge: 2),
-                                        child: SizedBox(
-                                          width: yAxisColW,
+                                        child: Container(
+                                          width: yAxisReserved,
+                                          alignment: Alignment.centerLeft,
                                           child: Text(
                                             _formatValue(value),
                                             maxLines: 1,
                                             softWrap: false,
-                                            overflow: TextOverflow.clip,
-                                            textAlign: TextAlign.left,
+                                            overflow: TextOverflow.visible,
                                             style: axisStyle,
                                           ),
                                         ),
@@ -1401,7 +1434,7 @@ class JiShuQiView extends GetView<JiShuQiController> {
                             ),
                           ),
                               Positioned(
-                                left: _plotAreaLeftFromScreen(axisStyle),
+                                left: _contentLeftInset + yAxisReserved,
                                 top: _chartNicknameTop,
                                 right: 36,
                                 child: IgnorePointer(
