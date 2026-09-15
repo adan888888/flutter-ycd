@@ -856,6 +856,15 @@ class JiShuQiController extends GetxController {
 
   _next(int min, int max) => min + Random().nextInt(max - min + 1);
 
+  /// 服务端按 id 降序只返回当前有效配置；本地列表最多保留 1 条。
+  void _applyOperationRecordsFromServer(List<JsqOperationRecordModel> fetched) {
+    if (fetched.isEmpty) {
+      state.operationRecordList = [];
+      return;
+    }
+    state.operationRecordList = [fetched.last];
+  }
+
   Future<void> _queryOperationRecords({
     bool isShowLoading = false,
     bool showError = true,
@@ -865,9 +874,8 @@ class JiShuQiController extends GetxController {
         isShowLoading: isShowLoading,
         showError: showError,
         success: (isSuccess, code, message, value) {
-          state.operationRecordList.clear();
-          if (value.isNotEmpty) {
-            state.operationRecordList = value;
+          _applyOperationRecordsFromServer(value);
+          if (state.operationRecordList.isNotEmpty) {
             state.totalValue[0] = '${state.operationRecordList.last.benjin}'; //本金
             state.totalValue[19] = '${state.operationRecordList.last.mean}'; //期望值
             // 折线形状必须由 [_getLineCharts]（投注记录末尾或 linechartData）提供；此处若用本金铺满 75 点，
@@ -1213,7 +1221,7 @@ class JiShuQiController extends GetxController {
       success: (isSuccess, code, message, value) {
         BXLoading.dismiss();
         if (isSuccess) {
-          state.operationRecordList = value;
+          _applyOperationRecordsFromServer(value);
           state.betRecordList = state.betRecordList.map((element) => element..shuyingzhiXiaoshu = null).toList();
           if (snapshot.isNotEmpty && state.betRecordList.isNotEmpty) {
             state.betRecordList.last.restartStatSnapshot = snapshot;
@@ -1595,6 +1603,9 @@ class JiShuQiController extends GetxController {
         state.selectIndex = 12;
         update();
         break;
+      case 13: //按时间自动亮/暗主题
+        toggleThemeFollowsTime();
+        break;
     }
   }
 
@@ -1697,6 +1708,7 @@ class JiShuQiController extends GetxController {
       BXLoading.syncTheme(state.isDarkMode);
     }
     _scheduleDayNightThemeTick();
+    DayNightTheme.applySystemUiOverlayStyle(state.isDarkMode);
   }
 
   void _applyThemeFromClock({bool silent = false}) {
@@ -1704,6 +1716,7 @@ class JiShuQiController extends GetxController {
     if (state.isDarkMode == dark) return;
     state.isDarkMode = dark;
     BXLoading.syncTheme(dark);
+    DayNightTheme.applySystemUiOverlayStyle(dark);
     update();
     if (!silent) {
       BXLoading.showToast(dark ? '已切换为夜间模式' : '已切换为白天模式');
@@ -1737,6 +1750,21 @@ class JiShuQiController extends GetxController {
     _applyThemeFromClock();
     _scheduleDayNightThemeTick();
     BXLoading.showToast('已开启按时间自动切换主题');
+    update();
+  }
+
+  /// 更多功能：开/关按时间自动主题
+  void toggleThemeFollowsTime() {
+    dismissKeyboard();
+    if (state.themeFollowsTime) {
+      state.themeFollowsTime = false;
+      unawaited(StorageUtil.saveBool(JiShuQiState.prefThemeFollowsTime, false));
+      _dayNightThemeTimer?.cancel();
+      BXLoading.showToast('已关闭自动主题');
+      update();
+      return;
+    }
+    enableThemeFollowsTime();
   }
 
   /// 切换暗黑主题（手动后不再跟随时间，长按主题图标可恢复自动）
@@ -1747,6 +1775,7 @@ class JiShuQiController extends GetxController {
     _dayNightThemeTimer?.cancel();
     state.isDarkMode = !state.isDarkMode;
     BXLoading.syncTheme(state.isDarkMode);
+    DayNightTheme.applySystemUiOverlayStyle(state.isDarkMode);
     update();
   }
 

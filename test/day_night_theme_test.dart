@@ -1,3 +1,4 @@
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ycd/utils/day_night_theme.dart';
 
@@ -22,5 +23,17 @@ void main() {
   test('next boundary from before dawn', () {
     final now = DateTime(2026, 9, 15, 3, 0);
     expect(DayNightTheme.nextBoundaryAfter(now), DateTime(2026, 9, 15, 6));
+  });
+
+  test('light page: dark Android icons, iOS statusBarBrightness light', () {
+    final style = DayNightTheme.systemUiOverlayStyle(false);
+    expect(style.statusBarIconBrightness, Brightness.dark);
+    expect(style.statusBarBrightness, Brightness.light);
+  });
+
+  test('dark page: light Android icons, iOS statusBarBrightness dark', () {
+    final style = DayNightTheme.systemUiOverlayStyle(true);
+    expect(style.statusBarIconBrightness, Brightness.light);
+    expect(style.statusBarBrightness, Brightness.dark);
   });
 }

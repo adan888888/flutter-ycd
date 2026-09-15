@@ -1,3 +1,6 @@
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+
 /// 按本地时间区分白天（亮色）与夜间（暗色）。
 class DayNightTheme {
   DayNightTheme._();
@@ -25,5 +28,25 @@ class DayNightTheme {
       return dayStart.add(const Duration(days: 1));
     }
     return nightStart;
+  }
+
+  /// 透明状态栏 + 与页面亮/暗匹配的系统图标（时间、电量等）。
+  ///
+  /// Android 看 [statusBarIconBrightness]；iOS 看 [statusBarBrightness]（与 icon 字段独立，勿混用 preset 整包）。
+  static SystemUiOverlayStyle systemUiOverlayStyle(bool isDarkMode) {
+    final iconBrightness = isDarkMode ? Brightness.light : Brightness.dark;
+    return SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      systemNavigationBarColor: Colors.transparent,
+      systemNavigationBarDividerColor: Colors.transparent,
+      statusBarIconBrightness: iconBrightness,
+      systemNavigationBarIconBrightness: iconBrightness,
+      // 与 [SystemUiOverlayStyle.dark]/[.light] 一致：亮底 → light，暗底 → dark
+      statusBarBrightness: isDarkMode ? Brightness.dark : Brightness.light,
+    );
+  }
+
+  static void applySystemUiOverlayStyle(bool isDarkMode) {
+    SystemChrome.setSystemUIOverlayStyle(systemUiOverlayStyle(isDarkMode));
   }
 }

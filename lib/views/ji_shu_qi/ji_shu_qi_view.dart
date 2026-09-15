@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:ycd/my_widget/baccarat_big_road_widget.dart';
+import 'package:ycd/utils/day_night_theme.dart';
 import 'package:ycd/utils/network/get_store.dart';
 
 import '../../my_widget/daily_goal_progress_bar.dart';
@@ -112,10 +113,57 @@ class JiShuQiInputTouchGuard extends StatelessWidget {
 class JiShuQiView extends GetView<JiShuQiController> {
   const JiShuQiView({super.key});
 
-  /// 与折线图 leftTitles.reservedSize 一致（需容纳「今日目标」四字 + 17.3k 类刻度）
-  static const double _chartLeftAxisReserved = 48;
+  /// 「今日目标」、Y 轴刻度与屏幕左缘的统一留白
+  static const double _contentLeftInset = 5;
+
+  /// 轴标列与绘图区 / 进度条间距（与 SideTitleWidget space 一致）
+  static const double _chartLeftAxisLabelGap = 2;
+
+  /// 轴标列宽（与 fl_chart leftTitles.reservedSize 一致，按最宽刻度估算）
+  double _yAxisLabelColumnWidth(TextStyle axisStyle) {
+    const probe = '888.8k';
+    final painter = TextPainter(
+      text: TextSpan(text: probe, style: axisStyle),
+      textDirection: TextDirection.ltr,
+      maxLines: 1,
+    )..layout();
+    return painter.width;
+  }
+
+  double _yAxisTitlesReservedWidth(TextStyle axisStyle) =>
+      _yAxisLabelColumnWidth(axisStyle) + _chartLeftAxisLabelGap;
+
+  double _plotAreaLeftFromScreen(TextStyle axisStyle) =>
+      _contentLeftInset + _yAxisTitlesReservedWidth(axisStyle);
 
   static const double _actionButtonsHeight = 35;
+
+  static const double _topToolBarHeight = 24;
+
+  /// 今日目标/进度条区域与右侧主题/锁/编辑图标间距
+  static const double _topBarTrailingIconsGap = 8;
+
+  static const double _chartBelowToolbarGap = 5;
+
+  static const double _lineChartPlotHeight = 120;
+
+  /// 大路顶栏「长龙 / 图例」行（fontSize 13）约高
+  static const double _bigRoadLegendRowHeight = 19;
+
+  static const double _bigRoadBottomInset = 2;
+
+  static const int _bigRoadVisibleRows = 6;
+
+  /// 顶栏以下、统计区以上的图表块高度（含与统计区间距 5）
+  double _chartBlockBelowToolbarHeight({required bool isBigRoad}) {
+    if (isBigRoad) {
+      return _bigRoadLegendRowHeight +
+          JiShuQiState.cellWidth * _bigRoadVisibleRows +
+          _bigRoadBottomInset +
+          _chartBelowToolbarGap;
+    }
+    return _lineChartPlotHeight + _chartBelowToolbarGap;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -126,7 +174,11 @@ class JiShuQiView extends GetView<JiShuQiController> {
       onPointerDown: (PointerDownEvent event) => controller.onUserInteraction(),
       onPointerMove: (event) => controller.onUserInteraction(),
       child: GetBuilder<JiShuQiController>(
-        builder: (controller) => Scaffold(
+        builder: (controller) {
+          final overlay = DayNightTheme.systemUiOverlayStyle(controller.state.isDarkMode);
+          return AnnotatedRegion<SystemUiOverlayStyle>(
+            value: overlay,
+            child: Scaffold(
           backgroundColor: controller.state.currentBgColor,
           resizeToAvoidBottomInset: false,
           floatingActionButtonLocation: JiShuQiKeyboardAwareFabLocation(
@@ -220,7 +272,7 @@ class JiShuQiView extends GetView<JiShuQiController> {
                                     _buildTopToolBar(c, showChart: showChart),
                                     if (!keyboardOpen && showChart) ...[
                                       _buildLineChats(),
-                                      const SizedBox(height: 5),
+                                      const SizedBox(height: _chartBelowToolbarGap),
                                     ],
                                     SizedBox(
                                       height: statsHeight,
@@ -500,6 +552,8 @@ class JiShuQiView extends GetView<JiShuQiController> {
             ),
           ),
         ),
+          );
+        },
       ),
     );
   }
@@ -916,9 +970,9 @@ class JiShuQiView extends GetView<JiShuQiController> {
     required bool keyboardOpen,
     required bool isBigRoad,
   }) {
-    var h = 24.0;
+    var h = _topToolBarHeight;
     if (showChart && !keyboardOpen) {
-      h += isBigRoad ? 95.0 : 129.0; // 折线 120 + 间距 5 + 顶栏 24 以外部分
+      h += _chartBlockBelowToolbarHeight(isBigRoad: isBigRoad);
     }
     return h;
   }
@@ -969,12 +1023,14 @@ class JiShuQiView extends GetView<JiShuQiController> {
     final iconColor = controller.state.isDarkMode ? Colors.white : Colors.black87;
     return ColoredBox(
       color: _topBarBackground(controller, showChart: showChart),
-      child: SizedBox(
-        height: 24,
-        child: Row(
-          children: [
-            Expanded(
-              child: GestureDetector(
+      child: Padding(
+        padding: const EdgeInsets.only(left: _contentLeftInset),
+        child: SizedBox(
+          height: _topToolBarHeight,
+          child: Row(
+            children: [
+              Expanded(
+                child: GestureDetector(
                 onTap: () {
                   controller.dismissKeyboard();
                   controller.showDailyBetGoalEditor();
@@ -982,21 +1038,14 @@ class JiShuQiView extends GetView<JiShuQiController> {
                 behavior: HitTestBehavior.opaque,
                 child: Row(
                   children: [
-                    SizedBox(
-                      width: _chartLeftAxisReserved,
-                      child: FittedBox(
-                        fit: BoxFit.scaleDown,
-                        alignment: Alignment.centerRight,
-                        child: Text(
-                          '今日目标',
-                          maxLines: 1,
-                          softWrap: false,
-                          textAlign: TextAlign.right,
-                          style: axisStyle,
-                        ),
-                      ),
+                    Text(
+                      '今日目标',
+                      maxLines: 1,
+                      softWrap: false,
+                      overflow: TextOverflow.clip,
+                      style: axisStyle,
                     ),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: _chartLeftAxisLabelGap),
                     Expanded(
                       child: DailyGoalProgressBar(
                         progress: controller.todayBetProgressFraction,
@@ -1013,14 +1062,11 @@ class JiShuQiView extends GetView<JiShuQiController> {
                 ),
               ),
             ),
+            const SizedBox(width: _topBarTrailingIconsGap),
             GestureDetector(
               onTap: () {
                 controller.dismissKeyboard();
                 controller.toggleDarkMode();
-              },
-              onLongPress: () {
-                controller.dismissKeyboard();
-                controller.enableThemeFollowsTime();
               },
               child: Icon(
                 controller.state.isDarkMode ? Icons.light_mode : Icons.dark_mode,
@@ -1043,7 +1089,8 @@ class JiShuQiView extends GetView<JiShuQiController> {
               child: Icon(Icons.edit, size: 20, color: iconColor),
             ),
             const SizedBox(width: 10),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -1140,7 +1187,7 @@ class JiShuQiView extends GetView<JiShuQiController> {
                       ],
                     ),
                         Positioned(
-                          left: _chartLeftAxisReserved + 8,
+                          left: _plotAreaLeftFromScreen(_chartAxisLikeTextStyle(controller)),
                           top: _chartNicknameTop,
                           right: 96,
                           child: IgnorePointer(
@@ -1153,10 +1200,15 @@ class JiShuQiView extends GetView<JiShuQiController> {
                 : const Text('暂无数据📊'))
             : (controller.state.chartData.isNotEmpty
                 ? SizedBox(
-                    height: 120,
+                    height: _lineChartPlotHeight,
                     child: Container(
                       color: controller.state.currentChartBgColor,
-                      padding: const EdgeInsets.only(top: 8.0, right: 0.0, bottom: 8.0), // 去掉左边内边距
+                      padding: const EdgeInsets.only(
+                        top: 8.0,
+                        right: 0.0,
+                        bottom: 8.0,
+                        left: _contentLeftInset,
+                      ),
                       child: Builder(
                         builder: (context) {
                           final dataValues = controller.state.chartData.map((e) => e.sales).toList();
@@ -1172,6 +1224,9 @@ class JiShuQiView extends GetView<JiShuQiController> {
                           final axisPadding = yAxisInterval / 2;
                           final chartMinY = tickMinY - axisPadding;
                           final chartMaxY = tickMaxY + axisPadding;
+                          final axisStyle = _chartAxisLikeTextStyle(controller);
+                          final yAxisColW = _yAxisLabelColumnWidth(axisStyle);
+                          final yAxisReserved = _yAxisTitlesReservedWidth(axisStyle);
 
                           return Stack(
                             clipBehavior: Clip.none,
@@ -1219,28 +1274,26 @@ class JiShuQiView extends GetView<JiShuQiController> {
                                 leftTitles: AxisTitles(
                                   sideTitles: SideTitles(
                                     showTitles: true,
-                                    reservedSize: _chartLeftAxisReserved,
+                                    reservedSize: yAxisReserved,
                                     // 最低值、中间值、最高值固定为三个内部刻度，避免边界标签重叠。
                                     minIncluded: false,
                                     maxIncluded: false,
                                     interval: yAxisInterval,
                                     getTitlesWidget: (value, meta) {
+                                      // 列宽贴刻度文字，避免绘图区与轴标之间大块空白
                                       return SideTitleWidget(
                                         meta: meta,
-                                        space: 8,
+                                        space: _chartLeftAxisLabelGap,
                                         fitInside: SideTitleFitInsideData.fromTitleMeta(meta, distanceFromEdge: 2),
-                                        child: Text(
-                                          _formatValue(value),
-                                          maxLines: 1,
-                                          softWrap: false,
-                                          overflow: TextOverflow.clip,
-                                          textAlign: TextAlign.right,
-                                          style: TextStyle(
-                                            color: controller.state.isDarkMode
-                                                ? controller.state.darkTextColor
-                                                : Colors.black87,
-                                            fontSize: 9,
-                                            fontWeight: FontWeight.w600,
+                                        child: SizedBox(
+                                          width: yAxisColW,
+                                          child: Text(
+                                            _formatValue(value),
+                                            maxLines: 1,
+                                            softWrap: false,
+                                            overflow: TextOverflow.clip,
+                                            textAlign: TextAlign.left,
+                                            style: axisStyle,
                                           ),
                                         ),
                                       );
@@ -1346,7 +1399,7 @@ class JiShuQiView extends GetView<JiShuQiController> {
                             ),
                           ),
                               Positioned(
-                                left: _chartLeftAxisReserved + 8,
+                                left: _plotAreaLeftFromScreen(axisStyle),
                                 top: _chartNicknameTop,
                                 right: 36,
                                 child: IgnorePointer(

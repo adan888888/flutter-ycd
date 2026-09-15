@@ -46,6 +46,7 @@ class _MoreFunctionsDialogState extends State<MoreFunctionsDialog> {
     9,
     11,
     12,
+    13,
     4,
     10,
   ];
@@ -64,6 +65,7 @@ class _MoreFunctionsDialogState extends State<MoreFunctionsDialog> {
     Icons.logout_rounded,
     Icons.format_list_numbered_rounded,
     Icons.swap_horiz_rounded,
+    Icons.brightness_auto_rounded,
   ];
 
   static const _descriptions = <String>[
@@ -80,6 +82,7 @@ class _MoreFunctionsDialogState extends State<MoreFunctionsDialog> {
     '退出当前账号并返回登录页',
     '显示或隐藏投注记录序号',
     '切换红色与绿色的输赢含义',
+    '6:00–18:00 亮色，其余暗色；关闭后仅手动切换主题',
   ];
 
   static const _accentColors = <Color>[
@@ -96,6 +99,7 @@ class _MoreFunctionsDialogState extends State<MoreFunctionsDialog> {
     Color(0xFFE35D5D),
     Color(0xFF478BE6),
     Color(0xFF38B8AA),
+    Color(0xFF6677D9),
   ];
 
   String _displayTitle(String value) {

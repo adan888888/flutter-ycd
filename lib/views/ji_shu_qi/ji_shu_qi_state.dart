@@ -196,6 +196,7 @@ class JiShuQiState {
   var chartData /*图表数据*/ = <LineChartDataModel>[];
 
   // List<SalesData> chartData/*图表数据*/ = List.generate(70, (index) =>SalesData(index.toString(),Random().nextInt(1).toDouble() )).toList().obs;
+  /// 仅缓存服务端「最新一条」操作记录（GET /jsq/operation-records 返回 0~1 条）。
   var operationRecordList = <JsqOperationRecordModel>[];
 
   var betRecordList = <JsqBetRecordModel>[];
@@ -215,6 +216,7 @@ class JiShuQiState {
         '11.退出程序',
         isSeqVisible ? '12.隐藏序号' : '12.显示序号',
         isRedWinGreenLose ? '13.红输绿赢' : '13.红赢绿输',
+        themeFollowsTime ? '14.关闭自动主题' : '14.开启自动主题',
       ];
   var description = [
     {"本金", "总局数", "回合局数", "流水"},
