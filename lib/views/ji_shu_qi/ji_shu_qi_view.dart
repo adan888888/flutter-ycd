@@ -115,6 +115,8 @@ class JiShuQiView extends GetView<JiShuQiController> {
   /// 与折线图 leftTitles.reservedSize 一致（需容纳「今日目标」四字 + 17.3k 类刻度）
   static const double _chartLeftAxisReserved = 48;
 
+  static const double _actionButtonsHeight = 35;
+
   @override
   Widget build(BuildContext context) {
     final keyboardInset = MediaQuery.viewInsetsOf(context).bottom;
@@ -188,18 +190,47 @@ class JiShuQiView extends GetView<JiShuQiController> {
                   final keyboardOpen = keyboardInset > 0;
                   final showChart = controller.state.isChartVisible;
 
-                  Widget buildStatsArea() {
-                    return GetBuilder<JiShuQiController>(
-                      builder: (c) => SizedBox(
-                        height: JiShuQiState.statsAreaHeight,
-                        child: EasyRefresh(
+                  /// 顶栏 + 图表 + 统计 + 按钮区一体下拉刷新（逻辑仍为 refreshStatsArea）
+                  Widget buildHeaderRefreshSection() {
+                    final chartPartHeight = _chartRefreshSectionHeight(
+                      showChart: showChart,
+                      keyboardOpen: keyboardOpen,
+                      isBigRoad: controller.state.isBigRoad,
+                    );
+                    const statsHeight = JiShuQiState.statsAreaHeight;
+                    final totalHeight =
+                        chartPartHeight + statsHeight + _actionButtonsHeight;
+
+                    return SizedBox(
+                      height: totalHeight,
+                      child: GetBuilder<JiShuQiController>(
+                        builder: (c) => EasyRefresh(
                           controller: c.statsRefreshController,
                           header: c.state.pullRefreshHeader(backgroundColor: c.state.currentBgColor),
                           onRefresh: c.refreshStatsArea,
                           child: ListView(
                             padding: EdgeInsets.zero,
                             physics: const AlwaysScrollableScrollPhysics(),
-                            children: [_buildStatsTable(c)],
+                            children: [
+                              SizedBox(
+                                height: totalHeight,
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                                  children: [
+                                    _buildTopToolBar(c, showChart: showChart),
+                                    if (!keyboardOpen && showChart) ...[
+                                      _buildLineChats(),
+                                      const SizedBox(height: 5),
+                                    ],
+                                    SizedBox(
+                                      height: statsHeight,
+                                      child: _buildStatsTable(c),
+                                    ),
+                                    _buildActionButtonsRow(c),
+                                  ],
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ),
@@ -211,60 +242,10 @@ class JiShuQiView extends GetView<JiShuQiController> {
                       Column(
                         mainAxisAlignment: MainAxisAlignment.start,
                         children: <Widget>[
-                          _buildTopToolBar(controller, showChart: showChart),
-                          Offstage(
-                            offstage: keyboardOpen || !showChart,
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                _buildLineChats(),
-                                const SizedBox(height: 5),
-                              ],
-                            ),
-                          ),
                           GestureDetector(
                             behavior: HitTestBehavior.deferToChild,
                             onTap: controller.dismissKeyboard,
-                            child: buildStatsArea(),
-                          ),
-                          //按钮功能区
-                          SizedBox(
-                            height: 35,
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 4),
-                              child: Row(
-                                children: [
-                                  _buildButton(controller.state.buttonPositiveBgColor, "P+", 1),
-                                  _divier2(controller.state.currentTextColor, 38),
-                                  _buildButton(controller.state.buttonPositiveBgColor, "B+", 2),
-                                  _divier2(controller.state.currentTextColor, 38),
-                                  _buildButton(controller.state.buttonNegativeBgColor, "P-", 3),
-                                  _divier2(controller.state.currentTextColor, 38),
-                                  _buildButton(controller.state.buttonNegativeBgColor, "B-", 4),
-                                  _divier2(controller.state.currentTextColor, 38),
-                                  Expanded(
-                                    child: Semantics(
-                                      button: true,
-                                      label: '重启回合',
-                                      hint: '长按打开更多功能',
-                                      child: GestureDetector(
-                                        key: const ValueKey('restart-round-button'),
-                                        behavior: HitTestBehavior.opaque,
-                                        onTap: controller.reStart,
-                                        onLongPress: controller.showBottomFunction,
-                                        child: Center(
-                                          child: Image.asset(
-                                            'assets/images/restart3.png',
-                                            height: 35,
-                                            width: 35,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
+                            child: buildHeaderRefreshSection(),
                           ),
                           //列表
                           Expanded(
@@ -928,6 +909,59 @@ class JiShuQiView extends GetView<JiShuQiController> {
     return controller.state.isBigRoad
         ? controller.state.currentBgColor
         : controller.state.currentChartBgColor;
+  }
+
+  double _chartRefreshSectionHeight({
+    required bool showChart,
+    required bool keyboardOpen,
+    required bool isBigRoad,
+  }) {
+    var h = 24.0;
+    if (showChart && !keyboardOpen) {
+      h += isBigRoad ? 95.0 : 129.0; // 折线 120 + 间距 5 + 顶栏 24 以外部分
+    }
+    return h;
+  }
+
+  Widget _buildActionButtonsRow(JiShuQiController controller) {
+    return SizedBox(
+      height: _actionButtonsHeight,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 4),
+        child: Row(
+          children: [
+            _buildButton(controller.state.buttonPositiveBgColor, 'P+', 1),
+            _divier2(controller.state.currentTextColor, 38),
+            _buildButton(controller.state.buttonPositiveBgColor, 'B+', 2),
+            _divier2(controller.state.currentTextColor, 38),
+            _buildButton(controller.state.buttonNegativeBgColor, 'P-', 3),
+            _divier2(controller.state.currentTextColor, 38),
+            _buildButton(controller.state.buttonNegativeBgColor, 'B-', 4),
+            _divier2(controller.state.currentTextColor, 38),
+            Expanded(
+              child: Semantics(
+                button: true,
+                label: '重启回合',
+                hint: '长按打开更多功能',
+                child: GestureDetector(
+                  key: const ValueKey('restart-round-button'),
+                  behavior: HitTestBehavior.opaque,
+                  onTap: controller.reStart,
+                  onLongPress: controller.showBottomFunction,
+                  child: Center(
+                    child: Image.asset(
+                      'assets/images/restart3.png',
+                      height: _actionButtonsHeight,
+                      width: _actionButtonsHeight,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   Widget _buildTopToolBar(JiShuQiController controller, {required bool showChart}) {
