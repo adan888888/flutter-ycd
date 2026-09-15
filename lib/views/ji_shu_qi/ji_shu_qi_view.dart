@@ -11,6 +11,7 @@ import 'package:get/get.dart';
 import 'package:ycd/my_widget/baccarat_big_road_widget.dart';
 import 'package:ycd/utils/network/get_store.dart';
 
+import '../../my_widget/daily_goal_progress_bar.dart';
 import '../../my_widget/vertical_text.dart';
 import 'ji_shu_qi_controller.dart';
 import 'ji_shu_qi_state.dart';
@@ -109,9 +110,10 @@ class JiShuQiInputTouchGuard extends StatelessWidget {
 }
 
 class JiShuQiView extends GetView<JiShuQiController> {
-  const JiShuQiView({super.key, required this.title});
+  const JiShuQiView({super.key});
 
-  final String title;
+  /// 与折线图 leftTitles.reservedSize 一致（需容纳「今日目标」四字 + 17.3k 类刻度）
+  static const double _chartLeftAxisReserved = 48;
 
   @override
   Widget build(BuildContext context) {
@@ -170,70 +172,6 @@ class JiShuQiView extends GetView<JiShuQiController> {
               },
             ),
           ),
-          appBar: PreferredSize(
-            preferredSize: const Size.fromHeight(20),
-            child: GetBuilder<JiShuQiController>(
-              builder: (controller) => AppBar(
-                  // 隐藏返回键
-                  automaticallyImplyLeading: false,
-                  actions: [
-                    GestureDetector(
-                        onTap: () {
-                          controller.dismissKeyboard();
-                          controller.toggleDarkMode();
-                        },
-                        child: Icon(
-                          controller.state.isDarkMode ? Icons.light_mode : Icons.dark_mode,
-                          size: 20,
-                          color: controller.state.isDarkMode ? Colors.white : Colors.black87,
-                        )),
-                    GestureDetector(
-                        onTap: () {
-                          controller.dismissKeyboard();
-                          controller.lockScreen();
-                        },
-                        child: Icon(
-                          Icons.lock,
-                          size: 20,
-                          color: controller.state.isDarkMode ? Colors.white : Colors.black87,
-                        )),
-                    GestureDetector(
-                        onTap: () {
-                          controller.dismissKeyboard();
-                          controller.showBottomFunction();
-                        },
-                        child: Icon(
-                          Icons.edit,
-                          size: 20,
-                          color: controller.state.isDarkMode ? Colors.white : Colors.black87,
-                        )),
-                    const SizedBox(
-                      width: 10,
-                    )
-                  ],
-                  elevation: 0,
-                  toolbarHeight: 20,
-                  centerTitle: false,
-                  backgroundColor: controller.state.isBigRoad
-                      ? controller.state.currentBgColor
-                      : controller.state.currentChartBgColor,
-                  title: GestureDetector(
-                    onTap: () {
-                      controller.dismissKeyboard();
-                      controller.showDailyBetGoalEditor();
-                    },
-                    child: Text(
-                      "  $title ${GetStore.getInstance().userModel.nickname}  ${controller.todayBetProgressLabel}",
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: controller.state.isDarkMode ? controller.state.darkTextColor : Colors.black87,
-                      ),
-                    ),
-                  )),
-            ),
-          ),
           body: SafeArea(
             child: GetBuilder<JiShuQiController>(
               builder: (controller) => LayoutBuilder(
@@ -273,6 +211,7 @@ class JiShuQiView extends GetView<JiShuQiController> {
                       Column(
                         mainAxisAlignment: MainAxisAlignment.start,
                         children: <Widget>[
+                          _buildTopToolBar(controller, showChart: showChart),
                           Offstage(
                             offstage: keyboardOpen || !showChart,
                             child: Column(
@@ -974,13 +913,136 @@ class JiShuQiView extends GetView<JiShuQiController> {
     );
   }
 
+  /// 昵称在折线/图形绘制区内的顶部偏移（Y 轴最高刻度下方）
+  static const double _chartNicknameTop = 12;
+
+  TextStyle _chartAxisLikeTextStyle(JiShuQiController controller) => TextStyle(
+        fontSize: 9,
+        fontWeight: FontWeight.w600,
+        height: 1.1,
+        color: controller.state.isDarkMode ? controller.state.darkTextColor : Colors.black87,
+      );
+
+  Color _topBarBackground(JiShuQiController controller, {required bool showChart}) {
+    if (!showChart) return controller.state.currentBgColor;
+    return controller.state.isBigRoad
+        ? controller.state.currentBgColor
+        : controller.state.currentChartBgColor;
+  }
+
+  Widget _buildTopToolBar(JiShuQiController controller, {required bool showChart}) {
+    final axisStyle = _chartAxisLikeTextStyle(controller);
+    final iconColor = controller.state.isDarkMode ? Colors.white : Colors.black87;
+    return ColoredBox(
+      color: _topBarBackground(controller, showChart: showChart),
+      child: SizedBox(
+        height: 24,
+        child: Row(
+          children: [
+            Expanded(
+              child: GestureDetector(
+                onTap: () {
+                  controller.dismissKeyboard();
+                  controller.showDailyBetGoalEditor();
+                },
+                behavior: HitTestBehavior.opaque,
+                child: Row(
+                  children: [
+                    SizedBox(
+                      width: _chartLeftAxisReserved,
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        alignment: Alignment.centerRight,
+                        child: Text(
+                          '今日目标',
+                          maxLines: 1,
+                          softWrap: false,
+                          textAlign: TextAlign.right,
+                          style: axisStyle,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: DailyGoalProgressBar(
+                        progress: controller.todayBetProgressFraction,
+                        isDarkMode: controller.state.isDarkMode,
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      controller.todayBetProgressCountLabel,
+                      style: axisStyle,
+                    ),
+                    const SizedBox(width: 4),
+                  ],
+                ),
+              ),
+            ),
+            GestureDetector(
+              onTap: () {
+                controller.dismissKeyboard();
+                controller.toggleDarkMode();
+              },
+              onLongPress: () {
+                controller.dismissKeyboard();
+                controller.enableThemeFollowsTime();
+              },
+              child: Icon(
+                controller.state.isDarkMode ? Icons.light_mode : Icons.dark_mode,
+                size: 20,
+                color: iconColor,
+              ),
+            ),
+            GestureDetector(
+              onTap: () {
+                controller.dismissKeyboard();
+                controller.lockScreen();
+              },
+              child: Icon(Icons.lock, size: 20, color: iconColor),
+            ),
+            GestureDetector(
+              onTap: () {
+                controller.dismissKeyboard();
+                controller.showBottomFunction();
+              },
+              child: Icon(Icons.edit, size: 20, color: iconColor),
+            ),
+            const SizedBox(width: 10),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _chartAreaNickname(JiShuQiController controller) {
+    final name = GetStore.getInstance().userModel.nickname.trim();
+    if (name.isEmpty) return const SizedBox.shrink();
+    return Text(
+      name,
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+      style: TextStyle(
+        fontSize: 14,
+        fontWeight: FontWeight.w400,
+        height: 1.1,
+        color: controller.state.isDarkMode
+            ? controller.state.darkTextColor.withValues(alpha: 0.92)
+            : Colors.black87.withValues(alpha: 0.88),
+      ),
+    );
+  }
+
   _buildLineChats() => GetBuilder<JiShuQiController>(
         builder: (controller) => controller.state.isBigRoad
             ? (controller.state.hasBigRoadData
                 //大路子图
                 ? GestureDetector(
                     onTap: () => controller.changeChart(),
-                    child: Row(
+                    child: Stack(
+                      clipBehavior: Clip.none,
+                      children: [
+                        Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Expanded(
@@ -1043,6 +1105,16 @@ class JiShuQiView extends GetView<JiShuQiController> {
                         )
                       ],
                     ),
+                        Positioned(
+                          left: _chartLeftAxisReserved + 8,
+                          top: _chartNicknameTop,
+                          right: 96,
+                          child: IgnorePointer(
+                            child: _chartAreaNickname(controller),
+                          ),
+                        ),
+                      ],
+                    ),
                   )
                 : const Text('暂无数据📊'))
             : (controller.state.chartData.isNotEmpty
@@ -1067,7 +1139,10 @@ class JiShuQiView extends GetView<JiShuQiController> {
                           final chartMinY = tickMinY - axisPadding;
                           final chartMaxY = tickMaxY + axisPadding;
 
-                          return LineChart(
+                          return Stack(
+                            clipBehavior: Clip.none,
+                            children: [
+                              LineChart(
                             LineChartData(
                               baselineY: tickMinY,
                               backgroundColor: Colors.transparent,
@@ -1110,7 +1185,7 @@ class JiShuQiView extends GetView<JiShuQiController> {
                                 leftTitles: AxisTitles(
                                   sideTitles: SideTitles(
                                     showTitles: true,
-                                    reservedSize: 35, //离左边的距离
+                                    reservedSize: _chartLeftAxisReserved,
                                     // 最低值、中间值、最高值固定为三个内部刻度，避免边界标签重叠。
                                     minIncluded: false,
                                     maxIncluded: false,
@@ -1235,6 +1310,16 @@ class JiShuQiView extends GetView<JiShuQiController> {
                                 ),
                               ],
                             ),
+                          ),
+                              Positioned(
+                                left: _chartLeftAxisReserved + 8,
+                                top: _chartNicknameTop,
+                                right: 36,
+                                child: IgnorePointer(
+                                  child: _chartAreaNickname(controller),
+                                ),
+                              ),
+                            ],
                           );
                         },
                       ),

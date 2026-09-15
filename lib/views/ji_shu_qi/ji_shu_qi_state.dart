@@ -52,8 +52,14 @@ class JiShuQiState {
   /// 统计区固定高度（吸顶 SliverPersistentHeader）
   static const double statsAreaHeight = 145;
 
-  // 暗黑主题标志
+  /// SharedPreferences：是否按时间自动亮/暗（默认 true）
+  static const prefThemeFollowsTime = 'ji_shu_qi_theme_follows_time';
+
+  // 暗黑主题标志（进入页时会按时间或偏好初始化）
   var isDarkMode = true;
+
+  /// true：6:00–18:00 亮色，其余暗色；手动点主题图标后变为 false
+  var themeFollowsTime = true;
 
   // 图表显示标志
   var isChartVisible = true;

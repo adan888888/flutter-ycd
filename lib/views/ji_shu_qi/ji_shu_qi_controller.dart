@@ -18,6 +18,8 @@ import 'package:ycd/my_widget/custom_dialog.dart';
 import 'package:ycd/my_widget/more_functions_dialog.dart';
 import 'package:ycd/my_widget/review_approved_dialog.dart';
 import 'package:ycd/utils/bx_loading.dart';
+import 'package:ycd/utils/day_night_theme.dart';
+import 'package:ycd/utils/storage_util.dart';
 import 'package:ycd/utils/my_character.dart';
 import 'package:ycd/utils/network/api.dart';
 import 'package:ycd/utils/network/api_session_handler.dart';
@@ -49,6 +51,9 @@ class JiShuQiController extends GetxController {
 // 定义一个计时器，用于延时锁屏
   Timer? _timer;
 
+  /// 到点自动切换亮/暗色
+  Timer? _dayNightThemeTimer;
+
   final ScrollController roadMapScrollController = ScrollController(); //路子图的controller
   final AudioPlayer _diceSoundPlayer = AudioPlayer();
   bool _diceSoundAvailable = true;
@@ -59,7 +64,7 @@ class JiShuQiController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    BXLoading.syncTheme(state.isDarkMode);
+    _initDayNightTheme();
     WakelockPlus.enable();
     onUserInteraction();
     focusNode.addListener(_onInputFocusChanged);
@@ -758,6 +763,7 @@ class JiShuQiController extends GetxController {
     scrollController.removeListener(_onBettingListScroll);
     focusNode.removeListener(_onInputFocusChanged);
     _timer?.cancel();
+    _dayNightThemeTimer?.cancel();
     _diceSoundPlayer.dispose();
     statsRefreshController.dispose();
     WakelockPlus.disable();
@@ -1224,12 +1230,25 @@ class JiShuQiController extends GetxController {
     );
   }
 
+  int get todayBetGoalEffective => GetStore.getInstance().userModel.effectiveDailyBetGoal;
+
+  double get todayBetProgressFraction {
+    final goal = todayBetGoalEffective;
+    if (goal <= 0) return 0;
+    return (state.todayBetCount / goal).clamp(0.0, 1.0);
+  }
+
+  String get todayBetProgressCountLabel {
+    final goal = todayBetGoalEffective;
+    return '${state.todayBetCount}/$goal';
+  }
+
   String get todayBetProgressLabel {
-    final goal = GetStore.getInstance().userModel.effectiveDailyBetGoal;
+    final goal = todayBetGoalEffective;
     final count = state.todayBetCount;
-    if (goal <= 0) return '今日 $count';
+    if (goal <= 0) return '今日目标 $count';
     final pct = (count * 100 / goal).clamp(0, 999).toStringAsFixed(0);
-    return '今日 $count/$goal ($pct%)';
+    return '今日目标 $count/$goal ($pct%)';
   }
 
   void showDailyBetGoalEditor() {
@@ -1669,9 +1688,63 @@ class JiShuQiController extends GetxController {
         }
       });
 
-  /// 切换暗黑主题
+  void _initDayNightTheme() {
+    final stored = StorageUtil.getBool(JiShuQiState.prefThemeFollowsTime);
+    state.themeFollowsTime = stored ?? true;
+    if (state.themeFollowsTime) {
+      _applyThemeFromClock(silent: true);
+    } else {
+      BXLoading.syncTheme(state.isDarkMode);
+    }
+    _scheduleDayNightThemeTick();
+  }
+
+  void _applyThemeFromClock({bool silent = false}) {
+    final dark = DayNightTheme.isDarkPeriod(DateTime.now());
+    if (state.isDarkMode == dark) return;
+    state.isDarkMode = dark;
+    BXLoading.syncTheme(dark);
+    update();
+    if (!silent) {
+      BXLoading.showToast(dark ? '已切换为夜间模式' : '已切换为白天模式');
+    }
+  }
+
+  void _scheduleDayNightThemeTick() {
+    _dayNightThemeTimer?.cancel();
+    if (!state.themeFollowsTime) return;
+    final now = DateTime.now();
+    final next = DayNightTheme.nextBoundaryAfter(now);
+    var wait = next.difference(now);
+    if (wait.isNegative || wait.inMilliseconds < 500) {
+      wait = const Duration(seconds: 1);
+    } else {
+      wait = wait + const Duration(seconds: 1);
+    }
+    _dayNightThemeTimer = Timer(wait, () {
+      if (state.themeFollowsTime) {
+        _applyThemeFromClock();
+      }
+      _scheduleDayNightThemeTick();
+    });
+  }
+
+  /// 恢复按时间自动亮/暗
+  void enableThemeFollowsTime() {
+    dismissKeyboard();
+    state.themeFollowsTime = true;
+    unawaited(StorageUtil.saveBool(JiShuQiState.prefThemeFollowsTime, true));
+    _applyThemeFromClock();
+    _scheduleDayNightThemeTick();
+    BXLoading.showToast('已开启按时间自动切换主题');
+  }
+
+  /// 切换暗黑主题（手动后不再跟随时间，长按主题图标可恢复自动）
   void toggleDarkMode() {
     dismissKeyboard();
+    state.themeFollowsTime = false;
+    unawaited(StorageUtil.saveBool(JiShuQiState.prefThemeFollowsTime, false));
+    _dayNightThemeTimer?.cancel();
     state.isDarkMode = !state.isDarkMode;
     BXLoading.syncTheme(state.isDarkMode);
     update();

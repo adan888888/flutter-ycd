@@ -78,7 +78,7 @@ class AppPages {
     // 投资分析工具页面
     GetPage(
       name: AppRoutes.jiShuQiHome,
-      page: () => const JiShuQiView(title: 'v2.0'),
+      page: () => const JiShuQiView(),
       binding: JiShuQiBinding(),
       middlewares: [
         AuthRequiredMiddleware(),
