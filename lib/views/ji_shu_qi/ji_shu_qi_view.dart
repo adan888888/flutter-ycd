@@ -1050,6 +1050,8 @@ class JiShuQiView extends GetView<JiShuQiController> {
                       child: DailyGoalProgressBar(
                         progress: controller.todayBetProgressFraction,
                         isDarkMode: controller.state.isDarkMode,
+                        edgeLabel: controller.todayBetProgressPercentLabel,
+                        edgeLabelStyle: axisStyle,
                       ),
                     ),
                     const SizedBox(width: 6),

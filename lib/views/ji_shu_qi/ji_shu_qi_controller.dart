@@ -1246,9 +1246,18 @@ class JiShuQiController extends GetxController {
     return (state.todayBetCount / goal).clamp(0.0, 1.0);
   }
 
+  /// 顶栏进度条右侧（如 `4/100`）
   String get todayBetProgressCountLabel {
     final goal = todayBetGoalEffective;
     return '${state.todayBetCount}/$goal';
+  }
+
+  /// 顶栏进度条刻度处显示（如 `4%`）
+  String get todayBetProgressPercentLabel {
+    final goal = todayBetGoalEffective;
+    if (goal <= 0) return '0%';
+    final pct = (state.todayBetCount * 100 / goal).round().clamp(0, 999);
+    return '$pct%';
   }
 
   String get todayBetProgressLabel {
