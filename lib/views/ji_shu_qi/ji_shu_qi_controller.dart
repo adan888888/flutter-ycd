@@ -1595,6 +1595,32 @@ class JiShuQiController extends GetxController {
     );
   }
 
+  void reconcileBenJinByCurrentAmount(String currentAmountText) {
+    BXLoading.show(douyinStyle: true);
+    if (currentAmountText.isEmpty) {
+      BXLoading.dismiss();
+      BXLoading.showToast('请输入当前金额 ${textEditingController.text} ');
+      return;
+    }
+    final currentAmount = double.tryParse(currentAmountText);
+    if (currentAmount == null) {
+      BXLoading.dismiss();
+      BXLoading.showToast('请输入数字 ${textEditingController.text} ');
+      return;
+    }
+    final totalWin = state.totalValue.length > 17
+        ? _parseStatDouble(state.totalValue[17])
+        : null;
+    if (totalWin == null) {
+      BXLoading.dismiss();
+      BXLoading.showToast('无法获取总输赢');
+      return;
+    }
+
+    final newBenJin = currentAmount - totalWin;
+    updateBenJin(newBenJin.toStringAsFixed(2));
+  }
+
   void updateOdds(String b) {
     BXPost/*<Map<String,dynamic>>*/(Api.updateOdds,
         params: {"odds": b},
@@ -1800,6 +1826,9 @@ class JiShuQiController extends GetxController {
         break;
       case 13: //按时间自动亮/暗主题
         toggleThemeFollowsTime();
+        break;
+      case 14: //按当前实际金额反算本金
+        reconcileBenJinByCurrentAmount(s);
         break;
     }
   }

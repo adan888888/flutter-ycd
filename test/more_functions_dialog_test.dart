@@ -16,6 +16,8 @@ const _functionTypes = <String>[
   '11.退出程序',
   '12.显示序号',
   '13.红输绿赢',
+  '14.关闭自动主题',
+  '15.核对金额',
 ];
 
 Widget _buildHarness({
@@ -62,7 +64,7 @@ Future<void> _scrollToFunction(WidgetTester tester, int index) async {
 }
 
 void main() {
-  testWidgets('keeps all thirteen function indexes unchanged', (tester) async {
+  testWidgets('keeps all function indexes unchanged', (tester) async {
     tester.view.physicalSize = const Size(360, 640);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
