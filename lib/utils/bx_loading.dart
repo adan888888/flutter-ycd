@@ -167,8 +167,19 @@ class BXLoading {
       ..radius = 12
       ..indicatorColor = Colors.white
       ..textColor = Colors.white
+      ..textStyle = TextStyle(color: Colors.white, fontSize: 15.sp)
       ..maskColor = Colors.blue.withValues(alpha: 0.5)
       ..userInteractions = true
       ..dismissOnTap = false;
+  }
+
+  /// 锁屏等深底场景：居中白字，无「发现错误」标题条。
+  static void showToastOnDarkBackground(String toast, {int? interval}) {
+    toastConfig();
+    EasyLoading.showToast(
+      toast,
+      duration: Duration(seconds: interval ?? val),
+      toastPosition: EasyLoadingToastPosition.center,
+    );
   }
 }

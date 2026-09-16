@@ -28,6 +28,9 @@ import 'package:ycd/utils/storage_util.dart';
 import 'ji_shu_qi_state.dart';
 
 class JiShuQiController extends GetxController {
+  /// 计数器页自动锁屏 PIN（须与 [lockScreen] 的 `correctString` 一致）
+  static const String _lockScreenPin = '1234';
+
   /// 统计区下拉刷新（与投注列表同款 EasyRefresh 样式，独立 controller）
   EasyRefreshController statsRefreshController =
       EasyRefreshController(controlFinishRefresh: true);
@@ -1846,11 +1849,40 @@ class JiShuQiController extends GetxController {
   lockScreen() {
     _timer?.cancel();
     _timer = null;
+    final context = Get.context;
+    if (context == null) return;
     screenLock(
+      useBlur: false,
       config: const ScreenLockConfig(
         backgroundColor: Colors.black,
       ),
-      onValidate: (input) => getFuture(input),
+      keyPadConfig: KeyPadConfig(
+        buttonConfig: KeyPadButtonConfig(
+          foregroundColor: Colors.white,
+          buttonStyle: OutlinedButton.styleFrom(
+            foregroundColor: Colors.white,
+            disabledForegroundColor: Colors.white54,
+            backgroundColor: Colors.transparent,
+            side: const BorderSide(color: Colors.white38),
+            shape: const CircleBorder(),
+            padding: EdgeInsets.zero,
+          ),
+        ),
+        // 左下占位、右下删除键：无边框，避免左下空圈
+        actionButtonConfig: KeyPadButtonConfig(
+          foregroundColor: Colors.white,
+          fontSize: 18,
+          buttonStyle: OutlinedButton.styleFrom(
+            foregroundColor: Colors.white,
+            disabledForegroundColor: Colors.transparent,
+            backgroundColor: Colors.transparent,
+            side: BorderSide.none,
+            padding: EdgeInsets.zero,
+            minimumSize: Size.zero,
+            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          ),
+        ),
+      ),
       secretsConfig: const SecretsConfig(
         spacing: 15, // or spacingRatio
         padding: EdgeInsets.all(40),
@@ -1863,13 +1895,16 @@ class JiShuQiController extends GetxController {
         // ),
       ),
       title: const Icon(Icons.lock, size: 30, color: Colors.white),
-      context: Get.context!,
-      correctString: '1234',
+      context: context,
+      correctString: _lockScreenPin,
       canCancel: false,
       //是否可以取消
       onUnlocked: () {
-        Get.back();
+        Navigator.of(context, rootNavigator: true).pop();
         onUserInteraction();
+      },
+      onError: (_) {
+        BXLoading.showToastOnDarkBackground('密码错误');
       },
     );
   }
@@ -1883,16 +1918,6 @@ class JiShuQiController extends GetxController {
       lockScreen();
     });
   }
-
-  getFuture(String input) =>
-      Future.delayed(const Duration(milliseconds: 200), () {
-        if (input.length == 4 && input == "0000") {
-          return true;
-        } else {
-          BXLoading.showError(toast: '密码错误');
-          return false;
-        }
-      });
 
   void _initDayNightTheme() {
     final stored = StorageUtil.getBool(JiShuQiState.prefThemeFollowsTime);

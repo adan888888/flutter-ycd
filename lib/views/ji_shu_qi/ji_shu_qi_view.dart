@@ -1614,55 +1614,13 @@ class JiShuQiView extends GetView<JiShuQiController> {
                                   // 添加一些内边距
                                   lineTouchData: LineTouchData(
                                     enabled: true,
-                                    handleBuiltInTouches: true,
+                                    // 暂不展示长按/触摸 tooltip 与圆点高亮
+                                    handleBuiltInTouches: false,
                                     touchCallback: (FlTouchEvent event,
                                         LineTouchResponse? response) {
-                                      // 单击抬起：切换路子图（内置仍会处理 tooltip / 高亮）
                                       if (event is FlTapUpEvent) {
                                         controller.changeChart();
                                       }
-                                    },
-                                    touchTooltipData: LineTouchTooltipData(
-                                      fitInsideHorizontally: true,
-                                      fitInsideVertically: true,
-                                      getTooltipItems: (touchedSpots) {
-                                        return touchedSpots.map((touchedSpot) {
-                                          return LineTooltipItem(
-                                            touchedSpot.y.toStringAsFixed(1),
-                                            TextStyle(
-                                              color: controller
-                                                  .state.darkTextColor,
-                                              fontSize: 12,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          );
-                                        }).toList();
-                                      },
-                                    ),
-                                    getTouchedSpotIndicator:
-                                        (LineChartBarData barData,
-                                            List<int> spotIndexes) {
-                                      return spotIndexes.map((spotIndex) {
-                                        return TouchedSpotIndicatorData(
-                                          const FlLine(
-                                            color:
-                                                Colors.transparent, // 透明线条，不显示
-                                            strokeWidth: 0,
-                                          ),
-                                          FlDotData(
-                                            show: true, // 显示数据点高亮
-                                            getDotPainter: (spot, percent,
-                                                barData, index) {
-                                              return FlDotCirclePainter(
-                                                radius: 4,
-                                                color: Colors.white,
-                                                strokeWidth: 2,
-                                                strokeColor: Colors.black,
-                                              );
-                                            },
-                                          ),
-                                        );
-                                      }).toList();
                                     },
                                   ),
                                   lineBarsData: [
