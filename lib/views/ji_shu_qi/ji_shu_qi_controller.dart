@@ -12,19 +12,19 @@ import 'package:get/get.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 import 'package:ycd/model/linechart_data_model.dart';
 import 'package:ycd/model/user_model.dart';
-import 'package:ycd/my_db/jsq_operation_record_model.dart';
 import 'package:ycd/my_db/jsq_bet_record_model.dart';
+import 'package:ycd/my_db/jsq_operation_record_model.dart';
 import 'package:ycd/my_widget/custom_dialog.dart';
 import 'package:ycd/my_widget/more_functions_dialog.dart';
 import 'package:ycd/my_widget/review_approved_dialog.dart';
 import 'package:ycd/utils/bx_loading.dart';
 import 'package:ycd/utils/day_night_theme.dart';
-import 'package:ycd/utils/storage_util.dart';
 import 'package:ycd/utils/my_character.dart';
 import 'package:ycd/utils/network/api.dart';
 import 'package:ycd/utils/network/api_session_handler.dart';
 import 'package:ycd/utils/network/get_store.dart';
 import 'package:ycd/utils/network/http_mgr.dart';
+import 'package:ycd/utils/storage_util.dart';
 
 import 'ji_shu_qi_state.dart';
 
@@ -60,6 +60,7 @@ class JiShuQiController extends GetxController {
   final ScrollController roadMapScrollController = ScrollController(); //路子图的controller
   final AudioPlayer _diceSoundPlayer = AudioPlayer();
   bool _diceSoundAvailable = true;
+  double? _bettingInputPreviewBaseCurrentJin;
 
   /// 并发多次 [_getLineCharts] 时仅采纳最近一次发起的 `linechartData` 回调，避免旧响应把已画好的曲线冲掉。
   int _lineChartRequestGen = 0;
@@ -76,14 +77,15 @@ class JiShuQiController extends GetxController {
     textEditingController.addListener(
       () {
         state.bettingMoney = textEditingController.text;
+        _updateBettingInputCurrentJinPreview();
         if (textEditingController.text.isNotEmpty) {
           ///总体
           state.totalValue[20] = pVal1();
 
           ///局部
           state.totalValue[24] = pVal2();
-          update();
         }
+        update();
       },
     );
     scrollController.addListener(_onBettingListScroll);
@@ -314,7 +316,9 @@ class JiShuQiController extends GetxController {
       return;
     }
     final extentBefore = scrollController.position.extentBefore;
-    if (!extentBefore.isFinite || extentBefore > _bettingHistoryPrefetchExtent) return;
+    if (!extentBefore.isFinite || extentBefore > _bettingHistoryPrefetchExtent) {
+      return;
+    }
     _didRequestBettingHistoryDuringCurrentDrag = true;
     unawaited(_loadBettingHistorySilently());
   }
@@ -425,8 +429,7 @@ class JiShuQiController extends GetxController {
 
   void onBettingListUserDragPositionChanged() {
     if (!_bettingListUserDragActive) return;
-    _keepBettingListPinnedDuringKeyboard =
-        _lastKeyboardInset > 0 && _computeBettingListAtBottom();
+    _keepBettingListPinnedDuringKeyboard = _lastKeyboardInset > 0 && _computeBettingListAtBottom();
     cancelPendingBettingListAutoScroll();
     _maybeLoadBettingHistorySilently();
   }
@@ -435,8 +438,7 @@ class JiShuQiController extends GetxController {
     if (!_bettingListUserDragActive) return;
     _maybeLoadBettingHistorySilently();
     _bettingListUserDragActive = false;
-    _keepBettingListPinnedDuringKeyboard =
-        _lastKeyboardInset > 0 && _computeBettingListAtBottom();
+    _keepBettingListPinnedDuringKeyboard = _lastKeyboardInset > 0 && _computeBettingListAtBottom();
     cancelPendingBettingListAutoScroll();
   }
 
@@ -475,9 +477,7 @@ class JiShuQiController extends GetxController {
       // 键盘动画或键盘类型切换会连续上报 inset。每次变化都重新计时，
       // 确保使用稳定后的列表视口高度滚到底。
       _keyboardOpenSettleTimer = Timer(const Duration(milliseconds: 260), () {
-        if (!focusNode.hasFocus ||
-            _lastKeyboardInset <= 0 ||
-            !_keepBettingListPinnedDuringKeyboard) {
+        if (!focusNode.hasFocus || _lastKeyboardInset <= 0 || !_keepBettingListPinnedDuringKeyboard) {
           return;
         }
         scrollBettingListToBottom();
@@ -746,6 +746,27 @@ class JiShuQiController extends GetxController {
     return double.tryParse(s);
   }
 
+  void _updateBettingInputCurrentJinPreview() {
+    if (state.totalValue.length <= 4) return;
+    final inputText = textEditingController.text.trim();
+    if (inputText.isEmpty) {
+      final base = _bettingInputPreviewBaseCurrentJin;
+      if (base != null) {
+        state.totalValue[4] = base.toStringAsFixed(2);
+      }
+      _bettingInputPreviewBaseCurrentJin = null;
+      return;
+    }
+
+    final inputAmount = double.tryParse(inputText);
+    if (inputAmount == null) return;
+
+    _bettingInputPreviewBaseCurrentJin ??= _parseStatDouble(state.totalValue[4]);
+    final base = _bettingInputPreviewBaseCurrentJin;
+    if (base == null) return;
+    state.totalValue[4] = (base - inputAmount).toStringAsFixed(2);
+  }
+
   String pVal2() {
     if (state.bettingMoney.isEmpty || !state.bettingMoney.isNum) return '';
     final bet = double.tryParse(textEditingController.text);
@@ -838,7 +859,6 @@ class JiShuQiController extends GetxController {
     if (!state.isCanPress) {
       return;
     }
-    guardAgainstKeyboardPop();
     _randomFeedback();
     _playRandomSound();
     state.isCanPress = false;
@@ -871,7 +891,7 @@ class JiShuQiController extends GetxController {
           ),
           barrierDismissible: false,
           barrierColor: Colors.black.withValues(alpha: 0.18),
-        ).then((_) => guardAgainstKeyboardPop());
+        );
         state.isCanPress = true;
 
         ///总体
@@ -1385,7 +1405,6 @@ class JiShuQiController extends GetxController {
 
   //重启局部数据
   void reStart() {
-    dismissKeyboard();
     Get.dialog<void>(
       ReviewApprovedDialog(
         title: '警告',
@@ -1920,7 +1939,8 @@ class JiShuQiController extends GetxController {
     // 保留列表顶部的小 Loading，同时显示项目统一的抖音双球网络 Loading。
     BXLoading.show(douyinStyle: true);
     BXGet<JsqBetRecordModel>(Api.loadMore,
-        params: {"last_id": anchorId, "uid": GetStore.getInstance().userModel.userId, "c": count}, //"c"每页多少个数据
+        params: {"last_id": anchorId, "uid": GetStore.getInstance().userModel.userId, "c": count},
+        //"c"每页多少个数据
         isShowLoading: false,
         showError: false,
         success: (isSuccess, code, message, results) {

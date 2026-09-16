@@ -5,11 +5,11 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:ycd/views/ji_shu_qi/ji_shu_qi_view.dart';
 
 void main() {
-  test('bet input uses 46pt only while the keyboard is open', () {
-    expect(jiShuQiBetInputFontSize(300), 46);
-    expect(jiShuQiBetInputFontSize(1), 46);
+  test('bet input uses 31pt only while the keyboard is open', () {
+    expect(jiShuQiBetInputFontSize(300), 31);
+    expect(jiShuQiBetInputFontSize(1), 31);
     expect(jiShuQiBetInputFontSize(0), isNull);
-    expect(jiShuQiBetInputCursorHeight(300), 46);
+    expect(jiShuQiBetInputCursorHeight(300), 31);
     expect(jiShuQiBetInputCursorHeight(0), isNull);
     expect(
       JiShuQiKeyboardAwareFabLocation.inputBarHeightForKeyboardInset(300),
@@ -53,6 +53,84 @@ void main() {
         Offset(guardRect.left + guardRect.width * 0.9, guardRect.center.dy));
     await tester.pump();
     expect(focusNode.hasFocus, isFalse);
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    focusNode.dispose();
+  });
+
+  testWidgets('action buttons do not trigger input tap outside',
+      (tester) async {
+    final focusNode = FocusNode();
+    var outsideTapCount = 0;
+    var buttonTapCount = 0;
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: Column(
+            children: [
+              TextField(
+                focusNode: focusNode,
+                onTapOutside: (_) => outsideTapCount++,
+              ),
+              TextFieldTapRegion(
+                child: TextButton(
+                  onPressed: () => buttonTapCount++,
+                  child: const Text('P+'),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.byType(TextField));
+    await tester.pump();
+    expect(focusNode.hasFocus, isTrue);
+
+    await tester.tap(find.text('P+'));
+    await tester.pump();
+
+    expect(buttonTapCount, 1);
+    expect(outsideTapCount, 0);
+    expect(focusNode.hasFocus, isTrue);
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    focusNode.dispose();
+  });
+
+  testWidgets('random FAB does not trigger input tap outside', (tester) async {
+    final focusNode = FocusNode();
+    var outsideTapCount = 0;
+    var fabTapCount = 0;
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: TextField(
+            focusNode: focusNode,
+            onTapOutside: (_) => outsideTapCount++,
+          ),
+          floatingActionButton: TextFieldTapRegion(
+            child: FloatingActionButton(
+              onPressed: () => fabTapCount++,
+            ),
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.byType(TextField));
+    await tester.pump();
+    expect(focusNode.hasFocus, isTrue);
+
+    await tester.tap(find.byType(FloatingActionButton));
+    await tester.pump();
+
+    expect(fabTapCount, 1);
+    expect(outsideTapCount, 0);
+    expect(focusNode.hasFocus, isTrue);
 
     await tester.pumpWidget(const SizedBox.shrink());
     focusNode.dispose();
