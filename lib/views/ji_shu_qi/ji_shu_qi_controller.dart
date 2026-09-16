@@ -1621,6 +1621,70 @@ class JiShuQiController extends GetxController {
     updateBenJin(newBenJin.toStringAsFixed(2));
   }
 
+  void showCurrentAmountReconcileDialog() {
+    dismissKeyboard();
+    textEditingController.clear();
+
+    final input = TextEditingController();
+    final totalWin = state.totalValue.length > 17
+        ? _parseStatDouble(state.totalValue[17])
+        : null;
+    Get.dialog<void>(
+      AlertDialog(
+        title: const Text('核对当前金额'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            TextField(
+              controller: input,
+              autofocus: true,
+              keyboardType:
+                  const TextInputType.numberWithOptions(decimal: true),
+              inputFormatters: [
+                FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),
+              ],
+              decoration: const InputDecoration(
+                hintText: '请输入当前实际金额',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              totalWin == null
+                  ? '无法获取总输赢'
+                  : '本金 = 当前金额 - 总输赢(${totalWin.toStringAsFixed(2)})',
+              style: TextStyle(fontSize: 12, color: Colors.grey.shade700),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: Get.back, child: const Text('取消')),
+          TextButton(
+            onPressed: () {
+              final raw = input.text.trim();
+              if (raw.isEmpty) {
+                BXLoading.showToast('请输入当前金额');
+                return;
+              }
+              if (double.tryParse(raw) == null) {
+                BXLoading.showToast('请输入数字 $raw');
+                return;
+              }
+              Get.back<void>();
+              reconcileBenJinByCurrentAmount(raw);
+            },
+            child: const Text('确认'),
+          ),
+        ],
+      ),
+      barrierDismissible: true,
+      barrierColor: Colors.black.withValues(alpha: 0.42),
+    ).whenComplete(() {
+      WidgetsBinding.instance.addPostFrameCallback((_) => input.dispose());
+    });
+  }
+
   void updateOdds(String b) {
     BXPost/*<Map<String,dynamic>>*/(Api.updateOdds,
         params: {"odds": b},
@@ -1826,9 +1890,6 @@ class JiShuQiController extends GetxController {
         break;
       case 13: //按时间自动亮/暗主题
         toggleThemeFollowsTime();
-        break;
-      case 14: //按当前实际金额反算本金
-        reconcileBenJinByCurrentAmount(s);
         break;
     }
   }

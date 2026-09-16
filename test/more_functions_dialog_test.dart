@@ -17,7 +17,6 @@ const _functionTypes = <String>[
   '12.显示序号',
   '13.红输绿赢',
   '14.关闭自动主题',
-  '15.核对金额',
 ];
 
 Widget _buildHarness({

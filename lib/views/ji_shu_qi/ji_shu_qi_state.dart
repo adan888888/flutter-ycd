@@ -228,7 +228,6 @@ class JiShuQiState {
         isSeqVisible ? '12.隐藏序号' : '12.显示序号',
         isRedWinGreenLose ? '13.红输绿赢' : '13.红赢绿输',
         themeFollowsTime ? '14.关闭自动主题' : '14.开启自动主题',
-        '15.核对金额',
       ];
   var description = [
     {"本金", "总局数", "回合局数", "流水"},

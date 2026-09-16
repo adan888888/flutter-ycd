@@ -39,7 +39,6 @@ class _MoreFunctionsDialogState extends State<MoreFunctionsDialog> {
     0,
     1,
     2,
-    14,
     3,
     5,
     6,
@@ -67,7 +66,6 @@ class _MoreFunctionsDialogState extends State<MoreFunctionsDialog> {
     Icons.format_list_numbered_rounded,
     Icons.swap_horiz_rounded,
     Icons.brightness_auto_rounded,
-    Icons.fact_check_outlined,
   ];
 
   static const _descriptions = <String>[
@@ -85,7 +83,6 @@ class _MoreFunctionsDialogState extends State<MoreFunctionsDialog> {
     '显示或隐藏投注记录序号',
     '切换红色与绿色的输赢含义',
     '6:00–18:00 亮色，其余暗色；关闭后仅手动切换主题',
-    '输入当前实际金额，自动反算并修改本金',
   ];
 
   static const _accentColors = <Color>[
@@ -103,7 +100,6 @@ class _MoreFunctionsDialogState extends State<MoreFunctionsDialog> {
     Color(0xFF478BE6),
     Color(0xFF38B8AA),
     Color(0xFF6677D9),
-    Color(0xFF38B8AA),
   ];
 
   String _displayTitle(String value) {

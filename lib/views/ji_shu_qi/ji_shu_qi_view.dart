@@ -1147,13 +1147,18 @@ class JiShuQiView extends GetView<JiShuQiController> {
           (row) => TableRow(
               decoration: BoxDecoration(color: controller.state.currentBgColor),
               children: List.generate(4, (column) {
+                final valueIndex = row * 4 + column;
                 final cellWidget = GestureDetector(
+                  behavior: HitTestBehavior.opaque,
                   onTap: () {
                     if (row == 0 && column == 2) {
                       controller.juBuPingHeng(JiShuQiState.tempIndexCmdCancel,
                           v: controller.state.totalValue[29]);
                     }
                   },
+                  onDoubleTap: valueIndex == 4
+                      ? controller.showCurrentAmountReconcileDialog
+                      : null,
                   child: Align(
                     alignment: Alignment.center,
                     child: FittedBox(
@@ -1167,21 +1172,19 @@ class JiShuQiView extends GetView<JiShuQiController> {
                               wordSpacing: 0,
                               fontSize: 12.5,
                               fontWeight: FontWeight.w400,
-                              color: ((row * 4 + column) == 26 ||
-                                      (row * 4 + column) == 27)
+                              color: (valueIndex == 26 || valueIndex == 27)
                                   ? Colors.green
-                                  : ((row * 4 + column) == 24 ||
-                                          (row * 4 + column) == 22)
+                                  : (valueIndex == 24 || valueIndex == 22)
                                       ? (controller.state.isDarkMode
                                           ? Colors.orange
                                           : Colors.red)
-                                      : (row * 4 + column) == 2 &&
+                                      : valueIndex == 2 &&
                                               controller
                                                       .state.currentTempIndex !=
                                                   0
                                           ? Colors.amber
                                           : controller.state.currentTextColor),
-                          controller.state.totalValue[row * 4 + column],
+                          controller.state.totalValue[valueIndex],
                         ),
                       ),
                     ),
