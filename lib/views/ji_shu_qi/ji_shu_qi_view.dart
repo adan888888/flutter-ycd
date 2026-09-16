@@ -18,9 +18,11 @@ import '../../my_widget/vertical_text.dart';
 import 'ji_shu_qi_controller.dart';
 import 'ji_shu_qi_state.dart';
 
-double? jiShuQiBetInputFontSize(double keyboardInset) => keyboardInset > 0 ? 31 : null;
+double? jiShuQiBetInputFontSize(double keyboardInset) =>
+    keyboardInset > 0 ? 31 : null;
 
-double? jiShuQiBetInputCursorHeight(double keyboardInset) => jiShuQiBetInputFontSize(keyboardInset);
+double? jiShuQiBetInputCursorHeight(double keyboardInset) =>
+    jiShuQiBetInputFontSize(keyboardInset);
 
 /// 首次页面数据仍在 loading 时不抢先展示空态；加载结束后才显示“暂无记录”。
 class JiShuQiBettingListEmptyState extends StatelessWidget {
@@ -63,16 +65,20 @@ class JiShuQiKeyboardAwareFabLocation extends FloatingActionButtonLocation {
 
   @override
   Offset getOffset(ScaffoldPrelayoutGeometry scaffoldGeometry) {
-    final base = FloatingActionButtonLocation.endDocked.getOffset(scaffoldGeometry);
+    final base =
+        FloatingActionButtonLocation.endDocked.getOffset(scaffoldGeometry);
     if (keyboardInset <= 0) return base;
 
     final fabHeight = scaffoldGeometry.floatingActionButtonSize.height;
-    final fabVisualRadius = fabHeight * randomFabScale / 2;
-    final bottomObstruction = keyboardInset > viewPaddingBottom ? keyboardInset : viewPaddingBottom;
-    final effectiveInputBarHeight = inputBarHeightForKeyboardInset(keyboardInset);
-    final inputBarTop = scaffoldGeometry.scaffoldSize.height - bottomObstruction - effectiveInputBarHeight;
-    final targetY = inputBarTop - fabHeight / 2 - fabVisualRadius;
-    return Offset(base.dx, targetY < base.dy ? targetY : base.dy);
+    final bottomObstruction =
+        keyboardInset > viewPaddingBottom ? keyboardInset : viewPaddingBottom;
+    final effectiveInputBarHeight =
+        inputBarHeightForKeyboardInset(keyboardInset);
+    final inputBarTop = scaffoldGeometry.scaffoldSize.height -
+        bottomObstruction -
+        effectiveInputBarHeight;
+    final targetY = inputBarTop + (effectiveInputBarHeight - fabHeight) / 2;
+    return Offset(base.dx, targetY);
   }
 
   @override
@@ -134,7 +140,8 @@ class JiShuQiView extends GetView<JiShuQiController> {
   }
 
   /// 无折线上下文时的列宽兜底（大路图昵称等）
-  double _yAxisLabelColumnWidth(TextStyle axisStyle) => _measureAxisTextWidth('888.8k', axisStyle);
+  double _yAxisLabelColumnWidth(TextStyle axisStyle) =>
+      _measureAxisTextWidth('888.8k', axisStyle);
 
   /// 与 SideTitles（min/maxIncluded: false + interval）一致，遍历会绘制的刻度取最宽
   double _yAxisLabelColumnWidthForChart(
@@ -154,10 +161,13 @@ class JiShuQiView extends GetView<JiShuQiController> {
     return maxW + 2; // 避免末位字符（如 -200）贴边被裁
   }
 
-  double _yAxisTitlesReservedWidth(TextStyle axisStyle, {double? labelColumnWidth}) =>
-      (labelColumnWidth ?? _yAxisLabelColumnWidth(axisStyle)) + _chartAxisToPlotGap;
+  double _yAxisTitlesReservedWidth(TextStyle axisStyle,
+          {double? labelColumnWidth}) =>
+      (labelColumnWidth ?? _yAxisLabelColumnWidth(axisStyle)) +
+      _chartAxisToPlotGap;
 
-  double _plotAreaLeftFromScreen(TextStyle axisStyle) => _contentLeftInset + _yAxisTitlesReservedWidth(axisStyle);
+  double _plotAreaLeftFromScreen(TextStyle axisStyle) =>
+      _contentLeftInset + _yAxisTitlesReservedWidth(axisStyle);
 
   static const double _actionButtonsHeight = 35;
 
@@ -192,13 +202,16 @@ class JiShuQiView extends GetView<JiShuQiController> {
   Widget build(BuildContext context) {
     final keyboardInset = MediaQuery.viewInsetsOf(context).bottom;
     final viewPaddingBottom = MediaQuery.viewPaddingOf(context).bottom;
-    final inputBarHeight = JiShuQiKeyboardAwareFabLocation.inputBarHeightForKeyboardInset(keyboardInset);
+    final inputBarHeight =
+        JiShuQiKeyboardAwareFabLocation.inputBarHeightForKeyboardInset(
+            keyboardInset);
     return Listener(
       onPointerDown: (PointerDownEvent event) => controller.onUserInteraction(),
       onPointerMove: (event) => controller.onUserInteraction(),
       child: GetBuilder<JiShuQiController>(
         builder: (controller) {
-          final overlay = DayNightTheme.systemUiOverlayStyle(controller.state.isDarkMode);
+          final overlay =
+              DayNightTheme.systemUiOverlayStyle(controller.state.isDarkMode);
           return AnnotatedRegion<SystemUiOverlayStyle>(
             value: overlay,
             child: Scaffold(
@@ -208,7 +221,8 @@ class JiShuQiView extends GetView<JiShuQiController> {
                 keyboardInset: keyboardInset,
                 viewPaddingBottom: viewPaddingBottom,
               ),
-              floatingActionButtonAnimator: FloatingActionButtonAnimator.noAnimation,
+              floatingActionButtonAnimator:
+                  FloatingActionButtonAnimator.noAnimation,
               floatingActionButton: TextFieldTapRegion(
                 child: Transform.scale(
                   scale: JiShuQiKeyboardAwareFabLocation.randomFabScale,
@@ -231,12 +245,14 @@ class JiShuQiView extends GetView<JiShuQiController> {
                                 // 触发点击动画：放大1.5倍再缩小
                                 controller.state.floatButtonScale = 2;
                                 controller.update();
-                                Future.delayed(const Duration(milliseconds: 300), () {
+                                Future.delayed(
+                                    const Duration(milliseconds: 300), () {
                                   controller.state.floatButtonScale = 1.0;
                                   controller.update();
                                 });
                                 // 执行随机逻辑
-                                controller.setRandom((int _) => debugPrint(_.toString()));
+                                controller.setRandom(
+                                    (int _) => debugPrint(_.toString()));
                               },
                               child: Image.asset('assets/images/shai.png'),
                             ),
@@ -257,7 +273,8 @@ class JiShuQiView extends GetView<JiShuQiController> {
                         // 折线图固定高度120，大路图需要动态计算
                         chartHeight = controller.state.isBigRoad ? null : 120.0;
                       }
-                      final keyboardInset = MediaQuery.viewInsetsOf(context).bottom;
+                      final keyboardInset =
+                          MediaQuery.viewInsetsOf(context).bottom;
                       controller.onKeyboardInsetChanged(keyboardInset);
                       // 键盘弹出时用 Offstage 藏图表（保留挂载，避免卸载导致输入框失焦）
                       final keyboardOpen = keyboardInset > 0;
@@ -271,14 +288,17 @@ class JiShuQiView extends GetView<JiShuQiController> {
                           isBigRoad: controller.state.isBigRoad,
                         );
                         const statsHeight = JiShuQiState.statsAreaHeight;
-                        final totalHeight = chartPartHeight + statsHeight + _actionButtonsHeight;
+                        final totalHeight = chartPartHeight +
+                            statsHeight +
+                            _actionButtonsHeight;
 
                         return SizedBox(
                           height: totalHeight,
                           child: GetBuilder<JiShuQiController>(
                             builder: (c) => EasyRefresh(
                               controller: c.statsRefreshController,
-                              header: c.state.pullRefreshHeader(backgroundColor: c.state.currentBgColor),
+                              header: c.state.pullRefreshHeader(
+                                  backgroundColor: c.state.currentBgColor),
                               onRefresh: c.refreshStatsArea,
                               child: ListView(
                                 padding: EdgeInsets.zero,
@@ -287,12 +307,15 @@ class JiShuQiView extends GetView<JiShuQiController> {
                                   SizedBox(
                                     height: totalHeight,
                                     child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.stretch,
                                       children: [
-                                        _buildTopToolBar(c, showChart: showChart),
+                                        _buildTopToolBar(c,
+                                            showChart: showChart),
                                         if (!keyboardOpen && showChart) ...[
                                           _buildLineChats(),
-                                          const SizedBox(height: _chartBelowToolbarGap),
+                                          const SizedBox(
+                                              height: _chartBelowToolbarGap),
                                         ],
                                         SizedBox(
                                           height: statsHeight,
@@ -323,69 +346,118 @@ class JiShuQiView extends GetView<JiShuQiController> {
                               Expanded(
                                 child: GetBuilder<JiShuQiController>(
                                     builder: (controller) => AbsorbPointer(
-                                          absorbing: controller.state.isRefreshing,
+                                          absorbing:
+                                              controller.state.isRefreshing,
                                           child: GestureDetector(
-                                            behavior: HitTestBehavior.translucent,
+                                            behavior:
+                                                HitTestBehavior.translucent,
                                             onTap: controller.dismissKeyboard,
                                             child: ColoredBox(
-                                              color: controller.state.currentListViewColor,
-                                              child: controller.state.betRecordList.isEmpty
+                                              color: controller
+                                                  .state.currentListViewColor,
+                                              child: controller.state
+                                                      .betRecordList.isEmpty
                                                   ? JiShuQiBettingListEmptyState(
-                                                      isInitialDataLoading: controller.state.isInitialDataLoading,
+                                                      isInitialDataLoading:
+                                                          controller.state
+                                                              .isInitialDataLoading,
                                                     )
                                                   : Stack(
                                                       fit: StackFit.expand,
                                                       children: [
-                                                        NotificationListener<ScrollNotification>(
-                                                          onNotification: (notification) {
-                                                            if (notification is ScrollStartNotification &&
-                                                                notification.dragDetails != null) {
-                                                              controller.onBettingListUserDragStart();
-                                                            } else if (notification is ScrollUpdateNotification &&
-                                                                notification.dragDetails != null) {
-                                                              controller.onBettingListUserDragPositionChanged();
-                                                            } else if (notification is ScrollEndNotification) {
-                                                              controller.onBettingListUserDragEnd();
+                                                        NotificationListener<
+                                                            ScrollNotification>(
+                                                          onNotification:
+                                                              (notification) {
+                                                            if (notification
+                                                                    is ScrollStartNotification &&
+                                                                notification
+                                                                        .dragDetails !=
+                                                                    null) {
+                                                              controller
+                                                                  .onBettingListUserDragStart();
+                                                            } else if (notification
+                                                                    is ScrollUpdateNotification &&
+                                                                notification
+                                                                        .dragDetails !=
+                                                                    null) {
+                                                              controller
+                                                                  .onBettingListUserDragPositionChanged();
+                                                            } else if (notification
+                                                                is ScrollEndNotification) {
+                                                              controller
+                                                                  .onBettingListUserDragEnd();
                                                             }
                                                             return false;
                                                           },
-                                                          child: ListView.builder(
-                                                            key: const PageStorageKey<String>(
+                                                          child:
+                                                              ListView.builder(
+                                                            key:
+                                                                const PageStorageKey<
+                                                                    String>(
                                                               'ji_shu_qi_betting_list',
                                                             ),
                                                             reverse: false,
-                                                            controller: controller.scrollController,
-                                                            itemCount: controller.state.betRecordList.length,
-                                                            itemBuilder: (BuildContext context, int index) =>
-                                                                _buildItem(index),
+                                                            controller: controller
+                                                                .scrollController,
+                                                            itemCount: controller
+                                                                .state
+                                                                .betRecordList
+                                                                .length,
+                                                            itemBuilder: (BuildContext
+                                                                        context,
+                                                                    int
+                                                                        index) =>
+                                                                _buildItem(
+                                                                    index),
                                                           ),
                                                         ),
-                                                        if (controller.isLoadingBettingHistory)
+                                                        if (controller
+                                                            .isLoadingBettingHistory)
                                                           Positioned(
                                                             top: 8,
                                                             left: 0,
                                                             right: 0,
-                                                            child: IgnorePointer(
+                                                            child:
+                                                                IgnorePointer(
                                                               child: Center(
-                                                                child: Semantics(
-                                                                  label: '加载历史记录',
-                                                                  child: Container(
-                                                                    padding: const EdgeInsets.all(7),
-                                                                    decoration: BoxDecoration(
-                                                                      color: controller.state.currentListViewColor,
-                                                                      shape: BoxShape.circle,
+                                                                child:
+                                                                    Semantics(
+                                                                  label:
+                                                                      '加载历史记录',
+                                                                  child:
+                                                                      Container(
+                                                                    padding:
+                                                                        const EdgeInsets
+                                                                            .all(
+                                                                            7),
+                                                                    decoration:
+                                                                        BoxDecoration(
+                                                                      color: controller
+                                                                          .state
+                                                                          .currentListViewColor,
+                                                                      shape: BoxShape
+                                                                          .circle,
                                                                       boxShadow: const [
                                                                         BoxShadow(
-                                                                          color: Colors.black26,
-                                                                          blurRadius: 5,
+                                                                          color:
+                                                                              Colors.black26,
+                                                                          blurRadius:
+                                                                              5,
                                                                         ),
                                                                       ],
                                                                     ),
-                                                                    child: SizedBox.square(
-                                                                      dimension: 20,
-                                                                      child: CircularProgressIndicator(
-                                                                        strokeWidth: 2.3,
-                                                                        color: controller.state.currentTextColor,
+                                                                    child: SizedBox
+                                                                        .square(
+                                                                      dimension:
+                                                                          20,
+                                                                      child:
+                                                                          CircularProgressIndicator(
+                                                                        strokeWidth:
+                                                                            2.3,
+                                                                        color: controller
+                                                                            .state
+                                                                            .currentTextColor,
                                                                       ),
                                                                     ),
                                                                   ),
@@ -414,13 +486,19 @@ class JiShuQiView extends GetView<JiShuQiController> {
                                           child: ListenableBuilder(
                                             listenable: controller.focusNode,
                                             builder: (context, _) {
-                                              final borderColor = controller.focusNode.hasFocus
-                                                  ? controller.state.currentRestartRowBorderColor
-                                                  : (controller.state.isDarkMode ? Colors.white24 : Colors.grey);
+                                              final borderColor = controller
+                                                      .focusNode.hasFocus
+                                                  ? controller.state
+                                                      .currentRestartRowBorderColor
+                                                  : (controller.state.isDarkMode
+                                                      ? Colors.white24
+                                                      : Colors.grey);
                                               return Container(
                                                 decoration: BoxDecoration(
                                                   border: Border(
-                                                    bottom: BorderSide(width: 1, color: borderColor),
+                                                    bottom: BorderSide(
+                                                        width: 1,
+                                                        color: borderColor),
                                                   ),
                                                 ),
                                                 child: JiShuQiInputTouchGuard(
@@ -428,12 +506,19 @@ class JiShuQiView extends GetView<JiShuQiController> {
                                                     children: [
                                                       GestureDetector(
                                                         // 排序
-                                                        onTap: () => controller.sort(),
+                                                        onTap: () =>
+                                                            controller.sort(),
                                                         child: Padding(
-                                                          padding: const EdgeInsets.only(left: 5.0),
+                                                          padding:
+                                                              const EdgeInsets
+                                                                  .only(
+                                                                  left: 5.0),
                                                           child: Icon(
-                                                            CupertinoIcons.arrow_up_arrow_down,
-                                                            color: controller.state.currentTextColor,
+                                                            CupertinoIcons
+                                                                .arrow_up_arrow_down,
+                                                            color: controller
+                                                                .state
+                                                                .currentTextColor,
                                                             size: 20,
                                                           ),
                                                         ),
@@ -441,49 +526,107 @@ class JiShuQiView extends GetView<JiShuQiController> {
                                                       const SizedBox(width: 5),
                                                       Expanded(
                                                         child: Theme(
-                                                          data: Theme.of(context).copyWith(
-                                                            textSelectionTheme: TextSelectionThemeData(
-                                                              selectionColor: controller.state.isDarkMode
-                                                                  ? Colors.white.withValues(alpha: 0.4)
-                                                                  : Colors.blue.withValues(alpha: 0.3),
-                                                              selectionHandleColor: controller.state.isDarkMode
+                                                          data:
+                                                              Theme.of(context)
+                                                                  .copyWith(
+                                                            textSelectionTheme:
+                                                                TextSelectionThemeData(
+                                                              selectionColor: controller
+                                                                      .state
+                                                                      .isDarkMode
                                                                   ? Colors.white
-                                                                  : Colors.blue,
+                                                                      .withValues(
+                                                                          alpha:
+                                                                              0.4)
+                                                                  : Colors.blue
+                                                                      .withValues(
+                                                                          alpha:
+                                                                              0.3),
+                                                              selectionHandleColor:
+                                                                  controller
+                                                                          .state
+                                                                          .isDarkMode
+                                                                      ? Colors
+                                                                          .white
+                                                                      : Colors
+                                                                          .blue,
                                                             ),
                                                           ),
                                                           child: TextField(
-                                                            key: const ValueKey('ji_shu_qi_bet_input'),
-                                                            focusNode: controller.focusNode,
+                                                            key: const ValueKey(
+                                                                'ji_shu_qi_bet_input'),
+                                                            focusNode:
+                                                                controller
+                                                                    .focusNode,
                                                             autofocus: false,
-                                                            controller: controller.textEditingController,
-                                                            onTapOutside: (_) => controller.onInputTapOutside(),
-                                                            onChanged: (value) {},
+                                                            controller: controller
+                                                                .textEditingController,
+                                                            onTapOutside: (_) =>
+                                                                controller
+                                                                    .onInputTapOutside(),
+                                                            onChanged:
+                                                                (value) {},
                                                             keyboardType:
-                                                                const TextInputType.numberWithOptions(decimal: true),
-                                                            textInputAction: TextInputAction.done,
+                                                                const TextInputType
+                                                                    .numberWithOptions(
+                                                                    decimal:
+                                                                        true),
+                                                            textInputAction:
+                                                                TextInputAction
+                                                                    .done,
                                                             inputFormatters: [
-                                                              FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),
+                                                              FilteringTextInputFormatter
+                                                                  .allow(RegExp(
+                                                                      r'[0-9.]')),
                                                             ],
-                                                            cursorColor: controller.state.isDarkMode
+                                                            cursorColor: controller
+                                                                    .state
+                                                                    .isDarkMode
                                                                 ? Colors.white
                                                                 : Colors.blue,
-                                                            cursorHeight: jiShuQiBetInputCursorHeight(keyboardInset),
+                                                            cursorHeight:
+                                                                jiShuQiBetInputCursorHeight(
+                                                                    keyboardInset),
                                                             style: TextStyle(
-                                                              fontSize: jiShuQiBetInputFontSize(keyboardInset),
-                                                              color: controller.state.currentTextColor,
+                                                              fontSize:
+                                                                  jiShuQiBetInputFontSize(
+                                                                      keyboardInset),
+                                                              color: controller
+                                                                  .state
+                                                                  .currentTextColor,
                                                             ),
-                                                            decoration: InputDecoration(
-                                                              contentPadding: const EdgeInsets.only(bottom: 7),
-                                                              border: InputBorder.none,
-                                                              enabledBorder: InputBorder.none,
-                                                              focusedBorder: InputBorder.none,
-                                                              hintText: "请输入下注金额",
-                                                              hintStyle: TextStyle(
+                                                            decoration:
+                                                                InputDecoration(
+                                                              contentPadding:
+                                                                  const EdgeInsets
+                                                                      .only(
+                                                                      bottom:
+                                                                          7),
+                                                              border:
+                                                                  InputBorder
+                                                                      .none,
+                                                              enabledBorder:
+                                                                  InputBorder
+                                                                      .none,
+                                                              focusedBorder:
+                                                                  InputBorder
+                                                                      .none,
+                                                              hintText:
+                                                                  "请输入下注金额",
+                                                              hintStyle:
+                                                                  TextStyle(
                                                                 fontSize: 12,
-                                                                color: controller.state.isDarkMode
-                                                                    ? controller.state.darkTextColor
-                                                                        .withValues(alpha: 0.54)
-                                                                    : Colors.grey,
+                                                                color: controller
+                                                                        .state
+                                                                        .isDarkMode
+                                                                    ? controller
+                                                                        .state
+                                                                        .darkTextColor
+                                                                        .withValues(
+                                                                            alpha:
+                                                                                0.54)
+                                                                    : Colors
+                                                                        .grey,
                                                               ),
                                                             ),
                                                           ),
@@ -501,15 +644,21 @@ class JiShuQiView extends GetView<JiShuQiController> {
                                   ),
                                 ),
                               ),
-                              if (keyboardInset == 0) SizedBox(height: (!kIsWeb && Platform.isAndroid) ? 5 : 0),
+                              if (keyboardInset == 0)
+                                SizedBox(
+                                    height: (!kIsWeb && Platform.isAndroid)
+                                        ? 5
+                                        : 0),
                             ],
                           ),
                           // 悬浮按钮：切换图表显示/隐藏（叠加在图表和统计区之间）
                           if (showChart && !keyboardOpen)
                             Positioned(
                               top: chartHeight != null
-                                  ? chartHeight - 20 // 折线图：图表高度120，按钮高度40，居中在图表底部
-                                  : 80 - 20, // 大路图：估算高度80（标题行约30px + 大路图约50px），按钮居中在图表底部
+                                  ? chartHeight -
+                                      20 // 折线图：图表高度120，按钮高度40，居中在图表底部
+                                  : 80 -
+                                      20, // 大路图：估算高度80（标题行约30px + 大路图约50px），按钮居中在图表底部
                               right: 0,
                               child: GestureDetector(
                                 onTap: () => controller.toggleChartVisibility(),
@@ -560,7 +709,8 @@ class JiShuQiView extends GetView<JiShuQiController> {
                           // 右下角悬浮钮：在底部↑去眼睛，不在底部↓回最底
                           Positioned(
                             right: -0,
-                            bottom: JiShuQiState.jumpToEyeFabBottom + keyboardInset,
+                            bottom:
+                                JiShuQiState.jumpToEyeFabBottom + keyboardInset,
                             child: GestureDetector(
                               onTap: controller.onBettingListJumpFabTap,
                               child: Container(
@@ -606,24 +756,36 @@ class JiShuQiView extends GetView<JiShuQiController> {
               ? (controller.state.isDarkMode
                   ? const Color(0xFF182533) // 微蓝调斑马纹（略浅）
                   : Colors.grey.shade50) // 浅灰白色
-              : (controller.state.isDarkMode ? controller.state.darkListViewColor : Colors.grey.shade200); // 稍深一点的浅灰色
+              : (controller.state.isDarkMode
+                  ? controller.state.darkListViewColor
+                  : Colors.grey.shade200); // 稍深一点的浅灰色
           // 重启标记线：该行有重启统计快照则显示底部分隔线
-          final restartSnapshot = controller.state.betRecordList[index].restartStatSnapshot?.trim() ?? '';
+          final restartSnapshot = controller
+                  .state.betRecordList[index].restartStatSnapshot
+                  ?.trim() ??
+              '';
           final isRestartRow = restartSnapshot.isNotEmpty;
           final rowId = controller.state.betRecordList[index].id;
-          final isEyeRow = rowId != null && rowId != 0 && rowId == controller.state.currentTempIndex;
+          final isEyeRow = rowId != null &&
+              rowId != 0 &&
+              rowId == controller.state.currentTempIndex;
           final shuyingRaw = controller.state.betRecordList[index].shuyingzhi;
-          final shuyingDisplay = controller.state.formatShuyingzhiColumn(shuyingRaw);
+          final shuyingDisplay =
+              controller.state.formatShuyingzhiColumn(shuyingRaw);
 
           return Container(
             margin: EdgeInsets.symmetric(horizontal: 6),
-            key: isEyeRow ? controller.tempIndexRowKey : (rowId != null ? ValueKey<int>(rowId) : ValueKey<int>(index)),
+            key: isEyeRow
+                ? controller.tempIndexRowKey
+                : (rowId != null ? ValueKey<int>(rowId) : ValueKey<int>(index)),
             height: JiShuQiState.bettingTableRowHeight,
             decoration: BoxDecoration(
               color: backgroundColor,
               border: Border(
                 bottom: BorderSide(
-                  color: isRestartRow ? controller.state.currentRestartRowBorderColor : Colors.transparent,
+                  color: isRestartRow
+                      ? controller.state.currentRestartRowBorderColor
+                      : Colors.transparent,
                   width: isRestartRow ? 0.5 : 0,
                 ),
               ),
@@ -633,9 +795,11 @@ class JiShuQiView extends GetView<JiShuQiController> {
                 // 序号列：显示序号时含眼睛与局部平衡点击；隐藏时仅占位
                 if (controller.state.isSeqVisible)
                   GestureDetector(
-                    onTap: () => controller.juBuPingHeng(controller.state.betRecordList[index].id!),
+                    onTap: () => controller.juBuPingHeng(
+                        controller.state.betRecordList[index].id!),
                     child: controller.state.betRecordList[index].id != null &&
-                            controller.state.betRecordList[index].id == controller.state.currentTempIndex
+                            controller.state.betRecordList[index].id ==
+                                controller.state.currentTempIndex
                         ? SizedBox(
                             width: JiShuQiState.seqColMaxWidth,
                             child: Column(
@@ -645,7 +809,9 @@ class JiShuQiView extends GetView<JiShuQiController> {
                                 Icon(
                                   Icons.visibility,
                                   size: 13,
-                                  color: controller.state.isDarkMode ? Colors.amber.shade200 : Colors.amber.shade800,
+                                  color: controller.state.isDarkMode
+                                      ? Colors.amber.shade200
+                                      : Colors.amber.shade800,
                                 ),
                                 FittedBox(
                                   fit: BoxFit.scaleDown,
@@ -658,7 +824,8 @@ class JiShuQiView extends GetView<JiShuQiController> {
                                       height: 1.0,
                                       fontWeight: FontWeight.w200,
                                       color: controller.state.isDarkMode
-                                          ? controller.state.darkTextColor.withValues(alpha: 0.7)
+                                          ? controller.state.darkTextColor
+                                              .withValues(alpha: 0.7)
                                           : Colors.black45,
                                     ),
                                   ),
@@ -678,7 +845,8 @@ class JiShuQiView extends GetView<JiShuQiController> {
                                   fontSize: 11,
                                   fontWeight: FontWeight.w200,
                                   color: controller.state.isDarkMode
-                                      ? controller.state.darkTextColor.withValues(alpha: 0.7)
+                                      ? controller.state.darkTextColor
+                                          .withValues(alpha: 0.7)
                                       : Colors.black45,
                                 ),
                               ),
@@ -694,12 +862,15 @@ class JiShuQiView extends GetView<JiShuQiController> {
                   child: GestureDetector(
                     onTap: controller.state.isSeqVisible
                         ? null
-                        : () => controller.juBuPingHeng(controller.state.betRecordList[index].id!),
+                        : () => controller.juBuPingHeng(
+                            controller.state.betRecordList[index].id!),
                     child: Align(
                       alignment: Alignment.centerRight,
                       child: !controller.state.isSeqVisible &&
-                              controller.state.betRecordList[index].id != null &&
-                              controller.state.betRecordList[index].id == controller.state.currentTempIndex
+                              controller.state.betRecordList[index].id !=
+                                  null &&
+                              controller.state.betRecordList[index].id ==
+                                  controller.state.currentTempIndex
                           ? Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               mainAxisSize: MainAxisSize.max,
@@ -708,7 +879,9 @@ class JiShuQiView extends GetView<JiShuQiController> {
                                 Icon(
                                   Icons.visibility,
                                   size: 13,
-                                  color: controller.state.isDarkMode ? Colors.amber.shade200 : Colors.amber.shade800,
+                                  color: controller.state.isDarkMode
+                                      ? Colors.amber.shade200
+                                      : Colors.amber.shade800,
                                 ),
                                 FittedBox(
                                   fit: BoxFit.scaleDown,
@@ -741,8 +914,10 @@ class JiShuQiView extends GetView<JiShuQiController> {
                   flex: 1,
                   child: Builder(
                     builder: (context) {
-                      final xiaoshu = controller.state.betRecordList[index].shuyingzhiXiaoshu;
-                      final xiaoshuText = controller.state.formatShuyingzhiColumn(xiaoshu);
+                      final xiaoshu = controller
+                          .state.betRecordList[index].shuyingzhiXiaoshu;
+                      final xiaoshuText =
+                          controller.state.formatShuyingzhiColumn(xiaoshu);
                       return Row(
                         mainAxisAlignment: MainAxisAlignment.end,
                         crossAxisAlignment: CrossAxisAlignment.center,
@@ -761,8 +936,10 @@ class JiShuQiView extends GetView<JiShuQiController> {
                                     fontSize: 12.5,
                                     fontWeight: FontWeight.w200,
                                     color: xiaoshuText.isEmpty
-                                        ? controller.state.currentTextColor.withValues(alpha: 0.0)
-                                        : controller.state.getValueColor(xiaoshu),
+                                        ? controller.state.currentTextColor
+                                            .withValues(alpha: 0.0)
+                                        : controller.state
+                                            .getValueColor(xiaoshu),
                                   ),
                                 ),
                               ),
@@ -775,7 +952,8 @@ class JiShuQiView extends GetView<JiShuQiController> {
                               child: Icon(
                                 Icons.close,
                                 size: 16,
-                                color: controller.state.currentTextColor.withValues(alpha: 0.75),
+                                color: controller.state.currentTextColor
+                                    .withValues(alpha: 0.75),
                               ),
                             ),
                           )
@@ -824,7 +1002,9 @@ class JiShuQiView extends GetView<JiShuQiController> {
                               style: TextStyle(
                                 fontSize: 10.5,
                                 fontWeight: FontWeight.w100,
-                                color: controller.state.isDarkMode ? Colors.amber.shade200 : Colors.amber.shade800,
+                                color: controller.state.isDarkMode
+                                    ? Colors.amber.shade200
+                                    : Colors.amber.shade800,
                               ),
                             ),
                           ),
@@ -838,9 +1018,14 @@ class JiShuQiView extends GetView<JiShuQiController> {
 
   _sflContainer(int index) => GetBuilder<JiShuQiController>(
         builder: (controller) {
-          final isZhengDa = controller.state.betRecordList[index].shengfulu == '正打';
-          final isLose = controller.state.betRecordList[index].remark?.startsWith('-') ?? false;
-          final dividerColor = controller.state.isDarkMode ? Colors.white24 : Colors.grey.withValues(alpha: 0.5);
+          final isZhengDa =
+              controller.state.betRecordList[index].shengfulu == '正打';
+          final isLose =
+              controller.state.betRecordList[index].remark?.startsWith('-') ??
+                  false;
+          final dividerColor = controller.state.isDarkMode
+              ? Colors.white24
+              : Colors.grey.withValues(alpha: 0.5);
 
           if (isZhengDa) {
             if (isLose) {
@@ -852,12 +1037,16 @@ class JiShuQiView extends GetView<JiShuQiController> {
                   children: [
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 1.0),
-                      child: Text("1", style: TextStyle(color: controller.state.negativeColor)),
+                      child: Text("1",
+                          style:
+                              TextStyle(color: controller.state.negativeColor)),
                     ),
                     _divier(dividerColor, 15),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 1.0),
-                      child: Text("1", style: TextStyle(color: controller.state.negativeColor)),
+                      child: Text("1",
+                          style:
+                              TextStyle(color: controller.state.negativeColor)),
                     ),
                   ],
                 ),
@@ -871,12 +1060,16 @@ class JiShuQiView extends GetView<JiShuQiController> {
                   children: [
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 1.0),
-                      child: Text("1", style: TextStyle(color: controller.state.positiveColor)),
+                      child: Text("1",
+                          style:
+                              TextStyle(color: controller.state.positiveColor)),
                     ),
                     _divier(dividerColor, 15),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 1.0),
-                      child: Text("1", style: TextStyle(color: controller.state.positiveColor)),
+                      child: Text("1",
+                          style:
+                              TextStyle(color: controller.state.positiveColor)),
                     ),
                   ],
                 ),
@@ -892,12 +1085,16 @@ class JiShuQiView extends GetView<JiShuQiController> {
                   children: [
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 1.0),
-                      child: Text("1", style: TextStyle(color: controller.state.negativeColor)),
+                      child: Text("1",
+                          style:
+                              TextStyle(color: controller.state.negativeColor)),
                     ),
                     _divier(dividerColor, 15),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 1.0),
-                      child: Text("1", style: TextStyle(color: controller.state.positiveColor)),
+                      child: Text("1",
+                          style:
+                              TextStyle(color: controller.state.positiveColor)),
                     ),
                   ],
                 ),
@@ -911,12 +1108,16 @@ class JiShuQiView extends GetView<JiShuQiController> {
                   children: [
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 1.0),
-                      child: Text("1", style: TextStyle(color: controller.state.positiveColor)),
+                      child: Text("1",
+                          style:
+                              TextStyle(color: controller.state.positiveColor)),
                     ),
                     _divier(dividerColor, 15),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 1.0),
-                      child: Text("1", style: TextStyle(color: controller.state.negativeColor)),
+                      child: Text("1",
+                          style:
+                              TextStyle(color: controller.state.negativeColor)),
                     ),
                   ],
                 ),
@@ -929,8 +1130,10 @@ class JiShuQiView extends GetView<JiShuQiController> {
   Widget _buildStatsTable(JiShuQiController controller) {
     return Table(
       border: TableBorder(
-        horizontalInside: BorderSide(color: controller.state.currentLineColor, width: 0.1),
-        verticalInside: BorderSide(color: controller.state.currentLineColor, width: 1),
+        horizontalInside:
+            BorderSide(color: controller.state.currentLineColor, width: 0.1),
+        verticalInside:
+            BorderSide(color: controller.state.currentLineColor, width: 1),
       ),
       columnWidths: const {
         1: FlexColumnWidth(1.3),
@@ -947,7 +1150,8 @@ class JiShuQiView extends GetView<JiShuQiController> {
                 final cellWidget = GestureDetector(
                   onTap: () {
                     if (row == 0 && column == 2) {
-                      controller.juBuPingHeng(JiShuQiState.tempIndexCmdCancel, v: controller.state.totalValue[29]);
+                      controller.juBuPingHeng(JiShuQiState.tempIndexCmdCancel,
+                          v: controller.state.totalValue[29]);
                     }
                   },
                   child: Align(
@@ -963,11 +1167,18 @@ class JiShuQiView extends GetView<JiShuQiController> {
                               wordSpacing: 0,
                               fontSize: 12.5,
                               fontWeight: FontWeight.w400,
-                              color: ((row * 4 + column) == 26 || (row * 4 + column) == 27)
+                              color: ((row * 4 + column) == 26 ||
+                                      (row * 4 + column) == 27)
                                   ? Colors.green
-                                  : ((row * 4 + column) == 24 || (row * 4 + column) == 22)
-                                      ? (controller.state.isDarkMode ? Colors.orange : Colors.red)
-                                      : (row * 4 + column) == 2 && controller.state.currentTempIndex != 0
+                                  : ((row * 4 + column) == 24 ||
+                                          (row * 4 + column) == 22)
+                                      ? (controller.state.isDarkMode
+                                          ? Colors.orange
+                                          : Colors.red)
+                                      : (row * 4 + column) == 2 &&
+                                              controller
+                                                      .state.currentTempIndex !=
+                                                  0
                                           ? Colors.amber
                                           : controller.state.currentTextColor),
                           controller.state.totalValue[row * 4 + column],
@@ -994,12 +1205,17 @@ class JiShuQiView extends GetView<JiShuQiController> {
         fontSize: 9,
         fontWeight: FontWeight.w600,
         height: 1.1,
-        color: controller.state.isDarkMode ? controller.state.darkTextColor : Colors.black87,
+        color: controller.state.isDarkMode
+            ? controller.state.darkTextColor
+            : Colors.black87,
       );
 
-  Color _topBarBackground(JiShuQiController controller, {required bool showChart}) {
+  Color _topBarBackground(JiShuQiController controller,
+      {required bool showChart}) {
     if (!showChart) return controller.state.currentBgColor;
-    return controller.state.isBigRoad ? controller.state.currentBgColor : controller.state.currentChartBgColor;
+    return controller.state.isBigRoad
+        ? controller.state.currentBgColor
+        : controller.state.currentChartBgColor;
   }
 
   double _chartRefreshSectionHeight({
@@ -1057,9 +1273,11 @@ class JiShuQiView extends GetView<JiShuQiController> {
     );
   }
 
-  Widget _buildTopToolBar(JiShuQiController controller, {required bool showChart}) {
+  Widget _buildTopToolBar(JiShuQiController controller,
+      {required bool showChart}) {
     final axisStyle = _chartAxisLikeTextStyle(controller);
-    final iconColor = controller.state.isDarkMode ? Colors.white : Colors.black87;
+    final iconColor =
+        controller.state.isDarkMode ? Colors.white : Colors.black87;
     return ColoredBox(
       color: _topBarBackground(controller, showChart: showChart),
       child: Padding(
@@ -1110,7 +1328,9 @@ class JiShuQiView extends GetView<JiShuQiController> {
                   controller.toggleDarkMode();
                 },
                 child: Icon(
-                  controller.state.isDarkMode ? Icons.light_mode : Icons.dark_mode,
+                  controller.state.isDarkMode
+                      ? Icons.light_mode
+                      : Icons.dark_mode,
                   size: 20,
                   color: iconColor,
                 ),
@@ -1172,25 +1392,33 @@ class JiShuQiView extends GetView<JiShuQiController> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
                                     children: [
                                       Text(
-                                        int.tryParse(controller.state.totalValue[11]) != null &&
-                                                int.parse(controller.state.totalValue[11]) > 6
+                                        int.tryParse(controller.state
+                                                        .totalValue[11]) !=
+                                                    null &&
+                                                int.parse(controller
+                                                        .state.totalValue[11]) >
+                                                    6
                                             ? ' ${controller.state.totalValue[11]}长龙 '
                                             : '   ',
                                         style: TextStyle(
                                           fontSize: 13,
                                           fontWeight: FontWeight.bold,
-                                          color:
-                                              controller.state.isDarkMode ? Colors.grey.shade400 : Colors.grey.shade700,
+                                          color: controller.state.isDarkMode
+                                              ? Colors.grey.shade400
+                                              : Colors.grey.shade700,
                                         ),
                                       ),
                                       Row(
                                         children: [
-                                          _buildLegendItem('W', '赢', Colors.red),
+                                          _buildLegendItem(
+                                              'W', '赢', Colors.red),
                                           const SizedBox(width: 4),
-                                          _buildLegendItem('L', '输', Colors.green),
+                                          _buildLegendItem(
+                                              'L', '输', Colors.green),
                                           const SizedBox(width: 4),
                                         ],
                                       ),
@@ -1202,23 +1430,29 @@ class JiShuQiView extends GetView<JiShuQiController> {
                                     cellWidth: JiShuQiState.cellWidth,
                                     cellHeight: JiShuQiState.cellWidth,
                                     hasData: controller.state.hasBigRoadData,
-                                    scrollController: controller.roadMapScrollController,
-                                    borderColor: controller.state.isDarkMode ? Colors.white24 : Colors.grey.shade300,
-                                    backgroundColor:
-                                        controller.state.isDarkMode ? const Color(0xFF1E2A3A) : Colors.grey.shade50,
+                                    scrollController:
+                                        controller.roadMapScrollController,
+                                    borderColor: controller.state.isDarkMode
+                                        ? Colors.white24
+                                        : Colors.grey.shade300,
+                                    backgroundColor: controller.state.isDarkMode
+                                        ? const Color(0xFF1E2A3A)
+                                        : Colors.grey.shade50,
                                     borderRadius: 0.0,
                                     showBorder: false,
                                     front: "W",
                                     back: "L",
-                                    textColor:
-                                        controller.state.isDarkMode ? controller.state.darkTextColor : Colors.white,
+                                    textColor: controller.state.isDarkMode
+                                        ? controller.state.darkTextColor
+                                        : Colors.white,
                                   ),
                                   SizedBox(height: 2)
                                 ],
                               ),
                             ),
                             Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 4.0),
                               child: VerticalText(
                                 ' 大展鸿图',
                                 style: TextStyle(
@@ -1230,7 +1464,8 @@ class JiShuQiView extends GetView<JiShuQiController> {
                           ],
                         ),
                         Positioned(
-                          left: _plotAreaLeftFromScreen(_chartAxisLikeTextStyle(controller)),
+                          left: _plotAreaLeftFromScreen(
+                              _chartAxisLikeTextStyle(controller)),
                           top: _chartNicknameTop,
                           right: 96,
                           child: IgnorePointer(
@@ -1254,15 +1489,26 @@ class JiShuQiView extends GetView<JiShuQiController> {
                       ),
                       child: Builder(
                         builder: (context) {
-                          final dataValues = controller.state.chartData.map((e) => e.sales).toList();
-                          final dataMinY = dataValues.reduce((a, b) => a < b ? a : b);
-                          final dataMaxY = dataValues.reduce((a, b) => a > b ? a : b);
+                          final dataValues = controller.state.chartData
+                              .map((e) => e.sales)
+                              .toList();
+                          final dataMinY =
+                              dataValues.reduce((a, b) => a < b ? a : b);
+                          final dataMaxY =
+                              dataValues.reduce((a, b) => a > b ? a : b);
                           final dataSpan = dataMaxY - dataMinY;
                           final fallbackSpan = dataMaxY.abs() * 0.2;
-                          final hasUsableSpan = dataSpan.isFinite && dataSpan > 0.000000001;
-                          final tickSpan = hasUsableSpan ? dataSpan : (fallbackSpan > 1.0 ? fallbackSpan : 1.0);
-                          final tickMinY = hasUsableSpan ? dataMinY : dataMinY - tickSpan / 2;
-                          final tickMaxY = hasUsableSpan ? dataMaxY : dataMaxY + tickSpan / 2;
+                          final hasUsableSpan =
+                              dataSpan.isFinite && dataSpan > 0.000000001;
+                          final tickSpan = hasUsableSpan
+                              ? dataSpan
+                              : (fallbackSpan > 1.0 ? fallbackSpan : 1.0);
+                          final tickMinY = hasUsableSpan
+                              ? dataMinY
+                              : dataMinY - tickSpan / 2;
+                          final tickMaxY = hasUsableSpan
+                              ? dataMaxY
+                              : dataMaxY + tickSpan / 2;
                           final yAxisInterval = tickSpan / 2;
                           final axisPadding = yAxisInterval / 2;
                           final chartMinY = tickMinY - axisPadding;
@@ -1295,7 +1541,8 @@ class JiShuQiView extends GetView<JiShuQiController> {
                                     // x轴线（横线）的样式
                                     getDrawingHorizontalLine: (value) {
                                       return FlLine(
-                                        color: Colors.white.withValues(alpha: 0.3),
+                                        color:
+                                            Colors.white.withValues(alpha: 0.3),
                                         strokeWidth: 1,
                                         dashArray: [5, 5], // 虚线样式（线宽，间隔）
                                       );
@@ -1336,7 +1583,9 @@ class JiShuQiView extends GetView<JiShuQiController> {
                                           return SideTitleWidget(
                                             meta: meta,
                                             space: _chartAxisToPlotGap,
-                                            fitInside: SideTitleFitInsideData.fromTitleMeta(meta, distanceFromEdge: 2),
+                                            fitInside: SideTitleFitInsideData
+                                                .fromTitleMeta(meta,
+                                                    distanceFromEdge: 2),
                                             child: Container(
                                               width: yAxisReserved,
                                               alignment: Alignment.centerLeft,
@@ -1355,7 +1604,9 @@ class JiShuQiView extends GetView<JiShuQiController> {
                                   ),
                                   // 添加内边距
                                   minX: 0,
-                                  maxX: controller.state.chartData.length.toDouble() + 0.5,
+                                  maxX: controller.state.chartData.length
+                                          .toDouble() +
+                                      0.5,
                                   minY: chartMinY,
                                   maxY: chartMaxY,
                                   // 设置图表边距
@@ -1364,7 +1615,8 @@ class JiShuQiView extends GetView<JiShuQiController> {
                                   lineTouchData: LineTouchData(
                                     enabled: true,
                                     handleBuiltInTouches: true,
-                                    touchCallback: (FlTouchEvent event, LineTouchResponse? response) {
+                                    touchCallback: (FlTouchEvent event,
+                                        LineTouchResponse? response) {
                                       // 单击抬起：切换路子图（内置仍会处理 tooltip / 高亮）
                                       if (event is FlTapUpEvent) {
                                         controller.changeChart();
@@ -1378,7 +1630,8 @@ class JiShuQiView extends GetView<JiShuQiController> {
                                           return LineTooltipItem(
                                             touchedSpot.y.toStringAsFixed(1),
                                             TextStyle(
-                                              color: controller.state.darkTextColor,
+                                              color: controller
+                                                  .state.darkTextColor,
                                               fontSize: 12,
                                               fontWeight: FontWeight.bold,
                                             ),
@@ -1386,16 +1639,20 @@ class JiShuQiView extends GetView<JiShuQiController> {
                                         }).toList();
                                       },
                                     ),
-                                    getTouchedSpotIndicator: (LineChartBarData barData, List<int> spotIndexes) {
+                                    getTouchedSpotIndicator:
+                                        (LineChartBarData barData,
+                                            List<int> spotIndexes) {
                                       return spotIndexes.map((spotIndex) {
                                         return TouchedSpotIndicatorData(
                                           const FlLine(
-                                            color: Colors.transparent, // 透明线条，不显示
+                                            color:
+                                                Colors.transparent, // 透明线条，不显示
                                             strokeWidth: 0,
                                           ),
                                           FlDotData(
                                             show: true, // 显示数据点高亮
-                                            getDotPainter: (spot, percent, barData, index) {
+                                            getDotPainter: (spot, percent,
+                                                barData, index) {
                                               return FlDotCirclePainter(
                                                 radius: 4,
                                                 color: Colors.white,
@@ -1411,15 +1668,19 @@ class JiShuQiView extends GetView<JiShuQiController> {
                                   lineBarsData: [
                                     LineChartBarData(
                                       spots: controller.state.chartData
-                                          .map((data) => FlSpot(data.year.toDouble(), data.sales))
+                                          .map((data) => FlSpot(
+                                              data.year.toDouble(), data.sales))
                                           .toList(),
                                       // false：点与点用直线连接；true 会用曲线拟合，在急升急跌处容易「鼓包」略过中间点
                                       isCurved: false,
-                                      color: controller.state.isDarkMode ? Colors.grey.shade400 : Colors.grey.shade600,
+                                      color: controller.state.isDarkMode
+                                          ? Colors.grey.shade400
+                                          : Colors.grey.shade600,
                                       barWidth: 2,
                                       dotData: FlDotData(
                                         show: true,
-                                        getDotPainter: (spot, percent, barData, index) {
+                                        getDotPainter:
+                                            (spot, percent, barData, index) {
                                           // 根据相对于上一个点的资金变化设置颜色
                                           Color dotColor;
                                           if (index == 0) {
@@ -1428,15 +1689,20 @@ class JiShuQiView extends GetView<JiShuQiController> {
                                           } else {
                                             // 获取当前点和上一个点的值
                                             final currentValue = spot.y;
-                                            final previousValue = barData.spots[index - 1].y;
-                                            final change = currentValue - previousValue;
+                                            final previousValue =
+                                                barData.spots[index - 1].y;
+                                            final change =
+                                                currentValue - previousValue;
 
                                             if (change > 0) {
-                                              dotColor = controller.state.positiveColor; // 资金增加
+                                              dotColor = controller
+                                                  .state.positiveColor; // 资金增加
                                             } else if (change < 0) {
-                                              dotColor = controller.state.negativeColor; // 资金减少
+                                              dotColor = controller
+                                                  .state.negativeColor; // 资金减少
                                             } else {
-                                              dotColor = const Color(0xFF6B7280); // 灰色 - 无变化
+                                              dotColor = const Color(
+                                                  0xFF6B7280); // 灰色 - 无变化
                                             }
                                           }
                                           return FlDotCirclePainter(
@@ -1510,9 +1776,11 @@ class JiShuQiView extends GetView<JiShuQiController> {
     );
   }
 
-  _divier(Color color, double height) => Container(height: height, width: 1, color: color);
+  _divier(Color color, double height) =>
+      Container(height: height, width: 1, color: color);
 
-  _divier2(Color color, double height) => Container(height: height, width: 5, color: Colors.transparent);
+  _divier2(Color color, double height) =>
+      Container(height: height, width: 5, color: Colors.transparent);
 
   _buildButton(Color bg, String str, int i) => Expanded(
         child: SizedBox(
@@ -1570,7 +1838,8 @@ class JiShuQiView extends GetView<JiShuQiController> {
   _buildButtonStyle(Color bg) => ButtonStyle(
         backgroundColor: WidgetStateProperty.all(bg),
         overlayColor: WidgetStateProperty.all(Colors.black),
-        padding: WidgetStateProperty.all(EdgeInsetsGeometry.lerp(EdgeInsets.zero, EdgeInsets.zero, 0)),
+        padding: WidgetStateProperty.all(
+            EdgeInsetsGeometry.lerp(EdgeInsets.zero, EdgeInsets.zero, 0)),
         shape: WidgetStateProperty.all<RoundedRectangleBorder>(
           RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(5.0), // 设置圆角大小
@@ -1604,7 +1873,9 @@ class JiShuQiView extends GetView<JiShuQiController> {
           label,
           style: TextStyle(
             fontSize: 12,
-            color: controller.state.isDarkMode ? Colors.grey.shade400 : Colors.grey.shade600,
+            color: controller.state.isDarkMode
+                ? Colors.grey.shade400
+                : Colors.grey.shade600,
           ),
         ),
       ],

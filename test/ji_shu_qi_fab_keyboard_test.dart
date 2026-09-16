@@ -228,10 +228,10 @@ void main() {
     await pumpWithKeyboardInset(earlyKeyboardInset);
     var openRect = tester.getRect(find.byKey(fabKey));
     var scaffoldBottom = tester.getBottomRight(find.byType(Scaffold)).dy;
-    var inputBarTop = scaffoldBottom -
+    var inputBarCenter = scaffoldBottom -
         viewPaddingBottom -
-        JiShuQiKeyboardAwareFabLocation.expandedInputBarHeight;
-    expect(openRect.bottom, closeTo(inputBarTop, 0.01));
+        JiShuQiKeyboardAwareFabLocation.expandedInputBarHeight / 2;
+    expect(openRect.center.dy, closeTo(inputBarCenter, 0.01));
     await tester.tapAt(openRect.center);
     expect(tapCount, 1);
 
@@ -240,10 +240,10 @@ void main() {
     openRect = tester.getRect(find.byKey(fabKey));
     expect(openRect.center.dy, lessThan(closedCenter.dy));
     scaffoldBottom = tester.getBottomRight(find.byType(Scaffold)).dy;
-    inputBarTop = scaffoldBottom -
+    inputBarCenter = scaffoldBottom -
         keyboardInset -
-        JiShuQiKeyboardAwareFabLocation.expandedInputBarHeight;
-    expect(openRect.bottom, closeTo(inputBarTop, 0.01));
+        JiShuQiKeyboardAwareFabLocation.expandedInputBarHeight / 2;
+    expect(openRect.center.dy, closeTo(inputBarCenter, 0.01));
     await tester.tapAt(openRect.center);
     expect(tapCount, 2);
 
