@@ -1962,12 +1962,9 @@ class JiShuQiController extends GetxController {
     enableThemeFollowsTime();
   }
 
-  /// 切换暗黑主题（手动后不再跟随时间，长按主题图标可恢复自动）
+  /// 临时切换亮/暗主题；是否按时间自动切换由更多功能里的自动主题开关决定。
   void toggleDarkMode() {
     dismissKeyboard();
-    state.themeFollowsTime = false;
-    unawaited(StorageUtil.saveBool(JiShuQiState.prefThemeFollowsTime, false));
-    _dayNightThemeTimer?.cancel();
     state.isDarkMode = !state.isDarkMode;
     BXLoading.syncTheme(state.isDarkMode);
     DayNightTheme.applySystemUiOverlayStyle(state.isDarkMode);
