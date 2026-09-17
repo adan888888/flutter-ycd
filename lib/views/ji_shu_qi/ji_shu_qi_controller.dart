@@ -1457,6 +1457,7 @@ class JiShuQiController extends GetxController {
         hintText: '留空则使用默认 ${UserModel.defaultDailyBetGoal}',
         initialValue: store.userModel.dailyBetGoal?.toString() ?? '',
         statusIcon: Icons.flag_outlined,
+        isDarkMode: state.isDarkMode,
         keyboardType: TextInputType.number,
         inputFormatters: [FilteringTextInputFormatter.digitsOnly],
         validator: (raw) {
@@ -1468,7 +1469,9 @@ class JiShuQiController extends GetxController {
             _saveDailyBetGoal(raw.isEmpty ? null : int.parse(raw)),
       ),
       barrierDismissible: true,
-      barrierColor: Colors.black.withValues(alpha: 0.42),
+      barrierColor: Colors.black.withValues(
+        alpha: state.isDarkMode ? 0.62 : 0.42,
+      ),
     );
   }
 
@@ -1613,6 +1616,7 @@ class JiShuQiController extends GetxController {
         hintText: '请输入桌面金额',
         buttonText: '确认修改',
         statusIcon: Icons.fact_check_outlined,
+        isDarkMode: state.isDarkMode,
         keyboardType: const TextInputType.numberWithOptions(decimal: true),
         inputFormatters: [
           FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),
@@ -1626,7 +1630,9 @@ class JiShuQiController extends GetxController {
         onSubmitted: reconcileBenJinByCurrentAmount,
       ),
       barrierDismissible: true,
-      barrierColor: Colors.black.withValues(alpha: 0.42),
+      barrierColor: Colors.black.withValues(
+        alpha: state.isDarkMode ? 0.62 : 0.42,
+      ),
     );
   }
 

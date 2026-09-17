@@ -180,6 +180,7 @@ class ReviewInputDialog extends StatefulWidget {
     this.buttonText = '保存',
     this.secondaryButtonText = '取消',
     this.statusIcon = Icons.edit_outlined,
+    this.isDarkMode = false,
     this.keyboardType,
     this.inputFormatters,
     this.validator,
@@ -193,6 +194,7 @@ class ReviewInputDialog extends StatefulWidget {
   final String buttonText;
   final String secondaryButtonText;
   final IconData statusIcon;
+  final bool isDarkMode;
   final TextInputType? keyboardType;
   final List<TextInputFormatter>? inputFormatters;
   final String? Function(String value)? validator;
@@ -231,6 +233,7 @@ class _ReviewInputDialogState extends State<ReviewInputDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = widget.isDarkMode;
     final screenWidth = MediaQuery.sizeOf(context).width;
     const designDialogWidth = ReviewApprovedDialog._designDialogWidth;
     final dialogWidth = screenWidth *
@@ -238,6 +241,22 @@ class _ReviewInputDialogState extends State<ReviewInputDialog> {
         ReviewApprovedDialog._designScreenWidth;
     final scale = dialogWidth / designDialogWidth;
     final horizontalInset = (screenWidth - dialogWidth) / 2;
+    final surface = isDark ? const Color(0xFF16212F) : Colors.white;
+    final primaryText =
+        isDark ? const Color(0xFFF5F7FA) : ReviewApprovedDialog._primaryText;
+    final secondaryText =
+        isDark ? const Color(0xFFAAB3C1) : const Color(0xFF9AA3B4);
+    final inputFill =
+        isDark ? const Color(0xFF101926) : ReviewApprovedDialog._paleBlue;
+    final badgeFill =
+        isDark ? const Color(0xFF1C2939) : ReviewApprovedDialog._paleBlue;
+    final border = isDark
+        ? Colors.white.withValues(alpha: 0.12)
+        : ReviewApprovedDialog._border;
+    final accent =
+        isDark ? const Color(0xFF8AAEFF) : ReviewApprovedDialog._brandBlue;
+    final actionText =
+        isDark ? const Color(0xFFB8A8F2) : const Color(0xFF7460B4);
 
     double s(double designPx) => designPx * scale;
 
@@ -257,7 +276,7 @@ class _ReviewInputDialogState extends State<ReviewInputDialog> {
             Padding(
               padding: EdgeInsets.only(top: s(84)),
               child: Material(
-                color: Colors.white,
+                color: surface,
                 borderRadius: BorderRadius.circular(s(20)),
                 clipBehavior: Clip.antiAlias,
                 child: Column(
@@ -267,13 +286,14 @@ class _ReviewInputDialogState extends State<ReviewInputDialog> {
                     _StatusIllustration(
                       icon: widget.statusIcon,
                       size: s(82),
+                      isDarkMode: isDark,
                     ),
                     SizedBox(height: s(6)),
                     Text(
                       widget.title,
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                        color: ReviewApprovedDialog._primaryText,
+                        color: primaryText,
                         fontSize: s(20),
                         height: 1.1,
                         fontWeight: FontWeight.w700,
@@ -286,7 +306,7 @@ class _ReviewInputDialogState extends State<ReviewInputDialog> {
                         widget.message,
                         textAlign: TextAlign.center,
                         style: TextStyle(
-                          color: ReviewApprovedDialog._primaryText,
+                          color: primaryText,
                           fontSize: s(13),
                           height: 1.4,
                         ),
@@ -309,7 +329,7 @@ class _ReviewInputDialogState extends State<ReviewInputDialog> {
                           }
                         },
                         style: TextStyle(
-                          color: ReviewApprovedDialog._primaryText,
+                          color: primaryText,
                           fontSize: s(20),
                           fontWeight: FontWeight.w700,
                         ),
@@ -317,26 +337,24 @@ class _ReviewInputDialogState extends State<ReviewInputDialog> {
                           hintText: widget.hintText,
                           errorText: _errorText,
                           hintStyle: TextStyle(
-                            color: const Color(0xFF9AA3B4),
+                            color: secondaryText,
                             fontSize: s(13),
                             fontWeight: FontWeight.w400,
                           ),
                           filled: true,
-                          fillColor: ReviewApprovedDialog._paleBlue,
+                          fillColor: inputFill,
                           contentPadding: EdgeInsets.symmetric(
                             horizontal: s(12),
                             vertical: s(10),
                           ),
                           enabledBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(s(12)),
-                            borderSide: const BorderSide(
-                              color: ReviewApprovedDialog._border,
-                            ),
+                            borderSide: BorderSide(color: border),
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(s(12)),
-                            borderSide: const BorderSide(
-                              color: ReviewApprovedDialog._brandBlue,
+                            borderSide: BorderSide(
+                              color: accent,
                               width: 1.4,
                             ),
                           ),
@@ -353,9 +371,9 @@ class _ReviewInputDialogState extends State<ReviewInputDialog> {
                         vertical: s(6),
                       ),
                       decoration: BoxDecoration(
-                        color: ReviewApprovedDialog._paleBlue,
+                        color: badgeFill,
                         borderRadius: BorderRadius.circular(100),
-                        border: Border.all(color: ReviewApprovedDialog._border),
+                        border: Border.all(color: border),
                       ),
                       child: Text(
                         widget.badgeText,
@@ -363,20 +381,20 @@ class _ReviewInputDialogState extends State<ReviewInputDialog> {
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
-                          color: ReviewApprovedDialog._brandBlue,
+                          color: accent,
                           fontSize: s(12),
                           height: 1.4,
                         ),
                       ),
                     ),
                     SizedBox(height: s(18)),
-                    const Divider(
+                    Divider(
                       height: 0.5,
                       thickness: 0.5,
-                      color: ReviewApprovedDialog._border,
+                      color: border,
                     ),
                     Material(
-                      color: ReviewApprovedDialog._paleBlue,
+                      color: badgeFill,
                       child: SizedBox(
                         height: s(50),
                         child: Row(
@@ -387,14 +405,14 @@ class _ReviewInputDialogState extends State<ReviewInputDialog> {
                                 height: s(50),
                                 fontSize: s(17),
                                 backgroundColor: Colors.transparent,
-                                textColor: const Color(0xFF7460B4),
+                                textColor: actionText,
                                 onTap: () => Navigator.of(context).pop(),
                               ),
                             ),
-                            const VerticalDivider(
+                            VerticalDivider(
                               width: 0.5,
                               thickness: 0.5,
-                              color: ReviewApprovedDialog._border,
+                              color: border,
                             ),
                             Expanded(
                               child: _DialogActionButton(
@@ -402,7 +420,7 @@ class _ReviewInputDialogState extends State<ReviewInputDialog> {
                                 height: s(50),
                                 fontSize: s(17),
                                 backgroundColor: Colors.transparent,
-                                textColor: const Color(0xFF7460B4),
+                                textColor: actionText,
                                 onTap: _submit,
                               ),
                             ),
@@ -421,7 +439,7 @@ class _ReviewInputDialogState extends State<ReviewInputDialog> {
               child: Transform.scale(
                 scale: scale,
                 alignment: Alignment.topCenter,
-                child: const _HeaderArtwork(),
+                child: _HeaderArtwork(surfaceColor: surface),
               ),
             ),
           ],
@@ -555,10 +573,15 @@ class _DialogActionButton extends StatelessWidget {
 }
 
 class _StatusIllustration extends StatelessWidget {
-  const _StatusIllustration({required this.icon, required this.size});
+  const _StatusIllustration({
+    required this.icon,
+    required this.size,
+    this.isDarkMode = false,
+  });
 
   final IconData icon;
   final double size;
+  final bool isDarkMode;
 
   @override
   Widget build(BuildContext context) {
@@ -567,16 +590,22 @@ class _StatusIllustration extends StatelessWidget {
       height: size,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: const Color(0xFFEAF1FF),
+        color: isDarkMode ? const Color(0xFF22334A) : const Color(0xFFEAF1FF),
         boxShadow: [
           BoxShadow(
-            color: const Color(0x336E9CFF),
+            color:
+                isDarkMode ? const Color(0x4D6E9CFF) : const Color(0x336E9CFF),
             blurRadius: size * 0.21,
           ),
         ],
       ),
-      child:
-          Icon(icon, size: size * 0.5, color: ReviewApprovedDialog._brandBlue),
+      child: Icon(
+        icon,
+        size: size * 0.5,
+        color: isDarkMode
+            ? const Color(0xFF8AAEFF)
+            : ReviewApprovedDialog._brandBlue,
+      ),
     );
   }
 }
@@ -654,7 +683,9 @@ class _RestartIllustration extends StatelessWidget {
 }
 
 class _HeaderArtwork extends StatelessWidget {
-  const _HeaderArtwork();
+  const _HeaderArtwork({this.surfaceColor = Colors.white});
+
+  final Color surfaceColor;
 
   @override
   Widget build(BuildContext context) {
@@ -725,8 +756,11 @@ class _HeaderArtwork extends StatelessWidget {
             right: 0,
             bottom: 0,
             height: 27,
-            child:
-                SvgPicture.asset('$root/header_bottom.svg', fit: BoxFit.fill),
+            child: SvgPicture.asset(
+              '$root/header_bottom.svg',
+              fit: BoxFit.fill,
+              colorFilter: ColorFilter.mode(surfaceColor, BlendMode.srcIn),
+            ),
           ),
         ],
       ),
