@@ -44,6 +44,79 @@ class JiShuQiBettingListEmptyState extends StatelessWidget {
   }
 }
 
+/// 监听统计区 [EasyRefresh] header 位移，供顶栏增高、列表随之下移（列表滚动仍独立）。
+class JiShuQiPullLinkedBettingList extends StatefulWidget {
+  const JiShuQiPullLinkedBettingList({
+    super.key,
+    required this.controller,
+    required this.child,
+  });
+
+  final JiShuQiController controller;
+  final Widget child;
+
+  @override
+  State<JiShuQiPullLinkedBettingList> createState() =>
+      _JiShuQiPullLinkedBettingListState();
+}
+
+class _JiShuQiPullLinkedBettingListState extends State<JiShuQiPullLinkedBettingList> {
+  IndicatorNotifier? _headerNotifier;
+  VoidCallback? _offsetListener;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _bindHeaderNotifier());
+  }
+
+  @override
+  void didUpdateWidget(covariant JiShuQiPullLinkedBettingList oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.controller != widget.controller) {
+      _unbindHeaderNotifier();
+      WidgetsBinding.instance.addPostFrameCallback((_) => _bindHeaderNotifier());
+    }
+  }
+
+  void _bindHeaderNotifier() {
+    if (!mounted) return;
+    final notifier = widget.controller.statsRefreshController.headerState?.notifier;
+    if (notifier == null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _bindHeaderNotifier());
+      return;
+    }
+    if (_headerNotifier == notifier) return;
+    _unbindHeaderNotifier();
+    _headerNotifier = notifier;
+    _offsetListener = () {
+      final offset = notifier.offset;
+      if (widget.controller.statsPullOffset.value != offset) {
+        widget.controller.statsPullOffset.value = offset;
+      }
+    };
+    notifier.addListener(_offsetListener!);
+    _offsetListener!();
+  }
+
+  void _unbindHeaderNotifier() {
+    if (_headerNotifier != null && _offsetListener != null) {
+      _headerNotifier!.removeListener(_offsetListener!);
+    }
+    _headerNotifier = null;
+    _offsetListener = null;
+  }
+
+  @override
+  void dispose() {
+    _unbindHeaderNotifier();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => widget.child;
+}
+
 /// 键盘弹起时把骰子按钮布局到输入栏上方；键盘收起时沿用 Scaffold 原本的位置。
 class JiShuQiKeyboardAwareFabLocation extends FloatingActionButtonLocation {
   const JiShuQiKeyboardAwareFabLocation({
@@ -269,7 +342,7 @@ class JiShuQiView extends GetView<JiShuQiController> {
                       final showChart = controller.state.isChartVisible;
                       final actionButtonsHeight = _platformActionButtonsHeight;
 
-                      /// 顶栏 + 图表 + 统计 + 按钮区一体下拉刷新（逻辑仍为 refreshStatsArea）
+                      /// 顶栏 + 图表 + 统计 + 按钮区下拉刷新（逻辑仍为 refreshStatsArea）
                       Widget buildHeaderRefreshSection() {
                         final chartPartHeight = _chartRefreshSectionHeight(
                           showChart: showChart,
@@ -279,42 +352,51 @@ class JiShuQiView extends GetView<JiShuQiController> {
                         const statsHeight = JiShuQiState.statsAreaHeight;
                         final totalHeight = chartPartHeight + statsHeight + actionButtonsHeight;
 
-                        return SizedBox(
-                          height: totalHeight,
-                          child: GetBuilder<JiShuQiController>(
-                            builder: (c) => EasyRefresh(
-                              controller: c.statsRefreshController,
-                              header: c.state.pullRefreshHeader(backgroundColor: c.state.currentBgColor),
-                              onRefresh: c.refreshStatsArea,
-                              child: ListView(
-                                padding: EdgeInsets.zero,
-                                physics: const AlwaysScrollableScrollPhysics(),
-                                children: [
-                                  SizedBox(
-                                    height: totalHeight,
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                                      children: [
-                                        _buildTopToolBar(c, showChart: showChart),
-                                        if (!keyboardOpen && showChart) ...[
-                                          _buildLineChats(),
-                                          const SizedBox(height: _chartBelowToolbarGap),
-                                        ],
-                                        SizedBox(
-                                          height: statsHeight,
-                                          child: _buildStatsTable(c),
-                                        ),
-                                        _buildActionButtonsRow(
-                                          c,
-                                          height: actionButtonsHeight,
-                                        ),
-                                      ],
-                                    ),
+                        return ValueListenableBuilder<double>(
+                          valueListenable: controller.statsPullOffset,
+                          builder: (context, pullOffset, _) {
+                            final viewportHeight = totalHeight + pullOffset;
+                            return SizedBox(
+                              height: viewportHeight,
+                              child: GetBuilder<JiShuQiController>(
+                                builder: (c) => EasyRefresh(
+                                  controller: c.statsRefreshController,
+                                  header: c.state.pullRefreshHeader(
+                                    backgroundColor: c.state.currentBgColor,
                                   ),
-                                ],
+                                  onRefresh: c.refreshStatsArea,
+                                  child: ListView(
+                                    padding: EdgeInsets.zero,
+                                    clipBehavior: Clip.none,
+                                    physics: const AlwaysScrollableScrollPhysics(),
+                                    children: [
+                                      SizedBox(
+                                        height: totalHeight,
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                                          children: [
+                                            _buildTopToolBar(c, showChart: showChart),
+                                            if (!keyboardOpen && showChart) ...[
+                                              _buildLineChats(),
+                                              const SizedBox(height: _chartBelowToolbarGap),
+                                            ],
+                                            SizedBox(
+                                              height: statsHeight,
+                                              child: _buildStatsTable(c),
+                                            ),
+                                            _buildActionButtonsRow(
+                                              c,
+                                              height: actionButtonsHeight,
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
                               ),
-                            ),
-                          ),
+                            );
+                          },
                         );
                       }
 
@@ -323,90 +405,101 @@ class JiShuQiView extends GetView<JiShuQiController> {
                           Column(
                             mainAxisAlignment: MainAxisAlignment.start,
                             children: <Widget>[
-                              GestureDetector(
-                                behavior: HitTestBehavior.deferToChild,
-                                onTap: controller.dismissKeyboard,
-                                child: buildHeaderRefreshSection(),
-                              ),
-                              //列表
                               Expanded(
-                                child: GetBuilder<JiShuQiController>(
-                                    builder: (controller) => AbsorbPointer(
-                                          absorbing: controller.state.isRefreshing,
-                                          child: GestureDetector(
-                                            behavior: HitTestBehavior.translucent,
-                                            onTap: controller.dismissKeyboard,
-                                            child: ColoredBox(
-                                              color: controller.state.currentListViewColor,
-                                              child: controller.state.betRecordList.isEmpty
-                                                  ? JiShuQiBettingListEmptyState(
-                                                      isInitialDataLoading: controller.state.isInitialDataLoading,
-                                                    )
-                                                  : Stack(
-                                                      fit: StackFit.expand,
-                                                      children: [
-                                                        NotificationListener<ScrollNotification>(
-                                                          onNotification: (notification) {
-                                                            if (notification is ScrollStartNotification &&
-                                                                notification.dragDetails != null) {
-                                                              controller.onBettingListUserDragStart();
-                                                            } else if (notification is ScrollUpdateNotification &&
-                                                                notification.dragDetails != null) {
-                                                              controller.onBettingListUserDragPositionChanged();
-                                                            } else if (notification is ScrollEndNotification) {
-                                                              controller.onBettingListUserDragEnd();
-                                                            }
-                                                            return false;
-                                                          },
-                                                          child: ListView.builder(
-                                                            key: const PageStorageKey<String>(
-                                                              'ji_shu_qi_betting_list',
+                                child: JiShuQiPullLinkedBettingList(
+                                  controller: controller,
+                                  child: Column(
+                                    children: [
+                                      GestureDetector(
+                                        behavior: HitTestBehavior.deferToChild,
+                                        onTap: controller.dismissKeyboard,
+                                        child: buildHeaderRefreshSection(),
+                                      ),
+                                      Expanded(
+                                        child: GetBuilder<JiShuQiController>(
+                                          builder: (controller) => AbsorbPointer(
+                                            absorbing: controller.state.isRefreshing,
+                                            child: GestureDetector(
+                                              behavior: HitTestBehavior.translucent,
+                                              onTap: controller.dismissKeyboard,
+                                              child: ColoredBox(
+                                                color: controller.state.currentListViewColor,
+                                                child: controller.state.betRecordList.isEmpty
+                                                    ? JiShuQiBettingListEmptyState(
+                                                        isInitialDataLoading:
+                                                            controller.state.isInitialDataLoading,
+                                                      )
+                                                    : Stack(
+                                                        fit: StackFit.expand,
+                                                        children: [
+                                                          NotificationListener<ScrollNotification>(
+                                                            onNotification: (notification) {
+                                                              if (notification is ScrollStartNotification &&
+                                                                  notification.dragDetails != null) {
+                                                                controller.onBettingListUserDragStart();
+                                                              } else if (notification
+                                                                      is ScrollUpdateNotification &&
+                                                                  notification.dragDetails != null) {
+                                                                controller.onBettingListUserDragPositionChanged();
+                                                              } else if (notification is ScrollEndNotification) {
+                                                                controller.onBettingListUserDragEnd();
+                                                              }
+                                                              return false;
+                                                            },
+                                                            child: ListView.builder(
+                                                              key: const PageStorageKey<String>(
+                                                                'ji_shu_qi_betting_list',
+                                                              ),
+                                                              reverse: false,
+                                                              controller: controller.scrollController,
+                                                              itemCount: controller.state.betRecordList.length,
+                                                              itemBuilder: (BuildContext context, int index) =>
+                                                                  _buildItem(index),
                                                             ),
-                                                            reverse: false,
-                                                            controller: controller.scrollController,
-                                                            itemCount: controller.state.betRecordList.length,
-                                                            itemBuilder: (BuildContext context, int index) =>
-                                                                _buildItem(index),
                                                           ),
-                                                        ),
-                                                        if (controller.isLoadingBettingHistory)
-                                                          Positioned(
-                                                            top: 8,
-                                                            left: 0,
-                                                            right: 0,
-                                                            child: IgnorePointer(
-                                                              child: Center(
-                                                                child: Semantics(
-                                                                  label: '加载历史记录',
-                                                                  child: Container(
-                                                                    padding: const EdgeInsets.all(7),
-                                                                    decoration: BoxDecoration(
-                                                                      color: controller.state.currentListViewColor,
-                                                                      shape: BoxShape.circle,
-                                                                      boxShadow: const [
-                                                                        BoxShadow(
-                                                                          color: Colors.black26,
-                                                                          blurRadius: 5,
+                                                          if (controller.isLoadingBettingHistory)
+                                                            Positioned(
+                                                              top: 8,
+                                                              left: 0,
+                                                              right: 0,
+                                                              child: IgnorePointer(
+                                                                child: Center(
+                                                                  child: Semantics(
+                                                                    label: '加载历史记录',
+                                                                    child: Container(
+                                                                      padding: const EdgeInsets.all(7),
+                                                                      decoration: BoxDecoration(
+                                                                        color: controller.state.currentListViewColor,
+                                                                        shape: BoxShape.circle,
+                                                                        boxShadow: const [
+                                                                          BoxShadow(
+                                                                            color: Colors.black26,
+                                                                            blurRadius: 5,
+                                                                          ),
+                                                                        ],
+                                                                      ),
+                                                                      child: SizedBox.square(
+                                                                        dimension: 20,
+                                                                        child: CircularProgressIndicator(
+                                                                          strokeWidth: 2.3,
+                                                                          color: controller.state.currentTextColor,
                                                                         ),
-                                                                      ],
-                                                                    ),
-                                                                    child: SizedBox.square(
-                                                                      dimension: 20,
-                                                                      child: CircularProgressIndicator(
-                                                                        strokeWidth: 2.3,
-                                                                        color: controller.state.currentTextColor,
                                                                       ),
                                                                     ),
                                                                   ),
                                                                 ),
                                                               ),
                                                             ),
-                                                          ),
-                                                      ],
-                                                    ),
+                                                        ],
+                                                      ),
+                                              ),
                                             ),
                                           ),
-                                        )),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
                               ),
                               // 输入栏：仅此处随键盘上移，统计区不参与整体上移
                               Padding(

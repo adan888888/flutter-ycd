@@ -36,6 +36,9 @@ class JiShuQiController extends GetxController {
       EasyRefreshController(controlFinishRefresh: true);
   final JiShuQiState state = JiShuQiState();
 
+  /// 统计区下拉时同步下移投注列表（与 EasyRefresh header offset 一致）
+  final ValueNotifier<double> statsPullOffset = ValueNotifier(0);
+
   final scrollController = ScrollController();
 
   /// 投注列表「眼睛」行 GlobalKey，用于精确定位滚动（避免手算行高累积误差）
@@ -874,6 +877,7 @@ class JiShuQiController extends GetxController {
     _hideRandomResultOverlay();
     _diceSoundPlayer.dispose();
     statsRefreshController.dispose();
+    statsPullOffset.dispose();
     WakelockPlus.disable();
     focusNode.dispose();
     textEditingController.dispose();
