@@ -56,8 +56,7 @@ class JiShuQiPullLinkedBettingList extends StatefulWidget {
   final Widget child;
 
   @override
-  State<JiShuQiPullLinkedBettingList> createState() =>
-      _JiShuQiPullLinkedBettingListState();
+  State<JiShuQiPullLinkedBettingList> createState() => _JiShuQiPullLinkedBettingListState();
 }
 
 class _JiShuQiPullLinkedBettingListState extends State<JiShuQiPullLinkedBettingList> {
@@ -118,18 +117,19 @@ class _JiShuQiPullLinkedBettingListState extends State<JiShuQiPullLinkedBettingL
 }
 
 /// 键盘弹起时把骰子按钮布局到输入栏上方；键盘收起时沿用 Scaffold 原本的位置。
+/// 现已改为可拖动悬浮钮，此类仍保留供输入栏高度常量与既有单测使用。
 class JiShuQiKeyboardAwareFabLocation extends FloatingActionButtonLocation {
   const JiShuQiKeyboardAwareFabLocation({
     required this.keyboardInset,
     required this.viewPaddingBottom,
   });
 
-  static const double inputBarHeight = 40;
-  static const double expandedInputBarHeight = 50;
-  static const double randomFabScale = 0.8;
+  static const double inputBarHeight = JiShuQiState.inputBarHeight;
+  static const double expandedInputBarHeight = JiShuQiState.expandedInputBarHeight;
+  static const double randomFabScale = JiShuQiState.randomFabScale;
 
   static double inputBarHeightForKeyboardInset(double keyboardInset) =>
-      keyboardInset > 0 ? expandedInputBarHeight : inputBarHeight;
+      JiShuQiState.inputBarHeightForKeyboardInset(keyboardInset);
 
   final double keyboardInset;
   final double viewPaddingBottom;
@@ -282,414 +282,456 @@ class JiShuQiView extends GetView<JiShuQiController> {
             child: Scaffold(
               backgroundColor: controller.state.currentBgColor,
               resizeToAvoidBottomInset: false,
-              floatingActionButtonLocation: JiShuQiKeyboardAwareFabLocation(
-                keyboardInset: keyboardInset,
-                viewPaddingBottom: viewPaddingBottom,
-              ),
-              floatingActionButtonAnimator: FloatingActionButtonAnimator.noAnimation,
-              floatingActionButton: TextFieldTapRegion(
-                child: Transform.scale(
-                  scale: JiShuQiKeyboardAwareFabLocation.randomFabScale,
-                  child: GetBuilder<JiShuQiController>(
-                    builder: (controller) {
-                      return AnimatedScale(
-                        scale: controller.state.floatButtonScale,
-                        duration: const Duration(milliseconds: 300),
-                        curve: Curves.easeInOut,
-                        child: Semantics(
-                          button: true,
-                          label: '随机庄闲',
-                          hint: '长按打开更多功能',
-                          child: GestureDetector(
-                            onLongPress: controller.showBottomFunction,
-                            child: FloatingActionButton(
-                              key: const ValueKey('ji_shu_qi_random_fab'),
-                              backgroundColor: Colors.transparent,
-                              onPressed: () {
-                                // 触发点击动画：放大1.5倍再缩小
-                                controller.state.floatButtonScale = 2;
-                                controller.update();
-                                Future.delayed(const Duration(milliseconds: 300), () {
-                                  controller.state.floatButtonScale = 1.0;
-                                  controller.update();
-                                });
-                                // 执行随机逻辑
-                                controller.setRandom((int _) => debugPrint(_.toString()));
-                              },
-                              child: Image.asset('assets/images/shai.png'),
-                            ),
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                ),
-              ),
               body: SafeArea(
-                child: GetBuilder<JiShuQiController>(
-                  builder: (controller) => LayoutBuilder(
-                    builder: (context, constraints) {
-                      // 获取图表区域的高度（如果显示）
-                      double? chartHeight;
-                      if (controller.state.isChartVisible) {
-                        // 折线图固定高度120，大路图需要动态计算
-                        chartHeight = controller.state.isBigRoad ? null : 120.0;
-                      }
-                      final keyboardInset = MediaQuery.viewInsetsOf(context).bottom;
-                      controller.onKeyboardInsetChanged(keyboardInset);
-                      // 键盘弹出时用 Offstage 藏图表（保留挂载，避免卸载导致输入框失焦）
-                      final keyboardOpen = keyboardInset > 0;
-                      final showChart = controller.state.isChartVisible;
-                      final actionButtonsHeight = _platformActionButtonsHeight;
+                child: LayoutBuilder(
+                  builder: (context, pageConstraints) {
+                    final areaSize = Size(pageConstraints.maxWidth, pageConstraints.maxHeight);
+                    return Stack(
+                      clipBehavior: Clip.none,
+                      children: [
+                        GetBuilder<JiShuQiController>(
+                          builder: (controller) => LayoutBuilder(
+                            builder: (context, constraints) {
+                              // 获取图表区域的高度（如果显示）
+                              double? chartHeight;
+                              if (controller.state.isChartVisible) {
+                                // 折线图固定高度120，大路图需要动态计算
+                                chartHeight = controller.state.isBigRoad ? null : 120.0;
+                              }
+                              final keyboardInset = MediaQuery.viewInsetsOf(context).bottom;
+                              controller.onKeyboardInsetChanged(keyboardInset);
+                              // 键盘弹出时用 Offstage 藏图表（保留挂载，避免卸载导致输入框失焦）
+                              final keyboardOpen = keyboardInset > 0;
+                              final showChart = controller.state.isChartVisible;
+                              final actionButtonsHeight = _platformActionButtonsHeight;
 
-                      /// 顶栏 + 图表 + 统计 + 按钮区下拉刷新（逻辑仍为 refreshStatsArea）
-                      Widget buildHeaderRefreshSection() {
-                        final chartPartHeight = _chartRefreshSectionHeight(
-                          showChart: showChart,
-                          keyboardOpen: keyboardOpen,
-                          isBigRoad: controller.state.isBigRoad,
-                        );
-                        const statsHeight = JiShuQiState.statsAreaHeight;
-                        final totalHeight = chartPartHeight + statsHeight + actionButtonsHeight;
+                              /// 顶栏 + 图表 + 统计 + 按钮区下拉刷新（逻辑仍为 refreshStatsArea）
+                              Widget buildHeaderRefreshSection() {
+                                final chartPartHeight = _chartRefreshSectionHeight(
+                                  showChart: showChart,
+                                  keyboardOpen: keyboardOpen,
+                                  isBigRoad: controller.state.isBigRoad,
+                                );
+                                const statsHeight = JiShuQiState.statsAreaHeight;
+                                final totalHeight = chartPartHeight + statsHeight + actionButtonsHeight;
 
-                        return ValueListenableBuilder<double>(
-                          valueListenable: controller.statsPullOffset,
-                          builder: (context, pullOffset, _) {
-                            final viewportHeight = totalHeight + pullOffset;
-                            return SizedBox(
-                              height: viewportHeight,
-                              child: GetBuilder<JiShuQiController>(
-                                builder: (c) => EasyRefresh(
-                                  controller: c.statsRefreshController,
-                                  header: c.state.pullRefreshHeader(
-                                    backgroundColor: c.state.currentBgColor,
-                                  ),
-                                  onRefresh: c.refreshStatsArea,
-                                  child: ListView(
-                                    padding: EdgeInsets.zero,
-                                    clipBehavior: Clip.none,
-                                    physics: const AlwaysScrollableScrollPhysics(),
-                                    children: [
-                                      SizedBox(
-                                        height: totalHeight,
-                                        child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                                          children: [
-                                            _buildTopToolBar(c, showChart: showChart),
-                                            if (!keyboardOpen && showChart) ...[
-                                              _buildLineChats(),
-                                              const SizedBox(height: _chartBelowToolbarGap),
+                                return ValueListenableBuilder<double>(
+                                  valueListenable: controller.statsPullOffset,
+                                  builder: (context, pullOffset, _) {
+                                    final viewportHeight = totalHeight + pullOffset;
+                                    return SizedBox(
+                                      height: viewportHeight,
+                                      child: GetBuilder<JiShuQiController>(
+                                        builder: (c) => EasyRefresh(
+                                          controller: c.statsRefreshController,
+                                          header: c.state.pullRefreshHeader(
+                                            backgroundColor: c.state.currentBgColor,
+                                          ),
+                                          onRefresh: c.refreshStatsArea,
+                                          child: ListView(
+                                            padding: EdgeInsets.zero,
+                                            clipBehavior: Clip.none,
+                                            physics: const AlwaysScrollableScrollPhysics(),
+                                            children: [
+                                              SizedBox(
+                                                height: totalHeight,
+                                                child: Column(
+                                                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                                                  children: [
+                                                    _buildTopToolBar(c, showChart: showChart),
+                                                    if (!keyboardOpen && showChart) ...[
+                                                      _buildLineChats(),
+                                                      const SizedBox(height: _chartBelowToolbarGap),
+                                                    ],
+                                                    SizedBox(
+                                                      height: statsHeight,
+                                                      child: _buildStatsTable(c),
+                                                    ),
+                                                    _buildActionButtonsRow(
+                                                      c,
+                                                      height: actionButtonsHeight,
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
                                             ],
-                                            SizedBox(
-                                              height: statsHeight,
-                                              child: _buildStatsTable(c),
-                                            ),
-                                            _buildActionButtonsRow(
-                                              c,
-                                              height: actionButtonsHeight,
-                                            ),
-                                          ],
+                                          ),
                                         ),
                                       ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            );
-                          },
-                        );
-                      }
+                                    );
+                                  },
+                                );
+                              }
 
-                      return Stack(
-                        children: [
-                          Column(
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            children: <Widget>[
-                              Expanded(
-                                child: JiShuQiPullLinkedBettingList(
-                                  controller: controller,
-                                  child: Column(
-                                    children: [
-                                      GestureDetector(
-                                        behavior: HitTestBehavior.deferToChild,
-                                        onTap: controller.dismissKeyboard,
-                                        child: buildHeaderRefreshSection(),
-                                      ),
+                              return Stack(
+                                children: [
+                                  Column(
+                                    mainAxisAlignment: MainAxisAlignment.start,
+                                    children: <Widget>[
                                       Expanded(
-                                        child: GetBuilder<JiShuQiController>(
-                                          builder: (controller) => AbsorbPointer(
-                                            absorbing: controller.state.isRefreshing,
-                                            child: GestureDetector(
-                                              behavior: HitTestBehavior.translucent,
-                                              onTap: controller.dismissKeyboard,
-                                              child: ColoredBox(
-                                                color: controller.state.currentListViewColor,
-                                                child: controller.state.betRecordList.isEmpty
-                                                    ? JiShuQiBettingListEmptyState(
-                                                        isInitialDataLoading:
-                                                            controller.state.isInitialDataLoading,
-                                                      )
-                                                    : Stack(
-                                                        fit: StackFit.expand,
-                                                        children: [
-                                                          NotificationListener<ScrollNotification>(
-                                                            onNotification: (notification) {
-                                                              if (notification is ScrollStartNotification &&
-                                                                  notification.dragDetails != null) {
-                                                                controller.onBettingListUserDragStart();
-                                                              } else if (notification
-                                                                      is ScrollUpdateNotification &&
-                                                                  notification.dragDetails != null) {
-                                                                controller.onBettingListUserDragPositionChanged();
-                                                              } else if (notification is ScrollEndNotification) {
-                                                                controller.onBettingListUserDragEnd();
-                                                              }
-                                                              return false;
-                                                            },
-                                                            child: ListView.builder(
-                                                              key: const PageStorageKey<String>(
-                                                                'ji_shu_qi_betting_list',
-                                                              ),
-                                                              reverse: false,
-                                                              controller: controller.scrollController,
-                                                              itemCount: controller.state.betRecordList.length,
-                                                              itemBuilder: (BuildContext context, int index) =>
-                                                                  _buildItem(index),
-                                                            ),
-                                                          ),
-                                                          if (controller.isLoadingBettingHistory)
-                                                            Positioned(
-                                                              top: 8,
-                                                              left: 0,
-                                                              right: 0,
-                                                              child: IgnorePointer(
-                                                                child: Center(
-                                                                  child: Semantics(
-                                                                    label: '加载历史记录',
-                                                                    child: Container(
-                                                                      padding: const EdgeInsets.all(7),
-                                                                      decoration: BoxDecoration(
-                                                                        color: controller.state.currentListViewColor,
-                                                                        shape: BoxShape.circle,
-                                                                        boxShadow: const [
-                                                                          BoxShadow(
-                                                                            color: Colors.black26,
-                                                                            blurRadius: 5,
-                                                                          ),
-                                                                        ],
+                                        child: JiShuQiPullLinkedBettingList(
+                                          controller: controller,
+                                          child: Column(
+                                            children: [
+                                              GestureDetector(
+                                                behavior: HitTestBehavior.deferToChild,
+                                                onTap: controller.dismissKeyboard,
+                                                child: buildHeaderRefreshSection(),
+                                              ),
+                                              Expanded(
+                                                child: GetBuilder<JiShuQiController>(
+                                                  builder: (controller) => AbsorbPointer(
+                                                    absorbing: controller.state.isRefreshing,
+                                                    child: GestureDetector(
+                                                      behavior: HitTestBehavior.translucent,
+                                                      onTap: controller.dismissKeyboard,
+                                                      child: ColoredBox(
+                                                        color: controller.state.currentListViewColor,
+                                                        child: controller.state.betRecordList.isEmpty
+                                                            ? JiShuQiBettingListEmptyState(
+                                                                isInitialDataLoading:
+                                                                    controller.state.isInitialDataLoading,
+                                                              )
+                                                            : Stack(
+                                                                fit: StackFit.expand,
+                                                                children: [
+                                                                  NotificationListener<ScrollNotification>(
+                                                                    onNotification: (notification) {
+                                                                      if (notification is ScrollStartNotification &&
+                                                                          notification.dragDetails != null) {
+                                                                        controller.onBettingListUserDragStart();
+                                                                      } else if (notification
+                                                                              is ScrollUpdateNotification &&
+                                                                          notification.dragDetails != null) {
+                                                                        controller
+                                                                            .onBettingListUserDragPositionChanged();
+                                                                      } else if (notification
+                                                                          is ScrollEndNotification) {
+                                                                        controller.onBettingListUserDragEnd();
+                                                                      }
+                                                                      return false;
+                                                                    },
+                                                                    child: ListView.builder(
+                                                                      key: const PageStorageKey<String>(
+                                                                        'ji_shu_qi_betting_list',
                                                                       ),
-                                                                      child: SizedBox.square(
-                                                                        dimension: 20,
-                                                                        child: CircularProgressIndicator(
-                                                                          strokeWidth: 2.3,
-                                                                          color: controller.state.currentTextColor,
+                                                                      reverse: false,
+                                                                      controller: controller.scrollController,
+                                                                      itemCount: controller.state.betRecordList.length,
+                                                                      itemBuilder: (BuildContext context, int index) =>
+                                                                          _buildItem(index),
+                                                                    ),
+                                                                  ),
+                                                                  if (controller.isLoadingBettingHistory)
+                                                                    Positioned(
+                                                                      top: 8,
+                                                                      left: 0,
+                                                                      right: 0,
+                                                                      child: IgnorePointer(
+                                                                        child: Center(
+                                                                          child: Semantics(
+                                                                            label: '加载历史记录',
+                                                                            child: Container(
+                                                                              padding: const EdgeInsets.all(7),
+                                                                              decoration: BoxDecoration(
+                                                                                color: controller
+                                                                                    .state.currentListViewColor,
+                                                                                shape: BoxShape.circle,
+                                                                                boxShadow: const [
+                                                                                  BoxShadow(
+                                                                                    color: Colors.black26,
+                                                                                    blurRadius: 5,
+                                                                                  ),
+                                                                                ],
+                                                                              ),
+                                                                              child: SizedBox.square(
+                                                                                dimension: 20,
+                                                                                child: CircularProgressIndicator(
+                                                                                  strokeWidth: 2.3,
+                                                                                  color:
+                                                                                      controller.state.currentTextColor,
+                                                                                ),
+                                                                              ),
+                                                                            ),
+                                                                          ),
                                                                         ),
+                                                                      ),
+                                                                    ),
+                                                                ],
+                                                              ),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                      // 输入栏：仅此处随键盘上移，统计区不参与整体上移
+                                      Padding(
+                                        padding: EdgeInsets.only(bottom: keyboardInset),
+                                        child: SafeArea(
+                                          top: false,
+                                          bottom: keyboardInset == 0,
+                                          child: SizedBox(
+                                            height: inputBarHeight,
+                                            child: Row(
+                                              children: [
+                                                const SizedBox(width: 13),
+                                                Expanded(
+                                                  child: ListenableBuilder(
+                                                    listenable: controller.focusNode,
+                                                    builder: (context, _) {
+                                                      final borderColor = controller.focusNode.hasFocus
+                                                          ? controller.state.currentRestartRowBorderColor
+                                                          : (controller.state.isDarkMode
+                                                              ? Colors.white24
+                                                              : Colors.grey);
+                                                      return Container(
+                                                        decoration: BoxDecoration(
+                                                          border: Border(
+                                                            bottom: BorderSide(width: 1, color: borderColor),
+                                                          ),
+                                                        ),
+                                                        child: JiShuQiInputTouchGuard(
+                                                          child: Row(
+                                                            children: [
+                                                              GestureDetector(
+                                                                // 排序
+                                                                onTap: () => controller.sort(),
+                                                                child: Padding(
+                                                                  padding: const EdgeInsets.only(left: 5.0),
+                                                                  child: Icon(
+                                                                    CupertinoIcons.arrow_up_arrow_down,
+                                                                    color: controller.state.currentTextColor,
+                                                                    size: 20,
+                                                                  ),
+                                                                ),
+                                                              ),
+                                                              const SizedBox(width: 5),
+                                                              Expanded(
+                                                                child: Theme(
+                                                                  data: Theme.of(context).copyWith(
+                                                                    textSelectionTheme: TextSelectionThemeData(
+                                                                      selectionColor: controller.state.isDarkMode
+                                                                          ? Colors.white.withValues(alpha: 0.4)
+                                                                          : Colors.blue.withValues(alpha: 0.3),
+                                                                      selectionHandleColor: controller.state.isDarkMode
+                                                                          ? Colors.white
+                                                                          : Colors.blue,
+                                                                    ),
+                                                                  ),
+                                                                  child: TextField(
+                                                                    key: const ValueKey('ji_shu_qi_bet_input'),
+                                                                    focusNode: controller.focusNode,
+                                                                    autofocus: false,
+                                                                    controller: controller.textEditingController,
+                                                                    onTapOutside: (_) => controller.onInputTapOutside(),
+                                                                    onChanged: (value) {},
+                                                                    keyboardType: const TextInputType.numberWithOptions(
+                                                                        decimal: true),
+                                                                    textInputAction: TextInputAction.done,
+                                                                    inputFormatters: [
+                                                                      FilteringTextInputFormatter.allow(
+                                                                          RegExp(r'[0-9.]')),
+                                                                    ],
+                                                                    cursorColor: controller.state.isDarkMode
+                                                                        ? Colors.white
+                                                                        : Colors.blue,
+                                                                    cursorHeight:
+                                                                        jiShuQiBetInputCursorHeight(keyboardInset),
+                                                                    style: TextStyle(
+                                                                      fontSize: jiShuQiBetInputFontSize(keyboardInset),
+                                                                      color: controller.state.currentTextColor,
+                                                                    ),
+                                                                    decoration: InputDecoration(
+                                                                      contentPadding: const EdgeInsets.only(bottom: 7),
+                                                                      border: InputBorder.none,
+                                                                      enabledBorder: InputBorder.none,
+                                                                      focusedBorder: InputBorder.none,
+                                                                      hintText: "请输入下注金额",
+                                                                      hintStyle: TextStyle(
+                                                                        fontSize: 12,
+                                                                        color: controller.state.isDarkMode
+                                                                            ? controller.state.darkTextColor
+                                                                                .withValues(alpha: 0.54)
+                                                                            : Colors.grey,
                                                                       ),
                                                                     ),
                                                                   ),
                                                                 ),
                                                               ),
-                                                            ),
-                                                        ],
-                                                      ),
-                                              ),
+                                                            ],
+                                                          ),
+                                                        ),
+                                                      );
+                                                    },
+                                                  ),
+                                                ),
+                                              ],
                                             ),
                                           ),
                                         ),
                                       ),
+                                      if (keyboardInset == 0) SizedBox(height: (!kIsWeb && Platform.isAndroid) ? 5 : 0),
                                     ],
                                   ),
-                                ),
-                              ),
-                              // 输入栏：仅此处随键盘上移，统计区不参与整体上移
-                              Padding(
-                                padding: EdgeInsets.only(bottom: keyboardInset),
-                                child: SafeArea(
-                                  top: false,
-                                  bottom: keyboardInset == 0,
-                                  child: SizedBox(
-                                    height: inputBarHeight,
-                                    child: Row(
-                                      children: [
-                                        const SizedBox(width: 13),
-                                        Expanded(
-                                          child: ListenableBuilder(
-                                            listenable: controller.focusNode,
-                                            builder: (context, _) {
-                                              final borderColor = controller.focusNode.hasFocus
-                                                  ? controller.state.currentRestartRowBorderColor
-                                                  : (controller.state.isDarkMode ? Colors.white24 : Colors.grey);
-                                              return Container(
-                                                decoration: BoxDecoration(
-                                                  border: Border(
-                                                    bottom: BorderSide(width: 1, color: borderColor),
-                                                  ),
-                                                ),
-                                                child: JiShuQiInputTouchGuard(
-                                                  child: Row(
-                                                    children: [
-                                                      GestureDetector(
-                                                        // 排序
-                                                        onTap: () => controller.sort(),
-                                                        child: Padding(
-                                                          padding: const EdgeInsets.only(left: 5.0),
-                                                          child: Icon(
-                                                            CupertinoIcons.arrow_up_arrow_down,
-                                                            color: controller.state.currentTextColor,
-                                                            size: 20,
-                                                          ),
-                                                        ),
-                                                      ),
-                                                      const SizedBox(width: 5),
-                                                      Expanded(
-                                                        child: Theme(
-                                                          data: Theme.of(context).copyWith(
-                                                            textSelectionTheme: TextSelectionThemeData(
-                                                              selectionColor: controller.state.isDarkMode
-                                                                  ? Colors.white.withValues(alpha: 0.4)
-                                                                  : Colors.blue.withValues(alpha: 0.3),
-                                                              selectionHandleColor: controller.state.isDarkMode
-                                                                  ? Colors.white
-                                                                  : Colors.blue,
-                                                            ),
-                                                          ),
-                                                          child: TextField(
-                                                            key: const ValueKey('ji_shu_qi_bet_input'),
-                                                            focusNode: controller.focusNode,
-                                                            autofocus: false,
-                                                            controller: controller.textEditingController,
-                                                            onTapOutside: (_) => controller.onInputTapOutside(),
-                                                            onChanged: (value) {},
-                                                            keyboardType:
-                                                                const TextInputType.numberWithOptions(decimal: true),
-                                                            textInputAction: TextInputAction.done,
-                                                            inputFormatters: [
-                                                              FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),
-                                                            ],
-                                                            cursorColor: controller.state.isDarkMode
-                                                                ? Colors.white
-                                                                : Colors.blue,
-                                                            cursorHeight: jiShuQiBetInputCursorHeight(keyboardInset),
-                                                            style: TextStyle(
-                                                              fontSize: jiShuQiBetInputFontSize(keyboardInset),
-                                                              color: controller.state.currentTextColor,
-                                                            ),
-                                                            decoration: InputDecoration(
-                                                              contentPadding: const EdgeInsets.only(bottom: 7),
-                                                              border: InputBorder.none,
-                                                              enabledBorder: InputBorder.none,
-                                                              focusedBorder: InputBorder.none,
-                                                              hintText: "请输入下注金额",
-                                                              hintStyle: TextStyle(
-                                                                fontSize: 12,
-                                                                color: controller.state.isDarkMode
-                                                                    ? controller.state.darkTextColor
-                                                                        .withValues(alpha: 0.54)
-                                                                    : Colors.grey,
-                                                              ),
-                                                            ),
-                                                          ),
-                                                        ),
-                                                      ),
-                                                    ],
-                                                  ),
-                                                ),
-                                              );
-                                            },
+                                  // 悬浮按钮：切换图表显示/隐藏（叠加在图表和统计区之间）
+                                  if (showChart && !keyboardOpen)
+                                    Positioned(
+                                      top: chartHeight != null
+                                          ? chartHeight - 20 // 折线图：图表高度120，按钮高度40，居中在图表底部
+                                          : 80 - 20, // 大路图：估算高度80（标题行约30px + 大路图约50px），按钮居中在图表底部
+                                      right: 0,
+                                      child: GestureDetector(
+                                        onTap: () => controller.toggleChartVisibility(),
+                                        child: Container(
+                                          width: 30,
+                                          height: 30,
+                                          decoration: BoxDecoration(
+                                            color: controller.state.isDarkMode
+                                                ? Colors.white.withValues(alpha: 0.2)
+                                                : Colors.black.withValues(alpha: 0.2),
+                                            shape: BoxShape.circle,
+                                          ),
+                                          child: Icon(
+                                            Icons.keyboard_arrow_up,
+                                            color: controller.state.isDarkMode
+                                                ? Colors.white.withValues(alpha: 0.4)
+                                                : Colors.black.withValues(alpha: 0.4),
+                                            size: 20,
                                           ),
                                         ),
-                                      ],
+                                      ),
+                                    )
+                                  else
+                                    Positioned(
+                                      top: 0,
+                                      right: 0,
+                                      child: GestureDetector(
+                                        onTap: () => controller.toggleChartVisibility(),
+                                        child: Container(
+                                          width: 30,
+                                          height: 30,
+                                          decoration: BoxDecoration(
+                                            color: controller.state.isDarkMode
+                                                ? Colors.white.withValues(alpha: 0.1)
+                                                : Colors.black.withValues(alpha: 0.1),
+                                            shape: BoxShape.circle,
+                                          ),
+                                          child: Icon(
+                                            Icons.keyboard_arrow_down,
+                                            color: controller.state.isDarkMode
+                                                ? Colors.white.withValues(alpha: 0.1)
+                                                : Colors.black.withValues(alpha: 0.1),
+                                            size: 20,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  // 右下角悬浮钮：在底部↑去眼睛，不在底部↓回最底
+                                  Positioned(
+                                    right: -0,
+                                    bottom: JiShuQiState.jumpToEyeFabBottom + keyboardInset,
+                                    child: GestureDetector(
+                                      onTap: controller.onBettingListJumpFabTap,
+                                      child: Container(
+                                        width: 40,
+                                        height: 40,
+                                        decoration: BoxDecoration(
+                                          color: controller.state.isDarkMode
+                                              ? Colors.white.withValues(alpha: 0.15)
+                                              : Colors.black.withValues(alpha: 0.15),
+                                          shape: BoxShape.circle,
+                                        ),
+                                        child: Icon(
+                                          controller.state.isBettingListAtBottom
+                                              ? Icons.keyboard_arrow_up
+                                              : Icons.keyboard_arrow_down,
+                                          color: controller.state.isDarkMode
+                                              ? Colors.white.withValues(alpha: 0.6)
+                                              : Colors.black.withValues(alpha: 0.6),
+                                          size: 24,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              );
+                            },
+                          ),
+                        ),
+                        ValueListenableBuilder<Offset?>(
+                          valueListenable: controller.randomFabTopLeft,
+                          builder: (context, savedTopLeft, _) {
+                            final topLeft = controller.clampRandomFabTopLeft(
+                              savedTopLeft ??
+                                  JiShuQiController.defaultRandomFabTopLeft(
+                                    areaSize: areaSize,
+                                    keyboardInset: keyboardInset,
+                                    viewPaddingBottom: viewPaddingBottom,
+                                  ),
+                              areaSize: areaSize,
+                              keyboardInset: keyboardInset,
+                              viewPaddingBottom: viewPaddingBottom,
+                            );
+                            return Positioned(
+                              left: topLeft.dx,
+                              top: topLeft.dy,
+                              child: TextFieldTapRegion(
+                                // 手势放在 Transform 外：用全局坐标跟手，避免 scale 放大 local delta。
+                                child: GestureDetector(
+                                  onLongPress: controller.showBottomFunction,
+                                  onTap: controller.onRandomFabTap,
+                                  onPanStart: (details) {
+                                    controller.onRandomFabPanStart(
+                                      details.globalPosition,
+                                      areaSize: areaSize,
+                                      keyboardInset: keyboardInset,
+                                      viewPaddingBottom: viewPaddingBottom,
+                                    );
+                                  },
+                                  onPanUpdate: (details) {
+                                    controller.onRandomFabPanUpdate(
+                                      details.globalPosition,
+                                      areaSize: areaSize,
+                                      keyboardInset: keyboardInset,
+                                      viewPaddingBottom: viewPaddingBottom,
+                                    );
+                                  },
+                                  onPanEnd: (_) => controller.persistRandomFabPosition(),
+                                  onPanCancel: controller.persistRandomFabPosition,
+                                  child: Transform.scale(
+                                    scale: JiShuQiState.randomFabScale,
+                                    filterQuality: FilterQuality.medium,
+                                    child: GetBuilder<JiShuQiController>(
+                                      builder: (c) => AnimatedScale(
+                                        scale: c.state.floatButtonScale,
+                                        duration: const Duration(milliseconds: 300),
+                                        curve: Curves.easeInOut,
+                                        child: Semantics(
+                                          button: true,
+                                          label: '随机庄闲',
+                                          hint: '拖动可移动位置，长按打开更多功能',
+                                          child: SizedBox(
+                                            key: const ValueKey('ji_shu_qi_random_fab'),
+                                            width: JiShuQiState.randomFabSize,
+                                            height: JiShuQiState.randomFabSize,
+                                            child: Image.asset('assets/images/shai.png'),
+                                          ),
+                                        ),
+                                      ),
                                     ),
                                   ),
                                 ),
                               ),
-                              if (keyboardInset == 0) SizedBox(height: (!kIsWeb && Platform.isAndroid) ? 5 : 0),
-                            ],
-                          ),
-                          // 悬浮按钮：切换图表显示/隐藏（叠加在图表和统计区之间）
-                          if (showChart && !keyboardOpen)
-                            Positioned(
-                              top: chartHeight != null
-                                  ? chartHeight - 20 // 折线图：图表高度120，按钮高度40，居中在图表底部
-                                  : 80 - 20, // 大路图：估算高度80（标题行约30px + 大路图约50px），按钮居中在图表底部
-                              right: 0,
-                              child: GestureDetector(
-                                onTap: () => controller.toggleChartVisibility(),
-                                child: Container(
-                                  width: 30,
-                                  height: 30,
-                                  decoration: BoxDecoration(
-                                    color: controller.state.isDarkMode
-                                        ? Colors.white.withValues(alpha: 0.2)
-                                        : Colors.black.withValues(alpha: 0.2),
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: Icon(
-                                    Icons.keyboard_arrow_up,
-                                    color: controller.state.isDarkMode
-                                        ? Colors.white.withValues(alpha: 0.4)
-                                        : Colors.black.withValues(alpha: 0.4),
-                                    size: 20,
-                                  ),
-                                ),
-                              ),
-                            )
-                          else
-                            Positioned(
-                              top: 0,
-                              right: 0,
-                              child: GestureDetector(
-                                onTap: () => controller.toggleChartVisibility(),
-                                child: Container(
-                                  width: 30,
-                                  height: 30,
-                                  decoration: BoxDecoration(
-                                    color: controller.state.isDarkMode
-                                        ? Colors.white.withValues(alpha: 0.1)
-                                        : Colors.black.withValues(alpha: 0.1),
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: Icon(
-                                    Icons.keyboard_arrow_down,
-                                    color: controller.state.isDarkMode
-                                        ? Colors.white.withValues(alpha: 0.1)
-                                        : Colors.black.withValues(alpha: 0.1),
-                                    size: 20,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          // 右下角悬浮钮：在底部↑去眼睛，不在底部↓回最底
-                          Positioned(
-                            right: -0,
-                            bottom: JiShuQiState.jumpToEyeFabBottom + keyboardInset,
-                            child: GestureDetector(
-                              onTap: controller.onBettingListJumpFabTap,
-                              child: Container(
-                                width: 40,
-                                height: 40,
-                                decoration: BoxDecoration(
-                                  color: controller.state.isDarkMode
-                                      ? Colors.white.withValues(alpha: 0.15)
-                                      : Colors.black.withValues(alpha: 0.15),
-                                  shape: BoxShape.circle,
-                                ),
-                                child: Icon(
-                                  controller.state.isBettingListAtBottom
-                                      ? Icons.keyboard_arrow_up
-                                      : Icons.keyboard_arrow_down,
-                                  color: controller.state.isDarkMode
-                                      ? Colors.white.withValues(alpha: 0.6)
-                                      : Colors.black.withValues(alpha: 0.6),
-                                  size: 24,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      );
-                    },
-                  ),
+                            );
+                          },
+                        ),
+                      ],
+                    );
+                  },
                 ),
               ),
             ),

@@ -32,12 +32,14 @@ class JiShuQiController extends GetxController {
   static const List<String> _lockScreenPins = ['1111', '0000'];
 
   /// 统计区下拉刷新（与投注列表同款 EasyRefresh 样式，独立 controller）
-  EasyRefreshController statsRefreshController =
-      EasyRefreshController(controlFinishRefresh: true);
+  EasyRefreshController statsRefreshController = EasyRefreshController(controlFinishRefresh: true);
   final JiShuQiState state = JiShuQiState();
 
   /// 统计区下拉时同步下移投注列表（与 EasyRefresh header offset 一致）
   final ValueNotifier<double> statsPullOffset = ValueNotifier(0);
+
+  /// 随机骰子按钮左上角（相对 body Stack）；null 表示使用默认右下角位置
+  final ValueNotifier<Offset?> randomFabTopLeft = ValueNotifier(null);
 
   final scrollController = ScrollController();
 
@@ -63,8 +65,7 @@ class JiShuQiController extends GetxController {
   /// 到点自动切换亮/暗色
   Timer? _dayNightThemeTimer;
 
-  final ScrollController roadMapScrollController =
-      ScrollController(); //路子图的controller
+  final ScrollController roadMapScrollController = ScrollController(); //路子图的controller
   final AudioPlayer _diceSoundPlayer = AudioPlayer();
   bool _diceSoundAvailable = true;
   double? _bettingInputPreviewBaseCurrentJin;
@@ -98,7 +99,115 @@ class JiShuQiController extends GetxController {
       },
     );
     scrollController.addListener(_onBettingListScroll);
+    _loadRandomFabPosition();
     unawaited(_bootstrapPageData());
+  }
+
+  void _loadRandomFabPosition() {
+    final left = StorageUtil.getDouble(JiShuQiState.prefRandomFabLeft);
+    final top = StorageUtil.getDouble(JiShuQiState.prefRandomFabTop);
+    if (left == null || top == null) return;
+    if (!left.isFinite || !top.isFinite) return;
+    randomFabTopLeft.value = Offset(left, top);
+  }
+
+  /// 默认右下角：贴输入栏上方（键盘弹起时贴在输入栏垂直居中，与旧 FAB 行为一致）
+  static Offset defaultRandomFabTopLeft({
+    required Size areaSize,
+    required double keyboardInset,
+    required double viewPaddingBottom,
+  }) {
+    const fab = JiShuQiState.randomFabSize;
+    const margin = 16.0;
+    final left = max(0.0, areaSize.width - fab - margin);
+    final inputBarHeight = JiShuQiState.inputBarHeightForKeyboardInset(keyboardInset);
+    if (keyboardInset > 0) {
+      final bottomObstruction = keyboardInset > viewPaddingBottom ? keyboardInset : viewPaddingBottom;
+      final inputBarTop = areaSize.height - bottomObstruction - inputBarHeight;
+      final top = inputBarTop + (inputBarHeight - fab) / 2;
+      return Offset(left, top.clamp(0.0, max(0.0, areaSize.height - fab)));
+    }
+    final top = areaSize.height - inputBarHeight - fab - 8;
+    return Offset(left, top.clamp(0.0, max(0.0, areaSize.height - fab)));
+  }
+
+  Offset clampRandomFabTopLeft(
+    Offset topLeft, {
+    required Size areaSize,
+    required double keyboardInset,
+    required double viewPaddingBottom,
+  }) {
+    const fab = JiShuQiState.randomFabSize;
+    final maxLeft = max(0.0, areaSize.width - fab);
+    var maxTop = max(0.0, areaSize.height - fab);
+    if (keyboardInset > 0) {
+      final bottomObstruction = keyboardInset > viewPaddingBottom ? keyboardInset : viewPaddingBottom;
+      maxTop = max(0.0, areaSize.height - bottomObstruction - fab);
+    }
+    return Offset(
+      topLeft.dx.clamp(0.0, maxLeft),
+      topLeft.dy.clamp(0.0, maxTop),
+    );
+  }
+
+  Offset? _randomFabPanFingerGlobal;
+  Offset? _randomFabPanOriginTopLeft;
+
+  void onRandomFabPanStart(
+    Offset globalFinger, {
+    required Size areaSize,
+    required double keyboardInset,
+    required double viewPaddingBottom,
+  }) {
+    _randomFabPanFingerGlobal = globalFinger;
+    _randomFabPanOriginTopLeft = clampRandomFabTopLeft(
+      randomFabTopLeft.value ??
+          defaultRandomFabTopLeft(
+            areaSize: areaSize,
+            keyboardInset: keyboardInset,
+            viewPaddingBottom: viewPaddingBottom,
+          ),
+      areaSize: areaSize,
+      keyboardInset: keyboardInset,
+      viewPaddingBottom: viewPaddingBottom,
+    );
+  }
+
+  /// 用全局手指坐标偏移，避免 [Transform.scale] 把 local delta 放大导致按钮“跑离手指”。
+  void onRandomFabPanUpdate(
+    Offset globalFinger, {
+    required Size areaSize,
+    required double keyboardInset,
+    required double viewPaddingBottom,
+  }) {
+    final originFinger = _randomFabPanFingerGlobal;
+    final originTopLeft = _randomFabPanOriginTopLeft;
+    if (originFinger == null || originTopLeft == null) return;
+    randomFabTopLeft.value = clampRandomFabTopLeft(
+      originTopLeft + (globalFinger - originFinger),
+      areaSize: areaSize,
+      keyboardInset: keyboardInset,
+      viewPaddingBottom: viewPaddingBottom,
+    );
+  }
+
+  void persistRandomFabPosition() {
+    _randomFabPanFingerGlobal = null;
+    _randomFabPanOriginTopLeft = null;
+    final p = randomFabTopLeft.value;
+    if (p == null) return;
+    unawaited(StorageUtil.saveDouble(JiShuQiState.prefRandomFabLeft, p.dx));
+    unawaited(StorageUtil.saveDouble(JiShuQiState.prefRandomFabTop, p.dy));
+  }
+
+  void onRandomFabTap() {
+    state.floatButtonScale = 2;
+    update();
+    Future.delayed(const Duration(milliseconds: 300), () {
+      state.floatButtonScale = 1.0;
+      update();
+    });
+    setRandom((int _) => debugPrint(_.toString()));
   }
 
   /// 进入页面：统一 Loading；并行请求关闭各自 Toast，由本方法汇总提示一次。
@@ -112,8 +221,7 @@ class JiShuQiController extends GetxController {
 
       await Future.wait([
         track(_queryOperationRecords(isShowLoading: false, showError: false)),
-        track(_getStatisticalAreasData(JiShuQiState.tempIndexCmdInit,
-            isShowLoading: false, showError: false)),
+        track(_getStatisticalAreasData(JiShuQiState.tempIndexCmdInit, isShowLoading: false, showError: false)),
         track(_reloadBettingListTail(isShowLoading: false, showError: false)),
       ]);
     } finally {
@@ -130,8 +238,7 @@ class JiShuQiController extends GetxController {
   void _onInputFocusChanged() {
     if (!focusNode.hasFocus) return;
     // 刚聚焦时短暂忽略 onTapOutside，避免 Android 弹出键盘瞬间误触收回。
-    _ignoreTapOutsideUntil =
-        DateTime.now().add(const Duration(milliseconds: 280));
+    _ignoreTapOutsideUntil = DateTime.now().add(const Duration(milliseconds: 280));
   }
 
   bool get shouldIgnoreTapOutside {
@@ -153,16 +260,10 @@ class JiShuQiController extends GetxController {
     bool showError = true,
   }) async {
     final completer = Completer<void>();
-    final n = state.betRecordList.length > minCount
-        ? state.betRecordList.length
-        : minCount;
+    final n = state.betRecordList.length > minCount ? state.betRecordList.length : minCount;
     BXGet<JsqBetRecordModel>(
       Api.loadMore,
-      params: {
-        "last_id": -1,
-        "uid": GetStore.getInstance().userModel.userId,
-        "c": n
-      },
+      params: {"last_id": -1, "uid": GetStore.getInstance().userModel.userId, "c": n},
       success: (isSuccess, code, message, results) {
         if (isSuccess) {
           if (results.isEmpty) {
@@ -236,21 +337,18 @@ class JiShuQiController extends GetxController {
       var ids = state.currentCol - 1; // 当前列的列
 
       // 如果下方有内容，或者已经超过6行，则需要往右平移（长龙处理）
-      if ((state.currentRow < JiShuQiState.bigRoadRows &&
-              state.bigRoad[state.currentRow][ids].isNotEmpty) ||
+      if ((state.currentRow < JiShuQiState.bigRoadRows && state.bigRoad[state.currentRow][ids].isNotEmpty) ||
           state.currentRow > JiShuQiState.bigRoadRows - 1) {
         // 长龙处理：向右平移
         state.dragonStartCol++;
         state.bigRoad[state.dragonParallelRow][state.dragonStartCol] = winner;
-        debugPrint(
-            '🐉️（长龙处理）与上一局相同，记录在 [${state.dragonParallelRow}][${state.dragonStartCol}]');
+        debugPrint('🐉️（长龙处理）与上一局相同，记录在 [${state.dragonParallelRow}][${state.dragonStartCol}]');
       } else {
         // 没有超过6行，且下方没有内容，正常往下走
         state.bigRoad[state.currentRow][state.currentCol - 1] = winner;
         state.dragonParallelRow = state.currentRow; // 记录最后一次行
         state.dragonStartCol = state.currentCol - 1; // 记录最后一次列
-        debugPrint(
-            '🐉️ 与上一局相同，记录在 [${state.currentRow}][${state.currentCol - 1}]');
+        debugPrint('🐉️ 与上一局相同，记录在 [${state.currentRow}][${state.currentCol - 1}]');
       }
     }
 
@@ -263,22 +361,17 @@ class JiShuQiController extends GetxController {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (roadMapScrollController.hasClients) {
         // 计算当前列右边界的位置(这样计算还是有点不准，能在整个数据里找到最右边的列才更准，不过实际中应该没有那长的龙，先就这样吧)
-        double currentColRightEdge = (state.dragonStartCol == -1
-                ? state.currentCol
-                : state.dragonStartCol + 1) *
-            JiShuQiState.cellWidth;
+        double currentColRightEdge =
+            (state.dragonStartCol == -1 ? state.currentCol : state.dragonStartCol + 1) * JiShuQiState.cellWidth;
 
-        double currentScrollOffset =
-            roadMapScrollController.position.pixels /* 当前滚动位置（滑动了多少）*/;
+        double currentScrollOffset = roadMapScrollController.position.pixels /* 当前滚动位置（滑动了多少）*/;
         /* 当前滚动位置 + 可见区域尺寸 = 可见区域右边界 */
-        double visibleRightEdge = currentScrollOffset +
-            roadMapScrollController.position.viewportDimension /* 可见区域尺寸 */;
+        double visibleRightEdge = currentScrollOffset + roadMapScrollController.position.viewportDimension /* 可见区域尺寸 */;
 
         // 只有当当前列的右边界超出可见区域右边界时才滚动
         if (currentColRightEdge > visibleRightEdge) {
           // 计算需要滚动的距离，让当前列刚好可见
-          double scrollDistance =
-              currentColRightEdge - visibleRightEdge + JiShuQiState.cellWidth;
+          double scrollDistance = currentColRightEdge - visibleRightEdge + JiShuQiState.cellWidth;
           double newOffset = currentScrollOffset + scrollDistance;
 
           // 确保不超过最大滚动范围
@@ -310,8 +403,7 @@ class JiShuQiController extends GetxController {
   }
 
   static const double _bettingListBottomThreshold = 1.5;
-  static const double _bettingHistoryPrefetchExtent =
-      JiShuQiState.bettingTableRowHeight * 8;
+  static const double _bettingHistoryPrefetchExtent = JiShuQiState.bettingTableRowHeight * 8;
 
   bool _computeBettingListAtBottom() {
     if (!scrollController.hasClients) return state.isBettingListAtBottom;
@@ -342,8 +434,7 @@ class JiShuQiController extends GetxController {
       return;
     }
     final extentBefore = scrollController.position.extentBefore;
-    if (!extentBefore.isFinite ||
-        extentBefore > _bettingHistoryPrefetchExtent) {
+    if (!extentBefore.isFinite || extentBefore > _bettingHistoryPrefetchExtent) {
       return;
     }
     _didRequestBettingHistoryDuringCurrentDrag = true;
@@ -456,8 +547,7 @@ class JiShuQiController extends GetxController {
 
   void onBettingListUserDragPositionChanged() {
     if (!_bettingListUserDragActive) return;
-    _keepBettingListPinnedDuringKeyboard =
-        _lastKeyboardInset > 0 && _computeBettingListAtBottom();
+    _keepBettingListPinnedDuringKeyboard = _lastKeyboardInset > 0 && _computeBettingListAtBottom();
     cancelPendingBettingListAutoScroll();
     _maybeLoadBettingHistorySilently();
   }
@@ -466,8 +556,7 @@ class JiShuQiController extends GetxController {
     if (!_bettingListUserDragActive) return;
     _maybeLoadBettingHistorySilently();
     _bettingListUserDragActive = false;
-    _keepBettingListPinnedDuringKeyboard =
-        _lastKeyboardInset > 0 && _computeBettingListAtBottom();
+    _keepBettingListPinnedDuringKeyboard = _lastKeyboardInset > 0 && _computeBettingListAtBottom();
     cancelPendingBettingListAutoScroll();
   }
 
@@ -506,9 +595,7 @@ class JiShuQiController extends GetxController {
       // 键盘动画或键盘类型切换会连续上报 inset。每次变化都重新计时，
       // 确保使用稳定后的列表视口高度滚到底。
       _keyboardOpenSettleTimer = Timer(const Duration(milliseconds: 260), () {
-        if (!focusNode.hasFocus ||
-            _lastKeyboardInset <= 0 ||
-            !_keepBettingListPinnedDuringKeyboard) {
+        if (!focusNode.hasFocus || _lastKeyboardInset <= 0 || !_keepBettingListPinnedDuringKeyboard) {
           return;
         }
         scrollBettingListToBottom();
@@ -523,8 +610,7 @@ class JiShuQiController extends GetxController {
       // 键盘完全收起时图表与 SafeArea 会重新加入布局；等新 viewport 生效后再按新的 extent 滚底。
       final generation = _bettingListScrollGeneration;
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (generation != _bettingListScrollGeneration ||
-            _lastKeyboardInset > 0) {
+        if (generation != _bettingListScrollGeneration || _lastKeyboardInset > 0) {
           return;
         }
         scrollBettingListToBottom();
@@ -537,8 +623,7 @@ class JiShuQiController extends GetxController {
     final tempIndex = state.currentTempIndex;
     if (tempIndex == 0) return;
 
-    int idx = state.betRecordList
-        .indexWhere((e) => e.id != null && e.id == tempIndex);
+    int idx = state.betRecordList.indexWhere((e) => e.id != null && e.id == tempIndex);
     // 如果眼睛的位置不在列表中，则加载更多数据，再滚动到眼睛的位置
     if (idx < 0) {
       unawaited(_loadMoreForTempIndex(tempIndex));
@@ -565,8 +650,7 @@ class JiShuQiController extends GetxController {
     // 加载后按最新列表重算一次索引再滚动。
     await WidgetsBinding.instance.endOfFrame;
     if (!scrollController.hasClients) return;
-    final idx = state.betRecordList
-        .indexWhere((e) => e.id != null && e.id == tempIndex);
+    final idx = state.betRecordList.indexWhere((e) => e.id != null && e.id == tempIndex);
     if (idx >= 0) {
       _scrollToTempIndexRow(idx);
     }
@@ -581,10 +665,7 @@ class JiShuQiController extends GetxController {
       final ctx = tempIndexRowKey.currentContext;
       if (ctx != null) {
         final viewport = scrollController.position.viewportDimension;
-        final align = viewport > 0
-            ? (JiShuQiState.bettingTableScrollTopInset / viewport)
-                .clamp(0.0, 0.35)
-            : 0.0;
+        final align = viewport > 0 ? (JiShuQiState.bettingTableScrollTopInset / viewport).clamp(0.0, 0.35) : 0.0;
         await Scrollable.ensureVisible(
           ctx,
           duration: const Duration(milliseconds: 300),
@@ -607,8 +688,7 @@ class JiShuQiController extends GetxController {
 
   /// 顶部插入历史行后恢复视口：用固定行高累计增量，避免 LazyList 重新布局时视口跳动。
   /// 用户越界拖动时 [keptPixels] 可能为负，按 0 处理。
-  void _schedulePreserveScrollAfterPrepend(
-      double keptPixels, int insertedCount) {
+  void _schedulePreserveScrollAfterPrepend(double keptPixels, int insertedCount) {
     if (insertedCount <= 0 || !keptPixels.isFinite) return;
     final delta = JiShuQiState.bettingTableRowHeight * insertedCount;
     final base = keptPixels < 0 ? 0.0 : keptPixels;
@@ -659,18 +739,15 @@ class JiShuQiController extends GetxController {
   }
 
   bool _isClearLocalTempIndex(Object? tempIndex) =>
-      tempIndex == JiShuQiState.tempIndexCmdCancel ||
-      tempIndex == JiShuQiState.tempIndexCmdReset;
+      tempIndex == JiShuQiState.tempIndexCmdCancel || tempIndex == JiShuQiState.tempIndexCmdReset;
 
-  bool _isEffectiveLocalTempIndex(Object? tempIndex) =>
-      tempIndex is int && tempIndex > 2;
+  bool _isEffectiveLocalTempIndex(Object? tempIndex) => tempIndex is int && tempIndex > 2;
 
   void _applyTodayBetCountFromStatsPayload(dynamic payload) {
     if (payload is! Map) return;
     final map = Map<String, dynamic>.from(payload);
     if (!map.containsKey('today_bet_count')) return;
-    state.todayBetCount =
-        int.tryParse(map['today_bet_count']?.toString() ?? '') ?? 0;
+    state.todayBetCount = int.tryParse(map['today_bet_count']?.toString() ?? '') ?? 0;
   }
 
   List<dynamic> _statisticalAreasFromResults(List<dynamic> results) {
@@ -736,12 +813,9 @@ class JiShuQiController extends GetxController {
         // 取消、重启或选中锚点行(>2) 时后端会更新 operationRecord.tempIndex；须先拉 operationRecord 再同步，
         // 否则会沿用内存里旧的 temp_index，把 currentTempIndex 又写回去（取消失效）。
         final ti = tempIndex;
-        final needsFreshOperationRecords =
-            _isClearLocalTempIndex(ti) || _isEffectiveLocalTempIndex(ti);
+        final needsFreshOperationRecords = _isClearLocalTempIndex(ti) || _isEffectiveLocalTempIndex(ti);
         if (needsFreshOperationRecords) {
-          _queryOperationRecords()
-              .then((_) => continueAfterStatsReady())
-              .catchError((_) => continueAfterStatsReady());
+          _queryOperationRecords().then((_) => continueAfterStatsReady()).catchError((_) => continueAfterStatsReady());
         } else {
           continueAfterStatsReady();
         }
@@ -772,8 +846,7 @@ class JiShuQiController extends GetxController {
         onSelected: (index) => unawaited(functionConfirm(index)),
       ),
       barrierDismissible: true,
-      barrierColor:
-          Colors.black.withValues(alpha: state.isDarkMode ? 0.62 : 0.42),
+      barrierColor: Colors.black.withValues(alpha: state.isDarkMode ? 0.62 : 0.42),
       useSafeArea: true,
     );
   }
@@ -806,8 +879,7 @@ class JiShuQiController extends GetxController {
     final inputAmount = double.tryParse(inputText);
     if (inputAmount == null) return;
 
-    _bettingInputPreviewBaseCurrentJin ??=
-        _parseStatDouble(state.totalValue[4]);
+    _bettingInputPreviewBaseCurrentJin ??= _parseStatDouble(state.totalValue[4]);
     final base = _bettingInputPreviewBaseCurrentJin;
     if (base == null) return;
     state.totalValue[4] = (base - inputAmount).toStringAsFixed(2);
@@ -817,9 +889,7 @@ class JiShuQiController extends GetxController {
     if (state.bettingMoney.isEmpty || !state.bettingMoney.isNum) return '';
     final bet = double.tryParse(textEditingController.text);
     if (bet == null) return '';
-    final val = state.randomValue == '庄'
-        ? (bet * _commissionRate()).toStringAsFixed(2)
-        : textEditingController.text;
+    final val = state.randomValue == '庄' ? (bet * _commissionRate()).toStringAsFixed(2) : textEditingController.text;
     final x = _parseStatDouble(state.totalValue[18]); // 总盈利相关统计
     final y = double.tryParse(val); //输入框下注额
     final z = _parseStatDouble(state.totalValue[14]); //净胜
@@ -844,9 +914,7 @@ class JiShuQiController extends GetxController {
     if (state.bettingMoney.isEmpty || !state.bettingMoney.isNum) return '';
     final bet = double.tryParse(textEditingController.text);
     if (bet == null) return '';
-    final val = state.randomValue == '庄'
-        ? (bet * _commissionRate()).toStringAsFixed(2)
-        : textEditingController.text;
+    final val = state.randomValue == '庄' ? (bet * _commissionRate()).toStringAsFixed(2) : textEditingController.text;
     final x = _parseStatDouble(state.totalValue[17]); // 总盈利
     final y = double.tryParse(val); //输入框下注额
     final z = _parseStatDouble(state.totalValue[13]); //净胜
@@ -878,6 +946,7 @@ class JiShuQiController extends GetxController {
     _diceSoundPlayer.dispose();
     statsRefreshController.dispose();
     statsPullOffset.dispose();
+    randomFabTopLeft.dispose();
     WakelockPlus.disable();
     focusNode.dispose();
     textEditingController.dispose();
@@ -938,8 +1007,7 @@ class JiShuQiController extends GetxController {
       ),
     );
     overlay.insert(_randomResultOverlayEntry!);
-    _randomResultOverlayTimer =
-        Timer(const Duration(milliseconds: 500), _hideRandomResultOverlay);
+    _randomResultOverlayTimer = Timer(const Duration(milliseconds: 500), _hideRandomResultOverlay);
   }
 
   setRandom(Function(int) f) {
@@ -1015,10 +1083,8 @@ class JiShuQiController extends GetxController {
         success: (isSuccess, code, message, value) {
           _applyOperationRecordsFromServer(value);
           if (state.operationRecordList.isNotEmpty) {
-            state.totalValue[0] =
-                '${state.operationRecordList.last.benjin}'; //本金
-            state.totalValue[19] =
-                '${state.operationRecordList.last.mean}'; //期望值
+            state.totalValue[0] = '${state.operationRecordList.last.benjin}'; //本金
+            state.totalValue[19] = '${state.operationRecordList.last.mean}'; //期望值
             // 折线形状必须由 [_getLineCharts]（投注记录末尾或 linechartData）提供；此处若用本金铺满 75 点，
             // 会在接口已画出真实曲线之后覆盖成一条水平线（本金为 0 时即为「全 0」）。
             _syncLocalTempIndexWithBackendState();
@@ -1040,9 +1106,7 @@ class JiShuQiController extends GetxController {
     return completer.future;
   }
 
-  betRecordButton(int i, String recordType,
-      {JsqOperationRecordModel? operationRecord,
-      JsqBetRecordModel? betRecord}) {
+  betRecordButton(int i, String recordType, {JsqOperationRecordModel? operationRecord, JsqBetRecordModel? betRecord}) {
     if (state.randomValue.isEmpty) {
       Get.snackbar("温馨提示", '请摇塞子',
           duration: const Duration(seconds: 2),
@@ -1082,28 +1146,21 @@ class JiShuQiController extends GetxController {
             xiazhujine: double.tryParse(state.bettingMoney),
             zx: (i == 2 || i == 3) ? '庄' : '闲',
             remark: (i == 1 || i == 2) ? "1" : "-1",
-            shengfulu: ((i == 1 || i == 3) && (state.randomValue == '闲')) ||
-                    ((i == 2 || i == 4) && (state.randomValue == '庄'))
-                ? "正打"
-                : "反打",
+            shengfulu:
+                ((i == 1 || i == 3) && (state.randomValue == '闲')) || ((i == 2 || i == 4) && (state.randomValue == '庄'))
+                    ? "正打"
+                    : "反打",
             shuyingzhi: syzLAmount(i),
             shuyingzhiXiaoshu: syzLAmount(i),
             currentJin: getCurrentJin(i, double.parse(state.bettingMoney)),
           )
-        : JsqOperationRecordModel(
-            benjin: 10000,
-            yongjin: 0.95,
-            mean: 0.08,
-            restartIndex: null,
-            liushuiIndex: null);
+        : JsqOperationRecordModel(benjin: 10000, yongjin: 0.95, mean: 0.08, restartIndex: null, liushuiIndex: null);
 
     ///改变成插入远程数据库
     if (recordType == 'operationRecord') {
       BXPut<JsqOperationRecordModel>(Api.createOperationRecord,
           params: (table as JsqOperationRecordModel).toJson()
-            ..addAll({
-              "user_id": int.parse(GetStore.getInstance().userModel.userId)
-            }),
+            ..addAll({"user_id": int.parse(GetStore.getInstance().userModel.userId)}),
           isShowLoading: false,
           success: (isSuccess, code, message, results) {
             BXLoading.dismiss();
@@ -1120,23 +1177,17 @@ class JiShuQiController extends GetxController {
           isShowLoading: false,
           params: (table as JsqBetRecordModel).toJson()
             ..remove("betRecordId")
-            ..addAll({
-              "user_id": int.parse(GetStore.getInstance().userModel.userId)
-            }),
+            ..addAll({"user_id": int.parse(GetStore.getInstance().userModel.userId)}),
           success: (isSuccess, code, message, results) {
             if (results.isNotEmpty) {
               final row = results.first;
-              row.seq = state.betRecordList.isEmpty
-                  ? 1
-                  : (state.betRecordList.last.seq ??
-                          state.betRecordList.length) +
-                      1;
+              row.seq =
+                  state.betRecordList.isEmpty ? 1 : (state.betRecordList.last.seq ?? state.betRecordList.length) + 1;
               state.betRecordList.add(row);
             }
             update(); // 先让 ListView 用新 itemCount 布局，再滚到底才准
             scrollBettingListToBottom();
-            _getStatisticalAreasData(JiShuQiState.tempIndexCmdKeep,
-                    isShowLoading: false)
+            _getStatisticalAreasData(JiShuQiState.tempIndexCmdKeep, isShowLoading: false)
                 .whenComplete(BXLoading.dismiss);
           },
           failed: (p0, p1) {
@@ -1150,8 +1201,7 @@ class JiShuQiController extends GetxController {
   /// 折线 75 点一律走服务端：当前本金 + 累计 shuyingzhi（改本金后整体平移，不读库内 current_jin）。
   void _resetChartPad(double pad) {
     if (state.chartData.length != 75) {
-      state.chartData =
-          List.generate(75, (index) => LineChartDataModel(index, pad));
+      state.chartData = List.generate(75, (index) => LineChartDataModel(index, pad));
     } else {
       for (var i = 0; i < 75; i++) {
         state.chartData[i].sales = pad;
@@ -1159,18 +1209,13 @@ class JiShuQiController extends GetxController {
     }
   }
 
-  void _applyLineChartSeries(List<dynamic> results,
-      {bool applyStatsTail = false}) {
-    final benjin = state.operationRecordList.isNotEmpty
-        ? double.tryParse(state.operationRecordList.last.benjin.toString())
-        : null;
-    final pad =
-        benjin ?? (state.chartData.isNotEmpty ? state.chartData[0].sales : 0.0);
+  void _applyLineChartSeries(List<dynamic> results, {bool applyStatsTail = false}) {
+    final benjin =
+        state.operationRecordList.isNotEmpty ? double.tryParse(state.operationRecordList.last.benjin.toString()) : null;
+    final pad = benjin ?? (state.chartData.isNotEmpty ? state.chartData[0].sales : 0.0);
     _resetChartPad(pad);
     var z = 0;
-    for (var i = results.length - 1;
-        i >= 0 && z < state.chartData.length;
-        i--) {
+    for (var i = results.length - 1; i >= 0 && z < state.chartData.length; i--) {
       final cell = results[i].toString().trim();
       if (cell.isNotEmpty) {
         state.chartData[z].sales = double.parse(cell);
@@ -1186,11 +1231,9 @@ class JiShuQiController extends GetxController {
 
   void _getLineCharts({bool applyStatsTail = false}) {
     final gen = ++_lineChartRequestGen;
-    final benjin = state.operationRecordList.isNotEmpty
-        ? double.tryParse(state.operationRecordList.last.benjin.toString())
-        : null;
-    final pad =
-        benjin ?? (state.chartData.isNotEmpty ? state.chartData[0].sales : 0.0);
+    final benjin =
+        state.operationRecordList.isNotEmpty ? double.tryParse(state.operationRecordList.last.benjin.toString()) : null;
+    final pad = benjin ?? (state.chartData.isNotEmpty ? state.chartData[0].sales : 0.0);
     _resetChartPad(pad);
 
     BXGet<dynamic>(
@@ -1209,9 +1252,7 @@ class JiShuQiController extends GetxController {
   void _syncChartLastPointWithTotalValue() {
     if (state.chartData.length != 75) return;
     if (state.totalValue.length <= 4) return;
-    final raw =
-        MyCharacter.removeChineseCharacters(state.totalValue[4].toString())
-            .trim();
+    final raw = MyCharacter.removeChineseCharacters(state.totalValue[4].toString()).trim();
     if (raw.isEmpty) return;
     final v = double.tryParse(raw);
     if (v != null) {
@@ -1220,9 +1261,7 @@ class JiShuQiController extends GetxController {
   }
 
   getCurrentJin(int i, double playMoney) {
-    var lastJinE = state.betRecordList.isEmpty
-        ? 5000
-        : double.parse(state.totalValue[4].toString());
+    var lastJinE = state.betRecordList.isEmpty ? 5000 : double.parse(state.totalValue[4].toString());
     switch (i) {
       case 1:
         return (lastJinE + playMoney);
@@ -1230,9 +1269,7 @@ class JiShuQiController extends GetxController {
         return (lastJinE) +
             playMoney *
                 double.parse(
-                    state.totalValue[31] == "31" || state.totalValue[31] == ""
-                        ? "0.95"
-                        : state.totalValue[31]);
+                    state.totalValue[31] == "31" || state.totalValue[31] == "" ? "0.95" : state.totalValue[31]);
       case 3:
       case 4:
         return (lastJinE) - playMoney;
@@ -1247,9 +1284,7 @@ class JiShuQiController extends GetxController {
         return bet;
       case 2:
         final odds = double.tryParse(
-                state.totalValue[31] == "31" || state.totalValue[31] == ""
-                    ? "0.95"
-                    : state.totalValue[31]) ??
+                state.totalValue[31] == "31" || state.totalValue[31] == "" ? "0.95" : state.totalValue[31]) ??
             0.95;
         return bet * odds;
       case 3:
@@ -1310,9 +1345,7 @@ class JiShuQiController extends GetxController {
           if (!isSuccess) return;
           if (results.isNotEmpty) {
             final deletedId = results.first.id;
-            final idx = deletedId == null
-                ? -1
-                : state.betRecordList.indexWhere((e) => e.id == deletedId);
+            final idx = deletedId == null ? -1 : state.betRecordList.indexWhere((e) => e.id == deletedId);
             if (idx >= 0) {
               state.betRecordList.removeAt(idx);
             } else if (state.betRecordList.isNotEmpty) {
@@ -1321,8 +1354,7 @@ class JiShuQiController extends GetxController {
           }
           state.js1 = state.js1 - 1;
           state.totalValue[28] = "${state.js1}/${state.js2}";
-          _getStatisticalAreasData(JiShuQiState.tempIndexCmdKeep,
-              isShowLoading: false);
+          _getStatisticalAreasData(JiShuQiState.tempIndexCmdKeep, isShowLoading: false);
           _reloadLuZiTu();
           update();
         },
@@ -1336,8 +1368,7 @@ class JiShuQiController extends GetxController {
     BXPost(
       Api.xiaoShu,
       isShowLoading: false,
-      params: state.betRecordList[index].toJson()
-        ..update("shuyingzhi_xiaoshu", (value) => null),
+      params: state.betRecordList[index].toJson()..update("shuyingzhi_xiaoshu", (value) => null),
       success: (isSuccess, code, message, results) {
         if (isSuccess) {
           state.betRecordList[index].shuyingzhiXiaoshu = null;
@@ -1359,9 +1390,7 @@ class JiShuQiController extends GetxController {
     const indices = [2, 6, 14, 18];
     return indices.map((i) {
       if (i >= state.totalValue.length) return '';
-      final raw =
-          MyCharacter.removeChineseCharacters(state.totalValue[i].toString())
-              .trim();
+      final raw = MyCharacter.removeChineseCharacters(state.totalValue[i].toString()).trim();
       if (i != 18) return raw;
       final v = double.tryParse(raw);
       return v == null ? raw : v.toStringAsFixed(1);
@@ -1371,9 +1400,7 @@ class JiShuQiController extends GetxController {
   /// 当前回合是否无数据（看统计区「回合局数」totalValue[2]）
   bool _isRoundStatsEmpty() {
     if (state.totalValue.length <= 2) return true;
-    final raw =
-        MyCharacter.removeChineseCharacters(state.totalValue[2].toString())
-            .trim();
+    final raw = MyCharacter.removeChineseCharacters(state.totalValue[2].toString()).trim();
     if (raw.isEmpty || raw == '-' || raw == '0') return true;
     final count = int.tryParse(raw);
     return count == null || count <= 0;
@@ -1425,9 +1452,7 @@ class JiShuQiController extends GetxController {
         BXLoading.dismiss();
         if (isSuccess) {
           _applyOperationRecordsFromServer(value);
-          state.betRecordList = state.betRecordList
-              .map((element) => element..shuyingzhiXiaoshu = null)
-              .toList();
+          state.betRecordList = state.betRecordList.map((element) => element..shuyingzhiXiaoshu = null).toList();
           if (snapshot.isNotEmpty && state.betRecordList.isNotEmpty) {
             state.betRecordList.last.restartStatSnapshot = snapshot;
           }
@@ -1443,8 +1468,7 @@ class JiShuQiController extends GetxController {
     );
   }
 
-  int get todayBetGoalEffective =>
-      GetStore.getInstance().userModel.effectiveDailyBetGoal;
+  int get todayBetGoalEffective => GetStore.getInstance().userModel.effectiveDailyBetGoal;
 
   double get todayBetProgressFraction {
     final goal = todayBetGoalEffective;
@@ -1493,8 +1517,7 @@ class JiShuQiController extends GetxController {
           final goal = int.tryParse(raw);
           return goal == null || goal < 1 ? '请输入 1 以上的整数' : null;
         },
-        onSubmitted: (raw) =>
-            _saveDailyBetGoal(raw.isEmpty ? null : int.parse(raw)),
+        onSubmitted: (raw) => _saveDailyBetGoal(raw.isEmpty ? null : int.parse(raw)),
       ),
       barrierDismissible: true,
       barrierColor: Colors.black.withValues(
@@ -1584,9 +1607,7 @@ class JiShuQiController extends GetxController {
             state.operationRecordList.last.benjin = parsedBenjin;
           }
           state.totalValue[0] = b;
-          state.totalValue[4] = (double.parse(state.totalValue[0]) +
-                  double.parse(state.totalValue[17]))
-              .toString();
+          state.totalValue[4] = (double.parse(state.totalValue[0]) + double.parse(state.totalValue[17])).toString();
           final chart = row.lineChart;
           final hasServerChart = chart != null && chart.isNotEmpty;
           if (hasServerChart && !state.isBigRoad) {
@@ -1617,9 +1638,7 @@ class JiShuQiController extends GetxController {
       BXLoading.showToast('请输入数字 ${textEditingController.text} ');
       return;
     }
-    final totalWin = state.totalValue.length > 17
-        ? _parseStatDouble(state.totalValue[17])
-        : null;
+    final totalWin = state.totalValue.length > 17 ? _parseStatDouble(state.totalValue[17]) : null;
     if (totalWin == null) {
       BXLoading.dismiss();
       BXLoading.showToast('无法获取总盈利');
@@ -1634,16 +1653,12 @@ class JiShuQiController extends GetxController {
     dismissKeyboard();
     textEditingController.clear();
 
-    final totalWin = state.totalValue.length > 17
-        ? _parseStatDouble(state.totalValue[17])
-        : null;
+    final totalWin = state.totalValue.length > 17 ? _parseStatDouble(state.totalValue[17]) : null;
     Get.dialog<void>(
       ReviewInputDialog(
         title: '核对桌面金额',
         message: '输入桌面现有金额，自动反算并修改本金',
-        badgeText: totalWin == null
-            ? '无法获取总盈利'
-            : '本金 = 桌面金额 - 总盈利(${totalWin.toStringAsFixed(2)})',
+        badgeText: totalWin == null ? '无法获取总盈利' : '本金 = 桌面金额 - 总盈利(${totalWin.toStringAsFixed(2)})',
         hintText: '请输入桌面金额',
         buttonText: '确认修改',
         statusIcon: Icons.fact_check_outlined,
@@ -1677,8 +1692,7 @@ class JiShuQiController extends GetxController {
             BXLoading.showToast(message);
             debugPrint("赔率值是=${(results[0]["odds"])}");
             state.totalValue[31] = (results[0]["odds"]).toString();
-            _getStatisticalAreasData(JiShuQiState
-                .tempIndexCmdKeep); //和recordButton里面传一样的参数，确保不会破坏局部平衡
+            _getStatisticalAreasData(JiShuQiState.tempIndexCmdKeep); //和recordButton里面传一样的参数，确保不会破坏局部平衡
           }
         },
         failed: (_, __) => BXLoading.dismiss());
@@ -1739,17 +1753,14 @@ class JiShuQiController extends GetxController {
             statusIcon: Icons.delete_outline_rounded,
             isDarkMode: state.isDarkMode,
             onConfirmed: () {
-              BXDelete(Api.deleteAll,
-                  success: (isSuccess, code, message, results) {
+              BXDelete(Api.deleteAll, success: (isSuccess, code, message, results) {
                 if (isSuccess) {
                   BXLoading.showToast(message);
                   state.operationRecordList.clear();
                   state.betRecordList.clear();
                   state.randomValue = '';
-                  List.generate(32,
-                      (index) => state.totalValue[index] = index.toString());
-                  _getStatisticalAreasData(JiShuQiState.tempIndexCmdReset,
-                      isShowLoading: false);
+                  List.generate(32, (index) => state.totalValue[index] = index.toString());
+                  _getStatisticalAreasData(JiShuQiState.tempIndexCmdReset, isShowLoading: false);
                 }
               });
             },
@@ -1773,19 +1784,16 @@ class JiShuQiController extends GetxController {
         BXPost<JsqOperationRecordModel>(
           Api.resetLiuShui,
           params: {"resetIndex": resetBetId},
-          success: (bool isSuccess, int code, String message,
-              List<JsqOperationRecordModel> results) {
+          success: (bool isSuccess, int code, String message, List<JsqOperationRecordModel> results) {
             if (!isSuccess) return;
             BXLoading.showToast(message.isNotEmpty ? message : '重置流水成功');
             if (results.isNotEmpty) {
               final latest = results.last;
               if (state.operationRecordList.isNotEmpty) {
-                state.operationRecordList.last.liushuiIndex =
-                    latest.liushuiIndex;
+                state.operationRecordList.last.liushuiIndex = latest.liushuiIndex;
               }
             }
-            _getStatisticalAreasData(JiShuQiState.tempIndexCmdKeep,
-                isShowLoading: false);
+            _getStatisticalAreasData(JiShuQiState.tempIndexCmdKeep, isShowLoading: false);
           },
           onModel: (m) => JsqOperationRecordModel.fromJson(m),
         );
@@ -1897,8 +1905,7 @@ class JiShuQiController extends GetxController {
               state.betRecordList[i].shuyingzhiXiaoshu = null;
               continue;
             }
-            state.betRecordList[i].shuyingzhiXiaoshu =
-                double.tryParse(list[idx].toString());
+            state.betRecordList[i].shuyingzhiXiaoshu = double.tryParse(list[idx].toString());
           }
           update();
         }
@@ -1908,8 +1915,7 @@ class JiShuQiController extends GetxController {
   }
 
   void updateQiWangZhi(String qiwangzhi) {
-    BXPost/*<Map<String,dynamic>>*/(Api.updateQiWangValue,
-        params: {"mean": qiwangzhi}, isShowLoading: false,
+    BXPost/*<Map<String,dynamic>>*/(Api.updateQiWangValue, params: {"mean": qiwangzhi}, isShowLoading: false,
         success: (isSuccess, int code, String message, List<dynamic> results) {
       if (isSuccess) {
         BXLoading.showToast(message);
@@ -2105,8 +2111,7 @@ class JiShuQiController extends GetxController {
   //(取消)局部平衡
   juBuPingHeng(Object index, {v}) {
     guardAgainstKeyboardPop();
-    final targetIndex = index != JiShuQiState.tempIndexCmdCancel &&
-            state.currentTempIndex == index
+    final targetIndex = index != JiShuQiState.tempIndexCmdCancel && state.currentTempIndex == index
         ? JiShuQiState.tempIndexCmdCancel
         : index;
 
@@ -2130,8 +2135,7 @@ class JiShuQiController extends GetxController {
     var success = true;
     try {
       await _queryOperationRecords(isShowLoading: false);
-      await _getStatisticalAreasData(JiShuQiState.tempIndexCmdKeep,
-          isShowLoading: false);
+      await _getStatisticalAreasData(JiShuQiState.tempIndexCmdKeep, isShowLoading: false);
       await _reloadBettingListTail(isShowLoading: false);
     } catch (_) {
       success = false;
@@ -2158,8 +2162,7 @@ class JiShuQiController extends GetxController {
     final completer = Completer<int>();
     // id 为 null 时 Dio 会发出 last_id= 无值，后端会走错分支；空列表用 -1。
     // 与后端 LoadMore 一致：数据为 created_at 升序，分页游标为当前已加载中最旧一条（first）的 id。
-    final anchorId =
-        state.betRecordList.isEmpty ? -1 : (state.betRecordList.first.id ?? -1);
+    final anchorId = state.betRecordList.isEmpty ? -1 : (state.betRecordList.first.id ?? -1);
     var networkLoadingVisible = true;
     void dismissNetworkLoading() {
       if (!networkLoadingVisible) return;
@@ -2170,11 +2173,7 @@ class JiShuQiController extends GetxController {
     // 保留列表顶部的小 Loading，同时显示项目统一的抖音双球网络 Loading。
     BXLoading.show(douyinStyle: true);
     BXGet<JsqBetRecordModel>(Api.loadMore,
-        params: {
-          "last_id": anchorId,
-          "uid": GetStore.getInstance().userModel.userId,
-          "c": count
-        },
+        params: {"last_id": anchorId, "uid": GetStore.getInstance().userModel.userId, "c": count},
         //"c"每页多少个数据
         isShowLoading: false,
         showError: false,
@@ -2231,9 +2230,7 @@ class JiShuQiController extends GetxController {
 
   //重新加载路子图
   _reloadLuZiTu() {
-    var list = state.betRecordList
-        .map((e) => (e.shuyingzhi ?? 0) < 0 ? "闲家" : "庄家")
-        .toList();
+    var list = state.betRecordList.map((e) => (e.shuyingzhi ?? 0) < 0 ? "闲家" : "庄家").toList();
     state.initializeBigRoad();
     for (var value in list) {
       updateBigRoad(value);

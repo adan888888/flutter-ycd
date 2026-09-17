@@ -24,10 +24,26 @@ class JiShuQiState {
   var js1 = 0; //随机总数
   var js2 = 0;
 
+  /// 随机骰子按钮边长（与 Material FAB 默认一致）
+  static const double randomFabSize = 56;
+
+  /// 随机骰子视觉缩放（相对 [randomFabSize]）
+  static const double randomFabScale = 0.8;
+
+  /// 底部输入栏高度（键盘收起 / 弹起）
+  static const double inputBarHeight = 40;
+  static const double expandedInputBarHeight = 50;
+
+  static double inputBarHeightForKeyboardInset(double keyboardInset) =>
+      keyboardInset > 0 ? expandedInputBarHeight : inputBarHeight;
+
+  /// SharedPreferences：随机骰子按钮左上角坐标（相对页面 Stack）
+  static const prefRandomFabLeft = 'ji_shu_qi_random_fab_left';
+  static const prefRandomFabTop = 'ji_shu_qi_random_fab_top';
+
   /// 今日下注次数（来自 /jsq/statistical-areas-data 的 today_bet_count）
   int todayBetCount = 0;
-  int currentTempIndex =
-      0; // 局部平衡锚点行 id（与列表眼睛一致）；持久化为服务端 operationRecord.tempIndex → JsqOperationRecordModel.tempIndex
+  int currentTempIndex = 0; // 局部平衡锚点行 id（与列表眼睛一致）；持久化为服务端 operationRecord.tempIndex → JsqOperationRecordModel.tempIndex
 
   /// 列表各列固定宽度（ji_shu_qi_view 投注记录行；过长用 FittedBox 缩小字体）
   static const double seqColMaxWidth = 34; // 序号+眼睛，约 4 个数字
@@ -48,8 +64,7 @@ class JiShuQiState {
   var isBettingListAtBottom = true;
 
   /// 投注记录为空时的缺省图（含「暂无投注记录」文案）
-  static const String emptyBettingListAsset =
-      'assets/images/empty_betting_records.png';
+  static const String emptyBettingListAsset = 'assets/images/empty_betting_records.png';
 
   /// 统计区固定高度（吸顶 SliverPersistentHeader）
   static const double statsAreaHeight = 145;
@@ -89,8 +104,7 @@ class JiShuQiState {
   // 根据主题获取颜色
   Color get currentLineColor => isDarkMode ? darkLineColor : lineColor;
 
-  Color get currentListViewColor =>
-      isDarkMode ? darkListViewColor : listViewColor;
+  Color get currentListViewColor => isDarkMode ? darkListViewColor : listViewColor;
 
   Color get currentBgColor => isDarkMode ? darkBgColor : bgColor;
 
@@ -99,12 +113,10 @@ class JiShuQiState {
   Color get currentTextColor => isDarkMode ? darkTextColor : textColor;
 
   /// 投注列表「重启行」底部分隔线颜色
-  Color get currentRestartRowBorderColor =>
-      isDarkMode ? Colors.amberAccent.shade100 : Colors.black;
+  Color get currentRestartRowBorderColor => isDarkMode ? Colors.amberAccent.shade100 : Colors.black;
 
   /// 统计区 / 投注列表共用的下拉刷新头部；底色与所在区域背景一致，文字/图标保证可读
-  ClassicHeader pullRefreshHeader({required Color backgroundColor}) =>
-      ClassicHeader(
+  ClassicHeader pullRefreshHeader({required Color backgroundColor}) => ClassicHeader(
         clamping: false,
         infiniteOffset: null,
         triggerWhenReach: false,
@@ -120,21 +132,15 @@ class JiShuQiState {
         showMessage: true,
         backgroundColor: backgroundColor,
         textStyle: TextStyle(
-          color: isDarkMode
-              ? darkTextColor.withValues(alpha: 0.9)
-              : Colors.black87,
+          color: isDarkMode ? darkTextColor.withValues(alpha: 0.9) : Colors.black87,
           fontSize: 14,
         ),
         messageStyle: TextStyle(
-          color: isDarkMode
-              ? darkTextColor.withValues(alpha: 0.55)
-              : Colors.black54,
+          color: isDarkMode ? darkTextColor.withValues(alpha: 0.55) : Colors.black54,
           fontSize: 12,
         ),
         iconTheme: IconThemeData(
-          color: isDarkMode
-              ? Colors.white.withValues(alpha: 0.75)
-              : Colors.black54,
+          color: isDarkMode ? Colors.white.withValues(alpha: 0.75) : Colors.black54,
           size: 22,
         ),
       );
@@ -203,8 +209,7 @@ class JiShuQiState {
       ? const Color(0xFF4F4A4A) // 暗黑模式：深棕灰色
       : const Color(0xFFC0BCBC); // 白色模式：稍深的棕灰色
 
-  Color get deleteLastIconColor =>
-      isDarkMode ? darkTextColor.withValues(alpha: 0.7) : Colors.black45;
+  Color get deleteLastIconColor => isDarkMode ? darkTextColor.withValues(alpha: 0.7) : Colors.black45;
 
   var totalValue /*统计区*/ = <String>[];
   var chartData /*图表数据*/ = <LineChartDataModel>[];
@@ -301,8 +306,7 @@ class JiShuQiState {
   /// 创建6行120列的空大路图，重置所有位置状态
   void initializeBigRoad() {
     debugPrint("------>initializeBigRoad");
-    bigRoad = List.generate(
-        bigRoadRows, (index) => List.generate(bigRoadCols, (index) => ''));
+    bigRoad = List.generate(bigRoadRows, (index) => List.generate(bigRoadCols, (index) => ''));
     currentRow = 0;
     currentCol = 0;
     lastWinner = '';
