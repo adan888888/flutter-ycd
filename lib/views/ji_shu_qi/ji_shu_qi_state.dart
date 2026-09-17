@@ -25,10 +25,10 @@ class JiShuQiState {
   var js2 = 0;
 
   /// 随机骰子按钮边长（与 Material FAB 默认一致）
-  static const double randomFabSize = 56;
+  static const double randomFabSize = 60;
 
   /// 随机骰子视觉缩放（相对 [randomFabSize]）
-  static const double randomFabScale = 0.8;
+  static const double randomFabScale = 1.0;
 
   /// 底部输入栏高度（键盘收起 / 弹起）
   static const double inputBarHeight = 40;

@@ -718,7 +718,11 @@ class JiShuQiView extends GetView<JiShuQiController> {
                                             key: const ValueKey('ji_shu_qi_random_fab'),
                                             width: JiShuQiState.randomFabSize,
                                             height: JiShuQiState.randomFabSize,
-                                            child: Image.asset('assets/images/shai.png'),
+                                            child: Image.asset(
+                                              c.state.isDarkMode
+                                                  ? 'assets/images/shai_dark.png'
+                                                  : 'assets/images/shai_light.png',
+                                            ),
                                           ),
                                         ),
                                       ),
