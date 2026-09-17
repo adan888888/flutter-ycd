@@ -100,7 +100,8 @@ class ReviewApprovedDialog extends StatelessWidget {
                     else if (statusIcon == null)
                       _SuccessIllustration(size: illustrationSize)
                     else
-                      _StatusIllustration(icon: statusIcon!, size: illustrationSize),
+                      _StatusIllustration(
+                          icon: statusIcon!, size: illustrationSize),
                     SizedBox(height: s(6)),
                     Text(title, textAlign: TextAlign.center, style: titleStyle),
                     SizedBox(height: s(10)),
@@ -142,6 +143,272 @@ class ReviewApprovedDialog extends StatelessWidget {
                       secondaryText: secondaryButtonText,
                       onPrimary: onConfirmed,
                       onSecondary: onSecondary,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              child: Transform.scale(
+                scale: scale,
+                alignment: Alignment.topCenter,
+                child: const _HeaderArtwork(),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// 与 [ReviewApprovedDialog] 同款的输入弹窗。
+///
+/// 输入校验不通过时弹窗会保持打开；校验通过后才关闭并回传内容。
+class ReviewInputDialog extends StatefulWidget {
+  const ReviewInputDialog({
+    super.key,
+    required this.title,
+    required this.message,
+    required this.badgeText,
+    required this.hintText,
+    required this.onSubmitted,
+    this.initialValue = '',
+    this.buttonText = '保存',
+    this.secondaryButtonText = '取消',
+    this.statusIcon = Icons.edit_outlined,
+    this.keyboardType,
+    this.inputFormatters,
+    this.validator,
+  });
+
+  final String title;
+  final String message;
+  final String badgeText;
+  final String hintText;
+  final String initialValue;
+  final String buttonText;
+  final String secondaryButtonText;
+  final IconData statusIcon;
+  final TextInputType? keyboardType;
+  final List<TextInputFormatter>? inputFormatters;
+  final String? Function(String value)? validator;
+  final ValueChanged<String> onSubmitted;
+
+  @override
+  State<ReviewInputDialog> createState() => _ReviewInputDialogState();
+}
+
+class _ReviewInputDialogState extends State<ReviewInputDialog> {
+  late final TextEditingController _controller;
+  String? _errorText;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(text: widget.initialValue);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _submit() {
+    final value = _controller.text.trim();
+    final error = widget.validator?.call(value);
+    if (error != null) {
+      setState(() => _errorText = error);
+      return;
+    }
+    Navigator.of(context).pop();
+    widget.onSubmitted(value);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.sizeOf(context).width;
+    const designDialogWidth = ReviewApprovedDialog._designDialogWidth;
+    final dialogWidth = screenWidth *
+        designDialogWidth /
+        ReviewApprovedDialog._designScreenWidth;
+    final scale = dialogWidth / designDialogWidth;
+    final horizontalInset = (screenWidth - dialogWidth) / 2;
+
+    double s(double designPx) => designPx * scale;
+
+    return Dialog(
+      insetPadding: EdgeInsets.symmetric(
+        horizontal: horizontalInset < 16 ? 16 : horizontalInset,
+        vertical: 24,
+      ),
+      elevation: 0,
+      backgroundColor: Colors.transparent,
+      child: SizedBox(
+        width: dialogWidth,
+        child: Stack(
+          clipBehavior: Clip.none,
+          alignment: Alignment.topCenter,
+          children: [
+            Padding(
+              padding: EdgeInsets.only(top: s(84)),
+              child: Material(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(s(20)),
+                clipBehavior: Clip.antiAlias,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    SizedBox(height: s(42)),
+                    _StatusIllustration(
+                      icon: widget.statusIcon,
+                      size: s(82),
+                    ),
+                    SizedBox(height: s(6)),
+                    Text(
+                      widget.title,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: ReviewApprovedDialog._primaryText,
+                        fontSize: s(20),
+                        height: 1.1,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    SizedBox(height: s(8)),
+                    Padding(
+                      padding: EdgeInsets.symmetric(horizontal: s(24)),
+                      child: Text(
+                        widget.message,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: ReviewApprovedDialog._primaryText,
+                          fontSize: s(13),
+                          height: 1.4,
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: s(12)),
+                    Padding(
+                      padding: EdgeInsets.symmetric(horizontal: s(24)),
+                      child: TextField(
+                        controller: _controller,
+                        autofocus: true,
+                        keyboardType: widget.keyboardType,
+                        inputFormatters: widget.inputFormatters,
+                        textAlign: TextAlign.center,
+                        textInputAction: TextInputAction.done,
+                        onSubmitted: (_) => _submit(),
+                        onChanged: (_) {
+                          if (_errorText != null) {
+                            setState(() => _errorText = null);
+                          }
+                        },
+                        style: TextStyle(
+                          color: ReviewApprovedDialog._primaryText,
+                          fontSize: s(20),
+                          fontWeight: FontWeight.w700,
+                        ),
+                        decoration: InputDecoration(
+                          hintText: widget.hintText,
+                          errorText: _errorText,
+                          hintStyle: TextStyle(
+                            color: const Color(0xFF9AA3B4),
+                            fontSize: s(13),
+                            fontWeight: FontWeight.w400,
+                          ),
+                          filled: true,
+                          fillColor: ReviewApprovedDialog._paleBlue,
+                          contentPadding: EdgeInsets.symmetric(
+                            horizontal: s(12),
+                            vertical: s(10),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(s(12)),
+                            borderSide: const BorderSide(
+                              color: ReviewApprovedDialog._border,
+                            ),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(s(12)),
+                            borderSide: const BorderSide(
+                              color: ReviewApprovedDialog._brandBlue,
+                              width: 1.4,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: s(12)),
+                    Container(
+                      width: dialogWidth - s(48),
+                      constraints: BoxConstraints(minHeight: s(32)),
+                      alignment: Alignment.center,
+                      padding: EdgeInsets.symmetric(
+                        horizontal: s(12),
+                        vertical: s(6),
+                      ),
+                      decoration: BoxDecoration(
+                        color: ReviewApprovedDialog._paleBlue,
+                        borderRadius: BorderRadius.circular(100),
+                        border: Border.all(color: ReviewApprovedDialog._border),
+                      ),
+                      child: Text(
+                        widget.badgeText,
+                        textAlign: TextAlign.center,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: ReviewApprovedDialog._brandBlue,
+                          fontSize: s(12),
+                          height: 1.4,
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: s(18)),
+                    const Divider(
+                      height: 0.5,
+                      thickness: 0.5,
+                      color: ReviewApprovedDialog._border,
+                    ),
+                    Material(
+                      color: ReviewApprovedDialog._paleBlue,
+                      child: SizedBox(
+                        height: s(50),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: _DialogActionButton(
+                                text: widget.secondaryButtonText,
+                                height: s(50),
+                                fontSize: s(17),
+                                backgroundColor: Colors.transparent,
+                                textColor: const Color(0xFF7460B4),
+                                onTap: () => Navigator.of(context).pop(),
+                              ),
+                            ),
+                            const VerticalDivider(
+                              width: 0.5,
+                              thickness: 0.5,
+                              color: ReviewApprovedDialog._border,
+                            ),
+                            Expanded(
+                              child: _DialogActionButton(
+                                text: widget.buttonText,
+                                height: s(50),
+                                fontSize: s(17),
+                                backgroundColor: Colors.transparent,
+                                textColor: const Color(0xFF7460B4),
+                                onTap: _submit,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
                   ],
                 ),
@@ -308,7 +575,8 @@ class _StatusIllustration extends StatelessWidget {
           ),
         ],
       ),
-      child: Icon(icon, size: size * 0.5, color: ReviewApprovedDialog._brandBlue),
+      child:
+          Icon(icon, size: size * 0.5, color: ReviewApprovedDialog._brandBlue),
     );
   }
 }
@@ -457,7 +725,8 @@ class _HeaderArtwork extends StatelessWidget {
             right: 0,
             bottom: 0,
             height: 27,
-            child: SvgPicture.asset('$root/header_bottom.svg', fit: BoxFit.fill),
+            child:
+                SvgPicture.asset('$root/header_bottom.svg', fit: BoxFit.fill),
           ),
         ],
       ),

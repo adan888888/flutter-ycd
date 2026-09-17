@@ -817,7 +817,7 @@ class JiShuQiController extends GetxController {
     final val = state.randomValue == '庄'
         ? (bet * _commissionRate()).toStringAsFixed(2)
         : textEditingController.text;
-    final x = _parseStatDouble(state.totalValue[18]); //总输赢
+    final x = _parseStatDouble(state.totalValue[18]); // 总盈利相关统计
     final y = double.tryParse(val); //输入框下注额
     final z = _parseStatDouble(state.totalValue[14]); //净胜
     if (x == null || y == null || z == null) return '';
@@ -844,7 +844,7 @@ class JiShuQiController extends GetxController {
     final val = state.randomValue == '庄'
         ? (bet * _commissionRate()).toStringAsFixed(2)
         : textEditingController.text;
-    final x = _parseStatDouble(state.totalValue[17]); //总输赢
+    final x = _parseStatDouble(state.totalValue[17]); // 总盈利
     final y = double.tryParse(val); //输入框下注额
     final z = _parseStatDouble(state.totalValue[13]); //净胜
     if (x == null || y == null || z == null) return '';
@@ -1449,51 +1449,26 @@ class JiShuQiController extends GetxController {
   void showDailyBetGoalEditor() {
     dismissKeyboard();
     final store = GetStore.getInstance();
-    final input = TextEditingController(
-      text: store.userModel.dailyBetGoal?.toString() ?? '',
-    );
     Get.dialog<void>(
-      AlertDialog(
-        title: const Text('每日目标（下注次数）'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            TextField(
-              controller: input,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
-                hintText: '留空则使用默认 ${UserModel.defaultDailyBetGoal}',
-                border: OutlineInputBorder(),
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              '当前完成：$todayBetProgressLabel',
-              style: TextStyle(fontSize: 12, color: Colors.grey.shade700),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(onPressed: Get.back, child: const Text('取消')),
-          TextButton(
-            onPressed: () {
-              final raw = input.text.trim();
-              int? goal;
-              if (raw.isNotEmpty) {
-                goal = int.tryParse(raw);
-                if (goal == null || goal < 1) {
-                  BXLoading.showToast('请输入 1 以上的整数');
-                  return;
-                }
-              }
-              Get.back();
-              _saveDailyBetGoal(goal);
-            },
-            child: const Text('保存'),
-          ),
-        ],
+      ReviewInputDialog(
+        title: '每日目标',
+        message: '设置每天计划完成的下注次数',
+        badgeText: '当前完成：$todayBetProgressLabel',
+        hintText: '留空则使用默认 ${UserModel.defaultDailyBetGoal}',
+        initialValue: store.userModel.dailyBetGoal?.toString() ?? '',
+        statusIcon: Icons.flag_outlined,
+        keyboardType: TextInputType.number,
+        inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+        validator: (raw) {
+          if (raw.isEmpty) return null;
+          final goal = int.tryParse(raw);
+          return goal == null || goal < 1 ? '请输入 1 以上的整数' : null;
+        },
+        onSubmitted: (raw) =>
+            _saveDailyBetGoal(raw.isEmpty ? null : int.parse(raw)),
       ),
+      barrierDismissible: true,
+      barrierColor: Colors.black.withValues(alpha: 0.42),
     );
   }
 
@@ -1599,7 +1574,7 @@ class JiShuQiController extends GetxController {
     BXLoading.show(douyinStyle: true);
     if (currentAmountText.isEmpty) {
       BXLoading.dismiss();
-      BXLoading.showToast('请输入当前金额 ${textEditingController.text} ');
+      BXLoading.showToast('请输入桌面金额 ${textEditingController.text} ');
       return;
     }
     final currentAmount = double.tryParse(currentAmountText);
@@ -1613,7 +1588,7 @@ class JiShuQiController extends GetxController {
         : null;
     if (totalWin == null) {
       BXLoading.dismiss();
-      BXLoading.showToast('无法获取总输赢');
+      BXLoading.showToast('无法获取总盈利');
       return;
     }
 
@@ -1625,64 +1600,34 @@ class JiShuQiController extends GetxController {
     dismissKeyboard();
     textEditingController.clear();
 
-    final input = TextEditingController();
     final totalWin = state.totalValue.length > 17
         ? _parseStatDouble(state.totalValue[17])
         : null;
     Get.dialog<void>(
-      AlertDialog(
-        title: const Text('核对当前金额'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            TextField(
-              controller: input,
-              autofocus: true,
-              keyboardType:
-                  const TextInputType.numberWithOptions(decimal: true),
-              inputFormatters: [
-                FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),
-              ],
-              decoration: const InputDecoration(
-                hintText: '请输入当前实际金额',
-                border: OutlineInputBorder(),
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              totalWin == null
-                  ? '无法获取总输赢'
-                  : '本金 = 当前金额 - 总输赢(${totalWin.toStringAsFixed(2)})',
-              style: TextStyle(fontSize: 12, color: Colors.grey.shade700),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(onPressed: Get.back, child: const Text('取消')),
-          TextButton(
-            onPressed: () {
-              final raw = input.text.trim();
-              if (raw.isEmpty) {
-                BXLoading.showToast('请输入当前金额');
-                return;
-              }
-              if (double.tryParse(raw) == null) {
-                BXLoading.showToast('请输入数字 $raw');
-                return;
-              }
-              Get.back<void>();
-              reconcileBenJinByCurrentAmount(raw);
-            },
-            child: const Text('确认'),
-          ),
+      ReviewInputDialog(
+        title: '核对桌面金额',
+        message: '输入桌面现有金额，自动反算并修改本金',
+        badgeText: totalWin == null
+            ? '无法获取总盈利'
+            : '本金 = 桌面金额 - 总盈利(${totalWin.toStringAsFixed(2)})',
+        hintText: '请输入桌面金额',
+        buttonText: '确认修改',
+        statusIcon: Icons.fact_check_outlined,
+        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+        inputFormatters: [
+          FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),
         ],
+        validator: (raw) {
+          if (raw.isEmpty) return '请输入桌面金额';
+          if (double.tryParse(raw) == null) return '请输入正确的数字';
+          if (totalWin == null) return '无法获取总盈利';
+          return null;
+        },
+        onSubmitted: reconcileBenJinByCurrentAmount,
       ),
       barrierDismissible: true,
       barrierColor: Colors.black.withValues(alpha: 0.42),
-    ).whenComplete(() {
-      WidgetsBinding.instance.addPostFrameCallback((_) => input.dispose());
-    });
+    );
   }
 
   void updateOdds(String b) {
