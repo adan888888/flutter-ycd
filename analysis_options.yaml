@@ -13,6 +13,10 @@ analyzer:
     constant_identifier_names: ignore
 include: package:flutter_lints/flutter.yaml
 
+# 与 Android Studio / .vscode 一致：dart format 行宽 120
+formatter:
+  line_length: 120
+
 linter:
   # The lint rules applied to this project can be customized in the
   # section below to disable rules from the `package:flutter_lints/flutter.yaml`

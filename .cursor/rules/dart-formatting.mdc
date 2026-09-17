@@ -1,0 +1,34 @@
+---
+description: Dart 修改后按 Android Studio 同款 dart format（行宽 120）格式化
+globs: **/*.dart
+alwaysApply: false
+---
+
+# Dart 格式化（对齐 Android Studio）
+
+本仓库 Flutter/Dart 格式化以 **官方 `dart format`** 为准，行宽统一 **120**：
+
+- `analysis_options.yaml` → `formatter.line_length: 120`
+- `.vscode/settings.json` → `dart.lineLength: 120`
+- Cursor 全局 `settings.json` → `dart.lineLength: 120`、Dart ruler 120
+
+## 改完代码后必须做
+
+1. 只对**本次改动过的** `.dart` 文件执行：
+   ```bash
+   dart format --line-length=120 <file1> <file2> ...
+   ```
+   或在仓库根目录：`dart format lib/path/to/changed.dart`（会读 analysis_options 的 120）
+2. 不要用手动换行、缩进「猜」格式；以 `dart format` 结果为准。
+3. 不要对未改动的文件整库格式化，避免无关 diff。
+
+## 与现有代码一致
+
+- 先阅读同文件、相邻函数的写法（引号、尾逗号、换行习惯），再写入；格式化仍交给 `dart format` 收尾。
+- 保留文件顶部的 `// ignore_for_file` 等既有注释，不要因排版删掉。
+
+## Android Studio 侧
+
+- 行宽：**Settings → Editor → Code Style → Dart → Hard wrap at 120**。
+- 请用 **内置 Dart formatter**（`Dart: Dart Style` / Reformat Code），与 `dart format` 一致。
+- 若安装了 **eggstone「Dart Format」** 等第三方插件（大括号强制换行等），其规则与 `dart format` 不同；要与 Cursor 一致，请对该仓库改用内置格式化，或关闭插件快捷键。
