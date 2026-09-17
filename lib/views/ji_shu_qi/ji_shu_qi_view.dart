@@ -1030,6 +1030,7 @@ class JiShuQiView extends GetView<JiShuQiController> {
     JiShuQiController controller, {
     required double height,
   }) {
+    final isMobilePlatform = !kIsWeb && (Platform.isAndroid || Platform.isIOS);
     final buttonHeight = height - 3;
     return TextFieldTapRegion(
       child: SizedBox(
@@ -1065,6 +1066,28 @@ class JiShuQiView extends GetView<JiShuQiController> {
                 4,
                 height: buttonHeight,
               ),
+              if (!isMobilePlatform) ...[
+                _divier2(controller.state.currentTextColor, 38),
+                Semantics(
+                  button: true,
+                  label: '返回上一步',
+                  hint: '撤销最后一条投注记录',
+                  child: GestureDetector(
+                    key: const ValueKey('undo-last-bet-button'),
+                    behavior: HitTestBehavior.opaque,
+                    onTap: controller.confirmDeleteLast,
+                    child: Center(
+                      child: Image.asset(
+                        'assets/images/delete_last.png',
+                        height: math.min(buttonHeight, 22),
+                        fit: BoxFit.contain,
+                        color: controller.state.deleteLastIconColor,
+                        colorBlendMode: BlendMode.srcIn,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
               _divier2(controller.state.currentTextColor, 38),
               Expanded(
                 child: Semantics(

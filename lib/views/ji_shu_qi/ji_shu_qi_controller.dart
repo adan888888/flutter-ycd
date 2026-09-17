@@ -28,8 +28,8 @@ import 'package:ycd/utils/storage_util.dart';
 import 'ji_shu_qi_state.dart';
 
 class JiShuQiController extends GetxController {
-  /// 计数器页自动锁屏 PIN（须与 [lockScreen] 的 `correctString` 一致）
-  static const String _lockScreenPin = '1234';
+  /// 计数器页自动锁屏 PIN，任一可解锁（均须与 `correctString` 位数一致）
+  static const List<String> _lockScreenPins = ['1111', '0000'];
 
   /// 统计区下拉刷新（与投注列表同款 EasyRefresh 样式，独立 controller）
   EasyRefreshController statsRefreshController =
@@ -1274,6 +1274,30 @@ class JiShuQiController extends GetxController {
     return s.replaceAll(RegExp(r'0+$'), '').replaceAll(RegExp(r'\.$'), '');
   }
 
+  void confirmDeleteLast() {
+    dismissKeyboard();
+    if (state.betRecordList.isEmpty) {
+      BXLoading.showToast('暂无投注记录');
+      return;
+    }
+    Get.dialog<void>(
+      ReviewApprovedDialog(
+        title: '警告',
+        message: '是否返回上一步',
+        badgeText: '将撤销最后一条投注记录',
+        buttonText: '确定',
+        secondaryButtonText: '取消',
+        statusIcon: Icons.undo_rounded,
+        isDarkMode: state.isDarkMode,
+        onConfirmed: deleteLast,
+      ),
+      barrierDismissible: false,
+      barrierColor: Colors.black.withValues(
+        alpha: state.isDarkMode ? 0.62 : 0.50,
+      ),
+    );
+  }
+
   void deleteLast() {
     dismissKeyboard();
     if (state.betRecordList.isEmpty) return;
@@ -1511,6 +1535,7 @@ class JiShuQiController extends GetxController {
         buttonText: '确定',
         secondaryButtonText: '取消',
         useRestartArtwork: true,
+        isDarkMode: state.isDarkMode,
         onConfirmed: () {
           if (state.betRecordList.isEmpty) {
             BXLoading.showToast('暂无投注记录，无法重启');
@@ -1534,7 +1559,9 @@ class JiShuQiController extends GetxController {
         },
       ),
       barrierDismissible: false,
-      barrierColor: Colors.black.withValues(alpha: 0.50),
+      barrierColor: Colors.black.withValues(
+        alpha: state.isDarkMode ? 0.62 : 0.50,
+      ),
     );
   }
 
@@ -1706,6 +1733,7 @@ class JiShuQiController extends GetxController {
             buttonText: '删除',
             secondaryButtonText: '取消',
             statusIcon: Icons.delete_outline_rounded,
+            isDarkMode: state.isDarkMode,
             onConfirmed: () {
               BXDelete(Api.deleteAll,
                   success: (isSuccess, code, message, results) {
@@ -1723,7 +1751,9 @@ class JiShuQiController extends GetxController {
             },
           ),
           barrierDismissible: false,
-          barrierColor: Colors.black.withValues(alpha: 0.50),
+          barrierColor: Colors.black.withValues(
+            alpha: state.isDarkMode ? 0.62 : 0.50,
+          ),
         );
         break;
       case 5: //重置流水
@@ -1798,7 +1828,7 @@ class JiShuQiController extends GetxController {
         );
         break;
       case 7: //返回上步
-        deleteLast();
+        confirmDeleteLast();
         break;
       case 8: //修改期望值
         if (s.isEmpty) {
@@ -1937,7 +1967,9 @@ class JiShuQiController extends GetxController {
       ),
       title: const Icon(Icons.lock, size: 30, color: Colors.white),
       context: context,
-      correctString: _lockScreenPin,
+      // 有 onValidate 时插件只用回调校验，correctString 仅决定输入位数
+      correctString: _lockScreenPins.first,
+      onValidate: (input) async => _lockScreenPins.contains(input),
       canCancel: false,
       //是否可以取消
       onUnlocked: () {

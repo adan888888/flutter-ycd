@@ -17,6 +17,7 @@ class ReviewApprovedDialog extends StatelessWidget {
     this.statusIcon,
     this.useFailureArtwork = false,
     this.useRestartArtwork = false,
+    this.isDarkMode = false,
     this.onSecondary,
     this.onConfirmed,
   });
@@ -29,6 +30,7 @@ class ReviewApprovedDialog extends StatelessWidget {
   final IconData? statusIcon;
   final bool useFailureArtwork;
   final bool useRestartArtwork;
+  final bool isDarkMode;
   final VoidCallback? onSecondary;
   final VoidCallback? onConfirmed;
 
@@ -42,29 +44,42 @@ class ReviewApprovedDialog extends StatelessWidget {
   static const _designScreenWidth = 390.0;
   static const _designDialogWidth = 310.0;
 
+  /// 暗色配色与 [ReviewInputDialog] 保持一致
+  static const _darkSurface = Color(0xFF16212F);
+  static const _darkPrimaryText = Color(0xFFF5F7FA);
+  static const _darkBadgeFill = Color(0xFF1C2939);
+  static const _darkAccent = Color(0xFF8AAEFF);
+  static const _darkActionText = Color(0xFFB8A8F2);
+
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.sizeOf(context).width;
     final dialogWidth = screenWidth * _designDialogWidth / _designScreenWidth;
     final scale = dialogWidth / _designDialogWidth;
     final horizontalInset = (screenWidth - dialogWidth) / 2;
+    final surface = isDarkMode ? _darkSurface : Colors.white;
+    final primaryTextColor = isDarkMode ? _darkPrimaryText : _primaryText;
+    final badgeFill = isDarkMode ? _darkBadgeFill : _paleBlue;
+    final borderColor =
+        isDarkMode ? Colors.white.withValues(alpha: 0.12) : _border;
+    final accent = isDarkMode ? _darkAccent : _brandBlue;
 
     double s(double designPx) => designPx * scale;
 
     final titleStyle = TextStyle(
-      color: _primaryText,
+      color: primaryTextColor,
       fontSize: s(20),
       height: 22 / 20,
       fontWeight: FontWeight.w700,
     );
     final messageStyle = TextStyle(
-      color: _primaryText,
+      color: primaryTextColor,
       fontSize: s(14),
       height: 1.5,
       fontWeight: FontWeight.w400,
     );
     final badgeStyle = TextStyle(
-      color: _brandBlue,
+      color: accent,
       fontSize: s(13),
       height: 1.5,
     );
@@ -86,7 +101,7 @@ class ReviewApprovedDialog extends StatelessWidget {
             Padding(
               padding: EdgeInsets.only(top: s(84)),
               child: Material(
-                color: Colors.white,
+                color: surface,
                 borderRadius: BorderRadius.circular(s(20)),
                 clipBehavior: Clip.antiAlias,
                 child: Column(
@@ -101,7 +116,10 @@ class ReviewApprovedDialog extends StatelessWidget {
                       _SuccessIllustration(size: illustrationSize)
                     else
                       _StatusIllustration(
-                          icon: statusIcon!, size: illustrationSize),
+                        icon: statusIcon!,
+                        size: illustrationSize,
+                        isDarkMode: isDarkMode,
+                      ),
                     SizedBox(height: s(6)),
                     Text(title, textAlign: TextAlign.center, style: titleStyle),
                     SizedBox(height: s(10)),
@@ -123,9 +141,9 @@ class ReviewApprovedDialog extends StatelessWidget {
                         vertical: s(6),
                       ),
                       decoration: BoxDecoration(
-                        color: _paleBlue,
+                        color: badgeFill,
                         borderRadius: BorderRadius.circular(100),
-                        border: Border.all(color: _border),
+                        border: Border.all(color: borderColor),
                       ),
                       child: Text(
                         badgeText,
@@ -136,11 +154,12 @@ class ReviewApprovedDialog extends StatelessWidget {
                       ),
                     ),
                     SizedBox(height: s(20)),
-                    const Divider(height: 0.5, thickness: 0.5, color: _border),
+                    Divider(height: 0.5, thickness: 0.5, color: borderColor),
                     _DialogActions(
                       scale: scale,
                       primaryText: buttonText,
                       secondaryText: secondaryButtonText,
+                      isDarkMode: isDarkMode,
                       onPrimary: onConfirmed,
                       onSecondary: onSecondary,
                     ),
@@ -155,7 +174,7 @@ class ReviewApprovedDialog extends StatelessWidget {
               child: Transform.scale(
                 scale: scale,
                 alignment: Alignment.topCenter,
-                child: const _HeaderArtwork(),
+                child: _HeaderArtwork(surfaceColor: surface),
               ),
             ),
           ],
@@ -456,11 +475,13 @@ class _DialogActions extends StatelessWidget {
     required this.secondaryText,
     required this.onPrimary,
     required this.onSecondary,
+    this.isDarkMode = false,
   });
 
   final double scale;
   final String primaryText;
   final String? secondaryText;
+  final bool isDarkMode;
   final VoidCallback? onPrimary;
   final VoidCallback? onSecondary;
 
@@ -469,12 +490,25 @@ class _DialogActions extends StatelessWidget {
     final secondary = secondaryText;
     final actionHeight = 50 * scale;
     final actionFontSize = 17 * scale;
+    final surfaceColor = isDarkMode
+        ? ReviewApprovedDialog._darkBadgeFill
+        : ReviewApprovedDialog._paleBlue;
+    final borderColor = isDarkMode
+        ? Colors.white.withValues(alpha: 0.12)
+        : ReviewApprovedDialog._border;
+    final actionTextColor = isDarkMode
+        ? ReviewApprovedDialog._darkActionText
+        : const Color(0xFF7460B4);
 
     if (secondary == null) {
       return _DialogActionButton(
         text: primaryText,
         height: actionHeight,
         fontSize: actionFontSize,
+        backgroundColor: surfaceColor,
+        textColor: isDarkMode
+            ? ReviewApprovedDialog._darkPrimaryText
+            : ReviewApprovedDialog._primaryText,
         onTap: () {
           Navigator.of(context).pop();
           onPrimary?.call();
@@ -483,7 +517,7 @@ class _DialogActions extends StatelessWidget {
     }
 
     return Material(
-      color: ReviewApprovedDialog._paleBlue,
+      color: surfaceColor,
       child: SizedBox(
         height: actionHeight,
         child: Row(
@@ -494,17 +528,17 @@ class _DialogActions extends StatelessWidget {
                 height: actionHeight,
                 fontSize: actionFontSize,
                 backgroundColor: Colors.transparent,
-                textColor: const Color(0xFF7460B4),
+                textColor: actionTextColor,
                 onTap: () {
                   Navigator.of(context).pop();
                   onSecondary?.call();
                 },
               ),
             ),
-            const VerticalDivider(
+            VerticalDivider(
               width: 0.5,
               thickness: 0.5,
-              color: ReviewApprovedDialog._border,
+              color: borderColor,
             ),
             Expanded(
               child: _DialogActionButton(
@@ -512,7 +546,7 @@ class _DialogActions extends StatelessWidget {
                 height: actionHeight,
                 fontSize: actionFontSize,
                 backgroundColor: Colors.transparent,
-                textColor: const Color(0xFF7460B4),
+                textColor: actionTextColor,
                 onTap: () {
                   Navigator.of(context).pop();
                   onPrimary?.call();
