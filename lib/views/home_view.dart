@@ -15,7 +15,7 @@ class HomeView extends StatelessWidget {
   // Figma bg_hall_full_screen 底色 / 金点缀，统一深色大厅风格
   static const Color _hallBg = Color(0xFF222124);
   static const Color _gold = Color(0xFFD4AF37);
-  static const Color _cardFill = Color(0xE62A292E); // ~90% 不透明深灰，挡住背景噪点
+  static const Color _cardFill = Color(0x992A292E); // ~60% 不透明，让龙纹背景更透出
   static const Color _cardBorder = Color(0x66D4AF37); // 金色描边
 
   @override
@@ -166,26 +166,7 @@ class HomeView extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(4, 4, 0, 4),
       child: Row(
         children: [
-          Container(
-            width: 44,
-            height: 44,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: Colors.white.withValues(alpha: 0.12),
-              border: Border.all(
-                color: Colors.white.withValues(alpha: 0.35),
-              ),
-            ),
-            child: Text(
-              avatarLetter.toUpperCase(),
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 19,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ),
+          _buildAvatar(store, avatarLetter),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
@@ -236,6 +217,73 @@ class HomeView extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  /// 登录后优先用用户自己的头像；否则用 Pravatar 按账号稳定生成
+  Widget _buildAvatar(GetStore store, String avatarLetter) {
+    const size = 56.0;
+    final letterFallback = _avatarLetterFallback(avatarLetter, size);
+    if (!store.isLogin) return letterFallback;
+
+    final url = _resolveAvatarUrl(store);
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        border: Border.all(color: Colors.white.withValues(alpha: 0.35)),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Image.network(
+        url,
+        width: size,
+        height: size,
+        fit: BoxFit.cover,
+        gaplessPlayback: true,
+        errorBuilder: (_, __, ___) => letterFallback,
+        loadingBuilder: (context, child, progress) {
+          if (progress == null) return child;
+          return letterFallback;
+        },
+      ),
+    );
+  }
+
+  Widget _avatarLetterFallback(String avatarLetter, [double size = 56]) {
+    return Container(
+      width: size,
+      height: size,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: Colors.white.withValues(alpha: 0.12),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.35)),
+      ),
+      child: Text(
+        avatarLetter.toUpperCase(),
+        style: TextStyle(
+          color: Colors.white,
+          fontSize: size * 0.43,
+          fontWeight: FontWeight.w700,
+        ),
+      ),
+    );
+  }
+
+  String _resolveAvatarUrl(GetStore store) {
+    final user = store.userModel;
+    final custom = user.avatar.trim();
+    if (custom.startsWith('http://') || custom.startsWith('https://')) {
+      return custom;
+    }
+    final seed = [
+      user.userId,
+      user.account,
+      user.nickname,
+    ].map((e) => e.trim()).firstWhere((e) => e.isNotEmpty, orElse: () => 'guest');
+    final encoded = Uri.encodeComponent(seed);
+    // Pravatar：真人照片风，同 seed 始终同一张图
+    return 'https://i.pravatar.cc/256?u=$encoded';
   }
 
   Widget _buildSectionLabel(String text) {
@@ -363,6 +411,14 @@ class HomeView extends StatelessWidget {
 
   List<Widget> _buildToolCards(BuildContext context) {
     return [
+      _buildProOptionCard(
+        context,
+        icon: Icons.receipt_long,
+        title: '持币记录分析',
+        subtitle: '查看当前登录用户的买入记录',
+        color: Colors.purple,
+        route: AppRoutes.buyRecords,
+      ),
       _buildOptionCard(
         context,
         icon: Icons.calculate,
@@ -386,14 +442,6 @@ class HomeView extends StatelessWidget {
         subtitle: '回测定投策略',
         color: Colors.orange,
         onTap: () => Get.toNamed(AppRoutes.rsiStrategyBacktest),
-      ),
-      _buildProOptionCard(
-        context,
-        icon: Icons.receipt_long,
-        title: '持币记录分析',
-        subtitle: '查看当前登录用户的买入记录',
-        color: Colors.purple,
-        route: AppRoutes.buyRecords,
       ),
       _buildOptionCard(
         context,
