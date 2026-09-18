@@ -8,12 +8,14 @@ import 'login_controller.dart';
 class LoginWidget extends GetView<LoginController> {
   const LoginWidget({super.key});
 
-  static const Color _gold = Color(0xFFD4B896);
-  static const Color _goldDark = Color(0xFFC9A86C);
-  static const Color _textLight = Color(0xFFE8E4DC);
+  // 对齐宇宙蓝背景：深蓝半透明表单 + 青色强调
+  static const Color _accent = Color(0xFF4DA3FF);
+  static const Color _accentSoft = Color(0xFF6BB6FF);
+  static const Color _textLight = Color(0xFFF2F6FF);
   static const Color _textMuted = Color(0x99FFFFFF);
-  static const Color _inputFill = Color(0xFF332F2D);
-  static const double _loginButtonAspectRatio = 1020 / 150;
+  static const Color _inputFill = Color(0xCC0B1A3A);
+  static const Color _inputBorder = Color(0x33FFFFFF);
+  static const Color _inputBorderFocus = Color(0x884DA3FF);
 
   @override
   Widget build(BuildContext context) {
@@ -26,7 +28,7 @@ class LoginWidget extends GetView<LoginController> {
         : 0.0;
 
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: const Color(0xFF061033),
       resizeToAvoidBottomInset: false,
       body: Stack(
         fit: StackFit.expand,
@@ -59,7 +61,7 @@ class LoginWidget extends GetView<LoginController> {
                             children: [
                               _buildInput(
                                 controller: c.userNameController,
-                                hint: '请输入账号',
+                                hint: '请输入邮箱/手机号/账号',
                                 prefix: Icons.person_outline,
                                 validator: (value) {
                                   if (value == null || value.trim().isEmpty) {
@@ -68,11 +70,11 @@ class LoginWidget extends GetView<LoginController> {
                                   return null;
                                 },
                               ),
-                              SizedBox(height: 12.h),
+                              SizedBox(height: 14.h),
                               Obx(
                                 () => _buildInput(
                                   controller: c.passwordController,
-                                  hint: '请输入登录密码',
+                                  hint: '请设置6-20位登录密码',
                                   prefix: Icons.lock_outline,
                                   obscureText: c.state.isPasswordVisible.value,
                                   suffix: IconButton(
@@ -84,7 +86,7 @@ class LoginWidget extends GetView<LoginController> {
                                       c.state.isPasswordVisible.value
                                           ? Icons.visibility_outlined
                                           : Icons.visibility_off_outlined,
-                                      color: _gold,
+                                      color: _textLight.withValues(alpha: 0.85),
                                       size: 20.w,
                                     ),
                                   ),
@@ -99,9 +101,9 @@ class LoginWidget extends GetView<LoginController> {
                                   },
                                 ),
                               ),
-                              SizedBox(height: 12.h),
+                              SizedBox(height: 14.h),
                               _buildRememberRow(c),
-                              SizedBox(height: 20.h),
+                              SizedBox(height: 22.h),
                               Obx(() => _buildLoginButton(c)),
                             ],
                           ),
@@ -118,7 +120,7 @@ class LoginWidget extends GetView<LoginController> {
                             children: [
                               _buildInput(
                                 controller: c.registerUsernameController,
-                                hint: '请输入账号',
+                                hint: '请输入邮箱/手机号/账号',
                                 prefix: Icons.person_outline,
                                 validator: (value) {
                                   if (value == null || value.trim().isEmpty) {
@@ -127,23 +129,23 @@ class LoginWidget extends GetView<LoginController> {
                                   return null;
                                 },
                               ),
-                              SizedBox(height: 12.h),
+                              SizedBox(height: 14.h),
                               _buildInput(
                                 controller: c.nicknameController,
                                 hint: '昵称（选填，默认使用账号）',
                                 prefix: Icons.badge_outlined,
                               ),
-                              SizedBox(height: 12.h),
+                              SizedBox(height: 14.h),
                               _buildInput(
                                 controller: c.phoneController,
                                 hint: '手机号（选填）',
                                 prefix: Icons.phone_outlined,
                               ),
-                              SizedBox(height: 12.h),
+                              SizedBox(height: 14.h),
                               Obx(
                                 () => _buildInput(
                                   controller: c.registerPasswordController,
-                                  hint: '请输入密码',
+                                  hint: '请设置6-20位登录密码',
                                   prefix: Icons.lock_outline,
                                   obscureText: c.state.isPasswordVisible.value,
                                   suffix: _buildPasswordVisibilityButton(c),
@@ -158,7 +160,7 @@ class LoginWidget extends GetView<LoginController> {
                                   },
                                 ),
                               ),
-                              SizedBox(height: 12.h),
+                              SizedBox(height: 14.h),
                               Obx(
                                 () => _buildInput(
                                   controller: c.confirmPasswordController,
@@ -177,7 +179,7 @@ class LoginWidget extends GetView<LoginController> {
                                   },
                                 ),
                               ),
-                              SizedBox(height: 20.h),
+                              SizedBox(height: 22.h),
                               _buildRegisterButton(c),
                               SizedBox(height: 16.h),
                               Text(
@@ -200,7 +202,7 @@ class LoginWidget extends GetView<LoginController> {
 
   Widget _buildBackground() {
     return Image.asset(
-      'assets/images/login_bg.png',
+      'assets/images/login_bg.webp',
       width: double.infinity,
       height: double.infinity,
       fit: BoxFit.cover,
@@ -248,7 +250,7 @@ class LoginWidget extends GetView<LoginController> {
               width: 28.w,
               height: 3.h,
               decoration: BoxDecoration(
-                color: selected ? _goldDark : Colors.transparent,
+                color: selected ? _accent : Colors.transparent,
                 borderRadius: BorderRadius.circular(2.r),
               ),
             ),
@@ -268,23 +270,26 @@ class LoginWidget extends GetView<LoginController> {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                SizedBox(width: 12.w),
                 Container(
                   width: 16.w,
                   height: 16.w,
+                  alignment: Alignment.center,
                   decoration: BoxDecoration(
-                    color: c.state.autoLogin.value ? _gold : Colors.transparent,
-                    borderRadius: BorderRadius.circular(4.r),
-                    border: Border.all(color: _gold.withValues(alpha: 0.8), width: 1.w),
+                    color: c.state.autoLogin.value ? _accent : Colors.transparent,
+                    borderRadius: BorderRadius.circular(3.r),
+                    border: Border.all(
+                      color: c.state.autoLogin.value ? _accent : _textLight.withValues(alpha: 0.55),
+                      width: 1.2.w,
+                    ),
                   ),
-                  child: c.state.autoLogin.value ? Icon(Icons.check, color: const Color(0xFF2A2218), size: 12.w) : null,
+                  child: c.state.autoLogin.value ? Icon(Icons.check, color: Colors.white, size: 12.w) : null,
                 ),
-                SizedBox(width: 6.w),
+                SizedBox(width: 8.w),
                 Text(
                   '记住密码',
                   style: TextStyle(
                     fontSize: 13.sp,
-                    color: _textLight.withValues(alpha: 0.85),
+                    color: _textLight.withValues(alpha: 0.88),
                     fontWeight: FontWeight.w400,
                   ),
                 ),
@@ -298,7 +303,7 @@ class LoginWidget extends GetView<LoginController> {
               '忘记密码?',
               style: TextStyle(
                 fontSize: 13.sp,
-                color: _textLight.withValues(alpha: 0.85),
+                color: _textLight.withValues(alpha: 0.88),
                 fontWeight: FontWeight.w400,
               ),
             ),
@@ -310,35 +315,54 @@ class LoginWidget extends GetView<LoginController> {
 
   Widget _buildLoginButton(LoginController c) {
     final loading = c.state.isLoading.value;
-    return AspectRatio(
-      aspectRatio: _loginButtonAspectRatio,
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: loading ? null : c.login,
-          borderRadius: BorderRadius.circular(999),
-          child: Stack(
-            alignment: Alignment.center,
-            children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(999),
-                child: Image.asset(
-                  'assets/images/login_button.png',
-                  width: double.infinity,
-                  height: double.infinity,
-                  fit: BoxFit.fill,
-                ),
-              ),
-              if (loading)
-                SizedBox(
-                  width: 22.w,
-                  height: 22.w,
-                  child: const CircularProgressIndicator(
-                    strokeWidth: 2,
-                    valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF3D3428)),
-                  ),
-                ),
+    return SizedBox(
+      width: double.infinity,
+      height: 50.h,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(999.r),
+          gradient: const LinearGradient(
+            begin: Alignment.centerLeft,
+            end: Alignment.centerRight,
+            colors: [
+              Color(0xFF3B82F6),
+              Color(0xFF60A5FA),
+              Color(0xFF38BDF8),
             ],
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: _accent.withValues(alpha: 0.35),
+              blurRadius: 14,
+              offset: const Offset(0, 6),
+            ),
+          ],
+        ),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: loading ? null : c.login,
+            borderRadius: BorderRadius.circular(999.r),
+            child: Center(
+              child: loading
+                  ? SizedBox(
+                      width: 22.w,
+                      height: 22.w,
+                      child: const CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                      ),
+                    )
+                  : Text(
+                      '登录',
+                      style: TextStyle(
+                        fontSize: 16.sp,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white,
+                        letterSpacing: 1,
+                      ),
+                    ),
+            ),
           ),
         ),
       ),
@@ -349,16 +373,36 @@ class LoginWidget extends GetView<LoginController> {
     return SizedBox(
       width: double.infinity,
       height: 50.h,
-      child: ElevatedButton(
-        onPressed: c.registerNotAvailable,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: _gold,
-          foregroundColor: const Color(0xFF2A2218),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(999.r)),
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(999.r),
+          gradient: const LinearGradient(
+            begin: Alignment.centerLeft,
+            end: Alignment.centerRight,
+            colors: [
+              Color(0xFF3B82F6),
+              Color(0xFF60A5FA),
+              Color(0xFF38BDF8),
+            ],
+          ),
         ),
-        child: Text(
-          '确认注册',
-          style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w600),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: c.registerNotAvailable,
+            borderRadius: BorderRadius.circular(999.r),
+            child: Center(
+              child: Text(
+                '确认注册',
+                style: TextStyle(
+                  fontSize: 16.sp,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
+                  letterSpacing: 1,
+                ),
+              ),
+            ),
+          ),
         ),
       ),
     );
@@ -372,7 +416,7 @@ class LoginWidget extends GetView<LoginController> {
       onPressed: c.togglePasswordVisibility,
       icon: Icon(
         c.state.isPasswordVisible.value ? Icons.visibility_outlined : Icons.visibility_off_outlined,
-        color: _gold,
+        color: _textLight.withValues(alpha: 0.85),
         size: 20.w,
       ),
     );
@@ -387,40 +431,40 @@ class LoginWidget extends GetView<LoginController> {
     Widget? suffix,
   }) {
     return SizedBox(
-      height: 50.h,
+      height: 52.h,
       child: TextFormField(
         controller: controller,
         validator: validator,
         obscureText: obscureText,
         style: TextStyle(
           color: _textLight,
-          fontSize: 13.sp,
+          fontSize: 14.sp,
           fontWeight: FontWeight.w400,
         ),
-        cursorColor: _gold,
+        cursorColor: _accentSoft,
         decoration: InputDecoration(
           isDense: true,
           hintText: hint,
-          hintStyle: TextStyle(color: _textMuted, fontSize: 12.sp),
-          prefixIcon: Icon(prefix, color: _gold, size: 16.w),
+          hintStyle: TextStyle(color: _textMuted, fontSize: 13.sp),
+          prefixIcon: Icon(prefix, color: _textLight.withValues(alpha: 0.9), size: 20.w),
           suffixIcon: suffix,
           filled: true,
           fillColor: _inputFill,
-          contentPadding: EdgeInsets.only(left: 0, right: 10.w, top: 12.h, bottom: 12.h),
+          contentPadding: EdgeInsets.only(left: 0, right: 12.w, top: 14.h, bottom: 14.h),
           enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12.r),
-            borderSide: BorderSide(color: _gold.withValues(alpha: 0.15), width: 0.5.w),
+            borderRadius: BorderRadius.circular(26.r),
+            borderSide: BorderSide(color: _inputBorder, width: 1.w),
           ),
           focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12.r),
-            borderSide: BorderSide(color: _gold.withValues(alpha: 0.45), width: 1.w),
+            borderRadius: BorderRadius.circular(26.r),
+            borderSide: BorderSide(color: _inputBorderFocus, width: 1.2.w),
           ),
           errorBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12.r),
+            borderRadius: BorderRadius.circular(26.r),
             borderSide: BorderSide(color: Colors.red.shade300, width: 1.w),
           ),
           focusedErrorBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12.r),
+            borderRadius: BorderRadius.circular(26.r),
             borderSide: BorderSide(color: Colors.red.shade400, width: 1.w),
           ),
           errorStyle: TextStyle(fontSize: 12.sp, color: Colors.red.shade300),
@@ -436,7 +480,7 @@ class LoginWidget extends GetView<LoginController> {
         '跳过登录，先去逛逛',
         style: TextStyle(
           fontSize: 14.sp,
-          color: _textLight.withValues(alpha: 0.75),
+          color: _textLight.withValues(alpha: 0.72),
           fontWeight: FontWeight.w400,
         ),
       ),
@@ -449,8 +493,8 @@ class LoginWidget extends GetView<LoginController> {
       child: Text(
         '联系客服',
         style: TextStyle(
-          fontSize: 16.sp,
-          color: _goldDark,
+          fontSize: 15.sp,
+          color: _accentSoft,
           fontWeight: FontWeight.w500,
           letterSpacing: 0.5,
         ),

@@ -78,7 +78,7 @@ class HomeView extends StatelessWidget {
         decoration: const BoxDecoration(
           color: _hallBg,
           image: DecorationImage(
-            image: AssetImage('assets/images/home_bg.png'),
+            image: AssetImage('assets/images/home_bg.webp'),
             fit: BoxFit.cover,
             alignment: Alignment.topCenter,
           ),
