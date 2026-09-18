@@ -47,6 +47,9 @@ class JiShuQiController extends GetxController {
   final GlobalKey tempIndexRowKey = GlobalKey();
   final textEditingController = TextEditingController();
   final focusNode = FocusNode();
+
+  /// 点击「清空」前保存的下注金额，供「恢复上次输入」使用。
+  String? _lastBettingInputSnapshot;
   double _lastKeyboardInset = 0;
   Timer? _keyboardOpenSettleTimer;
   int _bettingListScrollGeneration = 0;
@@ -558,6 +561,42 @@ class JiShuQiController extends GetxController {
     _bettingListUserDragActive = false;
     _keepBettingListPinnedDuringKeyboard = _lastKeyboardInset > 0 && _computeBettingListAtBottom();
     cancelPendingBettingListAutoScroll();
+  }
+
+  /// 清空下注输入；保持键盘不收起。
+  void clearBettingInputKeepKeyboard() {
+    final current = textEditingController.text;
+    if (current.isNotEmpty) {
+      _lastBettingInputSnapshot = current;
+      textEditingController.clear();
+    }
+    _ensureBettingInputFocused();
+    update();
+  }
+
+  /// 恢复上次清空前的下注输入；保持键盘不收起。
+  void restoreBettingInputKeepKeyboard() {
+    final snapshot = _lastBettingInputSnapshot;
+    if (snapshot == null || snapshot.isEmpty) {
+      _ensureBettingInputFocused();
+      return;
+    }
+    textEditingController.value = TextEditingValue(
+      text: snapshot,
+      selection: TextSelection.collapsed(offset: snapshot.length),
+    );
+    _ensureBettingInputFocused();
+    update();
+  }
+
+  void _ensureBettingInputFocused() {
+    if (focusNode.hasFocus) return;
+    // 延后一帧，避免与手势竞争导致焦点又被抢走。
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!focusNode.hasFocus) {
+        focusNode.requestFocus();
+      }
+    });
   }
 
   /// 点击列表等空白区域时收起键盘（不用 TextField.onTapOutside，避免弹出瞬间误触收回）。

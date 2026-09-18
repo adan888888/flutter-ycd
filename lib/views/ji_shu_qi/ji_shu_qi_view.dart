@@ -497,19 +497,39 @@ class JiShuQiView extends GetView<JiShuQiController> {
                                                         child: JiShuQiInputTouchGuard(
                                                           child: Row(
                                                             children: [
-                                                              GestureDetector(
-                                                                // 排序
-                                                                onTap: () => controller.sort(),
-                                                                child: Padding(
-                                                                  padding: const EdgeInsets.only(left: 5.0),
-                                                                  child: Icon(
-                                                                    CupertinoIcons.arrow_up_arrow_down,
-                                                                    color: controller.state.currentTextColor,
-                                                                    size: 20,
-                                                                  ),
+                                                              TextFieldTapRegion(
+                                                                child: Row(
+                                                                  mainAxisSize: MainAxisSize.min,
+                                                                  children: [
+                                                                    GestureDetector(
+                                                                      behavior: HitTestBehavior.opaque,
+                                                                      onTap: controller.clearBettingInputKeepKeyboard,
+                                                                      child: Padding(
+                                                                        padding:
+                                                                            const EdgeInsets.only(left: 2, right: 2),
+                                                                        child: Icon(
+                                                                          CupertinoIcons.clear_circled,
+                                                                          color: controller.state.currentTextColor,
+                                                                          size: 26,
+                                                                        ),
+                                                                      ),
+                                                                    ),
+                                                                    GestureDetector(
+                                                                      behavior: HitTestBehavior.opaque,
+                                                                      onTap: controller.restoreBettingInputKeepKeyboard,
+                                                                      child: Padding(
+                                                                        padding:
+                                                                            const EdgeInsets.only(left: 2, right: 4),
+                                                                        child: Icon(
+                                                                          CupertinoIcons.arrow_uturn_left_circle,
+                                                                          color: controller.state.currentTextColor,
+                                                                          size: 26,
+                                                                        ),
+                                                                      ),
+                                                                    ),
+                                                                  ],
                                                                 ),
                                                               ),
-                                                              const SizedBox(width: 5),
                                                               Expanded(
                                                                 child: Theme(
                                                                   data: Theme.of(context).copyWith(
