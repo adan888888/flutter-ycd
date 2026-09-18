@@ -786,6 +786,9 @@ class JiShuQiController extends GetxController {
 
         void continueAfterStatsReady() {
           _syncLocalTempIndexWithBackendState();
+          // 统计区刷新后 totalValue[4] 已是服务端「本金+总盈利」；
+          // 若输入框仍有金额，必须丢掉旧预输基准并用新桌面金额重算，否则会把已扣减值再扣一次。
+          _reapplyBettingInputCurrentJinPreviewAfterStats();
           //预测平均值
           if (textEditingController.text.isNotEmpty) {
             ///总体
@@ -883,6 +886,25 @@ class JiShuQiController extends GetxController {
     final base = _bettingInputPreviewBaseCurrentJin;
     if (base == null) return;
     state.totalValue[4] = (base - inputAmount).toStringAsFixed(2);
+  }
+
+  /// 统计接口返回后：用服务端桌面金额作为新基准，再按当前输入重做预输。
+  void _reapplyBettingInputCurrentJinPreviewAfterStats() {
+    _bettingInputPreviewBaseCurrentJin = null;
+    _updateBettingInputCurrentJinPreview();
+  }
+
+  /// 下注结算用的真实桌面金额（不含预输扣减）。
+  double _desktopAmountBeforePreview() {
+    if (_bettingInputPreviewBaseCurrentJin != null) {
+      return _bettingInputPreviewBaseCurrentJin!;
+    }
+    final desktop = state.totalValue.length > 4 ? _parseStatDouble(state.totalValue[4]) : null;
+    if (desktop != null) return desktop;
+    if (state.betRecordList.isEmpty) return 5000;
+    final benjin = state.totalValue.isNotEmpty ? (_parseStatDouble(state.totalValue[0]) ?? 0.0) : 0.0;
+    final profit = state.totalValue.length > 17 ? (_parseStatDouble(state.totalValue[17]) ?? 0.0) : 0.0;
+    return benjin + profit;
   }
 
   String pVal2() {
@@ -1248,20 +1270,16 @@ class JiShuQiController extends GetxController {
     );
   }
 
-  /// 与统计区 [totalValue[4]] 对齐折线最右端（第 75 点），对应服务端「本金 + 全表输赢累计」。
+  /// 与统计区真实桌面金额对齐折线最右端（第 75 点），对应服务端「本金 + 全表输赢累计」。
+  /// 不使用预输后的 totalValue[4]，避免输入框有金额时把折线尾点拉低。
   void _syncChartLastPointWithTotalValue() {
     if (state.chartData.length != 75) return;
     if (state.totalValue.length <= 4) return;
-    final raw = MyCharacter.removeChineseCharacters(state.totalValue[4].toString()).trim();
-    if (raw.isEmpty) return;
-    final v = double.tryParse(raw);
-    if (v != null) {
-      state.chartData[74].sales = v;
-    }
+    state.chartData[74].sales = _desktopAmountBeforePreview();
   }
 
   getCurrentJin(int i, double playMoney) {
-    var lastJinE = state.betRecordList.isEmpty ? 5000 : double.parse(state.totalValue[4].toString());
+    var lastJinE = _desktopAmountBeforePreview();
     switch (i) {
       case 1:
         return (lastJinE + playMoney);
