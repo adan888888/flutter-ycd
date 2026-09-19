@@ -510,7 +510,7 @@ class JiShuQiView extends GetView<JiShuQiController> {
                                                                         child: Icon(
                                                                           CupertinoIcons.clear_circled,
                                                                           color: controller.state.currentTextColor,
-                                                                          size: 26,
+                                                                          size: 32,
                                                                         ),
                                                                       ),
                                                                     ),
@@ -523,7 +523,7 @@ class JiShuQiView extends GetView<JiShuQiController> {
                                                                         child: Icon(
                                                                           CupertinoIcons.arrow_uturn_left_circle,
                                                                           color: controller.state.currentTextColor,
-                                                                          size: 26,
+                                                                          size: 32,
                                                                         ),
                                                                       ),
                                                                     ),
@@ -1288,7 +1288,7 @@ class JiShuQiView extends GetView<JiShuQiController> {
             children: [
               Expanded(
                 child: GestureDetector(
-                  onTap: () {
+                  onDoubleTap: () {
                     controller.dismissKeyboard();
                     controller.showDailyBetGoalEditor();
                   },
@@ -1378,7 +1378,7 @@ class JiShuQiView extends GetView<JiShuQiController> {
             ? (controller.state.hasBigRoadData
                 //大路子图
                 ? GestureDetector(
-                    onTap: () => controller.changeChart(),
+                    onDoubleTap: () => controller.changeChart(),
                     child: Stack(
                       clipBehavior: Clip.none,
                       children: [
@@ -1497,7 +1497,10 @@ class JiShuQiView extends GetView<JiShuQiController> {
                             labelColumnWidth: yAxisColW,
                           );
 
-                          return Stack(
+                          return GestureDetector(
+                            onDoubleTap: () => controller.changeChart(),
+                            behavior: HitTestBehavior.opaque,
+                            child: Stack(
                             clipBehavior: Clip.none,
                             children: [
                               LineChart(
@@ -1579,15 +1582,9 @@ class JiShuQiView extends GetView<JiShuQiController> {
                                   // 设置图表边距
                                   clipData: const FlClipData.none(),
                                   // 添加一些内边距
-                                  lineTouchData: LineTouchData(
-                                    enabled: true,
-                                    // 暂不展示长按/触摸 tooltip 与圆点高亮
+                                  lineTouchData: const LineTouchData(
+                                    enabled: false,
                                     handleBuiltInTouches: false,
-                                    touchCallback: (FlTouchEvent event, LineTouchResponse? response) {
-                                      if (event is FlTapUpEvent) {
-                                        controller.changeChart();
-                                      }
-                                    },
                                   ),
                                   lineBarsData: [
                                     LineChartBarData(
@@ -1640,6 +1637,7 @@ class JiShuQiView extends GetView<JiShuQiController> {
                                 ),
                               ),
                             ],
+                          ),
                           );
                         },
                       ),

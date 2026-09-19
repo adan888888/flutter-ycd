@@ -1793,11 +1793,11 @@ class JiShuQiController extends GetxController {
         }
         updateBenJin(s);
         break;
-      case 3: //修改位置
-        BXLoading.show(douyinStyle: true);
-        state.js2 = state.js1;
+      case 3: //修改位置：下注次数 = 随机次数 - 1（如 3/2、10/2 → 1/2；5/10 → 9/10）
+        state.js1 = state.js2 > 0 ? state.js2 - 1 : 0;
         state.totalValue[28] = "${state.js1}/${state.js2}";
-        BXLoading.dismiss();
+        update();
+        BXLoading.showToast('已将位置设为 ${state.totalValue[28]}');
         break;
       case 4: //删除全部数据（当前用户下）
         Get.dialog<void>(
