@@ -20,9 +20,9 @@ class SplashView extends StatefulWidget {
   });
 
   /// 与 launch_image 四周的纯色、Android windowSplashScreenBackground 保持一致
-  static const Color backgroundColor = Color(0xFF1A9748);
+  static const Color backgroundColor = Color(0xFF222124);
 
-  static const String imageAsset = 'assets/images/launch_image.jpg';
+  static const String imageAsset = 'assets/images/launch_splash_v3.jpg';
 
   static final Completer<void> _firstFrameVisible = Completer<void>();
 

@@ -8,14 +8,15 @@ import 'login_controller.dart';
 class LoginWidget extends GetView<LoginController> {
   const LoginWidget({super.key});
 
-  // 对齐宇宙蓝背景：深蓝半透明表单 + 青色强调
-  static const Color _accent = Color(0xFF4DA3FF);
-  static const Color _accentSoft = Color(0xFF6BB6FF);
+  // 与首页大厅统一：深色底 + home_bg
+  static const Color _hallBg = Color(0xFF222124);
+  static const Color _accent = Color(0xFFD4AF37);
+  static const Color _accentSoft = Color(0xFFE0C35C);
   static const Color _textLight = Color(0xFFF2F6FF);
   static const Color _textMuted = Color(0x99FFFFFF);
-  static const Color _inputFill = Color(0xCC0B1A3A);
-  static const Color _inputBorder = Color(0x33FFFFFF);
-  static const Color _inputBorderFocus = Color(0x884DA3FF);
+  static const Color _inputFill = Color(0x992A292E);
+  static const Color _inputBorder = Color(0x66D4AF37);
+  static const Color _inputBorderFocus = Color(0xCCD4AF37);
 
   @override
   Widget build(BuildContext context) {
@@ -28,7 +29,7 @@ class LoginWidget extends GetView<LoginController> {
         : 0.0;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF061033),
+      backgroundColor: _hallBg,
       resizeToAvoidBottomInset: false,
       body: Stack(
         fit: StackFit.expand,
@@ -202,18 +203,12 @@ class LoginWidget extends GetView<LoginController> {
 
   Widget _buildBackground() {
     return Image.asset(
-      'assets/images/login_bg.webp',
+      'assets/images/home_bg.webp',
       width: double.infinity,
       height: double.infinity,
       fit: BoxFit.cover,
       alignment: Alignment.topCenter,
-      errorBuilder: (_, __, ___) => Image.asset(
-        'assets/images/game_backgroud.jpg',
-        width: double.infinity,
-        height: double.infinity,
-        fit: BoxFit.cover,
-        alignment: Alignment.topCenter,
-      ),
+      errorBuilder: (_, __, ___) => const ColoredBox(color: _hallBg),
     );
   }
 
@@ -325,9 +320,9 @@ class LoginWidget extends GetView<LoginController> {
             begin: Alignment.centerLeft,
             end: Alignment.centerRight,
             colors: [
-              Color(0xFF3B82F6),
-              Color(0xFF60A5FA),
-              Color(0xFF38BDF8),
+              Color(0xFFB8860B),
+              Color(0xFFD4AF37),
+              Color(0xFFE0C35C),
             ],
           ),
           boxShadow: [
@@ -380,9 +375,9 @@ class LoginWidget extends GetView<LoginController> {
             begin: Alignment.centerLeft,
             end: Alignment.centerRight,
             colors: [
-              Color(0xFF3B82F6),
-              Color(0xFF60A5FA),
-              Color(0xFF38BDF8),
+              Color(0xFFB8860B),
+              Color(0xFFD4AF37),
+              Color(0xFFE0C35C),
             ],
           ),
         ),

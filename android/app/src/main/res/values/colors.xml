@@ -2,5 +2,5 @@
 <resources>
     <color name="ic_launcher_background">#080B12</color>
     <!-- 与 launch_image 四周的纯色一致，居中的启动图可以和背景无缝衔接 -->
-    <color name="launch_background">#1A9748</color>
+    <color name="launch_background">#222124</color>
 </resources>
