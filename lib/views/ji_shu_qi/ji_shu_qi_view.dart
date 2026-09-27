@@ -507,10 +507,9 @@ class JiShuQiView extends GetView<JiShuQiController> {
                                                                       child: Padding(
                                                                         padding:
                                                                             const EdgeInsets.only(left: 2, right: 2),
-                                                                        child: Icon(
-                                                                          CupertinoIcons.clear_circled,
+                                                                        child: _ThinCircledBetInputIcon(
+                                                                          kind: _ThinCircledBetInputIconKind.clear,
                                                                           color: controller.state.currentTextColor,
-                                                                          size: 32,
                                                                         ),
                                                                       ),
                                                                     ),
@@ -520,10 +519,9 @@ class JiShuQiView extends GetView<JiShuQiController> {
                                                                       child: Padding(
                                                                         padding:
                                                                             const EdgeInsets.only(left: 2, right: 4),
-                                                                        child: Icon(
-                                                                          CupertinoIcons.arrow_uturn_left_circle,
+                                                                        child: _ThinCircledBetInputIcon(
+                                                                          kind: _ThinCircledBetInputIconKind.restore,
                                                                           color: controller.state.currentTextColor,
-                                                                          size: 32,
                                                                         ),
                                                                       ),
                                                                     ),
@@ -1794,5 +1792,96 @@ class JiShuQiView extends GetView<JiShuQiController> {
         ),
       ],
     );
+  }
+}
+
+enum _ThinCircledBetInputIconKind { clear, restore }
+
+/// 下注输入旁清空/恢复图标：外径仍为 32，描边比 Cupertino 原图标更细。
+class _ThinCircledBetInputIcon extends StatelessWidget {
+  const _ThinCircledBetInputIcon({
+    required this.kind,
+    required this.color,
+  });
+
+  final _ThinCircledBetInputIconKind kind;
+  final Color color;
+
+  static const double size = 32;
+  static const double strokeWidth = 1.5;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: size,
+      height: size,
+      child: CustomPaint(
+        painter: _ThinCircledBetInputIconPainter(kind: kind, color: color),
+      ),
+    );
+  }
+}
+
+class _ThinCircledBetInputIconPainter extends CustomPainter {
+  _ThinCircledBetInputIconPainter({
+    required this.kind,
+    required this.color,
+  });
+
+  final _ThinCircledBetInputIconKind kind;
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = _ThinCircledBetInputIcon.strokeWidth
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round;
+
+    final center = Offset(size.width / 2, size.height / 2);
+    final radius = (size.shortestSide - _ThinCircledBetInputIcon.strokeWidth) / 2;
+    canvas.drawCircle(center, radius, paint);
+
+    if (kind == _ThinCircledBetInputIconKind.clear) {
+      final inset = radius * 0.38;
+      canvas.drawLine(
+        Offset(center.dx - inset, center.dy - inset),
+        Offset(center.dx + inset, center.dy + inset),
+        paint,
+      );
+      canvas.drawLine(
+        Offset(center.dx + inset, center.dy - inset),
+        Offset(center.dx - inset, center.dy + inset),
+        paint,
+      );
+      return;
+    }
+
+    // U 形返回箭头：放大到与清空叉相近的视觉占比，避免圆内显得过小。
+    final r = radius * 0.62;
+    final stemX = center.dx + r * 0.28;
+    final topY = center.dy - r * 0.22;
+    final bottomY = center.dy + r * 0.62;
+    final tip = Offset(center.dx - r * 0.62, topY);
+    final head = r * 0.36;
+
+    final path = Path()
+      ..moveTo(stemX, bottomY)
+      ..lineTo(stemX, topY)
+      ..arcToPoint(
+        tip,
+        radius: Radius.circular(r * 0.9),
+        clockwise: false,
+      );
+    canvas.drawPath(path, paint);
+    canvas.drawLine(tip, Offset(tip.dx + head, tip.dy - head), paint);
+    canvas.drawLine(tip, Offset(tip.dx + head, tip.dy + head), paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant _ThinCircledBetInputIconPainter oldDelegate) {
+    return oldDelegate.kind != kind || oldDelegate.color != color;
   }
 }
