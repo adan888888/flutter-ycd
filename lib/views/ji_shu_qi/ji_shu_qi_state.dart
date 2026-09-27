@@ -41,6 +41,9 @@ class JiShuQiState {
   static const prefRandomFabLeft = 'ji_shu_qi_random_fab_left';
   static const prefRandomFabTop = 'ji_shu_qi_random_fab_top';
 
+  /// SharedPreferences：已弹过「今日目标达成」的 `用户id|yyyy-MM-dd`，同一用户每天只弹一次
+  static const prefDailyGoalCelebratedStamp = 'ji_shu_qi_daily_goal_celebrated_stamp';
+
   /// 今日下注次数（来自 /jsq/statistical-areas-data 的 today_bet_count）
   int todayBetCount = 0;
   int currentTempIndex = 0; // 局部平衡锚点行 id（与列表眼睛一致）；持久化为服务端 operationRecord.tempIndex → JsqOperationRecordModel.tempIndex

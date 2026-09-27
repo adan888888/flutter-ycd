@@ -14,6 +14,7 @@ import 'package:ycd/model/linechart_data_model.dart';
 import 'package:ycd/model/user_model.dart';
 import 'package:ycd/my_db/jsq_bet_record_model.dart';
 import 'package:ycd/my_db/jsq_operation_record_model.dart';
+import 'package:ycd/my_widget/daily_goal_celebration_dialog.dart';
 import 'package:ycd/my_widget/more_functions_dialog.dart';
 import 'package:ycd/my_widget/review_approved_dialog.dart';
 import 'package:ycd/utils/bx_loading.dart';
@@ -74,6 +75,9 @@ class JiShuQiController extends GetxController {
   double? _bettingInputPreviewBaseCurrentJin;
   OverlayEntry? _randomResultOverlayEntry;
   Timer? _randomResultOverlayTimer;
+
+  /// 上一次统计接口回填的 today_bet_count；null 表示本页尚未加载过。
+  int? _lastObservedTodayBetCount;
 
   /// 并发多次 [_getLineCharts] 时仅采纳最近一次发起的 `linechartData` 回调，避免旧响应把已画好的曲线冲掉。
   int _lineChartRequestGen = 0;
@@ -786,7 +790,30 @@ class JiShuQiController extends GetxController {
     if (payload is! Map) return;
     final map = Map<String, dynamic>.from(payload);
     if (!map.containsKey('today_bet_count')) return;
-    state.todayBetCount = int.tryParse(map['today_bet_count']?.toString() ?? '') ?? 0;
+    final count = int.tryParse(map['today_bet_count']?.toString() ?? '') ?? 0;
+    final previous = _lastObservedTodayBetCount;
+    state.todayBetCount = count;
+    _lastObservedTodayBetCount = count;
+    if (previous != null) _maybeCelebrateDailyGoal(previous, count);
+  }
+
+  /// 仅在本页内由「未达标」跨到「达标」时弹出；首次加载已达标不弹。
+  void _maybeCelebrateDailyGoal(int previous, int current) {
+    final goal = todayBetGoalEffective;
+    if (goal <= 0 || previous >= goal || current < goal) return;
+    final now = DateTime.now();
+    final ymd = '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
+    final stamp = '${GetStore.getInstance().userModel.userId}|$ymd';
+    if (StorageUtil.getString(JiShuQiState.prefDailyGoalCelebratedStamp) == stamp) return;
+    unawaited(StorageUtil.saveString(JiShuQiState.prefDailyGoalCelebratedStamp, stamp));
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (isClosed) return;
+      DailyGoalCelebrationDialog.show(
+        count: current,
+        goal: goal,
+        isDarkMode: state.isDarkMode,
+      );
+    });
   }
 
   List<dynamic> _statisticalAreasFromResults(List<dynamic> results) {
