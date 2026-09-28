@@ -114,7 +114,7 @@ const List<BuyRecordsCurrency> buyRecordsCurrencies = [
     marketSymbol: 'DOGEUSDT',
     exchangeName: 'Binance',
     color: Colors.brown,
-    baseAmount: 100,
+    baseAmount: 50,
     priceDecimals: 4,
     maDecimals: 4,
   ),
@@ -125,7 +125,7 @@ const List<BuyRecordsCurrency> buyRecordsCurrencies = [
     marketSymbol: 'ADA-USDT',
     exchangeName: 'OKX',
     color: Colors.green,
-    baseAmount: 100,
+    baseAmount: 50,
   ),
   BuyRecordsCurrency(
     id: 'night',
@@ -134,7 +134,7 @@ const List<BuyRecordsCurrency> buyRecordsCurrencies = [
     marketSymbol: 'NIGHT-USDT',
     exchangeName: 'OKX',
     color: Colors.indigo,
-    baseAmount: 100,
+    baseAmount: 50,
   ),
 ];
 
@@ -166,7 +166,7 @@ double? suggestedBuyAmountUsdt(double? deviationPercent, double baseAmount) {
   if (abs >= 20) return baseAmount * 2.0;
   if (abs >= 15) return baseAmount * 1.75;
   if (abs >= 10) return baseAmount * 1.50;
-  if (abs >= 5) return baseAmount * 0.75;
+  if (abs >= 5) return baseAmount * 1.25;
   return baseAmount;
 }
 
