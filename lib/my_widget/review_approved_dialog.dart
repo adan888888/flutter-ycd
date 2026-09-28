@@ -122,37 +122,41 @@ class ReviewApprovedDialog extends StatelessWidget {
                       ),
                     SizedBox(height: s(6)),
                     Text(title, textAlign: TextAlign.center, style: titleStyle),
-                    SizedBox(height: s(10)),
-                    Padding(
-                      padding: EdgeInsets.symmetric(horizontal: s(24)),
-                      child: Text(
-                        message,
-                        textAlign: TextAlign.center,
-                        style: messageStyle,
+                    if (message.isNotEmpty) ...[
+                      SizedBox(height: s(10)),
+                      Padding(
+                        padding: EdgeInsets.symmetric(horizontal: s(24)),
+                        child: Text(
+                          message,
+                          textAlign: TextAlign.center,
+                          style: messageStyle,
+                        ),
                       ),
-                    ),
-                    SizedBox(height: s(14)),
-                    Container(
-                      width: dialogWidth - s(48),
-                      constraints: BoxConstraints(minHeight: s(32)),
-                      alignment: Alignment.center,
-                      padding: EdgeInsets.symmetric(
-                        horizontal: s(12),
-                        vertical: s(6),
+                    ],
+                    if (badgeText.isNotEmpty) ...[
+                      SizedBox(height: s(14)),
+                      Container(
+                        width: dialogWidth - s(48),
+                        constraints: BoxConstraints(minHeight: s(32)),
+                        alignment: Alignment.center,
+                        padding: EdgeInsets.symmetric(
+                          horizontal: s(12),
+                          vertical: s(6),
+                        ),
+                        decoration: BoxDecoration(
+                          color: badgeFill,
+                          borderRadius: BorderRadius.circular(100),
+                          border: Border.all(color: borderColor),
+                        ),
+                        child: Text(
+                          badgeText,
+                          textAlign: TextAlign.center,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: badgeStyle,
+                        ),
                       ),
-                      decoration: BoxDecoration(
-                        color: badgeFill,
-                        borderRadius: BorderRadius.circular(100),
-                        border: Border.all(color: borderColor),
-                      ),
-                      child: Text(
-                        badgeText,
-                        textAlign: TextAlign.center,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: badgeStyle,
-                      ),
-                    ),
+                    ],
                     SizedBox(height: s(20)),
                     Divider(height: 0.5, thickness: 0.5, color: borderColor),
                     _DialogActions(
@@ -171,8 +175,8 @@ class ReviewApprovedDialog extends StatelessWidget {
               top: 0,
               left: 0,
               right: 0,
-              child: Transform.scale(
-                scale: scale,
+              child: FittedBox(
+                fit: BoxFit.fitWidth,
                 alignment: Alignment.topCenter,
                 child: _HeaderArtwork(surfaceColor: surface),
               ),
@@ -318,19 +322,21 @@ class _ReviewInputDialogState extends State<ReviewInputDialog> {
                         fontWeight: FontWeight.w700,
                       ),
                     ),
-                    SizedBox(height: s(8)),
-                    Padding(
-                      padding: EdgeInsets.symmetric(horizontal: s(24)),
-                      child: Text(
-                        widget.message,
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          color: primaryText,
-                          fontSize: s(13),
-                          height: 1.4,
+                    if (widget.message.isNotEmpty) ...[
+                      SizedBox(height: s(8)),
+                      Padding(
+                        padding: EdgeInsets.symmetric(horizontal: s(24)),
+                        child: Text(
+                          widget.message,
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            color: primaryText,
+                            fontSize: s(13),
+                            height: 1.4,
+                          ),
                         ),
                       ),
-                    ),
+                    ],
                     SizedBox(height: s(12)),
                     Padding(
                       padding: EdgeInsets.symmetric(horizontal: s(24)),
@@ -380,32 +386,34 @@ class _ReviewInputDialogState extends State<ReviewInputDialog> {
                         ),
                       ),
                     ),
-                    SizedBox(height: s(12)),
-                    Container(
-                      width: dialogWidth - s(48),
-                      constraints: BoxConstraints(minHeight: s(32)),
-                      alignment: Alignment.center,
-                      padding: EdgeInsets.symmetric(
-                        horizontal: s(12),
-                        vertical: s(6),
-                      ),
-                      decoration: BoxDecoration(
-                        color: badgeFill,
-                        borderRadius: BorderRadius.circular(100),
-                        border: Border.all(color: border),
-                      ),
-                      child: Text(
-                        widget.badgeText,
-                        textAlign: TextAlign.center,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          color: accent,
-                          fontSize: s(12),
-                          height: 1.4,
+                    if (widget.badgeText.isNotEmpty) ...[
+                      SizedBox(height: s(12)),
+                      Container(
+                        width: dialogWidth - s(48),
+                        constraints: BoxConstraints(minHeight: s(32)),
+                        alignment: Alignment.center,
+                        padding: EdgeInsets.symmetric(
+                          horizontal: s(12),
+                          vertical: s(6),
+                        ),
+                        decoration: BoxDecoration(
+                          color: badgeFill,
+                          borderRadius: BorderRadius.circular(100),
+                          border: Border.all(color: border),
+                        ),
+                        child: Text(
+                          widget.badgeText,
+                          textAlign: TextAlign.center,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: accent,
+                            fontSize: s(12),
+                            height: 1.4,
+                          ),
                         ),
                       ),
-                    ),
+                    ],
                     SizedBox(height: s(18)),
                     Divider(
                       height: 0.5,
@@ -455,8 +463,8 @@ class _ReviewInputDialogState extends State<ReviewInputDialog> {
               top: 0,
               left: 0,
               right: 0,
-              child: Transform.scale(
-                scale: scale,
+              child: FittedBox(
+                fit: BoxFit.fitWidth,
                 alignment: Alignment.topCenter,
                 child: _HeaderArtwork(surfaceColor: surface),
               ),
@@ -724,7 +732,9 @@ class _HeaderArtwork extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     const root = ReviewApprovedDialog._assetRoot;
+    // 按 Figma 310 宽画板定位，外层 FittedBox 等比缩放到弹窗实际宽度，盖子与主体同宽
     return SizedBox(
+      width: ReviewApprovedDialog._designDialogWidth,
       height: 110,
       child: Stack(
         clipBehavior: Clip.none,

@@ -3,10 +3,87 @@ import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:ycd/my_widget/review_approved_dialog.dart';
 import 'package:ycd/routes/app_routes.dart';
+import 'package:ycd/utils/bx_loading.dart';
 import 'package:ycd/utils/network/api_session_handler.dart';
 import 'package:ycd/utils/network/get_store.dart';
-import 'package:ycd/utils/permission_util.dart';
 import 'package:ycd/utils/user_role.dart';
+import 'package:ycd/views/home_tools_controller.dart';
+
+class _HomeToolMeta {
+  const _HomeToolMeta({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.color,
+    required this.route,
+  });
+
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final Color color;
+  final String route;
+}
+
+/// 后端只下发 key 和是否需要专业版，展示信息由 App 本地维护；未知 key 忽略
+const Map<String, _HomeToolMeta> _toolMetas = {
+  'buy_records': _HomeToolMeta(
+    icon: Icons.receipt_long,
+    title: '持币记录分析',
+    subtitle: '查看当前登录用户的买入记录',
+    color: Colors.purple,
+    route: AppRoutes.buyRecords,
+  ),
+  'investment_calculator': _HomeToolMeta(
+    icon: Icons.calculate,
+    title: '复利投资计算器',
+    subtitle: '计算复利收益',
+    color: Colors.blue,
+    route: AppRoutes.investmentCalculator,
+  ),
+  'rsi_analysis': _HomeToolMeta(
+    icon: Icons.trending_up,
+    title: '多币种 RSI 分析',
+    subtitle: '分析相对强弱指数',
+    color: Colors.green,
+    route: AppRoutes.rsiAnalysis,
+  ),
+  'rsi_strategy_backtest': _HomeToolMeta(
+    icon: Icons.schedule,
+    title: '每周定投回测',
+    subtitle: '回测定投策略',
+    color: Colors.orange,
+    route: AppRoutes.rsiStrategyBacktest,
+  ),
+  'currency_converter': _HomeToolMeta(
+    icon: Icons.currency_exchange,
+    title: '汇率换算',
+    subtitle: '实时汇率换算工具',
+    color: Colors.teal,
+    route: AppRoutes.currencyConverter,
+  ),
+  'aes_encrypt': _HomeToolMeta(
+    icon: Icons.vpn_key,
+    title: 'AES加解密工具',
+    subtitle: 'AES加密和解密工具',
+    color: Colors.deepOrange,
+    route: AppRoutes.aesEncrypt,
+  ),
+  'digital_password_book': _HomeToolMeta(
+    icon: Icons.lock,
+    title: '数字密码本',
+    subtitle: '安全存储和管理密码',
+    color: Colors.indigo,
+    route: AppRoutes.digitalPasswordBook,
+  ),
+  'baccarat_simulation': _HomeToolMeta(
+    icon: Icons.casino,
+    title: '百家乐开奖模拟',
+    subtitle: '模拟真实的开奖过程',
+    color: Colors.amber,
+    route: AppRoutes.baccaratSimulation,
+  ),
+};
 
 // 首页选择界面
 class HomeView extends StatelessWidget {
@@ -25,6 +102,10 @@ class HomeView extends StatelessWidget {
     // 仅「先去逛逛」未登录进入时显示返回；登录后进首页不显示
     final showBack = !store.isLogin;
     final displayName = _resolveDisplayName(store);
+    final toolsController = HomeToolsController.to;
+    final toolsUserKey = store.isLogin ? store.userModel.userId : 'guest';
+    WidgetsBinding.instance
+        .addPostFrameCallback((_) => toolsController.syncUser(toolsUserKey));
 
     return Scaffold(
       backgroundColor: _hallBg,
@@ -48,7 +129,8 @@ class HomeView extends StatelessWidget {
         actions: store.isLogin
             ? [
                 PopupMenuButton<String>(
-                  icon: const Icon(Icons.more_vert, color: Colors.white, size: 22),
+                  icon: const Icon(Icons.more_vert,
+                      color: Colors.white, size: 22),
                   offset: const Offset(0, 40),
                   onSelected: (value) {
                     if (value == 'logout') _confirmLogout();
@@ -58,7 +140,8 @@ class HomeView extends StatelessWidget {
                       value: 'logout',
                       child: Row(
                         children: [
-                          Icon(Icons.logout, size: 18, color: Color(0xFF2F3A4F)),
+                          Icon(Icons.logout,
+                              size: 18, color: Color(0xFF2F3A4F)),
                           SizedBox(width: 8),
                           Text('退出登录'),
                         ],
@@ -123,12 +206,22 @@ class HomeView extends StatelessWidget {
                       onTap: () => Get.toNamed(AppRoutes.jiShuQiHome),
                     ),
                   ),
-                  const SizedBox(height: 18),
-                  _staggered(2, _buildSectionLabel('全部工具')),
-                  const SizedBox(height: 10),
-                  ..._buildToolCards(context).asMap().entries.map(
-                        (entry) => _staggered(entry.key + 3, entry.value),
-                      ),
+                  Obx(() {
+                    final toolCards =
+                        _buildToolCards(context, toolsController.tools);
+                    if (toolCards.isEmpty) return const SizedBox.shrink();
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        const SizedBox(height: 18),
+                        _staggered(2, _buildSectionLabel('全部工具')),
+                        const SizedBox(height: 10),
+                        ...toolCards.asMap().entries.map(
+                              (entry) => _staggered(entry.key + 3, entry.value),
+                            ),
+                      ],
+                    );
+                  }),
                   const SizedBox(height: 20),
                 ],
               ),
@@ -160,7 +253,8 @@ class HomeView extends StatelessWidget {
   Widget _buildHeaderPanel(GetStore store, String displayName) {
     final isLogin = store.isLogin;
     final title = isLogin ? displayName : '未登录';
-    final avatarLetter = isLogin && displayName.isNotEmpty ? displayName.characters.first : '?';
+    final avatarLetter =
+        isLogin && displayName.isNotEmpty ? displayName.characters.first : '?';
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(4, 4, 0, 4),
@@ -254,7 +348,8 @@ class HomeView extends StatelessWidget {
       decoration: const BoxDecoration(shape: BoxShape.circle),
       foregroundDecoration: BoxDecoration(
         shape: BoxShape.circle,
-        border: Border.all(color: Colors.white.withValues(alpha: 0.35), width: 2),
+        border:
+            Border.all(color: Colors.white.withValues(alpha: 0.35), width: 2),
       ),
       clipBehavior: Clip.antiAlias,
       child: image,
@@ -269,7 +364,8 @@ class HomeView extends StatelessWidget {
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         color: Colors.white.withValues(alpha: 0.12),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.35), width: 2),
+        border:
+            Border.all(color: Colors.white.withValues(alpha: 0.35), width: 2),
       ),
       child: Text(
         avatarLetter.toUpperCase(),
@@ -298,7 +394,9 @@ class HomeView extends StatelessWidget {
       user.userId,
       user.account,
       user.nickname,
-    ].map((e) => e.trim()).firstWhere((e) => e.isNotEmpty, orElse: () => 'guest');
+    ]
+        .map((e) => e.trim())
+        .firstWhere((e) => e.isNotEmpty, orElse: () => 'guest');
     // 不用 String.hashCode：它不保证跨平台、跨版本稳定，同一账号可能换头像
     var hash = 0;
     for (final unit in seed.codeUnits) {
@@ -431,73 +529,62 @@ class HomeView extends StatelessWidget {
     );
   }
 
-  List<Widget> _buildToolCards(BuildContext context) {
+  List<Widget> _buildToolCards(
+      BuildContext context, List<HomeToolConfig> tools) {
     return [
-      _buildProOptionCard(
-        context,
-        icon: Icons.receipt_long,
-        title: '持币记录分析',
-        subtitle: '查看当前登录用户的买入记录',
-        color: Colors.purple,
-        route: AppRoutes.buyRecords,
-      ),
-      _buildOptionCard(
-        context,
-        icon: Icons.calculate,
-        title: '复利投资计算器',
-        subtitle: '计算复利收益',
-        color: Colors.blue,
-        onTap: () => Get.toNamed(AppRoutes.investmentCalculator),
-      ),
-      _buildOptionCard(
-        context,
-        icon: Icons.trending_up,
-        title: '多币种 RSI 分析',
-        subtitle: '分析相对强弱指数',
-        color: Colors.green,
-        onTap: () => Get.toNamed(AppRoutes.rsiAnalysis),
-      ),
-      _buildOptionCard(
-        context,
-        icon: Icons.schedule,
-        title: '每周定投回测',
-        subtitle: '回测定投策略',
-        color: Colors.orange,
-        onTap: () => Get.toNamed(AppRoutes.rsiStrategyBacktest),
-      ),
-      _buildOptionCard(
-        context,
-        icon: Icons.currency_exchange,
-        title: '汇率换算',
-        subtitle: '实时汇率换算工具',
-        color: Colors.teal,
-        onTap: () => Get.toNamed(AppRoutes.currencyConverter),
-      ),
-      _buildProOptionCard(
-        context,
-        icon: Icons.vpn_key,
-        title: 'AES加解密工具',
-        subtitle: 'AES加密和解密工具',
-        color: Colors.deepOrange,
-        route: AppRoutes.aesEncrypt,
-      ),
-      _buildProOptionCard(
-        context,
-        icon: Icons.lock,
-        title: '数字密码本',
-        subtitle: '安全存储和管理密码',
-        color: Colors.indigo,
-        route: AppRoutes.digitalPasswordBook,
-      ),
-      _buildProOptionCard(
-        context,
-        icon: Icons.casino,
-        title: '百家乐开奖模拟',
-        subtitle: '模拟真实的开奖过程',
-        color: Colors.amber,
-        route: AppRoutes.baccaratSimulation,
-      ),
+      for (final tool in tools)
+        if (_toolMetas[tool.key] case final meta?)
+          _buildOptionCard(
+            context,
+            icon: meta.icon,
+            title: meta.title,
+            subtitle: meta.subtitle,
+            color: meta.color,
+            onTap: () => _openTool(tool.key, meta),
+          ),
     ];
+  }
+
+  /// 能否进入由后端接口判定，App 只按返回结果放行或提示
+  Future<void> _openTool(String key, _HomeToolMeta meta) async {
+    BXLoading.show();
+    final access = await HomeToolsController.to.checkAccess(key);
+    BXLoading.dismiss();
+    if (access == null) {
+      BXLoading.showToast('网络异常，请稍后重试');
+      return;
+    }
+    if (access.allowed) {
+      Get.toNamed(meta.route);
+      return;
+    }
+    switch (access.reason) {
+      case 'login':
+        Get.dialog<void>(
+          ReviewApprovedDialog(
+            title: '请先登录',
+            message: '',
+            badgeText: '',
+            buttonText: '去登录',
+            statusIcon: Icons.person_outline_rounded,
+            onConfirmed: () => Get.toNamed(AppRoutes.login),
+          ),
+          barrierColor: Colors.black.withValues(alpha: 0.50),
+        );
+      case 'pro':
+        Get.dialog<void>(
+          const ReviewApprovedDialog(
+            title: '请联系管理员开通',
+            message: '',
+            badgeText: '',
+            statusIcon: Icons.lock_outline_rounded,
+          ),
+          barrierColor: Colors.black.withValues(alpha: 0.50),
+        );
+      default:
+        BXLoading.showToast(
+            access.message.isNotEmpty ? access.message : '该功能暂未开放');
+    }
   }
 
   String _resolveDisplayName(GetStore store) {
@@ -511,9 +598,10 @@ class HomeView extends StatelessWidget {
 
   Widget _buildRoleBadge(GetStore store) {
     final user = store.userModel;
-    final role = user.isSuperAdmin ? UserRole.superAdmin : UserRole.normalize(user.role);
-    final label = UserRole.label(role);
+    final role =
+        user.isSuperAdmin ? UserRole.superAdmin : UserRole.normalize(user.role);
 
+    // 文案统一为 VIP，角色只用颜色区分
     late Color bg;
     late Color fg;
     switch (role) {
@@ -536,10 +624,11 @@ class HomeView extends StatelessWidget {
         border: Border.all(color: fg.withValues(alpha: 0.45)),
       ),
       child: Text(
-        label,
+        'VIP',
         style: TextStyle(
           fontSize: 10,
-          fontWeight: FontWeight.w600,
+          fontWeight: FontWeight.w800,
+          letterSpacing: 0.6,
           color: fg,
           height: 1.2,
         ),
@@ -550,9 +639,9 @@ class HomeView extends StatelessWidget {
   void _confirmLogout() {
     Get.dialog<void>(
       ReviewApprovedDialog(
-        title: '退出登录',
-        message: '确定退出当前账号？',
-        badgeText: '退出后需重新登录',
+        title: '确定退出登录？',
+        message: '',
+        badgeText: '',
         buttonText: '退出',
         secondaryButtonText: '取消',
         statusIcon: Icons.logout_rounded,
@@ -565,57 +654,6 @@ class HomeView extends StatelessWidget {
     );
   }
 
-  /// 专业版及以上功能入口：未登录或普通用户显示锁定态
-  Widget _buildProOptionCard(
-    BuildContext context, {
-    required IconData icon,
-    required String title,
-    required String subtitle,
-    required Color color,
-    required String route,
-  }) {
-    final store = GetStore.getInstance();
-    store.checkLoginStatus();
-    final canAccess = PermissionUtil.canAccessProFeature();
-    return _buildOptionCard(
-      context,
-      icon: canAccess ? icon : Icons.lock_outline,
-      title: title,
-      subtitle: canAccess ? subtitle : PermissionUtil.proFeatureLockedSubtitle(isLogin: store.isLogin),
-      color: canAccess ? color : Colors.grey,
-      locked: !canAccess,
-      onTap: () {
-        if (!canAccess) {
-          if (!store.isLogin) {
-            Get.dialog<void>(
-              ReviewApprovedDialog(
-                title: '请先登录',
-                message: '登录后即可使用$title及其他专业功能',
-                badgeText: '登录状态受安全保护',
-                buttonText: '去登录',
-                statusIcon: Icons.person_outline_rounded,
-                onConfirmed: () => Get.toNamed(AppRoutes.login),
-              ),
-              barrierColor: Colors.black.withValues(alpha: 0.50),
-            );
-            return;
-          }
-          Get.dialog<void>(
-            const ReviewApprovedDialog(
-              title: '需要专业权限',
-              message: '该功能仅对专业版及以上用户开放\n请联系管理员升级账户权限',
-              badgeText: '升级后即可正常使用',
-              statusIcon: Icons.lock_outline_rounded,
-            ),
-            barrierColor: Colors.black.withValues(alpha: 0.50),
-          );
-          return;
-        }
-        Get.toNamed(route);
-      },
-    );
-  }
-
   Widget _buildOptionCard(
     BuildContext context, {
     required IconData icon,
@@ -624,7 +662,6 @@ class HomeView extends StatelessWidget {
     required String subtitle,
     required Color color,
     String? badge,
-    bool locked = false,
     required VoidCallback onTap,
   }) {
     return Container(
@@ -633,7 +670,9 @@ class HomeView extends StatelessWidget {
         borderRadius: BorderRadius.circular(18),
         color: _cardFill,
         border: Border.all(
-          color: badge != null ? _gold.withValues(alpha: 0.40) : Colors.white.withValues(alpha: 0.10),
+          color: badge != null
+              ? _gold.withValues(alpha: 0.40)
+              : Colors.white.withValues(alpha: 0.10),
         ),
         boxShadow: [
           BoxShadow(
@@ -702,10 +741,10 @@ class HomeView extends StatelessWidget {
                               title,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
+                              style: const TextStyle(
                                 fontSize: 16.5,
                                 fontWeight: FontWeight.w700,
-                                color: locked ? Colors.white.withValues(alpha: 0.55) : Colors.white,
+                                color: Colors.white,
                               ),
                             ),
                           ),
@@ -722,7 +761,7 @@ class HomeView extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
                           fontSize: 12,
-                          color: Colors.white.withValues(alpha: locked ? 0.35 : 0.52),
+                          color: Colors.white.withValues(alpha: 0.52),
                         ),
                       ),
                     ],
@@ -736,7 +775,7 @@ class HomeView extends StatelessWidget {
                     color: color.withValues(alpha: 0.22),
                   ),
                   child: Icon(
-                    locked ? Icons.lock_outline_rounded : Icons.arrow_forward_ios_rounded,
+                    Icons.arrow_forward_ios_rounded,
                     color: color,
                     size: 12,
                   ),

@@ -84,9 +84,9 @@ class LoginController extends GetxController {
 
   void showContactAdminTip() {
     _showNotice(
-      title: '联系客服',
-      message: '如需帮助，请联系管理员处理',
-      badgeText: '我们会妥善保护您的账户信息',
+      title: '请联系管理员',
+      message: '',
+      badgeText: '',
       icon: Icons.support_agent_rounded,
     );
   }
@@ -95,9 +95,9 @@ class LoginController extends GetxController {
     if (!formKey.currentState!.validate()) return;
 
     _showNotice(
-      title: '暂未开放',
-      message: '注册功能正在准备中，请稍后再试',
-      badgeText: '感谢您的耐心等待',
+      title: '注册暂未开放',
+      message: '',
+      badgeText: '',
       icon: Icons.schedule_rounded,
     );
   }
@@ -127,7 +127,7 @@ class LoginController extends GetxController {
               _showNotice(
                 title: '登录失败',
                 message: msg,
-                badgeText: '请检查账号信息后重新尝试',
+                badgeText: '',
                 useFailureArtwork: true,
               );
             },
@@ -143,9 +143,9 @@ class LoginController extends GetxController {
       } catch (e) {
         // 处理异常
         _showNotice(
-          title: '登录失败',
-          message: '网络连接错误，请稍后重试',
-          badgeText: '请检查网络连接',
+          title: '网络异常，请稍后重试',
+          message: '',
+          badgeText: '',
           useFailureArtwork: true,
         );
       } finally {

@@ -3,7 +3,6 @@ import 'package:get/get.dart';
 import '../routes/app_routes.dart'; // 导入新的路由配置
 import 'bx_loading.dart';
 import 'network/get_store.dart';
-import 'permission_util.dart';
 
 /// 第一次欢迎页面
 class AppMiddleware extends GetMiddleware {
@@ -29,19 +28,5 @@ class AuthRequiredMiddleware extends GetMiddleware {
       return const RouteSettings(name: AppRoutes.login);
     }
     return null;
-  }
-}
-
-/// 专业版及以上功能：未登录跳登录；普通用户拒绝访问
-class ProFeatureMiddleware extends GetMiddleware {
-  @override
-  RouteSettings? redirect(String? route) {
-    if (PermissionUtil.canAccessProFeature()) return null;
-    final store = GetStore.getInstance();
-    if (!store.isLogin) {
-      return const RouteSettings(name: AppRoutes.login);
-    }
-    BXLoading.showToast('该功能需专业版及以上权限，请联系管理员');
-    return const RouteSettings(name: AppRoutes.home);
   }
 }

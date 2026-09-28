@@ -67,9 +67,9 @@ abstract final class ApiSessionHandler {
     }
     Get.dialog<void>(
       ReviewApprovedDialog(
-        title: '服务已到期',
-        message: body.replaceAll('，', '\n'),
-        badgeText: '请联系管理员续期',
+        title: body,
+        message: '',
+        badgeText: '',
         buttonText: '我知道了',
         useFailureArtwork: true,
         onConfirmed: () {

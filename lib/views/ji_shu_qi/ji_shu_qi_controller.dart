@@ -1405,9 +1405,9 @@ class JiShuQiController extends GetxController {
     }
     Get.dialog<void>(
       ReviewApprovedDialog(
-        title: '警告',
-        message: '是否返回上一步',
-        badgeText: '将撤销最后一条投注记录',
+        title: '撤销上一步？',
+        message: '',
+        badgeText: '',
         buttonText: '确定',
         secondaryButtonText: '取消',
         statusIcon: Icons.undo_rounded,
@@ -1588,7 +1588,7 @@ class JiShuQiController extends GetxController {
     Get.dialog<void>(
       ReviewInputDialog(
         title: '每日目标',
-        message: '设置每天计划完成的下注次数',
+        message: '',
         badgeText: '当前完成：$todayBetProgressLabel',
         hintText: '留空则使用默认 ${UserModel.defaultDailyBetGoal}',
         initialValue: store.userModel.dailyBetGoal?.toString() ?? '',
@@ -1640,9 +1640,9 @@ class JiShuQiController extends GetxController {
   void reStart() {
     Get.dialog<void>(
       ReviewApprovedDialog(
-        title: '警告',
-        message: '是否重启局部数据',
-        badgeText: '重启后局部统计将重新计算',
+        title: '重启局部数据？',
+        message: '',
+        badgeText: '',
         buttonText: '确定',
         secondaryButtonText: '取消',
         useRestartArtwork: true,
@@ -1741,8 +1741,8 @@ class JiShuQiController extends GetxController {
     Get.dialog<void>(
       ReviewInputDialog(
         title: '核对桌面金额',
-        message: '输入桌面现有金额，自动反算并修改本金',
-        badgeText: totalWin == null ? '无法获取总盈利' : '本金 = 桌面金额 - 总盈利(${totalWin.toStringAsFixed(2)})',
+        message: '',
+        badgeText: totalWin == null ? '无法获取总盈利' : '总盈利 ${totalWin.toStringAsFixed(2)}',
         hintText: '请输入桌面金额',
         buttonText: '确认修改',
         statusIcon: Icons.fact_check_outlined,
@@ -1829,9 +1829,9 @@ class JiShuQiController extends GetxController {
       case 4: //删除全部数据（当前用户下）
         Get.dialog<void>(
           ReviewApprovedDialog(
-            title: '警告',
-            message: '是否删除全部数据',
-            badgeText: '删除后无法恢复，请谨慎操作',
+            title: '删除全部数据？',
+            message: '删除后无法恢复',
+            badgeText: '',
             buttonText: '删除',
             secondaryButtonText: '取消',
             statusIcon: Icons.delete_outline_rounded,

@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:ycd/utils/network/api.dart';
 import 'package:ycd/utils/network/http_mgr.dart';
-import 'package:ycd/utils/permission_util.dart';
 import 'package:ycd/utils/storage_util.dart';
 
 import 'buy_records_currency.dart';
@@ -40,7 +39,6 @@ class BuyRecordsController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    if (!PermissionUtil.guardProFeature()) return;
     _loadCustomBaseAmounts();
     _initializeData();
   }

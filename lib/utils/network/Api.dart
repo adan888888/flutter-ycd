@@ -29,6 +29,12 @@ class Api {
 
   static String config = "/tenant/get";
 
+  ///首页「全部工具」列表（后端控制显示哪些、是否需要专业版）
+  static String homeTools = "/home-tools";
+
+  ///点击首页工具时由后端判断当前用户能否进入
+  static String homeToolAccess(String key) => "/home-tools/$key/access";
+
   ///登录
   static String login = "/auth/login";
 

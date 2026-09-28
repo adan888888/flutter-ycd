@@ -283,12 +283,7 @@ class BaccaratSimulationController extends GetxController {
 
     final confirmed = await Get.dialog<bool>(
       AlertDialog(
-        title: const Text('本靴牌已发完'),
-        content: Text(
-          '当前剩余 ${_shoe.remaining} 张（本靴切牌位：≤ ${_shoe.cutCardRemaining} 张），\n'
-          '已不足继续发牌。是否开始下一靴？\n\n'
-          '确认后将先洗牌，再随机切牌位。',
-        ),
+        title: const Text('本靴已发完，开始下一靴？'),
         actions: [
           TextButton(
             onPressed: () => Get.back(result: false),

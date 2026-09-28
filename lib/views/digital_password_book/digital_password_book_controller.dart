@@ -171,8 +171,7 @@ class DigitalPasswordBookController extends GetxController {
   void deletePassword(PasswordItem item, {VoidCallback? onDeleted}) {
     Get.dialog(
       AlertDialog(
-        title: const Text('确认删除'),
-        content: Text('确定要删除 "${item.title}" 吗？'),
+        title: Text('删除「${item.title}」？'),
         actions: [
           TextButton(
             onPressed: () => Get.back(),
