@@ -82,6 +82,7 @@ flutter:
   #   - images/a_dot_ham.jpeg
   assets:
     - assets/images/
+    - assets/images/avatars/
     - assets/images/figma_review_dialog/
     - assets/loading_images/
     - assets/loading.json

@@ -119,7 +119,7 @@ class HomeView extends StatelessWidget {
                     _buildFeaturedCard(
                       imagePath: 'assets/images/temp_dice.png',
                       title: '资金管理工具',
-                      subtitle: '帮你分析游戏数据',
+                      subtitle: '帮你分析资金数据',
                       onTap: () => Get.toNamed(AppRoutes.jiShuQiHome),
                     ),
                   ),
@@ -219,33 +219,45 @@ class HomeView extends StatelessWidget {
     );
   }
 
-  /// 登录后优先用用户自己的头像；否则用 Pravatar 按账号稳定生成
+  /// 登录后优先用用户自己的头像；否则按账号从内置英雄头像里固定挑一张
   Widget _buildAvatar(GetStore store, String avatarLetter) {
     const size = 56.0;
     final letterFallback = _avatarLetterFallback(avatarLetter, size);
     if (!store.isLogin) return letterFallback;
 
-    final url = _resolveAvatarUrl(store);
+    final customUrl = _customAvatarUrl(store);
+    final Widget image = customUrl != null
+        ? Image.network(
+            customUrl,
+            width: size,
+            height: size,
+            fit: BoxFit.cover,
+            gaplessPlayback: true,
+            errorBuilder: (_, __, ___) => letterFallback,
+            loadingBuilder: (context, child, progress) {
+              if (progress == null) return child;
+              return letterFallback;
+            },
+          )
+        : Image.asset(
+            _heroAvatarAsset(store),
+            width: size,
+            height: size,
+            fit: BoxFit.cover,
+            gaplessPlayback: true,
+            errorBuilder: (_, __, ___) => letterFallback,
+          );
+    // 边框放 foregroundDecoration 画在图片上方；放 decoration 会被方形图片的四角盖住，圆环断开
     return Container(
       width: size,
       height: size,
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(shape: BoxShape.circle),
+      foregroundDecoration: BoxDecoration(
         shape: BoxShape.circle,
-        border: Border.all(color: Colors.white.withValues(alpha: 0.35)),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.35), width: 2),
       ),
       clipBehavior: Clip.antiAlias,
-      child: Image.network(
-        url,
-        width: size,
-        height: size,
-        fit: BoxFit.cover,
-        gaplessPlayback: true,
-        errorBuilder: (_, __, ___) => letterFallback,
-        loadingBuilder: (context, child, progress) {
-          if (progress == null) return child;
-          return letterFallback;
-        },
-      ),
+      child: image,
     );
   }
 
@@ -257,7 +269,7 @@ class HomeView extends StatelessWidget {
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         color: Colors.white.withValues(alpha: 0.12),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.35)),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.35), width: 2),
       ),
       child: Text(
         avatarLetter.toUpperCase(),
@@ -270,20 +282,30 @@ class HomeView extends StatelessWidget {
     );
   }
 
-  String _resolveAvatarUrl(GetStore store) {
-    final user = store.userModel;
-    final custom = user.avatar.trim();
+  String? _customAvatarUrl(GetStore store) {
+    final custom = store.userModel.avatar.trim();
     if (custom.startsWith('http://') || custom.startsWith('https://')) {
       return custom;
     }
+    return null;
+  }
+
+  /// assets/images/avatars/hero_01.jpg ~ hero_10.jpg
+  String _heroAvatarAsset(GetStore store) {
+    const heroAvatarCount = 10;
+    final user = store.userModel;
     final seed = [
       user.userId,
       user.account,
       user.nickname,
     ].map((e) => e.trim()).firstWhere((e) => e.isNotEmpty, orElse: () => 'guest');
-    final encoded = Uri.encodeComponent(seed);
-    // Pravatar：真人照片风，同 seed 始终同一张图
-    return 'https://i.pravatar.cc/256?u=$encoded';
+    // 不用 String.hashCode：它不保证跨平台、跨版本稳定，同一账号可能换头像
+    var hash = 0;
+    for (final unit in seed.codeUnits) {
+      hash = (hash * 31 + unit) & 0x7fffffff;
+    }
+    final index = hash % heroAvatarCount + 1;
+    return 'assets/images/avatars/hero_${index.toString().padLeft(2, '0')}.jpg';
   }
 
   Widget _buildSectionLabel(String text) {
