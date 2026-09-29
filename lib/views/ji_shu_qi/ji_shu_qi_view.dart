@@ -241,12 +241,16 @@ class JiShuQiView extends GetView<JiShuQiController> {
 
   static const double _topToolBarHeight = 24;
 
+  /// macOS 透明标题栏下红黄绿窗口按钮右缘约 68pt，顶栏从按钮右侧开始
+  static const double _macWindowButtonsInset = 76;
+
+  double get _topBarLeftInset =>
+      !kIsWeb && Platform.isMacOS ? _macWindowButtonsInset : _contentLeftInset;
+
   /// 今日目标/进度条区域与右侧主题/锁/编辑图标间距
   static const double _topBarTrailingIconsGap = 8;
 
   static const double _chartBelowToolbarGap = 5;
-
-  static const double _lineChartPlotHeight = 120;
 
   /// 大路顶栏「长龙 / 图例」行（fontSize 13）约高
   static const double _bigRoadLegendRowHeight = 19;
@@ -255,14 +259,15 @@ class JiShuQiView extends GetView<JiShuQiController> {
 
   static const int _bigRoadVisibleRows = 6;
 
+  /// 折线图与大路图同高，切换时下方统计区不跳动
+  static const double _lineChartPlotHeight =
+      _bigRoadLegendRowHeight + JiShuQiState.cellWidth * _bigRoadVisibleRows + _bigRoadBottomInset;
+
+  /// 折线图容器上下内边距
+  static const double _lineChartVerticalPadding = 4;
+
   /// 顶栏以下、统计区以上的图表块高度（含与统计区间距 5）
-  double _chartBlockBelowToolbarHeight({required bool isBigRoad}) {
-    if (isBigRoad) {
-      return _bigRoadLegendRowHeight +
-          JiShuQiState.cellWidth * _bigRoadVisibleRows +
-          _bigRoadBottomInset +
-          _chartBelowToolbarGap;
-    }
+  double _chartBlockBelowToolbarHeight() {
     return _lineChartPlotHeight + _chartBelowToolbarGap;
   }
 
@@ -292,12 +297,6 @@ class JiShuQiView extends GetView<JiShuQiController> {
                         GetBuilder<JiShuQiController>(
                           builder: (controller) => LayoutBuilder(
                             builder: (context, constraints) {
-                              // 获取图表区域的高度（如果显示）
-                              double? chartHeight;
-                              if (controller.state.isChartVisible) {
-                                // 折线图固定高度120，大路图需要动态计算
-                                chartHeight = controller.state.isBigRoad ? null : 120.0;
-                              }
                               final keyboardInset = MediaQuery.viewInsetsOf(context).bottom;
                               controller.onKeyboardInsetChanged(keyboardInset);
                               // 键盘弹出时用 Offstage 藏图表（保留挂载，避免卸载导致输入框失焦）
@@ -310,7 +309,6 @@ class JiShuQiView extends GetView<JiShuQiController> {
                                 final chartPartHeight = _chartRefreshSectionHeight(
                                   showChart: showChart,
                                   keyboardOpen: keyboardOpen,
-                                  isBigRoad: controller.state.isBigRoad,
                                 );
                                 const statsHeight = JiShuQiState.statsAreaHeight;
                                 final totalHeight = chartPartHeight + statsHeight + actionButtonsHeight;
@@ -598,9 +596,8 @@ class JiShuQiView extends GetView<JiShuQiController> {
                                   // 悬浮按钮：切换图表显示/隐藏（叠加在图表和统计区之间）
                                   if (showChart && !keyboardOpen)
                                     Positioned(
-                                      top: chartHeight != null
-                                          ? chartHeight - 20 // 折线图：图表高度120，按钮高度40，居中在图表底部
-                                          : 80 - 20, // 大路图：估算高度80（标题行约30px + 大路图约50px），按钮居中在图表底部
+                                      // 折线图与大路图同高，按钮位置一致
+                                      top: _lineChartPlotHeight - 20,
                                       right: 0,
                                       child: GestureDetector(
                                         onTap: () => controller.toggleChartVisibility(),
@@ -1174,11 +1171,10 @@ class JiShuQiView extends GetView<JiShuQiController> {
   double _chartRefreshSectionHeight({
     required bool showChart,
     required bool keyboardOpen,
-    required bool isBigRoad,
   }) {
     var h = _topToolBarHeight;
     if (showChart && !keyboardOpen) {
-      h += _chartBlockBelowToolbarHeight(isBigRoad: isBigRoad);
+      h += _chartBlockBelowToolbarHeight();
     }
     return h;
   }
@@ -1279,7 +1275,7 @@ class JiShuQiView extends GetView<JiShuQiController> {
     return ColoredBox(
       color: _topBarBackground(controller, showChart: showChart),
       child: Padding(
-        padding: const EdgeInsets.only(left: _contentLeftInset),
+        padding: EdgeInsets.only(left: _topBarLeftInset),
         child: SizedBox(
           height: _topToolBarHeight,
           child: Row(
@@ -1463,9 +1459,9 @@ class JiShuQiView extends GetView<JiShuQiController> {
                     child: Container(
                       color: controller.state.currentChartBgColor,
                       padding: const EdgeInsets.only(
-                        top: 8.0,
+                        top: _lineChartVerticalPadding,
                         right: 0.0,
-                        bottom: 8.0,
+                        bottom: _lineChartVerticalPadding,
                         left: _contentLeftInset,
                       ),
                       child: Builder(
@@ -1480,7 +1476,8 @@ class JiShuQiView extends GetView<JiShuQiController> {
                           final tickMinY = hasUsableSpan ? dataMinY : dataMinY - tickSpan / 2;
                           final tickMaxY = hasUsableSpan ? dataMaxY : dataMaxY + tickSpan / 2;
                           final yAxisInterval = tickSpan / 2;
-                          final axisPadding = yAxisInterval / 2;
+                          // 只给最高/最低点与刻度文字留出半行空间，曲线尽量占满高度
+                          final axisPadding = yAxisInterval * 0.12;
                           final chartMinY = tickMinY - axisPadding;
                           final chartMaxY = tickMaxY + axisPadding;
                           final axisStyle = _chartAxisLikeTextStyle(controller);
