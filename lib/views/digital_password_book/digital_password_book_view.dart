@@ -287,6 +287,12 @@ class AddPasswordDialog extends GetView<DigitalPasswordBookController> {
                   labelText: '网站',
                   border: OutlineInputBorder(),
                 ),
+                minLines: 1,
+                maxLines: 3,
+                keyboardType: TextInputType.multiline,
+                textInputAction: TextInputAction.newline,
+                autocorrect: false,
+                enableSuggestions: false,
               ),
               const SizedBox(height: 16),
               TextField(
@@ -295,7 +301,8 @@ class AddPasswordDialog extends GetView<DigitalPasswordBookController> {
                   labelText: '备注',
                   border: OutlineInputBorder(),
                 ),
-                maxLines: 3,
+                minLines: 3,
+                maxLines: 6,
                 keyboardType: TextInputType.multiline,
                 textInputAction: TextInputAction.newline,
                 autocorrect: false,
@@ -331,6 +338,8 @@ class EditPasswordDialog extends GetView<DigitalPasswordBookController> {
   Widget build(BuildContext context) {
     return Obx(() {
       if (!controller.state.showEditDialog.value) return const SizedBox.shrink();
+      // 列表页与详情页都挂了编辑弹窗，只在当前可见的页面显示
+      if (ModalRoute.of(context)?.isCurrent == false) return const SizedBox.shrink();
 
       return Dialog(
         child: Container(
@@ -380,6 +389,12 @@ class EditPasswordDialog extends GetView<DigitalPasswordBookController> {
                   labelText: '网站',
                   border: OutlineInputBorder(),
                 ),
+                minLines: 1,
+                maxLines: 3,
+                keyboardType: TextInputType.multiline,
+                textInputAction: TextInputAction.newline,
+                autocorrect: false,
+                enableSuggestions: false,
               ),
               const SizedBox(height: 16),
               TextField(
@@ -389,7 +404,8 @@ class EditPasswordDialog extends GetView<DigitalPasswordBookController> {
                   labelText: '备注',
                   border: OutlineInputBorder(),
                 ),
-                maxLines: 3,
+                minLines: 3,
+                maxLines: 6,
                 keyboardType: TextInputType.multiline,
                 textInputAction: TextInputAction.newline,
                 autocorrect: false,

@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 
 import 'digital_password_book_controller.dart';
 import 'digital_password_book_state.dart';
+import 'digital_password_book_view.dart';
 
 class DigitalPasswordBookDetailView extends GetView<DigitalPasswordBookController> {
   const DigitalPasswordBookDetailView({super.key});
@@ -25,99 +26,105 @@ class DigitalPasswordBookDetailView extends GetView<DigitalPasswordBookControlle
     return Obx(() {
       final item = _resolveItem();
 
-      return Scaffold(
-        appBar: AppBar(
-          title: Text(item.title),
-          backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-          centerTitle: true,
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.copy_all),
-              tooltip: '复制全部',
-              onPressed: () => controller.copyEntry(item),
+      return Stack(
+        children: [
+          Scaffold(
+            appBar: AppBar(
+              title: Text(item.title),
+              backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+              centerTitle: true,
+              actions: [
+                IconButton(
+                  icon: const Icon(Icons.copy_all),
+                  tooltip: '复制全部',
+                  onPressed: () => controller.copyEntry(item),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.edit),
+                  tooltip: '编辑',
+                  onPressed: () => controller.editPassword(item),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.delete, color: Colors.red),
+                  tooltip: '删除',
+                  onPressed: () => controller.deletePassword(
+                    item,
+                    onDeleted: () => Get.back(),
+                  ),
+                ),
+              ],
             ),
-            IconButton(
-              icon: const Icon(Icons.edit),
-              tooltip: '编辑',
-              onPressed: () => controller.editPassword(item),
-            ),
-            IconButton(
-              icon: const Icon(Icons.delete, color: Colors.red),
-              tooltip: '删除',
-              onPressed: () => controller.deletePassword(
-                item,
-                onDeleted: () => Get.back(),
+            body: ListView(
+              padding: EdgeInsets.fromLTRB(
+                16,
+                16,
+                16,
+                16 + MediaQuery.viewPaddingOf(context).bottom,
               ),
+              children: [
+                Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      children: [
+                        _DetailField(
+                          icon: Icons.label_outline,
+                          label: '标题',
+                          value: item.title,
+                          onCopy: () => controller.copyField(item.title, '标题'),
+                        ),
+                        _DetailField(
+                          icon: Icons.person,
+                          label: '用户名',
+                          value: item.username,
+                          onCopy: () => controller.copyUsername(item.username),
+                        ),
+                        _PasswordField(item: item),
+                        if (item.website.isNotEmpty)
+                          _DetailField(
+                            icon: Icons.language,
+                            label: '网站',
+                            value: item.website,
+                            multiline: true,
+                            onCopy: () => controller.copyField(item.website, '网站'),
+                          ),
+                        if (item.notes.isNotEmpty)
+                          _DetailField(
+                            icon: Icons.note,
+                            label: '备注',
+                            value: item.notes,
+                            multiline: true,
+                            onCopy: () => controller.copyField(item.notes, '备注'),
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      children: [
+                        _DetailField(
+                          icon: Icons.schedule,
+                          label: '创建时间',
+                          value: _formatTime(item.createdAt),
+                        ),
+                        _DetailField(
+                          icon: Icons.update,
+                          label: '更新时间',
+                          value: _formatTime(item.updatedAt),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
-        body: ListView(
-          padding: EdgeInsets.fromLTRB(
-            16,
-            16,
-            16,
-            16 + MediaQuery.viewPaddingOf(context).bottom,
           ),
-          children: [
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  children: [
-                    _DetailField(
-                      icon: Icons.label_outline,
-                      label: '标题',
-                      value: item.title,
-                      onCopy: () => controller.copyField(item.title, '标题'),
-                    ),
-                    _DetailField(
-                      icon: Icons.person,
-                      label: '用户名',
-                      value: item.username,
-                      onCopy: () => controller.copyUsername(item.username),
-                    ),
-                    _PasswordField(item: item),
-                    if (item.website.isNotEmpty)
-                      _DetailField(
-                        icon: Icons.language,
-                        label: '网站',
-                        value: item.website,
-                        onCopy: () => controller.copyField(item.website, '网站'),
-                      ),
-                    if (item.notes.isNotEmpty)
-                      _DetailField(
-                        icon: Icons.note,
-                        label: '备注',
-                        value: item.notes,
-                        multiline: true,
-                        onCopy: () => controller.copyField(item.notes, '备注'),
-                      ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 12),
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  children: [
-                    _DetailField(
-                      icon: Icons.schedule,
-                      label: '创建时间',
-                      value: _formatTime(item.createdAt),
-                    ),
-                    _DetailField(
-                      icon: Icons.update,
-                      label: '更新时间',
-                      value: _formatTime(item.updatedAt),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
+          const EditPasswordDialog(),
+        ],
       );
     });
   }

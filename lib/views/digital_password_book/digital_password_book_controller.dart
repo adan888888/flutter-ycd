@@ -397,6 +397,10 @@ class DigitalPasswordBookController extends GetxController {
 
   // 处理键盘快捷键
   void handleKeyEvent(KeyEvent event) {
+    // 弹窗打开或正在输入时，回车/Delete 交给输入框（换行、删字），不触发列表快捷键
+    if (state.showAddDialog.value || state.showEditDialog.value) return;
+    final focusContext = FocusManager.instance.primaryFocus?.context;
+    if (focusContext?.findAncestorWidgetOfExactType<EditableText>() != null) return;
     if (event is KeyDownEvent) {
       // 处理 Delete 键删除
       if (event.logicalKey == LogicalKeyboardKey.delete) {
