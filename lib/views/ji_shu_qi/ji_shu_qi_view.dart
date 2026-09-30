@@ -698,6 +698,7 @@ class JiShuQiView extends GetView<JiShuQiController> {
                                 // 手势放在 Transform 外：用全局坐标跟手，避免 scale 放大 local delta。
                                 child: GestureDetector(
                                   onLongPress: controller.showBottomFunction,
+                                  onDoubleTap: controller.showBottomFunction,
                                   onTap: controller.onRandomFabTap,
                                   onPanStart: (details) {
                                     controller.onRandomFabPanStart(
@@ -728,7 +729,7 @@ class JiShuQiView extends GetView<JiShuQiController> {
                                         child: Semantics(
                                           button: true,
                                           label: '随机庄闲',
-                                          hint: '拖动可移动位置，长按打开更多功能',
+                                          hint: '拖动可移动位置，长按或双击打开更多功能',
                                           child: SizedBox(
                                             key: const ValueKey('ji_shu_qi_random_fab'),
                                             width: JiShuQiState.randomFabSize,
@@ -1246,12 +1247,13 @@ class JiShuQiView extends GetView<JiShuQiController> {
                 child: Semantics(
                   button: true,
                   label: '重启回合',
-                  hint: '长按打开更多功能',
+                  hint: '长按或双击打开更多功能',
                   child: GestureDetector(
                     key: const ValueKey('restart-round-button'),
                     behavior: HitTestBehavior.opaque,
                     onTap: controller.reStart,
                     onLongPress: controller.showBottomFunction,
+                    onDoubleTap: controller.showBottomFunction,
                     child: Center(
                       child: Image.asset(
                         'assets/images/restart3.png',
@@ -1697,38 +1699,42 @@ class JiShuQiView extends GetView<JiShuQiController> {
       Expanded(
         child: SizedBox(
           height: height,
-          child: TextButton(
-            style: _buildButtonStyle(bg),
-            onLongPress: controller.showBottomFunction,
-            onPressed: () {
-              switch (i) {
-                case 1: //闲赢
-                  controller.betRecordButton(1, 'betRecord');
-                  break;
-                case 2: //庄赢
-                  controller.betRecordButton(2, 'betRecord');
-                  break;
-                case 3: //闲输
-                  controller.betRecordButton(3, 'betRecord');
-                  break;
-                case 4: //庄输
-                  controller.betRecordButton(4, 'betRecord');
-                  break;
-              }
-            },
-            child: controller.state.isLoading
-                ? const CupertinoActivityIndicator()
-                : Text(
-                    str,
-                    style: TextStyle(
-                      color: (i == 1 || i == 2)
-                          ? controller.state.buttonWinTextColor
-                          : controller.state.buttonLossTextColor,
-                      fontWeight: FontWeight.bold,
-                      height: 0,
-                      fontSize: 16,
+          // TextButton 无双击回调，外层识别双击；单击会等双击判定超时后才记录
+          child: GestureDetector(
+            onDoubleTap: controller.showBottomFunction,
+            child: TextButton(
+              style: _buildButtonStyle(bg),
+              onLongPress: controller.showBottomFunction,
+              onPressed: () {
+                switch (i) {
+                  case 1: //闲赢
+                    controller.betRecordButton(1, 'betRecord');
+                    break;
+                  case 2: //庄赢
+                    controller.betRecordButton(2, 'betRecord');
+                    break;
+                  case 3: //闲输
+                    controller.betRecordButton(3, 'betRecord');
+                    break;
+                  case 4: //庄输
+                    controller.betRecordButton(4, 'betRecord');
+                    break;
+                }
+              },
+              child: controller.state.isLoading
+                  ? const CupertinoActivityIndicator()
+                  : Text(
+                      str,
+                      style: TextStyle(
+                        color: (i == 1 || i == 2)
+                            ? controller.state.buttonWinTextColor
+                            : controller.state.buttonLossTextColor,
+                        fontWeight: FontWeight.bold,
+                        height: 0,
+                        fontSize: 16,
+                      ),
                     ),
-                  ),
+            ),
           ),
         ),
       );
