@@ -77,6 +77,13 @@ class LoginController extends GetxController {
     }
   }
 
+  /// 修改密码后同步「记住密码」；每次登录都会覆盖或清除保存的账号，保存的必然是当前登录账号
+  static Future<void> updateSavedPassword(String newPassword) async {
+    if (StorageUtil.getBool(_keyAutoLogin) != true) return;
+    if (StorageUtil.getString(_keySavedPassword) == null) return;
+    await StorageUtil.saveString(_keySavedPassword, newPassword);
+  }
+
   // 切换密码可见性
   void togglePasswordVisibility() {
     state.isPasswordVisible.value = !state.isPasswordVisible.value;

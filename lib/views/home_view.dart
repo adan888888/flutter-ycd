@@ -4,10 +4,13 @@ import 'package:get/get.dart';
 import 'package:ycd/my_widget/review_approved_dialog.dart';
 import 'package:ycd/routes/app_routes.dart';
 import 'package:ycd/utils/bx_loading.dart';
+import 'package:ycd/utils/network/api.dart';
 import 'package:ycd/utils/network/api_session_handler.dart';
+import 'package:ycd/utils/network/dio_manager.dart';
 import 'package:ycd/utils/network/get_store.dart';
 import 'package:ycd/utils/user_role.dart';
 import 'package:ycd/views/home_tools_controller.dart';
+import 'package:ycd/views/login/login_viw_widget/login_controller.dart';
 
 class _HomeToolMeta {
   const _HomeToolMeta({
@@ -133,9 +136,21 @@ class HomeView extends StatelessWidget {
                       color: Colors.white, size: 22),
                   offset: const Offset(0, 40),
                   onSelected: (value) {
+                    if (value == 'password') _showChangePassword();
                     if (value == 'logout') _confirmLogout();
                   },
                   itemBuilder: (context) => const [
+                    PopupMenuItem<String>(
+                      value: 'password',
+                      child: Row(
+                        children: [
+                          Icon(Icons.lock_reset,
+                              size: 18, color: Color(0xFF2F3A4F)),
+                          SizedBox(width: 8),
+                          Text('修改密码'),
+                        ],
+                      ),
+                    ),
                     PopupMenuItem<String>(
                       value: 'logout',
                       child: Row(
@@ -634,6 +649,33 @@ class HomeView extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  void _showChangePassword() {
+    Get.dialog<void>(
+      ChangePasswordDialog(onSubmit: _changePassword),
+      barrierColor: Colors.black.withValues(alpha: 0.50),
+    );
+  }
+
+  /// 成功返回 null；新 token 由 DioManager 从响应头自动保存，当前设备无需重新登录
+  Future<String?> _changePassword(String oldPassword, String newPassword) async {
+    try {
+      final response = await DioManager.getInstance().put(
+        Api.changePassword,
+        data: {'old_password': oldPassword, 'new_password': newPassword},
+      );
+      final body = response.data;
+      if (body is Map && body['code'].toString() == '0') {
+        await LoginController.updateSavedPassword(newPassword);
+        BXLoading.showToast('密码已修改');
+        return null;
+      }
+      final msg = body is Map ? body['msg']?.toString() ?? '' : '';
+      return msg.isEmpty ? '修改失败' : msg;
+    } catch (_) {
+      return '网络异常，请重试';
+    }
   }
 
   void _confirmLogout() {

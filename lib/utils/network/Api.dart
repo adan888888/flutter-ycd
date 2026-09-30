@@ -41,6 +41,9 @@ class Api {
   ///登出（服务端拉黑 token）
   static String logout = "/auth/logout";
 
+  ///修改自己的密码（需原密码；成功后响应头下发新 token）
+  static String changePassword = "/auth/password";
+
   //初始化程序 创建表
   static String createTables = "/jsq/create-table";
 

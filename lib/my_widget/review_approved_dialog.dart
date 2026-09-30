@@ -476,6 +476,269 @@ class _ReviewInputDialogState extends State<ReviewInputDialog> {
   }
 }
 
+/// 与 [ReviewApprovedDialog] 同款的修改密码弹窗。
+///
+/// [onSubmit] 返回 null 表示修改成功并关闭弹窗；返回文案则显示在弹窗内，弹窗保持打开。
+class ChangePasswordDialog extends StatefulWidget {
+  const ChangePasswordDialog({
+    super.key,
+    required this.onSubmit,
+    this.isDarkMode = false,
+  });
+
+  final Future<String?> Function(String oldPassword, String newPassword)
+      onSubmit;
+  final bool isDarkMode;
+
+  @override
+  State<ChangePasswordDialog> createState() => _ChangePasswordDialogState();
+}
+
+class _ChangePasswordDialogState extends State<ChangePasswordDialog> {
+  final _oldController = TextEditingController();
+  final _newController = TextEditingController();
+  final _confirmController = TextEditingController();
+  bool _obscure = true;
+  bool _submitting = false;
+  String? _errorText;
+
+  @override
+  void dispose() {
+    _oldController.dispose();
+    _newController.dispose();
+    _confirmController.dispose();
+    super.dispose();
+  }
+
+  String? _validate(String oldPwd, String newPwd, String confirmPwd) {
+    if (oldPwd.isEmpty) return '请输入原密码';
+    if (newPwd.isEmpty) return '请输入新密码';
+    if (newPwd.length < 3) return '新密码至少 3 位';
+    if (newPwd != confirmPwd) return '两次输入的新密码不一致';
+    if (newPwd == oldPwd) return '新密码不能与原密码相同';
+    return null;
+  }
+
+  Future<void> _submit() async {
+    if (_submitting) return;
+    final oldPwd = _oldController.text;
+    final newPwd = _newController.text;
+    final error = _validate(oldPwd, newPwd, _confirmController.text);
+    if (error != null) {
+      setState(() => _errorText = error);
+      return;
+    }
+    setState(() {
+      _submitting = true;
+      _errorText = null;
+    });
+    final result = await widget.onSubmit(oldPwd, newPwd);
+    if (!mounted) return;
+    if (result == null) {
+      Navigator.of(context).pop();
+      return;
+    }
+    setState(() {
+      _submitting = false;
+      _errorText = result;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = widget.isDarkMode;
+    final screenWidth = MediaQuery.sizeOf(context).width;
+    const designDialogWidth = ReviewApprovedDialog._designDialogWidth;
+    final dialogWidth = screenWidth *
+        designDialogWidth /
+        ReviewApprovedDialog._designScreenWidth;
+    final scale = dialogWidth / designDialogWidth;
+    final horizontalInset = (screenWidth - dialogWidth) / 2;
+    final surface = isDark ? const Color(0xFF16212F) : Colors.white;
+    final primaryText =
+        isDark ? const Color(0xFFF5F7FA) : ReviewApprovedDialog._primaryText;
+    final secondaryText =
+        isDark ? const Color(0xFFAAB3C1) : const Color(0xFF9AA3B4);
+    final inputFill =
+        isDark ? const Color(0xFF101926) : ReviewApprovedDialog._paleBlue;
+    final actionFill =
+        isDark ? const Color(0xFF1C2939) : ReviewApprovedDialog._paleBlue;
+    final border = isDark
+        ? Colors.white.withValues(alpha: 0.12)
+        : ReviewApprovedDialog._border;
+    final accent =
+        isDark ? const Color(0xFF8AAEFF) : ReviewApprovedDialog._brandBlue;
+    final actionText =
+        isDark ? const Color(0xFFB8A8F2) : const Color(0xFF7460B4);
+
+    double s(double designPx) => designPx * scale;
+
+    Widget field(
+      TextEditingController controller,
+      String hint, {
+      bool autofocus = false,
+      bool isLast = false,
+    }) {
+      return Padding(
+        padding: EdgeInsets.fromLTRB(s(24), 0, s(24), s(10)),
+        child: TextField(
+          controller: controller,
+          autofocus: autofocus,
+          obscureText: _obscure,
+          autocorrect: false,
+          enableSuggestions: false,
+          textInputAction: isLast ? TextInputAction.done : TextInputAction.next,
+          onSubmitted: isLast ? (_) => _submit() : null,
+          onChanged: (_) {
+            if (_errorText != null) setState(() => _errorText = null);
+          },
+          style: TextStyle(color: primaryText, fontSize: s(15)),
+          decoration: InputDecoration(
+            hintText: hint,
+            hintStyle: TextStyle(color: secondaryText, fontSize: s(13)),
+            filled: true,
+            fillColor: inputFill,
+            isDense: true,
+            contentPadding: EdgeInsets.symmetric(
+              horizontal: s(12),
+              vertical: s(12),
+            ),
+            suffixIcon: IconButton(
+              icon: Icon(
+                _obscure ? Icons.visibility_off : Icons.visibility,
+                size: s(18),
+                color: secondaryText,
+              ),
+              onPressed: () => setState(() => _obscure = !_obscure),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(s(12)),
+              borderSide: BorderSide(color: border),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(s(12)),
+              borderSide: BorderSide(color: accent, width: 1.4),
+            ),
+          ),
+        ),
+      );
+    }
+
+    return Dialog(
+      insetPadding: EdgeInsets.symmetric(
+        horizontal: horizontalInset < 16 ? 16 : horizontalInset,
+        vertical: 24,
+      ),
+      elevation: 0,
+      backgroundColor: Colors.transparent,
+      child: SingleChildScrollView(
+        child: SizedBox(
+          width: dialogWidth,
+          child: Stack(
+            clipBehavior: Clip.none,
+            alignment: Alignment.topCenter,
+            children: [
+              Padding(
+                padding: EdgeInsets.only(top: s(84)),
+                child: Material(
+                  color: surface,
+                  borderRadius: BorderRadius.circular(s(20)),
+                  clipBehavior: Clip.antiAlias,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      SizedBox(height: s(42)),
+                      _StatusIllustration(
+                        icon: Icons.lock_reset_rounded,
+                        size: s(82),
+                        isDarkMode: isDark,
+                      ),
+                      SizedBox(height: s(6)),
+                      Text(
+                        '修改密码',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: primaryText,
+                          fontSize: s(20),
+                          height: 1.1,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      SizedBox(height: s(14)),
+                      field(_oldController, '原密码', autofocus: true),
+                      field(_newController, '新密码'),
+                      field(_confirmController, '确认新密码', isLast: true),
+                      if (_errorText != null)
+                        Padding(
+                          padding: EdgeInsets.fromLTRB(s(24), 0, s(24), s(4)),
+                          child: Text(
+                            _errorText!,
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: const Color(0xFFE5484D),
+                              fontSize: s(12),
+                            ),
+                          ),
+                        ),
+                      SizedBox(height: s(8)),
+                      Divider(height: 0.5, thickness: 0.5, color: border),
+                      Material(
+                        color: actionFill,
+                        child: SizedBox(
+                          height: s(50),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: _DialogActionButton(
+                                  text: '取消',
+                                  height: s(50),
+                                  fontSize: s(17),
+                                  backgroundColor: Colors.transparent,
+                                  textColor: actionText,
+                                  onTap: () => Navigator.of(context).pop(),
+                                ),
+                              ),
+                              VerticalDivider(
+                                width: 0.5,
+                                thickness: 0.5,
+                                color: border,
+                              ),
+                              Expanded(
+                                child: _DialogActionButton(
+                                  text: _submitting ? '提交中…' : '确认修改',
+                                  height: s(50),
+                                  fontSize: s(17),
+                                  backgroundColor: Colors.transparent,
+                                  textColor: actionText,
+                                  onTap: _submit,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              Positioned(
+                top: 0,
+                left: 0,
+                right: 0,
+                child: FittedBox(
+                  fit: BoxFit.fitWidth,
+                  alignment: Alignment.topCenter,
+                  child: _HeaderArtwork(surfaceColor: surface),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _DialogActions extends StatelessWidget {
   const _DialogActions({
     required this.scale,
