@@ -90,6 +90,9 @@ class JiShuQiState {
   /// false=红输绿赢，true=红赢绿输（默认）
   var isRedWinGreenLose = true;
 
+  /// 投注表是否显示消数列和重启快照列（默认显示）
+  var isXiaoshuSnapshotVisible = true;
+
   // 白色主题颜色
   var lineColor = Colors.black87.withValues(alpha: 0.8);
   var listViewColor = Colors.grey.shade50; // 浅灰白色
@@ -239,6 +242,7 @@ class JiShuQiState {
         isSeqVisible ? '12.隐藏序号' : '12.显示序号',
         isRedWinGreenLose ? '13.红输绿赢' : '13.红赢绿输',
         themeFollowsTime ? '14.关闭自动主题' : '14.开启自动主题',
+        isXiaoshuSnapshotVisible ? '15.隐藏消数列和快照列' : '15.显示消数列和快照列',
       ];
   var description = [
     {"本金", "总局数", "回合局数", "流水"},

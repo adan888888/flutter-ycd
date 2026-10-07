@@ -17,6 +17,7 @@ const _functionTypes = <String>[
   '12.显示序号',
   '13.红输绿赢',
   '14.关闭自动主题',
+  '15.隐藏消数列和快照列',
 ];
 
 Widget _buildHarness({
@@ -136,6 +137,40 @@ void main() {
     final logoutItem = find.byKey(const ValueKey('more-function-10'));
     expect(tester.getTopLeft(colorRuleItem).dy,
         lessThan(tester.getTopLeft(logoutItem).dy));
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('search filters by title and description', (tester) async {
+    int? selectedIndex;
+    await tester.pumpWidget(
+      _buildHarness(
+        isDarkMode: false,
+        onSelected: (value) => selectedIndex = value,
+      ),
+    );
+    await _openDialog(tester);
+
+    final search = find.byKey(const ValueKey('more-functions-search'));
+    await tester.enterText(search, '快照');
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('more-function-14')), findsOneWidget);
+    expect(find.byKey(const ValueKey('more-function-7')), findsNothing);
+
+    await tester.enterText(search, '备份');
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('more-function-6')), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('more-function-6')));
+    await tester.pumpAndSettle();
+    expect(selectedIndex, 6);
+
+    await _openDialog(tester);
+    await tester.enterText(search, '不存在的功能');
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('more-functions-empty')), findsOneWidget);
+
+    await tester.tap(find.byKey(const ValueKey('more-functions-search-clear')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('more-function-7')), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 

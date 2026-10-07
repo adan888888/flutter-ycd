@@ -18,17 +18,38 @@ class MoreFunctionsDialog extends StatefulWidget {
 
 class _MoreFunctionsDialogState extends State<MoreFunctionsDialog> {
   late final ScrollController _menuScrollController;
+  late final TextEditingController _searchController;
+  String _query = '';
 
   @override
   void initState() {
     super.initState();
     _menuScrollController = ScrollController();
+    _searchController = TextEditingController();
   }
 
   @override
   void dispose() {
     _menuScrollController.dispose();
+    _searchController.dispose();
     super.dispose();
+  }
+
+  void _onQueryChanged(String value) {
+    setState(() => _query = value.trim().toLowerCase());
+  }
+
+  void _clearQuery() {
+    _searchController.clear();
+    _onQueryChanged('');
+  }
+
+  bool _matchesQuery(int index) {
+    if (_query.isEmpty) return true;
+    final title = _displayTitle(widget.functionTypes[index]).toLowerCase();
+    final description =
+        index < _descriptions.length ? _descriptions[index].toLowerCase() : '';
+    return title.contains(_query) || description.contains(_query);
   }
 
   static const _undoIndex = 7;
@@ -47,6 +68,7 @@ class _MoreFunctionsDialogState extends State<MoreFunctionsDialog> {
     11,
     12,
     13,
+    14,
     4,
     10,
   ];
@@ -66,6 +88,7 @@ class _MoreFunctionsDialogState extends State<MoreFunctionsDialog> {
     Icons.format_list_numbered_rounded,
     Icons.swap_horiz_rounded,
     Icons.brightness_auto_rounded,
+    Icons.view_column_outlined,
   ];
 
   static const _descriptions = <String>[
@@ -83,6 +106,7 @@ class _MoreFunctionsDialogState extends State<MoreFunctionsDialog> {
     '显示或隐藏投注记录序号',
     '切换红色与绿色的输赢含义',
     '6:00–18:00 亮色，其余暗色；关闭后仅手动切换主题',
+    '显示或隐藏投注记录的消数列与重启快照列',
   ];
 
   static const _accentColors = <Color>[
@@ -100,6 +124,7 @@ class _MoreFunctionsDialogState extends State<MoreFunctionsDialog> {
     Color(0xFF478BE6),
     Color(0xFF38B8AA),
     Color(0xFF6677D9),
+    Color(0xFF2CB7CF),
   ];
 
   String _displayTitle(String value) {
@@ -129,10 +154,13 @@ class _MoreFunctionsDialogState extends State<MoreFunctionsDialog> {
       ..._displayOrder.where((index) => index < widget.functionTypes.length),
       ...List.generate(widget.functionTypes.length, (index) => index)
           .where((index) => !_displayOrder.contains(index)),
-    ];
+    ].where(_matchesQuery).toList();
     final screenHeight = MediaQuery.sizeOf(context).height;
-    final dialogHeight =
-        screenHeight * 0.84 < 760.0 ? screenHeight * 0.84 : 760.0;
+    final keyboardInset = MediaQuery.viewInsetsOf(context).bottom;
+    final availableHeight = screenHeight - keyboardInset - 40;
+    final dialogHeight = [screenHeight * 0.84, 760.0, availableHeight]
+        .reduce((a, b) => a < b ? a : b)
+        .clamp(160.0, 760.0);
     final surfaceColor =
         widget.isDarkMode ? const Color(0xFF16212F) : Colors.white;
     final primaryTextColor =
@@ -188,100 +216,152 @@ class _MoreFunctionsDialogState extends State<MoreFunctionsDialog> {
                     ],
                   ),
                 ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                  child: TextField(
+                    key: const ValueKey('more-functions-search'),
+                    controller: _searchController,
+                    onChanged: _onQueryChanged,
+                    textInputAction: TextInputAction.search,
+                    style: TextStyle(color: primaryTextColor, fontSize: 14),
+                    cursorColor: const Color(0xFF2CB7CF),
+                    decoration: InputDecoration(
+                      isDense: true,
+                      hintText: '搜索功能',
+                      hintStyle:
+                          TextStyle(color: secondaryTextColor, fontSize: 14),
+                      prefixIcon: Icon(Icons.search_rounded,
+                          color: secondaryTextColor, size: 20),
+                      suffixIcon: _query.isEmpty
+                          ? null
+                          : IconButton(
+                              key:
+                                  const ValueKey('more-functions-search-clear'),
+                              tooltip: '清空',
+                              onPressed: _clearQuery,
+                              icon: Icon(Icons.cancel_rounded,
+                                  color: secondaryTextColor, size: 18),
+                            ),
+                      filled: true,
+                      fillColor: widget.isDarkMode
+                          ? Colors.white.withValues(alpha: 0.06)
+                          : const Color(0xFFF2F5F9),
+                      contentPadding: const EdgeInsets.symmetric(vertical: 10),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
+                      ),
+                    ),
+                  ),
+                ),
                 Divider(height: 1, thickness: 1, color: dividerColor),
                 Expanded(
-                  child: Scrollbar(
-                    controller: _menuScrollController,
-                    child: ListView.separated(
-                      controller: _menuScrollController,
-                      primary: false,
-                      key: const ValueKey('more-functions-list'),
-                      padding: const EdgeInsets.fromLTRB(16, 14, 16, 18),
-                      itemCount: orderedIndexes.length,
-                      separatorBuilder: (_, __) => const SizedBox(height: 10),
-                      itemBuilder: (context, position) {
-                        final actionIndex = orderedIndexes[position];
-                        final accentColor = actionIndex < _accentColors.length
-                            ? _accentColors[actionIndex]
-                            : const Color(0xFF2CB7CF);
-                        final icon = actionIndex < _icons.length
-                            ? _icons[actionIndex]
-                            : Icons.tune_rounded;
-                        final description = actionIndex < _descriptions.length
-                            ? _descriptions[actionIndex]
-                            : '执行该功能';
-                        final title =
-                            _displayTitle(widget.functionTypes[actionIndex]);
+                  child: orderedIndexes.isEmpty
+                      ? Center(
+                          key: const ValueKey('more-functions-empty'),
+                          child: Text(
+                            '没有匹配的功能',
+                            style: TextStyle(
+                                color: secondaryTextColor, fontSize: 13),
+                          ),
+                        )
+                      : Scrollbar(
+                          controller: _menuScrollController,
+                          child: ListView.separated(
+                            controller: _menuScrollController,
+                            primary: false,
+                            key: const ValueKey('more-functions-list'),
+                            padding: const EdgeInsets.fromLTRB(16, 14, 16, 18),
+                            itemCount: orderedIndexes.length,
+                            separatorBuilder: (_, __) =>
+                                const SizedBox(height: 10),
+                            itemBuilder: (context, position) {
+                              final actionIndex = orderedIndexes[position];
+                              final accentColor =
+                                  actionIndex < _accentColors.length
+                                      ? _accentColors[actionIndex]
+                                      : const Color(0xFF2CB7CF);
+                              final icon = actionIndex < _icons.length
+                                  ? _icons[actionIndex]
+                                  : Icons.tune_rounded;
+                              final description =
+                                  actionIndex < _descriptions.length
+                                      ? _descriptions[actionIndex]
+                                      : '执行该功能';
+                              final title = _displayTitle(
+                                  widget.functionTypes[actionIndex]);
 
-                        return Material(
-                          key: ValueKey('more-function-$actionIndex'),
-                          color: _tileColor(actionIndex, accentColor),
-                          borderRadius: BorderRadius.circular(14),
-                          clipBehavior: Clip.antiAlias,
-                          child: InkWell(
-                            onTap: () {
-                              Navigator.of(context).pop();
-                              widget.onSelected(actionIndex);
-                            },
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 14, vertical: 12),
-                              child: Row(
-                                children: [
-                                  Container(
-                                    width: 40,
-                                    height: 40,
-                                    decoration: BoxDecoration(
-                                      color: accentColor.withValues(
-                                          alpha:
-                                              widget.isDarkMode ? 0.16 : 0.11),
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    alignment: Alignment.center,
-                                    child: Icon(icon,
-                                        color: accentColor, size: 24),
-                                  ),
-                                  const SizedBox(width: 14),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      mainAxisSize: MainAxisSize.min,
+                              return Material(
+                                key: ValueKey('more-function-$actionIndex'),
+                                color: _tileColor(actionIndex, accentColor),
+                                borderRadius: BorderRadius.circular(14),
+                                clipBehavior: Clip.antiAlias,
+                                child: InkWell(
+                                  onTap: () {
+                                    Navigator.of(context).pop();
+                                    widget.onSelected(actionIndex);
+                                  },
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 14, vertical: 12),
+                                    child: Row(
                                       children: [
-                                        Text(
-                                          title,
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                          style: TextStyle(
-                                            color: actionIndex == 4
-                                                ? accentColor
-                                                : primaryTextColor,
-                                            fontSize: 14,
-                                            fontWeight: FontWeight.w600,
+                                        Container(
+                                          width: 40,
+                                          height: 40,
+                                          decoration: BoxDecoration(
+                                            color: accentColor.withValues(
+                                                alpha: widget.isDarkMode
+                                                    ? 0.16
+                                                    : 0.11),
+                                            borderRadius:
+                                                BorderRadius.circular(12),
                                           ),
+                                          alignment: Alignment.center,
+                                          child: Icon(icon,
+                                              color: accentColor, size: 24),
                                         ),
-                                        const SizedBox(height: 3),
-                                        Text(
-                                          description,
-                                          maxLines: 2,
-                                          overflow: TextOverflow.ellipsis,
-                                          style: TextStyle(
-                                            color: secondaryTextColor,
-                                            fontSize: 11,
-                                            height: 1.25,
+                                        const SizedBox(width: 14),
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Text(
+                                                title,
+                                                maxLines: 1,
+                                                overflow: TextOverflow.ellipsis,
+                                                style: TextStyle(
+                                                  color: actionIndex == 4
+                                                      ? accentColor
+                                                      : primaryTextColor,
+                                                  fontSize: 14,
+                                                  fontWeight: FontWeight.w600,
+                                                ),
+                                              ),
+                                              const SizedBox(height: 3),
+                                              Text(
+                                                description,
+                                                maxLines: 2,
+                                                overflow: TextOverflow.ellipsis,
+                                                style: TextStyle(
+                                                  color: secondaryTextColor,
+                                                  fontSize: 11,
+                                                  height: 1.25,
+                                                ),
+                                              ),
+                                            ],
                                           ),
                                         ),
                                       ],
                                     ),
                                   ),
-                                ],
-                              ),
-                            ),
+                                ),
+                              );
+                            },
                           ),
-                        );
-                      },
-                    ),
-                  ),
+                        ),
                 ),
               ],
             ),

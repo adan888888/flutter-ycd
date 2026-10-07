@@ -175,7 +175,7 @@ class BuyRecordsView extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildRecordHeader(controller, index),
+          _buildRecordHeader(controller, record, index),
           SizedBox(height: _smallPadding),
           _buildCompactRecordDetails(controller, record),
         ],
@@ -208,19 +208,21 @@ class BuyRecordsView extends StatelessWidget {
     );
   }
 
-  Widget _buildRecordHeader(BuyRecordsController controller, int index) {
+  Widget _buildRecordHeader(BuyRecordsController controller, Map<String, dynamic> record, int index) {
     final n = controller.state.buyRecords.length;
     // index 0 = 时间上最后一笔（最新），笔号从最早为第1笔计起
     final purchaseNo = n - index;
-    final qty = controller.calculateCumulativeStatsForRow(index)['totalQuantity'];
+    final price = record['buy_price'] as num?;
+    final amount = record['buy_amount'] as num?;
+    final qty = price != null && amount != null && price != 0 ? amount / price : null;
     return Row(
       mainAxisAlignment: MainAxisAlignment.start,
       children: [
         Text('第$purchaseNo笔', style: _recordNumberStyle),
         SizedBox(width: _defaultPadding),
         _buildStatItemX(
-          '累计成交数量 ',
-          qty == null ? '—' : (qty as num).toStringAsFixed(8),
+          '成交数量 ',
+          qty == null ? '—' : qty.toStringAsFixed(8),
           Colors.grey,
         ),
       ],

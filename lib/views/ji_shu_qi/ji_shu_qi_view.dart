@@ -794,10 +794,10 @@ class JiShuQiView extends GetView<JiShuQiController> {
             ),
             child: Row(
               children: [
-                // 序号列：显示序号时含眼睛与局部平衡点击；隐藏时仅占位
+                // 序号列：显示序号时含眼睛与局部平衡双击；隐藏时仅占位
                 if (controller.state.isSeqVisible)
                   GestureDetector(
-                    onTap: () => controller.juBuPingHeng(controller.state.betRecordList[index].id!),
+                    onDoubleTap: () => controller.juBuPingHeng(controller.state.betRecordList[index].id!),
                     child: controller.state.betRecordList[index].id != null &&
                             controller.state.betRecordList[index].id == controller.state.currentTempIndex
                         ? SizedBox(
@@ -852,11 +852,11 @@ class JiShuQiView extends GetView<JiShuQiController> {
                 else
                   const SizedBox(width: 10),
 
-                // 输赢列：隐藏序号时眼睛与局部平衡点击在此列
+                // 输赢列：隐藏序号时眼睛与局部平衡双击在此列
                 Expanded(
                   flex: 1,
                   child: GestureDetector(
-                    onTap: controller.state.isSeqVisible
+                    onDoubleTap: controller.state.isSeqVisible
                         ? null
                         : () => controller.juBuPingHeng(controller.state.betRecordList[index].id!),
                     child: Align(
@@ -900,11 +900,12 @@ class JiShuQiView extends GetView<JiShuQiController> {
                   ),
                 ),
                 SizedBox(width: 5),
-                // 消数列：与输赢列均分剩余宽度；数字区过长缩小字体，右侧保留删除图标
+                // 消数列：与输赢列均分剩余宽度；数字区过长缩小字体，右侧保留删除图标；隐藏时仅保留占位
                 Expanded(
                   flex: 1,
                   child: Builder(
                     builder: (context) {
+                      if (!controller.state.isXiaoshuSnapshotVisible) return const SizedBox.shrink();
                       final xiaoshu = controller.state.betRecordList[index].shuyingzhiXiaoshu;
                       final xiaoshuText = controller.state.formatShuyingzhiColumn(xiaoshu);
                       return Row(
@@ -972,28 +973,31 @@ class JiShuQiView extends GetView<JiShuQiController> {
                 //胜负路
                 _sflContainer(index),
                 // 重启快照列（最后一列，与输赢/消数列均分剩余宽度）
-                Expanded(
-                  flex: 1,
-                  child: Align(
-                    alignment: Alignment.centerLeft,
-                    child: restartSnapshot.isEmpty
-                        ? const SizedBox.shrink()
-                        : FittedBox(
-                            fit: BoxFit.scaleDown,
-                            alignment: Alignment.centerLeft,
-                            child: Text(
-                              restartSnapshot,
-                              maxLines: 1,
-                              textAlign: TextAlign.left,
-                              style: TextStyle(
-                                fontSize: 10.5,
-                                fontWeight: FontWeight.w100,
-                                color: controller.state.isDarkMode ? Colors.amber.shade200 : Colors.amber.shade800,
+                if (controller.state.isXiaoshuSnapshotVisible)
+                  Expanded(
+                    flex: 1,
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: restartSnapshot.isEmpty
+                          ? const SizedBox.shrink()
+                          : FittedBox(
+                              fit: BoxFit.scaleDown,
+                              alignment: Alignment.centerLeft,
+                              child: Text(
+                                restartSnapshot,
+                                maxLines: 1,
+                                textAlign: TextAlign.left,
+                                style: TextStyle(
+                                  fontSize: 10.5,
+                                  fontWeight: FontWeight.w100,
+                                  color: controller.state.isDarkMode ? Colors.amber.shade200 : Colors.amber.shade800,
+                                ),
                               ),
                             ),
-                          ),
-                  ),
-                ),
+                    ),
+                  )
+                else
+                  const SizedBox(width: 12),
               ],
             ),
           );
