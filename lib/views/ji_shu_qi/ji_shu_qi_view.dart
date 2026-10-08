@@ -243,8 +243,7 @@ class JiShuQiView extends GetView<JiShuQiController> {
   /// macOS 透明标题栏下红黄绿窗口按钮右缘约 68pt，顶栏从按钮右侧开始
   static const double _macWindowButtonsInset = 76;
 
-  double get _topBarLeftInset =>
-      !kIsWeb && Platform.isMacOS ? _macWindowButtonsInset : _contentLeftInset;
+  double get _topBarLeftInset => !kIsWeb && Platform.isMacOS ? _macWindowButtonsInset : _contentLeftInset;
 
   /// 今日目标/进度条区域与右侧主题/锁/编辑图标间距
   static const double _topBarTrailingIconsGap = 8;
@@ -597,7 +596,7 @@ class JiShuQiView extends GetView<JiShuQiController> {
                                     Positioned(
                                       // 折线图与大路图同高，按钮位置一致
                                       top: _lineChartPlotHeight - 20,
-                                      right: 0,
+                                      right: 16,
                                       child: GestureDetector(
                                         onTap: () => controller.toggleChartVisibility(),
                                         child: Container(
@@ -622,7 +621,7 @@ class JiShuQiView extends GetView<JiShuQiController> {
                                   else
                                     Positioned(
                                       top: 0,
-                                      right: 0,
+                                      right: 20,
                                       child: GestureDetector(
                                         onTap: () => controller.toggleChartVisibility(),
                                         child: Container(
@@ -996,7 +995,7 @@ class JiShuQiView extends GetView<JiShuQiController> {
                     ),
                   )
                 else
-                  const SizedBox(width: 12),
+                  const SizedBox(width: 28),
               ],
             ),
           );
@@ -1491,143 +1490,145 @@ class JiShuQiView extends GetView<JiShuQiController> {
                             onDoubleTap: () => controller.changeChart(),
                             behavior: HitTestBehavior.opaque,
                             child: Stack(
-                            clipBehavior: Clip.none,
-                            children: [
-                              LineChart(
-                                LineChartData(
-                                  baselineY: tickMinY,
-                                  backgroundColor: Colors.transparent,
-                                  borderData: FlBorderData(show: false),
-                                  //网格线显示和样式
-                                  gridData: FlGridData(
-                                    show: true,
-                                    // x轴线（横线）的间隔
-                                    horizontalInterval: yAxisInterval,
-                                    // x轴线（横线）的样式
-                                    getDrawingHorizontalLine: (value) {
-                                      return FlLine(
-                                        color: Colors.white.withValues(alpha: 0.3),
-                                        strokeWidth: 1,
-                                        dashArray: [5, 5], // 虚线样式（线宽，间隔）
-                                      );
-                                    },
-                                    //y轴竖线 垂直间隔
-                                    verticalInterval: 1,
-                                    // y轴竖线 垂直设置一个很小的值，但不显示垂直网格线
-                                    getDrawingVerticalLine: (value) {
-                                      return const FlLine(
-                                        color: Colors.transparent, // 透明色，实际上不显示
-                                        strokeWidth: 0,
-                                      );
-                                    },
-                                  ),
-                                  //左则轴标数据
-                                  titlesData: FlTitlesData(
-                                    show: true,
-                                    rightTitles: const AxisTitles(
-                                      sideTitles: SideTitles(showTitles: false),
+                              clipBehavior: Clip.none,
+                              children: [
+                                LineChart(
+                                  LineChartData(
+                                    baselineY: tickMinY,
+                                    backgroundColor: Colors.transparent,
+                                    borderData: FlBorderData(show: false),
+                                    //网格线显示和样式
+                                    gridData: FlGridData(
+                                      show: true,
+                                      // x轴线（横线）的间隔
+                                      horizontalInterval: yAxisInterval,
+                                      // x轴线（横线）的样式
+                                      getDrawingHorizontalLine: (value) {
+                                        return FlLine(
+                                          color: Colors.white.withValues(alpha: 0.3),
+                                          strokeWidth: 1,
+                                          dashArray: [5, 5], // 虚线样式（线宽，间隔）
+                                        );
+                                      },
+                                      //y轴竖线 垂直间隔
+                                      verticalInterval: 1,
+                                      // y轴竖线 垂直设置一个很小的值，但不显示垂直网格线
+                                      getDrawingVerticalLine: (value) {
+                                        return const FlLine(
+                                          color: Colors.transparent, // 透明色，实际上不显示
+                                          strokeWidth: 0,
+                                        );
+                                      },
                                     ),
-                                    topTitles: const AxisTitles(
-                                      sideTitles: SideTitles(showTitles: false),
-                                    ),
-                                    bottomTitles: const AxisTitles(
-                                      sideTitles: SideTitles(showTitles: false),
-                                    ),
-                                    leftTitles: AxisTitles(
-                                      sideTitles: SideTitles(
-                                        showTitles: true,
-                                        reservedSize: yAxisReserved,
-                                        // 最低值、中间值、最高值固定为三个内部刻度，避免边界标签重叠。
-                                        minIncluded: false,
-                                        maxIncluded: false,
-                                        interval: yAxisInterval,
-                                        getTitlesWidget: (value, meta) {
-                                          // 子组件宽度须等于 reservedSize，SideTitleWidget 才不会把刻度整体右移；
-                                          // 列内左对齐，与顶栏「今日目标」同起点。
-                                          return SideTitleWidget(
-                                            meta: meta,
-                                            space: _chartAxisToPlotGap,
-                                            fitInside: SideTitleFitInsideData.fromTitleMeta(meta, distanceFromEdge: 2),
-                                            child: Container(
-                                              width: yAxisReserved,
-                                              alignment: Alignment.centerLeft,
-                                              child: Text(
-                                                _formatValue(value),
-                                                maxLines: 1,
-                                                softWrap: false,
-                                                overflow: TextOverflow.visible,
-                                                style: axisStyle,
+                                    //左则轴标数据
+                                    titlesData: FlTitlesData(
+                                      show: true,
+                                      rightTitles: const AxisTitles(
+                                        sideTitles: SideTitles(showTitles: false),
+                                      ),
+                                      topTitles: const AxisTitles(
+                                        sideTitles: SideTitles(showTitles: false),
+                                      ),
+                                      bottomTitles: const AxisTitles(
+                                        sideTitles: SideTitles(showTitles: false),
+                                      ),
+                                      leftTitles: AxisTitles(
+                                        sideTitles: SideTitles(
+                                          showTitles: true,
+                                          reservedSize: yAxisReserved,
+                                          // 最低值、中间值、最高值固定为三个内部刻度，避免边界标签重叠。
+                                          minIncluded: false,
+                                          maxIncluded: false,
+                                          interval: yAxisInterval,
+                                          getTitlesWidget: (value, meta) {
+                                            // 子组件宽度须等于 reservedSize，SideTitleWidget 才不会把刻度整体右移；
+                                            // 列内左对齐，与顶栏「今日目标」同起点。
+                                            return SideTitleWidget(
+                                              meta: meta,
+                                              space: _chartAxisToPlotGap,
+                                              fitInside:
+                                                  SideTitleFitInsideData.fromTitleMeta(meta, distanceFromEdge: 2),
+                                              child: Container(
+                                                width: yAxisReserved,
+                                                alignment: Alignment.centerLeft,
+                                                child: Text(
+                                                  _formatValue(value),
+                                                  maxLines: 1,
+                                                  softWrap: false,
+                                                  overflow: TextOverflow.visible,
+                                                  style: axisStyle,
+                                                ),
                                               ),
-                                            ),
-                                          );
-                                        },
+                                            );
+                                          },
+                                        ),
                                       ),
                                     ),
-                                  ),
-                                  // 添加内边距
-                                  minX: 0,
-                                  maxX: controller.state.chartData.length.toDouble() + 0.5,
-                                  minY: chartMinY,
-                                  maxY: chartMaxY,
-                                  // 设置图表边距
-                                  clipData: const FlClipData.none(),
-                                  // 添加一些内边距
-                                  lineTouchData: const LineTouchData(
-                                    enabled: false,
-                                    handleBuiltInTouches: false,
-                                  ),
-                                  lineBarsData: [
-                                    LineChartBarData(
-                                      spots: controller.state.chartData
-                                          .map((data) => FlSpot(data.year.toDouble(), data.sales))
-                                          .toList(),
-                                      // false：点与点用直线连接；true 会用曲线拟合，在急升急跌处容易「鼓包」略过中间点
-                                      isCurved: false,
-                                      color: controller.state.isDarkMode ? Colors.grey.shade400 : Colors.grey.shade600,
-                                      barWidth: 2,
-                                      dotData: FlDotData(
-                                        show: true,
-                                        getDotPainter: (spot, percent, barData, index) {
-                                          // 根据相对于上一个点的资金变化设置颜色
-                                          Color dotColor;
-                                          if (index == 0) {
-                                            // 第一个点，无法比较，使用灰色
-                                            dotColor = const Color(0xFF6B7280);
-                                          } else {
-                                            // 获取当前点和上一个点的值
-                                            final currentValue = spot.y;
-                                            final previousValue = barData.spots[index - 1].y;
-                                            final change = currentValue - previousValue;
-
-                                            if (change > 0) {
-                                              dotColor = controller.state.positiveColor; // 资金增加
-                                            } else if (change < 0) {
-                                              dotColor = controller.state.negativeColor; // 资金减少
+                                    // 添加内边距
+                                    minX: 0,
+                                    maxX: controller.state.chartData.length.toDouble() + 0.5,
+                                    minY: chartMinY,
+                                    maxY: chartMaxY,
+                                    // 设置图表边距
+                                    clipData: const FlClipData.none(),
+                                    // 添加一些内边距
+                                    lineTouchData: const LineTouchData(
+                                      enabled: false,
+                                      handleBuiltInTouches: false,
+                                    ),
+                                    lineBarsData: [
+                                      LineChartBarData(
+                                        spots: controller.state.chartData
+                                            .map((data) => FlSpot(data.year.toDouble(), data.sales))
+                                            .toList(),
+                                        // false：点与点用直线连接；true 会用曲线拟合，在急升急跌处容易「鼓包」略过中间点
+                                        isCurved: false,
+                                        color:
+                                            controller.state.isDarkMode ? Colors.grey.shade400 : Colors.grey.shade600,
+                                        barWidth: 2,
+                                        dotData: FlDotData(
+                                          show: true,
+                                          getDotPainter: (spot, percent, barData, index) {
+                                            // 根据相对于上一个点的资金变化设置颜色
+                                            Color dotColor;
+                                            if (index == 0) {
+                                              // 第一个点，无法比较，使用灰色
+                                              dotColor = const Color(0xFF6B7280);
                                             } else {
-                                              dotColor = const Color(0xFF6B7280); // 灰色 - 无变化
+                                              // 获取当前点和上一个点的值
+                                              final currentValue = spot.y;
+                                              final previousValue = barData.spots[index - 1].y;
+                                              final change = currentValue - previousValue;
+
+                                              if (change > 0) {
+                                                dotColor = controller.state.positiveColor; // 资金增加
+                                              } else if (change < 0) {
+                                                dotColor = controller.state.negativeColor; // 资金减少
+                                              } else {
+                                                dotColor = const Color(0xFF6B7280); // 灰色 - 无变化
+                                              }
                                             }
-                                          }
-                                          return FlDotCirclePainter(
-                                            radius: 2.6,
-                                            color: dotColor,
-                                            strokeWidth: 0,
-                                          );
-                                        },
+                                            return FlDotCirclePainter(
+                                              radius: 2.6,
+                                              color: dotColor,
+                                              strokeWidth: 0,
+                                            );
+                                          },
+                                        ),
                                       ),
-                                    ),
-                                  ],
+                                    ],
+                                  ),
                                 ),
-                              ),
-                              Positioned(
-                                left: _contentLeftInset + yAxisReserved,
-                                top: _chartNicknameTop,
-                                right: 36,
-                                child: IgnorePointer(
-                                  child: _chartAreaNickname(controller),
+                                Positioned(
+                                  left: _contentLeftInset + yAxisReserved,
+                                  top: _chartNicknameTop,
+                                  right: 36,
+                                  child: IgnorePointer(
+                                    child: _chartAreaNickname(controller),
+                                  ),
                                 ),
-                              ),
-                            ],
-                          ),
+                              ],
+                            ),
                           );
                         },
                       ),

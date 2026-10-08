@@ -51,9 +51,9 @@ abstract final class ShorebirdUpdate {
             onPressed: () => Get.back(),
             child: const Text('稍后'),
           ),
-          TextButton(
+          const TextButton(
             onPressed: _restart,
-            child: const Text('立即重启'),
+            child: Text('立即重启'),
           ),
         ],
       ),
