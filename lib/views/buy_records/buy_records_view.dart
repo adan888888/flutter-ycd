@@ -8,7 +8,7 @@ class BuyRecordsView extends StatelessWidget {
   const BuyRecordsView({super.key});
 
   // 使用 getter 替代 late final（兼容 const 构造函数）
-  double get _defaultPadding => 16.0;
+  double get _defaultPadding => 6.0;
 
   double get _smallPadding => 4.0;
 
