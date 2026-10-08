@@ -14,7 +14,6 @@ import 'package:ycd/utils/day_night_theme.dart';
 import 'package:ycd/utils/network/get_store.dart';
 
 import '../../my_widget/daily_goal_progress_bar.dart';
-import '../../my_widget/vertical_text.dart';
 import 'ji_shu_qi_controller.dart';
 import 'ji_shu_qi_state.dart';
 
@@ -1435,16 +1434,6 @@ class JiShuQiView extends GetView<JiShuQiController> {
                                 ],
                               ),
                             ),
-                            Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 4.0),
-                              child: VerticalText(
-                                ' 大展鸿图',
-                                style: TextStyle(
-                                  fontSize: 4,
-                                  color: controller.state.bgColor,
-                                ),
-                              ),
-                            )
                           ],
                         ),
                         Positioned(
