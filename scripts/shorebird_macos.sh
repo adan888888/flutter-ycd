@@ -62,6 +62,9 @@ build_variant() {
   fi
   cp "$CONFIGS/AppInfo.$suffix.xcconfig" "$ORIGIN_XCCONFIG"
   cp "$yaml" "$ORIGIN_YAML"
+  # 同一目录里如果还留着其他数策的 .app，Shorebird 会拿错包，
+  # 从而报 shorebird.yaml 和已发布版本不一致。
+  rm -rf "$OUTPUT"/数策*.app
   echo ">>> Shorebird $MODE 数策$n..."
   if [ "$MODE" = "release" ]; then
     "$SHOREBIRD" release macos --flutter-version=fvm ${EXTRA[@]+"${EXTRA[@]}"}
