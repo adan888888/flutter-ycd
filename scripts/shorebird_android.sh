@@ -52,7 +52,6 @@ if [ "$MODE" = "release" ]; then
 else
   "$SHOREBIRD" patch android \
     --release-version=latest \
-    --flutter-version=fvm \
     ${EXTRA[@]+"${EXTRA[@]}"} \
     -- --target-platform=android-arm64
 fi

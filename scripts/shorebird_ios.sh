@@ -61,7 +61,6 @@ if [ "$MODE" = "release" ]; then
 else
   "$SHOREBIRD" patch ios \
     --release-version=latest \
-    --flutter-version=fvm \
     --export-options-plist="$EXPORT_PLIST" \
     ${EXTRA[@]+"${EXTRA[@]}"}
 fi

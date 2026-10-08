@@ -62,7 +62,7 @@ abstract final class ShorebirdUpdate {
   }
 
   static Future<void> _restart() async {
-    if (Platform.isMacOS) {
+    if (Platform.isMacOS || Platform.isIOS || Platform.isAndroid) {
       try {
         await _restartChannel.invokeMethod<void>('restart');
         return;

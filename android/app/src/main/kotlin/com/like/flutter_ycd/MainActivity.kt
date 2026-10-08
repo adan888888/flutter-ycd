@@ -1,17 +1,46 @@
 package com.like.flutter_ycd
 
+import android.content.Intent
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import androidx.core.content.ContextCompat
 import androidx.core.view.WindowCompat
 import io.flutter.embedding.android.FlutterActivity
+import io.flutter.embedding.engine.FlutterEngine
+import io.flutter.plugin.common.MethodChannel
 
 class MainActivity : FlutterActivity() {
     private var nativeLaunchImage: ImageView? = null
+
+    override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
+        super.configureFlutterEngine(flutterEngine)
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "ycd/app_restart")
+            .setMethodCallHandler { call, result ->
+                if (call.method != "restart") {
+                    result.notImplemented()
+                    return@setMethodCallHandler
+                }
+                val launch = packageManager.getLaunchIntentForPackage(packageName)
+                if (launch == null) {
+                    result.error("restart_failed", "找不到启动页", null)
+                    return@setMethodCallHandler
+                }
+                launch.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+                result.success(null)
+                // 先让通道结果回到 Dart，再清掉当前任务并结束进程。
+                // 系统会按启动页重新拉起进程，Shorebird 补丁在新进程里生效。
+                Handler(Looper.getMainLooper()).postDelayed({
+                    startActivity(launch)
+                    Runtime.getRuntime().exit(0)
+                }, 300)
+            }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:ycd/my_widget/review_approved_dialog.dart';
 import 'package:ycd/routes/app_routes.dart';
 import 'package:ycd/utils/bx_loading.dart';
@@ -137,8 +138,8 @@ class HomeView extends StatelessWidget {
                     if (value == 'password') _showChangePassword();
                     if (value == 'logout') _confirmLogout();
                   },
-                  itemBuilder: (context) => const [
-                    PopupMenuItem<String>(
+                  itemBuilder: (context) => [
+                    const PopupMenuItem<String>(
                       value: 'password',
                       child: Row(
                         children: [
@@ -148,7 +149,7 @@ class HomeView extends StatelessWidget {
                         ],
                       ),
                     ),
-                    PopupMenuItem<String>(
+                    const PopupMenuItem<String>(
                       value: 'logout',
                       child: Row(
                         children: [
@@ -156,6 +157,21 @@ class HomeView extends StatelessWidget {
                           SizedBox(width: 8),
                           Text('退出登录'),
                         ],
+                      ),
+                    ),
+                    PopupMenuItem<String>(
+                      enabled: false,
+                      height: 36,
+                      child: FutureBuilder<PackageInfo>(
+                        future: PackageInfo.fromPlatform(),
+                        builder: (context, snapshot) {
+                          final info = snapshot.data;
+                          final version = info == null ? '' : '${info.version}+${info.buildNumber}';
+                          return Text(
+                            version.isEmpty ? '版本' : '版本 $version',
+                            style: const TextStyle(fontSize: 12, color: Color(0xFF8A93A3)),
+                          );
+                        },
                       ),
                     ),
                   ],
