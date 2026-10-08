@@ -218,7 +218,7 @@ class BuyRecordsView extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.start,
       children: [
-        Text('第$purchaseNo笔', style: _recordNumberStyle),
+        Text('$purchaseNo', style: _recordNumberStyle),
         SizedBox(width: _defaultPadding),
         _buildStatItemX(
           '成交数量 ',
@@ -272,7 +272,8 @@ class BuyRecordsView extends StatelessWidget {
     );
   }
 
-  Widget _buildStatsRow(String leftLabel, String leftValue, Color leftColor, String rightLabel, String rightValue, Color rightColor) {
+  Widget _buildStatsRow(
+      String leftLabel, String leftValue, Color leftColor, String rightLabel, String rightValue, Color rightColor) {
     return Row(
       children: [
         _buildCompactStatItem(leftLabel, leftValue, leftColor),
@@ -305,19 +306,16 @@ class BuyRecordsView extends StatelessWidget {
     final maText = maDeviation == null ? '—' : '${maDeviation >= 0 ? '+' : ''}${maDeviation.toStringAsFixed(2)}%';
     final currentPrice = controller.state.currentPrice;
 
-    final totalCostText =
-        cumulativeStats.isEmpty ? '—' : controller.formatPriceInteger(cumulativeStats['totalCost']);
+    final totalCostText = cumulativeStats.isEmpty ? '—' : controller.formatPriceInteger(cumulativeStats['totalCost']);
     final averagePriceText =
         cumulativeStats.isEmpty ? '—' : controller.formatCostPrice(cumulativeStats['averagePrice']);
     final totalQuantityText = cumulativeStats.isEmpty || cumulativeStats['totalQuantity'] == null
         ? '—'
         : controller.formatQuantity(cumulativeStats['totalQuantity']);
-    final profitPercentText =
-        profitStats.isEmpty ? '—' : '${profitStats['profitPercentage'].toStringAsFixed(2)}%';
+    final profitPercentText = profitStats.isEmpty ? '—' : '${profitStats['profitPercentage'].toStringAsFixed(2)}%';
     final profitAmountText = profit == null ? '—' : controller.formatPriceFourDecimals(profit);
-    final maTextValue = controller.state.ma200Daily == null
-        ? '—'
-        : controller.formatMaPrice(controller.state.ma200Daily!);
+    final maTextValue =
+        controller.state.ma200Daily == null ? '—' : controller.formatMaPrice(controller.state.ma200Daily!);
     final suggestedBuyText = controller.formatSuggestedBuyAmount();
     final suggestedBuyColor = controller.suggestedBuyAmountColor();
 
@@ -510,6 +508,7 @@ class _BaseAmountEditDialogState extends State<_BaseAmountEditDialog> {
   bool _loadingDeviation = true;
 
   BuyRecordsController get controller => widget.controller;
+
   BuyRecordsCurrency get currency => widget.currency;
 
   @override
@@ -637,4 +636,3 @@ class _BaseAmountEditDialogState extends State<_BaseAmountEditDialog> {
     );
   }
 }
-
