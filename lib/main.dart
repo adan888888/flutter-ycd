@@ -7,6 +7,7 @@ import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get_navigation/src/root/get_material_app.dart';
 import 'package:ycd/utils/bx_loading.dart';
+import 'package:ycd/utils/shorebird_update.dart';
 import 'package:ycd/views/splash/splash_view.dart';
 
 import 'routes/app_routes.dart'; // 导入新的路由配置文件
@@ -54,6 +55,7 @@ void main() {
   final splashImageReady = _precacheSplashImage();
   runApp(const MyApp());
   unawaited(_showSplashFirstFrame(binding, splashImageReady));
+  unawaited(ShorebirdUpdate.checkOnLaunch());
 }
 
 Future<void> _showSplashFirstFrame(

@@ -41,6 +41,8 @@ dependencies:
   #上拉下拉刷新
   easy_refresh: ^3.4.0
   audioplayers: ^5.2.1
+  #Shorebird 热更新
+  shorebird_code_push: ^2.0.7
 
 #dependency_overrides:
 #  win32: ^3.0.0  # 选择一个兼容的版本（解决device_info_plus和package_info_plus不兼容）
@@ -87,6 +89,7 @@ flutter:
     - assets/loading_images/
     - assets/loading.json
     - assets/sounds/
+    - shorebird.yaml
   # example:
   # fonts:
   #   - family: Schyler

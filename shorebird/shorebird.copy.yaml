@@ -1,0 +1,5 @@
+# Shorebird 配置：数策2（Bundle ID: com.like.flutterYcd2）
+# 不含敏感信息，应纳入版本控制。打包脚本会在编译前把它复制为项目根目录的 shorebird.yaml。
+app_id: 2b433654-c33c-4c24-9b84-94278de0653d
+# 关闭自动更新，由应用内代码下载补丁并提示重启。
+auto_update: false
