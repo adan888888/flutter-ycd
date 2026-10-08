@@ -24,7 +24,70 @@ CONFIGS="macos/Runner/Configs"
 ORIGIN_XCCONFIG="$CONFIGS/AppInfo.xcconfig"
 ORIGIN_YAML="shorebird.yaml"
 OUTPUT="build/macos/Build/Products/Release"
+STASH="build/macos/Build/Products/.shorebird-app-stash"
+PRESERVE="build/macos/Build/Products/.shorebird-installers"
 export FLUTTER_XCODE_BUILD_DESTINATION="platform=macOS,arch=arm64"
+
+# 打补丁前先把已有安装包挪走。补丁本身不产出安装包，
+# 打完再放回，避免 Release 里只剩下最后打的那一个。
+stash_other_apps() {
+  local current="$1"
+  mkdir -p "$STASH"
+  local app
+  for app in "$OUTPUT"/数策*.app; do
+    [ -d "$app" ] || continue
+    local base
+    base="$(basename "$app")"
+    if [ "$base" = "数策${current}.app" ]; then
+      continue
+    fi
+    rm -rf "$STASH/$base"
+    mv "$app" "$STASH/$base"
+  done
+  rm -rf "$OUTPUT/数策${current}.app"
+}
+
+restore_stashed_apps() {
+  local app
+  [ -d "$STASH" ] || return 0
+  for app in "$STASH"/数策*.app; do
+    [ -d "$app" ] || continue
+    local base
+    base="$(basename "$app")"
+    if [ ! -d "$OUTPUT/$base" ]; then
+      mv "$app" "$OUTPUT/$base"
+    fi
+  done
+  rm -rf "$STASH"
+}
+
+# 补丁会重新编译 .app，但那不是给用户安装的发布包。
+# 开始前先复制一份，结束后放回 Release。
+snapshot_installers() {
+  [ "$MODE" = "patch" ] || return 0
+  rm -rf "$PRESERVE"
+  mkdir -p "$PRESERVE"
+  local app
+  for app in "$OUTPUT"/数策*.app; do
+    [ -d "$app" ] || continue
+    cp -R "$app" "$PRESERVE/"
+  done
+}
+
+finish_apps() {
+  if [ "$MODE" = "patch" ]; then
+    local app base
+    for app in "$PRESERVE"/数策*.app; do
+      [ -d "$app" ] || continue
+      base="$(basename "$app")"
+      rm -rf "$OUTPUT/$base"
+      mv "$app" "$OUTPUT/$base"
+    done
+    rm -rf "$PRESERVE" "$STASH"
+    return
+  fi
+  restore_stashed_apps
+}
 
 EXTRA=()
 if [ -n "$API_URL_ARG" ]; then
@@ -63,8 +126,8 @@ build_variant() {
   cp "$CONFIGS/AppInfo.$suffix.xcconfig" "$ORIGIN_XCCONFIG"
   cp "$yaml" "$ORIGIN_YAML"
   # 同一目录里如果还留着其他数策的 .app，Shorebird 会拿错包，
-  # 从而报 shorebird.yaml 和已发布版本不一致。
-  rm -rf "$OUTPUT"/数策*.app
+  # 从而报 shorebird.yaml 和已发布版本不一致。先挪走，打完再放回。
+  stash_other_apps "$n"
   echo ">>> Shorebird $MODE 数策$n..."
   if [ "$MODE" = "release" ]; then
     "$SHOREBIRD" release macos --flutter-version=fvm ${EXTRA[@]+"${EXTRA[@]}"}
@@ -93,6 +156,8 @@ restore_copies() {
   done
 }
 
+snapshot_installers
+
 case "$TARGET" in
   1|2|3)
     run_variant "$TARGET"
@@ -107,6 +172,8 @@ case "$TARGET" in
     usage
     ;;
 esac
+
+finish_apps
 
 echo ""
 echo "完成：Shorebird $MODE 数策 $TARGET"
