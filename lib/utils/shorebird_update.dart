@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:shorebird_code_push/shorebird_code_push.dart';
 import 'package:ycd/routes/app_routes.dart';
@@ -12,6 +13,7 @@ import 'package:ycd/utils/log.dart';
 /// shorebird.yaml 里 auto_update 为 false，补丁只在这里下载。
 abstract final class ShorebirdUpdate {
   static final _updater = ShorebirdUpdater();
+  static const _restartChannel = MethodChannel('ycd/app_restart');
   static bool _checking = false;
 
   static Future<void> checkOnLaunch() async {
@@ -43,19 +45,31 @@ abstract final class ShorebirdUpdate {
     await Get.dialog<void>(
       AlertDialog(
         title: const Text('发现新版本'),
-        content: const Text('更新已下载完成，重启应用后生效。'),
+        content: const Text('更新已下载完成，需要重启后才会生效。'),
         actions: [
           TextButton(
             onPressed: () => Get.back(),
             child: const Text('稍后'),
           ),
           TextButton(
-            onPressed: () => exit(0),
-            child: const Text('立即退出'),
+            onPressed: _restart,
+            child: const Text('立即重启'),
           ),
         ],
       ),
       barrierDismissible: false,
     );
+  }
+
+  static Future<void> _restart() async {
+    if (Platform.isMacOS) {
+      try {
+        await _restartChannel.invokeMethod<void>('restart');
+        return;
+      } catch (e) {
+        Log.w('原生重启不可用，改为退出: $e');
+      }
+    }
+    exit(0);
   }
 }

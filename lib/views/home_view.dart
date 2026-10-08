@@ -107,8 +107,7 @@ class HomeView extends StatelessWidget {
     final displayName = _resolveDisplayName(store);
     final toolsController = HomeToolsController.to;
     final toolsUserKey = store.isLogin ? store.userModel.userId : 'guest';
-    WidgetsBinding.instance
-        .addPostFrameCallback((_) => toolsController.syncUser(toolsUserKey));
+    WidgetsBinding.instance.addPostFrameCallback((_) => toolsController.syncUser(toolsUserKey));
 
     return Scaffold(
       backgroundColor: _hallBg,
@@ -132,8 +131,7 @@ class HomeView extends StatelessWidget {
         actions: store.isLogin
             ? [
                 PopupMenuButton<String>(
-                  icon: const Icon(Icons.more_vert,
-                      color: Colors.white, size: 22),
+                  icon: const Icon(Icons.more_vert, color: Colors.white, size: 22),
                   offset: const Offset(0, 40),
                   onSelected: (value) {
                     if (value == 'password') _showChangePassword();
@@ -144,8 +142,7 @@ class HomeView extends StatelessWidget {
                       value: 'password',
                       child: Row(
                         children: [
-                          Icon(Icons.lock_reset,
-                              size: 18, color: Color(0xFF2F3A4F)),
+                          Icon(Icons.lock_reset, size: 18, color: Color(0xFF2F3A4F)),
                           SizedBox(width: 8),
                           Text('修改密码'),
                         ],
@@ -155,8 +152,7 @@ class HomeView extends StatelessWidget {
                       value: 'logout',
                       child: Row(
                         children: [
-                          Icon(Icons.logout,
-                              size: 18, color: Color(0xFF2F3A4F)),
+                          Icon(Icons.logout, size: 18, color: Color(0xFF2F3A4F)),
                           SizedBox(width: 8),
                           Text('退出登录'),
                         ],
@@ -222,8 +218,7 @@ class HomeView extends StatelessWidget {
                     ),
                   ),
                   Obx(() {
-                    final toolCards =
-                        _buildToolCards(context, toolsController.tools);
+                    final toolCards = _buildToolCards(context, toolsController.tools);
                     if (toolCards.isEmpty) return const SizedBox.shrink();
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -268,8 +263,7 @@ class HomeView extends StatelessWidget {
   Widget _buildHeaderPanel(GetStore store, String displayName) {
     final isLogin = store.isLogin;
     final title = isLogin ? displayName : '未登录';
-    final avatarLetter =
-        isLogin && displayName.isNotEmpty ? displayName.characters.first : '?';
+    final avatarLetter = isLogin && displayName.isNotEmpty ? displayName.characters.first : '?';
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(4, 4, 0, 4),
@@ -363,8 +357,7 @@ class HomeView extends StatelessWidget {
       decoration: const BoxDecoration(shape: BoxShape.circle),
       foregroundDecoration: BoxDecoration(
         shape: BoxShape.circle,
-        border:
-            Border.all(color: Colors.white.withValues(alpha: 0.35), width: 2),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.35), width: 2),
       ),
       clipBehavior: Clip.antiAlias,
       child: image,
@@ -379,8 +372,7 @@ class HomeView extends StatelessWidget {
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         color: Colors.white.withValues(alpha: 0.12),
-        border:
-            Border.all(color: Colors.white.withValues(alpha: 0.35), width: 2),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.35), width: 2),
       ),
       child: Text(
         avatarLetter.toUpperCase(),
@@ -409,9 +401,7 @@ class HomeView extends StatelessWidget {
       user.userId,
       user.account,
       user.nickname,
-    ]
-        .map((e) => e.trim())
-        .firstWhere((e) => e.isNotEmpty, orElse: () => 'guest');
+    ].map((e) => e.trim()).firstWhere((e) => e.isNotEmpty, orElse: () => 'guest');
     // 不用 String.hashCode：它不保证跨平台、跨版本稳定，同一账号可能换头像
     var hash = 0;
     for (final unit in seed.codeUnits) {
@@ -544,8 +534,7 @@ class HomeView extends StatelessWidget {
     );
   }
 
-  List<Widget> _buildToolCards(
-      BuildContext context, List<HomeToolConfig> tools) {
+  List<Widget> _buildToolCards(BuildContext context, List<HomeToolConfig> tools) {
     return [
       for (final tool in tools)
         if (_toolMetas[tool.key] case final meta?)
@@ -597,8 +586,7 @@ class HomeView extends StatelessWidget {
           barrierColor: Colors.black.withValues(alpha: 0.50),
         );
       default:
-        BXLoading.showToast(
-            access.message.isNotEmpty ? access.message : '该功能暂未开放');
+        BXLoading.showToast(access.message.isNotEmpty ? access.message : '该功能暂未开放');
     }
   }
 
@@ -613,8 +601,7 @@ class HomeView extends StatelessWidget {
 
   Widget _buildRoleBadge(GetStore store) {
     final user = store.userModel;
-    final role =
-        user.isSuperAdmin ? UserRole.superAdmin : UserRole.normalize(user.role);
+    final role = user.isSuperAdmin ? UserRole.superAdmin : UserRole.normalize(user.role);
 
     // 文案统一为 VIP，角色只用颜色区分
     late Color bg;
@@ -712,9 +699,7 @@ class HomeView extends StatelessWidget {
         borderRadius: BorderRadius.circular(18),
         color: _cardFill,
         border: Border.all(
-          color: badge != null
-              ? _gold.withValues(alpha: 0.40)
-              : Colors.white.withValues(alpha: 0.10),
+          color: badge != null ? _gold.withValues(alpha: 0.40) : Colors.white.withValues(alpha: 0.10),
         ),
         boxShadow: [
           BoxShadow(

@@ -28,6 +28,28 @@ class MainFlutterWindow: NSWindow {
     }
 
     RegisterGeneratedPlugins(registry: flutterViewController)
+    let restartChannel = FlutterMethodChannel(
+      name: "ycd/app_restart",
+      binaryMessenger: flutterViewController.engine.binaryMessenger
+    )
+    restartChannel.setMethodCallHandler { call, result in
+      guard call.method == "restart" else {
+        result(FlutterMethodNotImplemented)
+        return
+      }
+      let config = NSWorkspace.OpenConfiguration()
+      config.createsNewApplicationInstance = true
+      NSWorkspace.shared.openApplication(at: Bundle.main.bundleURL, configuration: config) { _, error in
+        if let error = error {
+          result(FlutterError(code: "restart_failed", message: error.localizedDescription, details: nil))
+          return
+        }
+        result(nil)
+        DispatchQueue.main.async {
+          NSApp.terminate(nil)
+        }
+      }
+    }
 
     super.awakeFromNib()
   }
