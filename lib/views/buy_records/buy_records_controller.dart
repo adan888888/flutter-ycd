@@ -205,39 +205,54 @@ class BuyRecordsController extends GetxController {
   }
 
   /// 格式化成本价
-  String formatCostPrice(dynamic price) {
-    try {
-      if (price is num) {
-        return '\$${price.toStringAsFixed(currentCurrencyConfig.costDecimals)}';
-      }
-      return price.toString();
-    } catch (e) {
-      return price.toString();
-    }
-  }
+  String formatCostPrice(dynamic price) => _formatCoinPrice(price);
 
-  /// 格式化当前价格
-  String formatCurrentPrice(dynamic price) {
-    try {
-      if (price is num) {
-        return '\$${price.toStringAsFixed(currentCurrencyConfig.priceDecimals)}';
-      }
-      return price.toString();
-    } catch (e) {
-      return price.toString();
-    }
-  }
+  /// 格式化当前价格。按原价截断，不四舍五入。
+  String formatCurrentPrice(dynamic price) => _formatCoinPrice(price);
 
   /// 格式化 SMA200（200 日均线 / 支撑线）
-  String formatMaPrice(dynamic price) {
+  String formatMaPrice(dynamic price) => _formatCoinPrice(price);
+
+  /// 币价小数位不固定。超出 12 位时直接截掉，不四舍五入，并去掉末尾的 0。
+  String _formatCoinPrice(dynamic price) {
     try {
       if (price is num) {
-        return '\$${price.toStringAsFixed(currentCurrencyConfig.maDecimals)}';
+        return '\$${_truncateDecimal(price.toDouble(), 12)}';
       }
       return price.toString();
     } catch (e) {
       return price.toString();
     }
+  }
+
+  String _truncateDecimal(double value, int maxDecimals) {
+    if (value == 0) return '0';
+    final negative = value < 0;
+    final text = value.abs().toString().toLowerCase();
+    final match = RegExp(r'^(\d+)(?:\.(\d+))?(?:e([+-]?\d+))?$').firstMatch(text);
+    if (match == null) return value.toString();
+
+    final digits = '${match.group(1)}${match.group(2) ?? ''}';
+    final exp = int.tryParse(match.group(3) ?? '') ?? 0;
+    final point = match.group(1)!.length + exp;
+    String body;
+    if (point <= 0) {
+      body = '0.${'0' * (-point)}$digits';
+    } else if (point >= digits.length) {
+      body = digits + '0' * (point - digits.length);
+    } else {
+      body = '${digits.substring(0, point)}.${digits.substring(point)}';
+    }
+
+    final parts = body.split('.');
+    if (parts.length == 1) return negative ? '-$body' : body;
+    var fraction = parts[1];
+    if (fraction.length > maxDecimals) {
+      fraction = fraction.substring(0, maxDecimals);
+    }
+    fraction = fraction.replaceFirst(RegExp(r'0+$'), '');
+    final shown = fraction.isEmpty ? parts[0] : '${parts[0]}.$fraction';
+    return negative ? '-$shown' : shown;
   }
 
   /// 格式化价格
@@ -253,16 +268,7 @@ class BuyRecordsController extends GetxController {
   }
 
   /// 格式化成交价格
-  String formatTransactionPrice(dynamic price) {
-    try {
-      if (price is num) {
-        return '\$${price.toStringAsFixed(currentCurrencyConfig.costDecimals)}';
-      }
-      return price.toString();
-    } catch (e) {
-      return price.toString();
-    }
-  }
+  String formatTransactionPrice(dynamic price) => _formatCoinPrice(price);
 
   /// 格式化价格 (保留四位小数)
   String formatPriceWithDecimals(dynamic price) {
