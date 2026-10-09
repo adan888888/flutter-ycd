@@ -1,6 +1,7 @@
 import UIKit
 import Flutter
 import UserNotifications
+import Darwin
 
 @main
 @objc class AppDelegate: FlutterAppDelegate {
@@ -23,12 +24,61 @@ import UserNotifications
           result(FlutterMethodNotImplemented)
           return
         }
-        // iOS 没有重新打开本应用的公开接口。先发一条本地通知，再退出进程，
-        // 用户点通知后系统会重新启动应用，补丁才会生效。
+        // 测试包、不上架：用私有接口让系统重新打开本应用，补丁才会在新进程里生效。
+        if self.relaunchWithPrivateAPI(result: result) {
+          return
+        }
         self.scheduleRestartNotification(result: result)
       }
     }
     return launched
+  }
+
+  /// 先把应用挂到后台，再让 LaunchServices 按 Bundle ID 重新打开，然后退出当前进程。
+  /// `LSApplicationWorkspace` 和 `UIApplication.suspend` 都是私有接口，不能用于上架包。
+  private func relaunchWithPrivateAPI(result: @escaping FlutterResult) -> Bool {
+    dlopen("/System/Library/Frameworks/CoreServices.framework/CoreServices", RTLD_NOW)
+    dlopen("/System/Library/PrivateFrameworks/CoreServices.framework/CoreServices", RTLD_NOW)
+
+    guard NSClassFromString("LSApplicationWorkspace") != nil,
+          Bundle.main.bundleIdentifier != nil else {
+      return false
+    }
+
+    let application = UIApplication.shared
+    let suspend = NSSelectorFromString("suspend")
+    if application.responds(to: suspend) {
+      application.perform(suspend)
+    }
+
+    result(nil)
+    DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
+      self.openOwnApplication()
+      exit(0)
+    }
+    return true
+  }
+
+  private func openOwnApplication() {
+    guard let workspaceClass = NSClassFromString("LSApplicationWorkspace"),
+          let bundleID = Bundle.main.bundleIdentifier else {
+      return
+    }
+    typealias ClassMessage = @convention(c) (AnyClass, Selector) -> Unmanaged<AnyObject>?
+    typealias OpenMessage = @convention(c) (AnyObject, Selector, NSString) -> Bool
+    guard let symbol = dlsym(dlopen("/usr/lib/libobjc.A.dylib", RTLD_NOW), "objc_msgSend") else {
+      return
+    }
+    let workspace = unsafeBitCast(symbol, to: ClassMessage.self)(
+      workspaceClass,
+      NSSelectorFromString("defaultWorkspace")
+    )?.takeUnretainedValue()
+    guard let workspace else { return }
+    _ = unsafeBitCast(symbol, to: OpenMessage.self)(
+      workspace,
+      NSSelectorFromString("openApplicationWithBundleID:"),
+      bundleID as NSString
+    )
   }
 
   private func scheduleRestartNotification(result: @escaping FlutterResult) {
