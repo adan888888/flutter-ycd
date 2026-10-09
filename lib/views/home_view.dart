@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:shorebird_code_push/shorebird_code_push.dart';
 import 'package:ycd/my_widget/review_approved_dialog.dart';
 import 'package:ycd/routes/app_routes.dart';
 import 'package:ycd/utils/bx_loading.dart';
@@ -89,6 +90,22 @@ const Map<String, _HomeToolMeta> _toolMetas = {
   ),
 };
 
+/// 安装包版本来自 PackageInfo；已生效的 Shorebird 补丁显示为 #号。
+/// 用 flutter run 跑起来时没有 Shorebird 引擎，只显示安装包版本。
+Future<String> _versionMenuLabel() async {
+  final info = await PackageInfo.fromPlatform();
+  final version = '${info.version}+${info.buildNumber}';
+  final updater = ShorebirdUpdater();
+  if (!updater.isAvailable) return '版本 $version';
+  try {
+    final patch = await updater.readCurrentPatch();
+    if (patch == null) return '版本 $version';
+    return '版本 $version #${patch.number}';
+  } catch (_) {
+    return '版本 $version';
+  }
+}
+
 // 首页选择界面
 class HomeView extends StatelessWidget {
   const HomeView({super.key});
@@ -162,13 +179,13 @@ class HomeView extends StatelessWidget {
                     PopupMenuItem<String>(
                       enabled: false,
                       height: 36,
-                      child: FutureBuilder<PackageInfo>(
-                        future: PackageInfo.fromPlatform(),
+                      child: FutureBuilder<String>(
+                        future: _versionMenuLabel(),
                         builder: (context, snapshot) {
-                          final info = snapshot.data;
-                          final version = info == null ? '' : '${info.version}+${info.buildNumber}';
                           return Text(
-                            version.isEmpty ? '版本' : '版本 $version',
+                            snapshot.data ?? '版本',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                             style: const TextStyle(fontSize: 12, color: Color(0xFF8A93A3)),
                           );
                         },
