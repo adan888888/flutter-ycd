@@ -995,7 +995,7 @@ class JiShuQiView extends GetView<JiShuQiController> {
                     ),
                   )
                 else
-                  const SizedBox(width: 28),
+                  const SizedBox(width: 40),
               ],
             ),
           );
