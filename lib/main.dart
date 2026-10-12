@@ -2,8 +2,8 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get_navigation/src/root/get_material_app.dart';
 import 'package:ycd/utils/bx_loading.dart';
@@ -75,8 +75,7 @@ Future<void> _showSplashFirstFrame(
 
 Future<void> _precacheSplashImage() async {
   final completer = Completer<void>();
-  final stream =
-      const AssetImage(SplashView.imageAsset).resolve(ImageConfiguration.empty);
+  final stream = const AssetImage(SplashView.imageAsset).resolve(ImageConfiguration.empty);
   late final ImageStreamListener listener;
   void done() {
     stream.removeListener(listener);
