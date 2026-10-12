@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
-enum BuyRecordsMarketSource { binance, okx, gate }
+enum BuyRecordsMarketSource { binance, okx, gate, eastmoney }
 
-/// 买币记录页支持的币种（交易对均为 /USDT）
+/// 买币记录页支持的币种（加密货币交易对均为 /USDT，指数为点位）
 class BuyRecordsCurrency {
   const BuyRecordsCurrency({
     required this.id,
@@ -20,7 +20,7 @@ class BuyRecordsCurrency {
   final String id;
   final String label;
   final BuyRecordsMarketSource marketSource;
-  /// Binance: BTCUSDT；OKX: OKB-USDT；Gate: CRCLON_USDT
+  /// Binance: BTCUSDT；OKX: OKB-USDT；Gate: CRCLON_USDT；东方财富: 1.000300（市场编号.指数代码）
   final String marketSymbol;
   final String exchangeName;
   final Color color;
@@ -135,6 +135,33 @@ const List<BuyRecordsCurrency> buyRecordsCurrencies = [
     exchangeName: 'OKX',
     color: Colors.indigo,
     baseAmount: 50,
+  ),
+  BuyRecordsCurrency(
+    id: 'hs300',
+    label: '沪深300',
+    marketSource: BuyRecordsMarketSource.eastmoney,
+    marketSymbol: '1.000300',
+    exchangeName: '东方财富',
+    color: Colors.deepPurple,
+    baseAmount: 100,
+  ),
+  BuyRecordsCurrency(
+    id: 'spx',
+    label: '标普500',
+    marketSource: BuyRecordsMarketSource.eastmoney,
+    marketSymbol: '100.SPX',
+    exchangeName: '东方财富',
+    color: Colors.pink,
+    baseAmount: 100,
+  ),
+  BuyRecordsCurrency(
+    id: 'ndx',
+    label: '纳斯达克',
+    marketSource: BuyRecordsMarketSource.eastmoney,
+    marketSymbol: '100.NDX',
+    exchangeName: '东方财富',
+    color: Colors.purple,
+    baseAmount: 100,
   ),
 ];
 

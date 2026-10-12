@@ -25,6 +25,8 @@ Future<MarketQuote> fetchMarketQuote(
       return _fetchOkxQuote(currency.marketSymbol, headers);
     case BuyRecordsMarketSource.gate:
       return _fetchGateQuote(currency.marketSymbol, headers);
+    case BuyRecordsMarketSource.eastmoney:
+      return _fetchEastmoneyQuote(currency.marketSymbol, headers);
   }
 }
 
@@ -164,6 +166,50 @@ Future<MarketQuote> _fetchGateQuote(
 
   return MarketQuote(price: price, ma200: ma200);
 }
+
+/// 东方财富日 K 只有一个接口：最新一根的收盘价即当前点位（盘中实时更新）。
+Future<MarketQuote> _fetchEastmoneyQuote(
+  String secid,
+  Map<String, String> headers,
+) async {
+  final response = await http
+      .get(
+        Uri.parse(
+          'https://push2his.eastmoney.com/api/qt/stock/kline/get?secid=${Uri.encodeComponent(secid)}'
+          '&fields1=f1,f2,f3&fields2=f51,f53&klt=101&fqt=0&end=20500101&lmt=$_dailyKlineLimit',
+        ),
+        headers: headers,
+      )
+      .timeout(const Duration(seconds: 30));
+
+  if (response.statusCode != 200) return const MarketQuote();
+  final data = json.decode(response.body);
+  if (data is! Map || data['data'] is! Map) return const MarketQuote();
+  final klines = (data['data'] as Map)['klines'];
+  if (klines is! List) return const MarketQuote();
+
+  final closeUtcHour = _eastmoneyCloseUtcHour(secid);
+  final nowUtc = DateTime.now().toUtc();
+  final closes = <double>[];
+  double? price;
+
+  for (final item in klines) {
+    final parts = item.toString().split(',');
+    if (parts.length < 2) continue;
+    final day = DateTime.tryParse(parts[0]);
+    final close = double.tryParse(parts[1]);
+    if (day == null || close == null) continue;
+    price = close;
+    final closedAt = DateTime.utc(day.year, day.month, day.day, closeUtcHour);
+    if (nowUtc.isBefore(closedAt)) continue;
+    closes.add(close);
+  }
+
+  return MarketQuote(price: price, ma200: _ma200FromDailyCloses(closes));
+}
+
+/// 当日 K 线的收盘时刻（UTC 小时）。A 股 15:00 北京时间；美股 16:00 纽约时间，按冬令时 21:00 UTC 取较晚值。
+int _eastmoneyCloseUtcHour(String secid) => secid.startsWith('100.') ? 21 : 7;
 
 List<double> _binanceDailyCloses(List<dynamic> candles) {
   final nowMs = DateTime.now().millisecondsSinceEpoch;
