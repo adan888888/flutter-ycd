@@ -4,7 +4,7 @@ project(flutter_ycd LANGUAGES CXX)
 
 # The name of the executable created for the application. Change this to change
 # the on-disk name of your application.
-set(BINARY_NAME "flutter_ycd")
+set(BINARY_NAME "天才交易员")
 
 # Explicitly opt in to modern CMake behaviors to avoid warnings with recent
 # versions of CMake.

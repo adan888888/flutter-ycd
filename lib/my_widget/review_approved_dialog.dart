@@ -10,7 +10,7 @@ class ReviewApprovedDialog extends StatelessWidget {
   const ReviewApprovedDialog({
     super.key,
     this.title = '审核已通过',
-    this.message = '恭喜您，账户审核已通过\n现在可以正常使用数策的所有功能',
+    this.message = '恭喜您，账户审核已通过\n现在可以正常使用天才交易员的所有功能',
     this.badgeText = '安全保障中，请放心使用',
     this.buttonText = '我知道了',
     this.secondaryButtonText,

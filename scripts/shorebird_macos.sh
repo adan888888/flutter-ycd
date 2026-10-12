@@ -28,29 +28,37 @@ STASH="build/macos/Build/Products/.shorebird-app-stash"
 PRESERVE="build/macos/Build/Products/.shorebird-installers"
 export FLUTTER_XCODE_BUILD_DESTINATION="platform=macOS,arch=arm64"
 
+app_bundle_name() {
+  case "$1" in
+    1) echo "天才交易员" ;;
+    2) echo "天才交易员2" ;;
+    3) echo "天才交易员3" ;;
+  esac
+}
+
 # 打补丁前先把已有安装包挪走。补丁本身不产出安装包，
 # 打完再放回，避免 Release 里只剩下最后打的那一个。
 stash_other_apps() {
   local current="$1"
   mkdir -p "$STASH"
   local app
-  for app in "$OUTPUT"/数策*.app; do
+  for app in "$OUTPUT"/天才交易员*.app; do
     [ -d "$app" ] || continue
     local base
     base="$(basename "$app")"
-    if [ "$base" = "数策${current}.app" ]; then
+    if [ "$base" = "$(app_bundle_name "$current").app" ]; then
       continue
     fi
     rm -rf "$STASH/$base"
     mv "$app" "$STASH/$base"
   done
-  rm -rf "$OUTPUT/数策${current}.app"
+  rm -rf "$OUTPUT/$(app_bundle_name "$current").app"
 }
 
 restore_stashed_apps() {
   local app
   [ -d "$STASH" ] || return 0
-  for app in "$STASH"/数策*.app; do
+  for app in "$STASH"/天才交易员*.app; do
     [ -d "$app" ] || continue
     local base
     base="$(basename "$app")"
@@ -68,7 +76,7 @@ snapshot_installers() {
   rm -rf "$PRESERVE"
   mkdir -p "$PRESERVE"
   local app
-  for app in "$OUTPUT"/数策*.app; do
+  for app in "$OUTPUT"/天才交易员*.app; do
     [ -d "$app" ] || continue
     cp -R "$app" "$PRESERVE/"
   done
@@ -77,7 +85,7 @@ snapshot_installers() {
 finish_apps() {
   if [ "$MODE" = "patch" ]; then
     local app base
-    for app in "$PRESERVE"/数策*.app; do
+    for app in "$PRESERVE"/天才交易员*.app; do
       [ -d "$app" ] || continue
       base="$(basename "$app")"
       rm -rf "$OUTPUT/$base"
@@ -140,18 +148,22 @@ build_variant() {
 run_variant() {
   local n="$1"
   build_variant "$n"
-  if [ "$MODE" = "release" ] && [ "$n" != "1" ] && [ -d "$OUTPUT/数策$n.app" ]; then
-    rm -rf "/tmp/数策${n}_$$.app"
-    cp -R "$OUTPUT/数策$n.app" "/tmp/数策${n}_$$.app"
+  local name
+  name="$(app_bundle_name "$n")"
+  if [ "$MODE" = "release" ] && [ "$n" != "1" ] && [ -d "$OUTPUT/$name.app" ]; then
+    rm -rf "/tmp/${name}_$$.app"
+    cp -R "$OUTPUT/$name.app" "/tmp/${name}_$$.app"
   fi
 }
 
 restore_copies() {
   for n in 2 3; do
-    if [ -d "/tmp/数策${n}_$$.app" ]; then
-      rm -rf "$OUTPUT/数策$n.app"
-      cp -R "/tmp/数策${n}_$$.app" "$OUTPUT/数策$n.app"
-      rm -rf "/tmp/数策${n}_$$.app"
+    local name
+    name="$(app_bundle_name "$n")"
+    if [ -d "/tmp/${name}_$$.app" ]; then
+      rm -rf "$OUTPUT/$name.app"
+      cp -R "/tmp/${name}_$$.app" "$OUTPUT/$name.app"
+      rm -rf "/tmp/${name}_$$.app"
     fi
   done
 }
@@ -178,5 +190,5 @@ finish_apps
 echo ""
 echo "完成：Shorebird $MODE 数策 $TARGET"
 if [ "$MODE" = "release" ]; then
-  ls -d "$OUTPUT"/数策*.app 2>/dev/null || true
+  ls -d "$OUTPUT"/天才交易员*.app 2>/dev/null || true
 fi

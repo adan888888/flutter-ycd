@@ -52,6 +52,9 @@ echo ">>> pod install"
   pod install
 )
 
+# 改过显示名后，旧的 .ipa 会和新包留在同一目录。Shorebird 看到两个就拒绝发布。
+rm -rf build/ios/ipa
+
 echo ">>> Shorebird $MODE ios..."
 if [ "$MODE" = "release" ]; then
   "$SHOREBIRD" release ios \

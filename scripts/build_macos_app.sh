@@ -52,54 +52,54 @@ build_app3() {
 # 先打副本（2、3），最后打主包 1，并把副本从 /tmp 拷回 Release
 build_all_three() {
   build_app2
-  TMP2="/tmp/数策2_$$.app"
-  [ -d "$OUTPUT/数策2.app" ] && cp -R "$OUTPUT/数策2.app" "$TMP2"
+  TMP2="/tmp/天才交易员2_$$.app"
+  [ -d "$OUTPUT/天才交易员2.app" ] && cp -R "$OUTPUT/天才交易员2.app" "$TMP2"
 
   build_app3
-  TMP3="/tmp/数策3_$$.app"
-  [ -d "$OUTPUT/数策3.app" ] && cp -R "$OUTPUT/数策3.app" "$TMP3"
+  TMP3="/tmp/天才交易员3_$$.app"
+  [ -d "$OUTPUT/天才交易员3.app" ] && cp -R "$OUTPUT/天才交易员3.app" "$TMP3"
 
   build_app1
 
-  [ -d "$TMP2" ] && cp -R "$TMP2" "$OUTPUT/数策2.app" && rm -rf "$TMP2"
-  [ -d "$TMP3" ] && cp -R "$TMP3" "$OUTPUT/数策3.app" && rm -rf "$TMP3"
+  [ -d "$TMP2" ] && cp -R "$TMP2" "$OUTPUT/天才交易员2.app" && rm -rf "$TMP2"
+  [ -d "$TMP3" ] && cp -R "$TMP3" "$OUTPUT/天才交易员3.app" && rm -rf "$TMP3"
 
   echo ""
   echo "完成。三个安装包："
-  echo "  - $OUTPUT/数策1.app  (Bundle ID: com.like.flutterYcd)"
-  echo "  - $OUTPUT/数策2.app  (Bundle ID: com.like.flutterYcd2)"
-  echo "  - $OUTPUT/数策3.app  (Bundle ID: com.like.flutterYcd3)"
+  echo "  - $OUTPUT/天才交易员.app  (Bundle ID: com.like.flutterYcd)"
+  echo "  - $OUTPUT/天才交易员2.app  (Bundle ID: com.like.flutterYcd2)"
+  echo "  - $OUTPUT/天才交易员3.app  (Bundle ID: com.like.flutterYcd3)"
 }
 
 case "$TARGET" in
   1)
     build_app1
     echo ""
-    echo "完成: $OUTPUT/数策1.app"
+    echo "完成: $OUTPUT/天才交易员.app"
     ;;
   2)
     build_app2
     echo ""
-    echo "完成: $OUTPUT/数策2.app"
+    echo "完成: $OUTPUT/天才交易员2.app"
     ;;
   3)
     build_app3
     echo ""
-    echo "完成: $OUTPUT/数策3.app"
+    echo "完成: $OUTPUT/天才交易员3.app"
     ;;
   all)
     build_all_three
     ;;
   both|"")
     build_app2
-    TMP_APP2="/tmp/数策2_$$.app"
-    [ -d "$OUTPUT/数策2.app" ] && cp -R "$OUTPUT/数策2.app" "$TMP_APP2"
+    TMP_APP2="/tmp/天才交易员2_$$.app"
+    [ -d "$OUTPUT/天才交易员2.app" ] && cp -R "$OUTPUT/天才交易员2.app" "$TMP_APP2"
     build_app1
-    [ -d "$TMP_APP2" ] && cp -R "$TMP_APP2" "$OUTPUT/数策2.app" && rm -rf "$TMP_APP2"
+    [ -d "$TMP_APP2" ] && cp -R "$TMP_APP2" "$OUTPUT/天才交易员2.app" && rm -rf "$TMP_APP2"
     echo ""
     echo "完成。两个安装包："
-    echo "  - $OUTPUT/数策1.app  (Bundle ID: com.like.flutterYcd)"
-    echo "  - $OUTPUT/数策2.app  (Bundle ID: com.like.flutterYcd2)"
+    echo "  - $OUTPUT/天才交易员.app  (Bundle ID: com.like.flutterYcd)"
+    echo "  - $OUTPUT/天才交易员2.app  (Bundle ID: com.like.flutterYcd2)"
     ;;
   *)
     echo "用法: $0 [1|2|3|both|all] [API_BASE_URL]"

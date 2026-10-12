@@ -110,7 +110,7 @@ import Darwin
   private func postRestartNotification(result: @escaping FlutterResult) {
     let content = UNMutableNotificationContent()
     content.title = "更新已就绪"
-    content.body = "点按通知重新打开数策"
+    content.body = "点按通知重新打开天才交易员"
     content.sound = .default
     let request = UNNotificationRequest(
       identifier: "ycd_restart",

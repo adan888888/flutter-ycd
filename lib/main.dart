@@ -97,7 +97,7 @@ class MyApp extends StatelessWidget {
       minTextAdapt: true,
       child: GetMaterialApp(
         debugShowCheckedModeBanner: false,
-        title: '数策',
+        title: '天才交易员',
         theme: ThemeData(
           primaryColor: Colors.green,
           useMaterial3: true,
