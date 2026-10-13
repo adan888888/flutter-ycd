@@ -33,7 +33,8 @@ class JiShuQiBettingListEmptyState extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (isInitialDataLoading) return const SizedBox.shrink();
-    return Center(
+    return Align(
+      alignment: const Alignment(0, -0.42),
       child: Image.asset(
         JiShuQiState.emptyBettingListAsset,
         width: 80,
@@ -903,7 +904,7 @@ class JiShuQiView extends GetView<JiShuQiController> {
                   flex: 1,
                   child: Builder(
                     builder: (context) {
-                      if (!controller.state.isXiaoshuSnapshotVisible) return const SizedBox.shrink();
+                      if (!controller.state.isXiaoshuVisible) return const SizedBox.shrink();
                       final xiaoshu = controller.state.betRecordList[index].shuyingzhiXiaoshu;
                       final xiaoshuText = controller.state.formatShuyingzhiColumn(xiaoshu);
                       return Row(
@@ -971,7 +972,7 @@ class JiShuQiView extends GetView<JiShuQiController> {
                 //胜负路
                 _sflContainer(index),
                 // 重启快照列（最后一列，与输赢/消数列均分剩余宽度）
-                if (controller.state.isXiaoshuSnapshotVisible)
+                if (controller.state.isSnapshotVisible)
                   Expanded(
                     flex: 1,
                     child: Align(

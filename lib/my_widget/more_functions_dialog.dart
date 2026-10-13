@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:ycd/utils/pinyin_fuzzy.dart';
 
 class MoreFunctionsDialog extends StatefulWidget {
   const MoreFunctionsDialog({
@@ -46,10 +47,9 @@ class _MoreFunctionsDialogState extends State<MoreFunctionsDialog> {
 
   bool _matchesQuery(int index) {
     if (_query.isEmpty) return true;
-    final title = _displayTitle(widget.functionTypes[index]).toLowerCase();
-    final description =
-        index < _descriptions.length ? _descriptions[index].toLowerCase() : '';
-    return title.contains(_query) || description.contains(_query);
+    final title = _displayTitle(widget.functionTypes[index]);
+    final description = index < _descriptions.length ? _descriptions[index] : '';
+    return pinyinFuzzyContains('$title $description', _query);
   }
 
   static const _undoIndex = 7;
@@ -65,9 +65,10 @@ class _MoreFunctionsDialogState extends State<MoreFunctionsDialog> {
     1,
     6,
     11,
+    14,
+    15,
     12,
     13,
-    14,
     4,
     10,
   ];
@@ -88,6 +89,7 @@ class _MoreFunctionsDialogState extends State<MoreFunctionsDialog> {
     Icons.swap_horiz_rounded,
     Icons.brightness_auto_rounded,
     Icons.view_column_outlined,
+    Icons.flag_outlined,
   ];
 
   static const _descriptions = <String>[
@@ -105,7 +107,8 @@ class _MoreFunctionsDialogState extends State<MoreFunctionsDialog> {
     '显示或隐藏投注记录序号',
     '切换红色与绿色的输赢含义',
     '6:00–18:00 亮色，其余暗色；关闭后仅手动切换主题',
-    '显示或隐藏投注记录的消数列与重启快照列',
+    '显示或隐藏投注记录的消数列',
+    '显示或隐藏投注记录的重启快照列',
   ];
 
   static const _accentColors = <Color>[
@@ -124,6 +127,7 @@ class _MoreFunctionsDialogState extends State<MoreFunctionsDialog> {
     Color(0xFF38B8AA),
     Color(0xFF6677D9),
     Color(0xFF2CB7CF),
+    Color(0xFFE1A72C),
   ];
 
   String _displayTitle(String value) {
@@ -189,16 +193,53 @@ class _MoreFunctionsDialogState extends State<MoreFunctionsDialog> {
             child: Column(
               children: [
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 12, 10, 10),
+                  padding: const EdgeInsets.fromLTRB(16, 10, 4, 8),
                   child: Row(
                     children: [
                       Expanded(
-                        child: Text(
-                          '更多功能',
-                          style: TextStyle(
-                            color: primaryTextColor,
-                            fontSize: 16,
-                            fontWeight: FontWeight.w700,
+                        child: TextField(
+                          key: const ValueKey('more-functions-search'),
+                          controller: _searchController,
+                          onChanged: _onQueryChanged,
+                          textInputAction: TextInputAction.search,
+                          style:
+                              TextStyle(color: primaryTextColor, fontSize: 13),
+                          cursorColor: const Color(0xFF2CB7CF),
+                          decoration: InputDecoration(
+                            isDense: true,
+                            hintText: '搜索功能',
+                            hintStyle: TextStyle(
+                                color: secondaryTextColor, fontSize: 13),
+                            prefixIcon: Icon(Icons.search_rounded,
+                                color: secondaryTextColor, size: 18),
+                            prefixIconConstraints: const BoxConstraints(
+                              minWidth: 32,
+                              minHeight: 32,
+                            ),
+                            suffixIcon: _query.isEmpty
+                                ? null
+                                : IconButton(
+                                    key: const ValueKey(
+                                        'more-functions-search-clear'),
+                                    tooltip: '清空',
+                                    onPressed: _clearQuery,
+                                    icon: Icon(Icons.cancel_rounded,
+                                        color: secondaryTextColor, size: 16),
+                                  ),
+                            suffixIconConstraints: const BoxConstraints(
+                              minWidth: 32,
+                              minHeight: 32,
+                            ),
+                            filled: true,
+                            fillColor: widget.isDarkMode
+                                ? Colors.white.withValues(alpha: 0.06)
+                                : const Color(0xFFF2F5F9),
+                            contentPadding:
+                                const EdgeInsets.symmetric(vertical: 8),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                              borderSide: BorderSide.none,
+                            ),
                           ),
                         ),
                       ),
@@ -213,44 +254,6 @@ class _MoreFunctionsDialogState extends State<MoreFunctionsDialog> {
                         ),
                       ),
                     ],
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-                  child: TextField(
-                    key: const ValueKey('more-functions-search'),
-                    controller: _searchController,
-                    onChanged: _onQueryChanged,
-                    textInputAction: TextInputAction.search,
-                    style: TextStyle(color: primaryTextColor, fontSize: 14),
-                    cursorColor: const Color(0xFF2CB7CF),
-                    decoration: InputDecoration(
-                      isDense: true,
-                      hintText: '搜索功能',
-                      hintStyle:
-                          TextStyle(color: secondaryTextColor, fontSize: 14),
-                      prefixIcon: Icon(Icons.search_rounded,
-                          color: secondaryTextColor, size: 20),
-                      suffixIcon: _query.isEmpty
-                          ? null
-                          : IconButton(
-                              key:
-                                  const ValueKey('more-functions-search-clear'),
-                              tooltip: '清空',
-                              onPressed: _clearQuery,
-                              icon: Icon(Icons.cancel_rounded,
-                                  color: secondaryTextColor, size: 18),
-                            ),
-                      filled: true,
-                      fillColor: widget.isDarkMode
-                          ? Colors.white.withValues(alpha: 0.06)
-                          : const Color(0xFFF2F5F9),
-                      contentPadding: const EdgeInsets.symmetric(vertical: 10),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide.none,
-                      ),
-                    ),
                   ),
                 ),
                 Divider(height: 1, thickness: 1, color: dividerColor),

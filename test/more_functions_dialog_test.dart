@@ -10,14 +10,15 @@ const _functionTypes = <String>[
   '5.删除所有数据',
   '6.重置流水',
   '7.分享给朋友',
-  '8.重启系统',
+  '8.返回上步',
   '9.修改期望值',
   '10.修改赔率',
   '11.退出程序',
   '12.显示序号',
   '13.红输绿赢',
   '14.关闭自动主题',
-  '15.隐藏消数列和快照列',
+  '15.隐藏消数列',
+  '16.隐藏快照列',
 ];
 
 Widget _buildHarness({
@@ -133,6 +134,13 @@ void main() {
     expect(tester.getTopLeft(restartItem).dy,
         lessThan(tester.getTopLeft(sortItem).dy));
 
+    await _scrollToFunction(tester, 11);
+    final seqItem = find.byKey(const ValueKey('more-function-11'));
+    final xiaoshuItem = find.byKey(const ValueKey('more-function-14'));
+    final snapshotItem = find.byKey(const ValueKey('more-function-15'));
+    expect(tester.getTopLeft(seqItem).dy, lessThan(tester.getTopLeft(xiaoshuItem).dy));
+    expect(tester.getTopLeft(xiaoshuItem).dy, lessThan(tester.getTopLeft(snapshotItem).dy));
+
     await _scrollToFunction(tester, 10);
     final colorRuleItem = find.byKey(const ValueKey('more-function-12'));
     final logoutItem = find.byKey(const ValueKey('more-function-10'));
@@ -154,7 +162,8 @@ void main() {
     final search = find.byKey(const ValueKey('more-functions-search'));
     await tester.enterText(search, '快照');
     await tester.pumpAndSettle();
-    expect(find.byKey(const ValueKey('more-function-14')), findsOneWidget);
+    expect(find.byKey(const ValueKey('more-function-15')), findsOneWidget);
+    expect(find.byKey(const ValueKey('more-function-14')), findsNothing);
     expect(find.byKey(const ValueKey('more-function-7')), findsNothing);
 
     await tester.enterText(search, '本金');
@@ -197,6 +206,49 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('more-functions-search-clear')));
     await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('more-function-7')), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('pinyin fuzzy search matches initials and full spelling',
+      (tester) async {
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(
+      _buildHarness(
+        isDarkMode: false,
+        onSelected: (_) {},
+      ),
+    );
+    await _openDialog(tester);
+    final search = find.byKey(const ValueKey('more-functions-search'));
+
+    await tester.enterText(search, 'x');
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('more-functions-empty')), findsNothing);
+    expect(find.byKey(const ValueKey('more-function-1')), findsOneWidget);
+    await _scrollToFunction(tester, 11);
+    expect(find.byKey(const ValueKey('more-function-11')), findsOneWidget);
+
+    await tester.enterText(search, 'xs');
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('more-function-11')), findsOneWidget);
+
+    await tester.enterText(search, 'xianshi');
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('more-function-11')), findsOneWidget);
+    expect(find.byKey(const ValueKey('more-function-1')), findsNothing);
+
+    await tester.enterText(search, 'fhsb');
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('more-function-7')), findsOneWidget);
+
+    await tester.enterText(search, 'benjin');
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('more-function-2')), findsNothing);
+    expect(find.byKey(const ValueKey('more-functions-empty')), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 

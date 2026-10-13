@@ -2070,9 +2070,14 @@ class JiShuQiController extends GetxController {
       case 13: //按时间自动亮/暗主题
         toggleThemeFollowsTime();
         break;
-      case 14: //隐藏/显示消数列和快照列
-        state.isXiaoshuSnapshotVisible = !state.isXiaoshuSnapshotVisible;
+      case 14: //隐藏/显示消数列
+        state.isXiaoshuVisible = !state.isXiaoshuVisible;
         state.selectIndex = 14;
+        update();
+        break;
+      case 15: //隐藏/显示快照列
+        state.isSnapshotVisible = !state.isSnapshotVisible;
+        state.selectIndex = 15;
         update();
         break;
     }
