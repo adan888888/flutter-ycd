@@ -9,7 +9,7 @@ const _functionTypes = <String>[
   '4.修改位置',
   '5.删除所有数据',
   '6.重置流水',
-  '7.备份数据',
+  '7.分享给朋友',
   '8.重启系统',
   '9.修改期望值',
   '10.修改赔率',
@@ -71,6 +71,7 @@ void main() {
     addTearDown(tester.view.resetDevicePixelRatio);
 
     for (var index = 0; index < _functionTypes.length; index++) {
+      if (index == 2 || index == 3 || index == 5 || index == 8 || index == 9) continue;
       int? selectedIndex;
       var callCount = 0;
       await tester.pumpWidget(
@@ -156,7 +157,32 @@ void main() {
     expect(find.byKey(const ValueKey('more-function-14')), findsOneWidget);
     expect(find.byKey(const ValueKey('more-function-7')), findsNothing);
 
-    await tester.enterText(search, '备份');
+    await tester.enterText(search, '本金');
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('more-function-2')), findsNothing);
+    expect(find.byKey(const ValueKey('more-functions-empty')), findsOneWidget);
+
+    await tester.enterText(search, '位置');
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('more-function-3')), findsNothing);
+    expect(find.byKey(const ValueKey('more-functions-empty')), findsOneWidget);
+
+    await tester.enterText(search, '赔率');
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('more-function-9')), findsNothing);
+    expect(find.byKey(const ValueKey('more-functions-empty')), findsOneWidget);
+
+    await tester.enterText(search, '期望');
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('more-function-8')), findsNothing);
+    expect(find.byKey(const ValueKey('more-functions-empty')), findsOneWidget);
+
+    await tester.enterText(search, '流水');
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('more-function-5')), findsNothing);
+    expect(find.byKey(const ValueKey('more-functions-empty')), findsOneWidget);
+
+    await tester.enterText(search, '分享');
     await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('more-function-6')), findsOneWidget);
     await tester.tap(find.byKey(const ValueKey('more-function-6')));

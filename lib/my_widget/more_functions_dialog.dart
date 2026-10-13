@@ -54,17 +54,16 @@ class _MoreFunctionsDialogState extends State<MoreFunctionsDialog> {
 
   static const _undoIndex = 7;
 
+  // 修改本金、修改位置、修改赔率、修改期望值改为双击统计区。
+  // 重置流水改为长按统计区「流水」。这些都不再出现在更多功能里。
+  static const _hiddenIndexes = <int>{2, 3, 5, 8, 9};
+
   // 只调整展示顺序；点击时仍使用原功能索引，确保控制器逻辑不变。
   static const _displayOrder = <int>[
     _undoIndex,
     0,
     1,
-    2,
-    3,
-    5,
     6,
-    8,
-    9,
     11,
     12,
     13,
@@ -98,7 +97,7 @@ class _MoreFunctionsDialogState extends State<MoreFunctionsDialog> {
     '将下注次数设为随机次数减 1',
     '删除当前账号的全部数据，不可恢复',
     '从最后一条投注记录重置流水',
-    '立即备份当前数据库',
+    '分享给朋友，功能即将开放',
     '撤销最后一条投注记录',
     '使用输入框中的数值修改期望值',
     '使用输入框中的数值修改赔率',
@@ -154,7 +153,7 @@ class _MoreFunctionsDialogState extends State<MoreFunctionsDialog> {
       ..._displayOrder.where((index) => index < widget.functionTypes.length),
       ...List.generate(widget.functionTypes.length, (index) => index)
           .where((index) => !_displayOrder.contains(index)),
-    ].where(_matchesQuery).toList();
+    ].where((index) => !_hiddenIndexes.contains(index)).where(_matchesQuery).toList();
     final screenHeight = MediaQuery.sizeOf(context).height;
     final keyboardInset = MediaQuery.viewInsetsOf(context).bottom;
     final availableHeight = screenHeight - keyboardInset - 40;

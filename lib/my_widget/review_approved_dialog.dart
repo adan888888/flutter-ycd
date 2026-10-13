@@ -207,6 +207,7 @@ class ReviewInputDialog extends StatefulWidget {
     this.keyboardType,
     this.inputFormatters,
     this.validator,
+    this.cursorBefore,
   });
 
   final String title;
@@ -221,6 +222,7 @@ class ReviewInputDialog extends StatefulWidget {
   final TextInputType? keyboardType;
   final List<TextInputFormatter>? inputFormatters;
   final String? Function(String value)? validator;
+  final String? cursorBefore;
   final ValueChanged<String> onSubmitted;
 
   @override
@@ -229,16 +231,41 @@ class ReviewInputDialog extends StatefulWidget {
 
 class _ReviewInputDialogState extends State<ReviewInputDialog> {
   late final TextEditingController _controller;
+  late final FocusNode _focusNode;
   String? _errorText;
+  bool _cursorPlaced = false;
 
   @override
   void initState() {
     super.initState();
     _controller = TextEditingController(text: widget.initialValue);
+    _focusNode = FocusNode();
+    _placeCursorBeforeMarker();
+    _focusNode.addListener(_placeCursorWhenFocused);
+  }
+
+  void _placeCursorWhenFocused() {
+    if (!_focusNode.hasFocus || _cursorPlaced) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || !_focusNode.hasFocus) return;
+      _placeCursorBeforeMarker(lock: true);
+    });
+  }
+
+  void _placeCursorBeforeMarker({bool lock = false}) {
+    if (_cursorPlaced) return;
+    final marker = widget.cursorBefore;
+    if (marker == null || marker.isEmpty) return;
+    final index = _controller.text.indexOf(marker);
+    if (index < 0) return;
+    _controller.selection = TextSelection.collapsed(offset: index);
+    if (lock) _cursorPlaced = true;
   }
 
   @override
   void dispose() {
+    _focusNode.removeListener(_placeCursorWhenFocused);
+    _focusNode.dispose();
     _controller.dispose();
     super.dispose();
   }
@@ -342,6 +369,7 @@ class _ReviewInputDialogState extends State<ReviewInputDialog> {
                       padding: EdgeInsets.symmetric(horizontal: s(24)),
                       child: TextField(
                         controller: _controller,
+                        focusNode: _focusNode,
                         autofocus: true,
                         keyboardType: widget.keyboardType,
                         inputFormatters: widget.inputFormatters,

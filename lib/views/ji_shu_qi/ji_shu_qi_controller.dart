@@ -1733,6 +1733,157 @@ class JiShuQiController extends GetxController {
     updateBenJin(newBenJin.toStringAsFixed(2));
   }
 
+  void showBenJinEditDialog() {
+    dismissKeyboard();
+    textEditingController.clear();
+
+    final currentBenjin = state.totalValue.isNotEmpty ? state.totalValue[0] : '';
+    Get.dialog<void>(
+      ReviewInputDialog(
+        title: '修改本金',
+        message: '',
+        badgeText: currentBenjin.isEmpty ? '当前本金' : '当前本金 $currentBenjin',
+        hintText: '请输入本金',
+        buttonText: '确认修改',
+        statusIcon: Icons.account_balance_wallet_outlined,
+        isDarkMode: state.isDarkMode,
+        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+        inputFormatters: [
+          FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),
+        ],
+        validator: (raw) {
+          if (raw.isEmpty) return '请输入本金';
+          if (double.tryParse(raw) == null) return '请输入正确的数字';
+          return null;
+        },
+        onSubmitted: (raw) {
+          BXLoading.show(douyinStyle: true);
+          updateBenJin(raw);
+        },
+      ),
+      barrierDismissible: true,
+      barrierColor: Colors.black.withValues(
+        alpha: state.isDarkMode ? 0.62 : 0.42,
+      ),
+    );
+  }
+
+  void showPositionEditDialog() {
+    dismissKeyboard();
+    textEditingController.clear();
+
+    final current = '${state.js1}/${state.js2}';
+    Get.dialog<void>(
+      ReviewInputDialog(
+        title: '修改位置',
+        message: '',
+        badgeText: '当前 $current',
+        hintText: '例如 11/11',
+        initialValue: current,
+        buttonText: '确认修改',
+        statusIcon: Icons.my_location_rounded,
+        isDarkMode: state.isDarkMode,
+        keyboardType: TextInputType.text,
+        inputFormatters: [
+          FilteringTextInputFormatter.allow(RegExp(r'[0-9/]')),
+        ],
+        cursorBefore: '/',
+        validator: (raw) {
+          final parts = raw.split('/');
+          if (parts.length != 2 || int.tryParse(parts[0]) == null || int.tryParse(parts[1]) == null) {
+            return '请按 11/11 这样填写';
+          }
+          return null;
+        },
+        onSubmitted: (raw) {
+          final parts = raw.split('/');
+          state.js1 = int.parse(parts[0]);
+          state.js2 = int.parse(parts[1]);
+          state.totalValue[28] = '${state.js1}/${state.js2}';
+          update();
+          BXLoading.showToast('已将位置设为 ${state.totalValue[28]}');
+        },
+      ),
+      barrierDismissible: true,
+      barrierColor: Colors.black.withValues(
+        alpha: state.isDarkMode ? 0.62 : 0.42,
+      ),
+    );
+  }
+
+  void showExpectedValueEditDialog() {
+    dismissKeyboard();
+    textEditingController.clear();
+
+    final current = state.totalValue.length > 19 ? state.totalValue[19] : '';
+    final currentMean = double.tryParse(current);
+    Get.dialog<void>(
+      ReviewInputDialog(
+        title: '修改期望值',
+        message: '',
+        badgeText: currentMean == null ? '当前期望值' : '当前期望值 $current',
+        hintText: '请输入期望值',
+        initialValue: currentMean == null ? '' : current,
+        buttonText: '确认修改',
+        statusIcon: Icons.track_changes_outlined,
+        isDarkMode: state.isDarkMode,
+        keyboardType: const TextInputType.numberWithOptions(decimal: true, signed: true),
+        inputFormatters: [
+          FilteringTextInputFormatter.allow(RegExp(r'[0-9.\-]')),
+        ],
+        validator: (raw) {
+          if (raw.isEmpty) return '请输入期望值';
+          if (double.tryParse(raw) == null) return '请输入正确的数字';
+          return null;
+        },
+        onSubmitted: updateQiWangZhi,
+      ),
+      barrierDismissible: true,
+      barrierColor: Colors.black.withValues(
+        alpha: state.isDarkMode ? 0.62 : 0.42,
+      ),
+    );
+  }
+
+  void showOddsEditDialog() {
+    dismissKeyboard();
+    textEditingController.clear();
+
+    final current = state.totalValue.length > 31 ? state.totalValue[31] : '';
+    final currentOdds = double.tryParse(current);
+    Get.dialog<void>(
+      ReviewInputDialog(
+        title: '修改赔率',
+        message: '',
+        badgeText: currentOdds == null ? '当前赔率' : '当前赔率 $current',
+        hintText: '请输入赔率',
+        initialValue: currentOdds == null ? '' : current,
+        buttonText: '确认修改',
+        statusIcon: Icons.percent_rounded,
+        isDarkMode: state.isDarkMode,
+        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+        inputFormatters: [
+          FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),
+        ],
+        validator: (raw) {
+          if (raw.isEmpty) return '请输入赔率';
+          final odds = double.tryParse(raw);
+          if (odds == null) return '请输入正确的数字';
+          if (odds < 0) return '赔率不能为负数';
+          return null;
+        },
+        onSubmitted: (raw) {
+          BXLoading.show(douyinStyle: true);
+          updateOdds(raw);
+        },
+      ),
+      barrierDismissible: true,
+      barrierColor: Colors.black.withValues(
+        alpha: state.isDarkMode ? 0.62 : 0.42,
+      ),
+    );
+  }
+
   void showCurrentAmountReconcileDialog() {
     dismissKeyboard();
     textEditingController.clear();
@@ -1782,9 +1933,55 @@ class JiShuQiController extends GetxController {
         failed: (_, __) => BXLoading.dismiss());
   }
 
+  void confirmResetLiushui() {
+    if (state.betRecordList.isEmpty) {
+      BXLoading.showToast('暂无投注记录');
+      return;
+    }
+    final resetBetId = state.betRecordList.last.id;
+    if (resetBetId == null) {
+      BXLoading.showToast('无法获取最后一条记录');
+      return;
+    }
+    Get.dialog<void>(
+      ReviewApprovedDialog(
+        title: '重置流水？',
+        message: '从最后一条投注记录重置流水',
+        badgeText: '',
+        buttonText: '确定',
+        secondaryButtonText: '取消',
+        statusIcon: Icons.restart_alt_rounded,
+        isDarkMode: state.isDarkMode,
+        onConfirmed: () => _resetLiushui(resetBetId),
+      ),
+      barrierDismissible: true,
+      barrierColor: Colors.black.withValues(
+        alpha: state.isDarkMode ? 0.62 : 0.50,
+      ),
+    );
+  }
+
+  void _resetLiushui(int resetBetId) {
+    BXPost<JsqOperationRecordModel>(
+      Api.resetLiuShui,
+      params: {"resetIndex": resetBetId},
+      success: (bool isSuccess, int code, String message, List<JsqOperationRecordModel> results) {
+        if (!isSuccess) return;
+        BXLoading.showToast(message.isNotEmpty ? message : '重置流水成功');
+        if (results.isNotEmpty) {
+          final latest = results.last;
+          if (state.operationRecordList.isNotEmpty) {
+            state.operationRecordList.last.liushuiIndex = latest.liushuiIndex;
+          }
+        }
+        _getStatisticalAreasData(JiShuQiState.tempIndexCmdKeep, isShowLoading: false);
+      },
+      onModel: (m) => JsqOperationRecordModel.fromJson(m),
+    );
+  }
+
   //底部选项
   Future<void> functionConfirm(int i) async {
-    var s = textEditingController.text.toString();
     switch (i) {
       case 0: //排列数据
         sort();
@@ -1807,24 +2004,10 @@ class JiShuQiController extends GetxController {
         );
         break;
       case 2: //修改本金
-        BXLoading.show(douyinStyle: true);
-        if (s.isEmpty) {
-          BXLoading.dismiss();
-          BXLoading.showToast('请输入金额 ${textEditingController.text} ');
-          break;
-        }
-        if (!s.isNum) {
-          BXLoading.dismiss();
-          BXLoading.showToast('请输入数字 ${textEditingController.text} ');
-          break;
-        }
-        updateBenJin(s);
+        showBenJinEditDialog();
         break;
-      case 3: //修改位置：下注次数 = 随机次数 - 1（如 3/2、10/2 → 1/2；5/10 → 9/10）
-        state.js1 = state.js2 > 0 ? state.js2 - 1 : 0;
-        state.totalValue[28] = "${state.js1}/${state.js2}";
-        update();
-        BXLoading.showToast('已将位置设为 ${state.totalValue[28]}');
+      case 3: //修改位置
+        showPositionEditDialog();
         break;
       case 4: //删除全部数据（当前用户下）
         Get.dialog<void>(
@@ -1856,100 +2039,19 @@ class JiShuQiController extends GetxController {
         );
         break;
       case 5: //重置流水
-        if (state.betRecordList.isEmpty) {
-          BXLoading.showToast('暂无投注记录');
-          break;
-        }
-        final resetBetId = state.betRecordList.last.id;
-        if (resetBetId == null) {
-          BXLoading.showToast('无法获取最后一条记录');
-          break;
-        }
-        BXPost<JsqOperationRecordModel>(
-          Api.resetLiuShui,
-          params: {"resetIndex": resetBetId},
-          success: (bool isSuccess, int code, String message, List<JsqOperationRecordModel> results) {
-            if (!isSuccess) return;
-            BXLoading.showToast(message.isNotEmpty ? message : '重置流水成功');
-            if (results.isNotEmpty) {
-              final latest = results.last;
-              if (state.operationRecordList.isNotEmpty) {
-                state.operationRecordList.last.liushuiIndex = latest.liushuiIndex;
-              }
-            }
-            _getStatisticalAreasData(JiShuQiState.tempIndexCmdKeep, isShowLoading: false);
-          },
-          onModel: (m) => JsqOperationRecordModel.fromJson(m),
-        );
+        confirmResetLiushui();
         break;
-      case 6: //备份数据
-        BXLoading.show(douyinStyle: true);
-        BXPost(
-          Api.backupManual,
-          isShowLoading: false,
-          success: (isSuccess, code, message, results) {
-            debugPrint('=====备份完成===== ${results.first}');
-            BXLoading.dismiss();
-            if (isSuccess) {
-              Get.snackbar(
-                '备份成功',
-                '数据库备份已完成',
-                snackPosition: SnackPosition.TOP,
-                backgroundColor: Colors.green,
-                colorText: Colors.white,
-                duration: const Duration(seconds: 3),
-              );
-            } else {
-              Get.snackbar(
-                '备份失败',
-                message,
-                snackPosition: SnackPosition.TOP,
-                backgroundColor: Colors.red,
-                colorText: Colors.white,
-                duration: const Duration(seconds: 3),
-              );
-            }
-          },
-          failed: (error, model) {
-            BXLoading.dismiss();
-            Get.snackbar(
-              '备份失败',
-              '网络错误：$error',
-              snackPosition: SnackPosition.TOP,
-              backgroundColor: Colors.red,
-              colorText: Colors.white,
-              duration: const Duration(seconds: 3),
-            );
-          },
-        );
+      case 6: //分享给朋友
+        BXLoading.showToast('分享给朋友，尽请期待！');
         break;
       case 7: //返回上步
         confirmDeleteLast();
         break;
       case 8: //修改期望值
-        if (s.isEmpty) {
-          BXLoading.showToast('请输入期望值 ${textEditingController.text} ');
-          break;
-        }
-        if (!s.isNum) {
-          BXLoading.showToast('请输入数字 ${textEditingController.text} ');
-          break;
-        }
-        updateQiWangZhi(s);
+        showExpectedValueEditDialog();
         break;
       case 9: //修改赔率
-        BXLoading.show(douyinStyle: true);
-        if (s.isEmpty) {
-          BXLoading.dismiss();
-          BXLoading.showToast('请输入赔率 ${textEditingController.text} ');
-          break;
-        }
-        if (!s.isNum) {
-          BXLoading.dismiss();
-          BXLoading.showToast('请输入赔率 ${textEditingController.text} ');
-          break;
-        }
-        updateOdds(s);
+        showOddsEditDialog();
         break;
       case 10: //退出程序
         await GetStore.getInstance().logout();

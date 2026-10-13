@@ -1118,7 +1118,18 @@ class JiShuQiView extends GetView<JiShuQiController> {
                       controller.juBuPingHeng(JiShuQiState.tempIndexCmdCancel, v: controller.state.totalValue[29]);
                     }
                   },
-                  onDoubleTap: valueIndex == 4 ? controller.showCurrentAmountReconcileDialog : null,
+                  onDoubleTap: valueIndex == 4
+                      ? controller.showCurrentAmountReconcileDialog
+                      : valueIndex == 0
+                          ? controller.showBenJinEditDialog
+                          : valueIndex == 28
+                              ? controller.showPositionEditDialog
+                              : valueIndex == 31
+                                  ? controller.showOddsEditDialog
+                                  : valueIndex == 19
+                                      ? controller.showExpectedValueEditDialog
+                                      : null,
+                  onLongPress: valueIndex == 3 ? controller.confirmResetLiushui : null,
                   child: Align(
                     alignment: Alignment.center,
                     child: FittedBox(
