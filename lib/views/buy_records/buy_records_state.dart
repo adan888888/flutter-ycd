@@ -16,7 +16,7 @@ class BuyRecordsState {
   double? ma200Daily;
 
   /// 当前选择的币种
-  String currentCurrency = 'trx';
+  String currentCurrency = 'btc';
 
   /// 用户自定义的基准买入金额（currencyId -> USDT）
   Map<String, double> customBaseAmounts = {};

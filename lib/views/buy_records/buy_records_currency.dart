@@ -182,7 +182,7 @@ BuyRecordsCurrency? findBuyRecordsCurrency(String id) {
 }
 
 BuyRecordsCurrency get defaultBuyRecordsCurrency =>
-    findBuyRecordsCurrency('trx') ?? buyRecordsCurrencies.first;
+    findBuyRecordsCurrency('btc') ?? buyRecordsCurrencies.first;
 
 /// 根据现价相对 200MA 的偏离百分比，在 [baseAmount] 基准上计算建议买入金额（USDT）。
 /// [deviationPercent] = (现价 - 200MA) / 200MA * 100
