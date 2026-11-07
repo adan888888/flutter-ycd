@@ -14,6 +14,26 @@ class MarketQuote {
 const int _smaPeriod = 200;
 const int _dailyKlineLimit = 300;
 
+/// 各币种近 24 小时涨跌幅（百分数，如 -4.74 表示跌 4.74%）。取不到的币种值为 null。
+Future<Map<String, double?>> fetchChangePercent24h(
+  List<BuyRecordsCurrency> currencies,
+  Map<String, String> headers,
+) async {
+  final result = <String, double?>{for (final item in currencies) item.id: null};
+  final groups = <BuyRecordsMarketSource, List<BuyRecordsCurrency>>{};
+  for (final item in currencies) {
+    groups.putIfAbsent(item.marketSource, () => []).add(item);
+  }
+
+  await Future.wait([
+    _fillBinanceChange24h(groups[BuyRecordsMarketSource.binance] ?? const [], result, headers),
+    _fillOkxChange24h(groups[BuyRecordsMarketSource.okx] ?? const [], result, headers),
+    _fillGateChange24h(groups[BuyRecordsMarketSource.gate] ?? const [], result, headers),
+    _fillEastmoneyChange24h(groups[BuyRecordsMarketSource.eastmoney] ?? const [], result, headers),
+  ]);
+  return result;
+}
+
 Future<MarketQuote> fetchMarketQuote(
   BuyRecordsCurrency currency,
   Map<String, String> headers,
@@ -165,6 +185,121 @@ Future<MarketQuote> _fetchGateQuote(
   }
 
   return MarketQuote(price: price, ma200: ma200);
+}
+
+Future<void> _fillBinanceChange24h(
+  List<BuyRecordsCurrency> currencies,
+  Map<String, double?> result,
+  Map<String, String> headers,
+) async {
+  if (currencies.isEmpty) return;
+  try {
+    final symbols = jsonEncode(currencies.map((item) => item.marketSymbol).toList());
+    final response = await http
+        .get(
+          Uri.https('api.binance.com', '/api/v3/ticker/24hr', {'symbols': symbols}),
+          headers: headers,
+        )
+        .timeout(const Duration(seconds: 30));
+    if (response.statusCode != 200) return;
+    final data = json.decode(response.body);
+    if (data is! List) return;
+    final bySymbol = <String, double>{};
+    for (final row in data) {
+      if (row is! Map) continue;
+      final symbol = row['symbol']?.toString();
+      final percent = double.tryParse(row['priceChangePercent']?.toString() ?? '');
+      if (symbol != null && percent != null) bySymbol[symbol] = percent;
+    }
+    for (final item in currencies) {
+      result[item.id] = bySymbol[item.marketSymbol];
+    }
+  } catch (_) {}
+}
+
+Future<void> _fillOkxChange24h(
+  List<BuyRecordsCurrency> currencies,
+  Map<String, double?> result,
+  Map<String, String> headers,
+) async {
+  await Future.wait(currencies.map((item) async {
+    try {
+      final response = await http
+          .get(
+            Uri.https('www.okx.com', '/api/v5/market/ticker', {'instId': item.marketSymbol}),
+            headers: headers,
+          )
+          .timeout(const Duration(seconds: 30));
+      if (response.statusCode != 200) return;
+      final data = json.decode(response.body);
+      if (data is! Map || data['code'].toString() != '0' || data['data'] is! List) return;
+      final rows = data['data'] as List;
+      if (rows.isEmpty || rows.first is! Map) return;
+      final row = rows.first as Map;
+      final last = double.tryParse(row['last']?.toString() ?? '');
+      final open = double.tryParse(row['open24h']?.toString() ?? '');
+      if (last == null || open == null || open == 0) return;
+      result[item.id] = (last - open) / open * 100;
+    } catch (_) {}
+  }));
+}
+
+Future<void> _fillGateChange24h(
+  List<BuyRecordsCurrency> currencies,
+  Map<String, double?> result,
+  Map<String, String> headers,
+) async {
+  await Future.wait(currencies.map((item) async {
+    try {
+      final response = await http
+          .get(
+            Uri.https('api.gateio.ws', '/api/v4/spot/tickers', {'currency_pair': item.marketSymbol}),
+            headers: headers,
+          )
+          .timeout(const Duration(seconds: 30));
+      if (response.statusCode != 200) return;
+      final data = json.decode(response.body);
+      if (data is! List || data.isEmpty || data.first is! Map) return;
+      final percent = double.tryParse((data.first as Map)['change_percentage']?.toString() ?? '');
+      if (percent != null) result[item.id] = percent;
+    } catch (_) {}
+  }));
+}
+
+Future<void> _fillEastmoneyChange24h(
+  List<BuyRecordsCurrency> currencies,
+  Map<String, double?> result,
+  Map<String, String> headers,
+) async {
+  if (currencies.isEmpty) return;
+  try {
+    final response = await http
+        .get(
+          Uri.https('push2.eastmoney.com', '/api/qt/ulist.np/get', {
+            'fltt': '2',
+            'secids': currencies.map((item) => item.marketSymbol).join(','),
+            'fields': 'f12,f3',
+          }),
+          headers: headers,
+        )
+        .timeout(const Duration(seconds: 30));
+    if (response.statusCode != 200) return;
+    final data = json.decode(response.body);
+    if (data is! Map || data['data'] is! Map) return;
+    final diff = (data['data'] as Map)['diff'];
+    if (diff is! List) return;
+    final byCode = <String, double>{};
+    for (final row in diff) {
+      if (row is! Map) continue;
+      final code = row['f12']?.toString().toUpperCase();
+      final percent = row['f3'] is num ? (row['f3'] as num).toDouble() : double.tryParse(row['f3']?.toString() ?? '');
+      if (code != null && percent != null) byCode[code] = percent;
+    }
+    for (final item in currencies) {
+      final code = item.marketSymbol.split('.').last.toUpperCase();
+      result[item.id] = byCode[code];
+    }
+  } catch (_) {}
 }
 
 /// 东方财富日 K 只有一个接口：最新一根的收盘价即当前点位（盘中实时更新）。

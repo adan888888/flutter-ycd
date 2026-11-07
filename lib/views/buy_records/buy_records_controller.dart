@@ -17,9 +17,12 @@ class BuyRecordsController extends GetxController {
 
   /// 状态管理
   final BuyRecordsState state = BuyRecordsState();
+  int _currencyRequestSequence = 0;
+  int _changePercentRequestSequence = 0;
 
   BuyRecordsCurrency get currentCurrencyConfig =>
-      findBuyRecordsCurrency(state.currentCurrency) ?? defaultBuyRecordsCurrency;
+      findBuyRecordsCurrency(state.currentCurrency) ??
+      defaultBuyRecordsCurrency;
 
   double get effectiveBaseAmount => baseAmountFor(currentCurrencyConfig);
 
@@ -30,11 +33,11 @@ class BuyRecordsController extends GetxController {
       state.customBaseAmounts.containsKey(currencyId);
 
   Map<String, String> get _marketHeaders => const {
-    'User-Agent':
-        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-    'Accept': 'application/json',
-    'Accept-Language': 'en-US,en;q=0.9',
-  };
+        'User-Agent':
+            'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+        'Accept': 'application/json',
+        'Accept-Language': 'en-US,en;q=0.9',
+      };
 
   @override
   void onInit() {
@@ -88,7 +91,8 @@ class BuyRecordsController extends GetxController {
     }
   }
 
-  String formatSuggestedBuyAmountFor(double baseAmount, {double? deviationPercent}) {
+  String formatSuggestedBuyAmountFor(double baseAmount,
+      {double? deviationPercent}) {
     final deviation = deviationPercent ?? ma200DailyDeviationPercent;
     final amount = suggestedBuyAmountUsdt(deviation, baseAmount);
     if (amount == null) return '—';
@@ -96,7 +100,8 @@ class BuyRecordsController extends GetxController {
     return formatBuyAmountUsdt(amount);
   }
 
-  Color suggestedBuyAmountColorFor(double baseAmount, {double? deviationPercent}) {
+  Color suggestedBuyAmountColorFor(double baseAmount,
+      {double? deviationPercent}) {
     final deviation = deviationPercent ?? ma200DailyDeviationPercent;
     final amount = suggestedBuyAmountUsdt(deviation, baseAmount);
     if (amount == null) return Colors.grey;
@@ -106,51 +111,95 @@ class BuyRecordsController extends GetxController {
     return Colors.black;
   }
 
-  /// 初始化数据，确保两个接口都完成后再进行计算
+  /// 初始化数据。当前币种数据与全量 24h 涨跌并行刷新，互不阻塞 UI。
   Future<void> _initializeData() async {
+    await Future.wait([
+      _loadCurrentCurrencyData(),
+      _fetchChangePercent24h(),
+    ]);
+  }
+
+  Future<void> _fetchChangePercent24h() async {
+    final requestSequence = ++_changePercentRequestSequence;
     try {
-      // 同时执行两个异步操作
-      await Future.wait([
-        _fetchBuyRecords(),
-        _fetchCurrentPrice(),
-      ]);
-    } catch (e) {
-      debugPrint('初始化数据失败: $e');
-      // 即使有错误，也要更新UI显示错误状态
-    } finally {
-      // 无论成功还是失败，都要触发UI更新
+      final result =
+          await fetchChangePercent24h(buyRecordsCurrencies, _marketHeaders);
+      if (requestSequence != _changePercentRequestSequence) return;
+      state.changePercent24h = result;
       update();
+    } catch (e) {
+      debugPrint('获取24小时涨跌失败: $e');
     }
   }
 
-  /// 获取当前价格与 200 日均线
-  Future<void> _fetchCurrentPrice() async {
+  /// 只加载当前币种的记录和行情。请求序号可阻止快速切换时旧响应回写。
+  Future<void> _loadCurrentCurrencyData() async {
+    final requestSequence = ++_currencyRequestSequence;
     final currencyId = state.currentCurrency;
     final config = currentCurrencyConfig;
 
+    state.isLoading = true;
+    state.errorMessage = null;
+    state.buyRecords = [];
+    state.currentPrice = null;
+    state.ma200Daily = null;
+    update();
+
+    final recordsFuture = _fetchBuyRecords(currencyId);
+    final quoteFuture = _fetchMarketQuoteSafely(config);
+
     try {
-      state.currentPrice = null;
-      state.ma200Daily = null;
+      final results = await Future.wait<Object?>([
+        recordsFuture,
+        quoteFuture,
+      ]);
+      if (!_isLatestCurrencyRequest(requestSequence, currencyId)) return;
 
-      final quote = await fetchMarketQuote(config, _marketHeaders);
-      if (state.currentCurrency != currencyId) return;
+      final recordsResult = results[0] as _BuyRecordsFetchResult;
+      final quote = results[1] as MarketQuote?;
+      state.buyRecords = recordsResult.records;
+      state.errorMessage = recordsResult.errorMessage;
+      state.currentPrice = quote?.price;
+      state.ma200Daily = quote?.ma200;
 
-      state.currentPrice = quote.price;
-      state.ma200Daily = quote.ma200;
-
-      if (quote.price != null) {
-        debugPrint('当前${config.label}价格(${config.exchangeName}): ${quote.price}');
+      if (quote?.price != null) {
+        debugPrint(
+            '当前${config.label}价格(${config.exchangeName}): ${quote!.price}');
       } else {
         debugPrint('获取${config.label}价格失败 (${config.exchangeName})');
       }
 
-      if (quote.ma200 != null) {
-        debugPrint('当前${config.label} SMA200(1d): ${quote.ma200}');
-      } else if (quote.price != null) {
+      if (quote?.ma200 != null) {
+        debugPrint('当前${config.label} SMA200(1d): ${quote!.ma200}');
+      } else if (quote?.price != null) {
         debugPrint('${config.label} 已收盘日K数量不足，无法计算 SMA200');
       }
     } catch (e) {
+      if (!_isLatestCurrencyRequest(requestSequence, currencyId)) return;
+      state.buyRecords = [];
+      state.currentPrice = null;
+      state.ma200Daily = null;
+      state.errorMessage = '加载数据失败';
+      debugPrint('加载${config.label}数据失败: $e');
+    } finally {
+      if (_isLatestCurrencyRequest(requestSequence, currencyId)) {
+        state.isLoading = false;
+        update();
+      }
+    }
+  }
+
+  bool _isLatestCurrencyRequest(int requestSequence, String currencyId) =>
+      requestSequence == _currencyRequestSequence &&
+      state.currentCurrency == currencyId;
+
+  Future<MarketQuote?> _fetchMarketQuoteSafely(
+      BuyRecordsCurrency config) async {
+    try {
+      return await fetchMarketQuote(config, _marketHeaders);
+    } catch (e) {
       debugPrint('获取${config.label}行情失败: $e');
+      return null;
     }
   }
 
@@ -171,37 +220,56 @@ class BuyRecordsController extends GetxController {
   Color suggestedBuyAmountColor() =>
       suggestedBuyAmountColorFor(effectiveBaseAmount);
 
-  /// 获取买入记录数据
-  Future<void> _fetchBuyRecords() async {
-    state.isLoading = true;
-    state.errorMessage = null;
-    final completer = Completer<void>();
-    BXGet<dynamic>(
-      Api.buyRecords,
-      params: {'currency': state.currentCurrency},
-      isShowLoading: false,
-      showError: false,
-      success: (isSuccess, code, message, results) {
-        if (isSuccess) {
-          // 接口 created_at 升序 [最旧…最新]，倒置后 state 为 [最新…最旧]，列表从上到下即最新在上。
-          state.buyRecords = List<Map<String, dynamic>>.from(results.reversed);
-          debugPrint('买入记录API返回条数: ${state.buyRecords.length}');
-        } else {
-          state.buyRecords = [];
-          state.errorMessage = message.isNotEmpty ? message : '获取数据失败';
-        }
-        state.isLoading = false;
-        if (!completer.isCompleted) completer.complete();
-      },
-      failed: (message, _) {
-        state.buyRecords = [];
-        state.errorMessage = message.isNotEmpty ? message : '请求失败';
-        debugPrint('获取买入记录失败: $message');
-        state.isLoading = false;
-        if (!completer.isCompleted) completer.complete();
-      },
-    );
-    await completer.future;
+  /// 获取指定币种的买入记录。异步回调只返回结果，不直接修改页面状态。
+  Future<_BuyRecordsFetchResult> _fetchBuyRecords(String currencyId) async {
+    final completer = Completer<_BuyRecordsFetchResult>();
+    try {
+      BXGet<dynamic>(
+        Api.buyRecords,
+        params: {'currency': currencyId},
+        isShowLoading: false,
+        showError: false,
+        success: (isSuccess, code, message, results) {
+          if (completer.isCompleted) return;
+          if (isSuccess) {
+            try {
+              // 接口 created_at 升序 [最旧…最新]，倒置后页面为 [最新…最旧]。
+              final records = List<Map<String, dynamic>>.from(results.reversed);
+              debugPrint('$currencyId 买入记录API返回条数: ${records.length}');
+              completer.complete(_BuyRecordsFetchResult(records: records));
+            } catch (e) {
+              debugPrint('解析$currencyId买入记录失败: $e');
+              completer.complete(
+                const _BuyRecordsFetchResult(errorMessage: '数据解析失败'),
+              );
+            }
+          } else {
+            completer.complete(
+              _BuyRecordsFetchResult(
+                errorMessage: message.isNotEmpty ? message : '获取数据失败',
+              ),
+            );
+          }
+        },
+        failed: (message, _) {
+          if (completer.isCompleted) return;
+          debugPrint('获取$currencyId买入记录失败: $message');
+          completer.complete(
+            _BuyRecordsFetchResult(
+              errorMessage: message.isNotEmpty ? message : '请求失败',
+            ),
+          );
+        },
+      );
+    } catch (e) {
+      debugPrint('发起$currencyId买入记录请求失败: $e');
+      if (!completer.isCompleted) {
+        completer.complete(
+          const _BuyRecordsFetchResult(errorMessage: '请求失败'),
+        );
+      }
+    }
+    return completer.future;
   }
 
   /// 格式化成本价
@@ -229,7 +297,8 @@ class BuyRecordsController extends GetxController {
     if (value == 0) return '0';
     final negative = value < 0;
     final text = value.abs().toString().toLowerCase();
-    final match = RegExp(r'^(\d+)(?:\.(\d+))?(?:e([+-]?\d+))?$').firstMatch(text);
+    final match =
+        RegExp(r'^(\d+)(?:\.(\d+))?(?:e([+-]?\d+))?$').firstMatch(text);
     if (match == null) return value.toString();
 
     final digits = '${match.group(1)}${match.group(2) ?? ''}';
@@ -363,7 +432,11 @@ class BuyRecordsController extends GetxController {
     debugPrint('总数量: $totalQuantity ${currentCurrencyConfig.label}');
     debugPrint('均价: $averagePrice USDT/${currentCurrencyConfig.label}');
 
-    return {'totalCost': totalCost, 'totalQuantity': totalQuantity, 'averagePrice': averagePrice};
+    return {
+      'totalCost': totalCost,
+      'totalQuantity': totalQuantity,
+      'averagePrice': averagePrice
+    };
   }
 
   /// 累计收益：时间顺序同上，从最早买入累加到当前行（含）。
@@ -425,14 +498,22 @@ class BuyRecordsController extends GetxController {
   void switchCurrency(String currency) {
     if (state.currentCurrency != currency) {
       state.currentCurrency = currency;
-      // 切换币种后重新获取数据，确保两个接口都完成后再更新UI
-      _initializeData();
+      unawaited(_loadCurrentCurrencyData());
     }
   }
 
   /// 刷新所有数据
   Future<void> refreshAllData() async {
-    // 使用统一的初始化方法，确保两个接口都完成后再更新UI
     await _initializeData();
   }
+}
+
+class _BuyRecordsFetchResult {
+  const _BuyRecordsFetchResult({
+    this.records = const [],
+    this.errorMessage,
+  });
+
+  final List<Map<String, dynamic>> records;
+  final String? errorMessage;
 }

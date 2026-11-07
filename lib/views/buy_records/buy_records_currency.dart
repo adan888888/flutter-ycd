@@ -33,16 +33,31 @@ class BuyRecordsCurrency {
 
 const List<BuyRecordsCurrency> buyRecordsCurrencies = [
   BuyRecordsCurrency(
-    id: 'trx',
-    label: 'TRX',
-    marketSource: BuyRecordsMarketSource.binance,
-    marketSymbol: 'TRXUSDT',
-    exchangeName: 'Binance',
-    color: Colors.red,
+    id: 'hs300',
+    label: '沪深300',
+    marketSource: BuyRecordsMarketSource.eastmoney,
+    marketSymbol: '1.000300',
+    exchangeName: '东方财富',
+    color: Colors.deepPurple,
     baseAmount: 100,
-    priceDecimals: 4,
-    maDecimals: 4,
-    costDecimals: 5,
+  ),
+  BuyRecordsCurrency(
+    id: 'spx',
+    label: '标普500',
+    marketSource: BuyRecordsMarketSource.eastmoney,
+    marketSymbol: '100.SPX',
+    exchangeName: '东方财富',
+    color: Colors.pink,
+    baseAmount: 100,
+  ),
+  BuyRecordsCurrency(
+    id: 'ndx',
+    label: '纳斯达克',
+    marketSource: BuyRecordsMarketSource.eastmoney,
+    marketSymbol: '100.NDX',
+    exchangeName: '东方财富',
+    color: Colors.purple,
+    baseAmount: 100,
   ),
   BuyRecordsCurrency(
     id: 'btc',
@@ -61,6 +76,27 @@ const List<BuyRecordsCurrency> buyRecordsCurrencies = [
     exchangeName: 'Binance',
     color: Colors.blue,
     baseAmount: 500,
+  ),
+  BuyRecordsCurrency(
+    id: 'trx',
+    label: 'TRX',
+    marketSource: BuyRecordsMarketSource.binance,
+    marketSymbol: 'TRXUSDT',
+    exchangeName: 'Binance',
+    color: Colors.red,
+    baseAmount: 100,
+    priceDecimals: 4,
+    maDecimals: 4,
+    costDecimals: 5,
+  ),
+  BuyRecordsCurrency(
+    id: 'sol',
+    label: 'SOL',
+    marketSource: BuyRecordsMarketSource.binance,
+    marketSymbol: 'SOLUSDT',
+    exchangeName: 'Binance',
+    color: Color(0xFF9945FF),
+    baseAmount: 100,
   ),
   BuyRecordsCurrency(
     id: 'bnb',
@@ -108,6 +144,15 @@ const List<BuyRecordsCurrency> buyRecordsCurrencies = [
     baseAmount: 100,
   ),
   BuyRecordsCurrency(
+    id: 'ada',
+    label: 'ADA',
+    marketSource: BuyRecordsMarketSource.okx,
+    marketSymbol: 'ADA-USDT',
+    exchangeName: 'OKX',
+    color: Colors.green,
+    baseAmount: 50,
+  ),
+  BuyRecordsCurrency(
     id: 'doge',
     label: 'DOGE',
     marketSource: BuyRecordsMarketSource.binance,
@@ -119,15 +164,6 @@ const List<BuyRecordsCurrency> buyRecordsCurrencies = [
     maDecimals: 4,
   ),
   BuyRecordsCurrency(
-    id: 'ada',
-    label: 'ADA',
-    marketSource: BuyRecordsMarketSource.okx,
-    marketSymbol: 'ADA-USDT',
-    exchangeName: 'OKX',
-    color: Colors.green,
-    baseAmount: 50,
-  ),
-  BuyRecordsCurrency(
     id: 'night',
     label: 'NIGHT',
     marketSource: BuyRecordsMarketSource.okx,
@@ -135,33 +171,6 @@ const List<BuyRecordsCurrency> buyRecordsCurrencies = [
     exchangeName: 'OKX',
     color: Colors.indigo,
     baseAmount: 50,
-  ),
-  BuyRecordsCurrency(
-    id: 'hs300',
-    label: '沪深300',
-    marketSource: BuyRecordsMarketSource.eastmoney,
-    marketSymbol: '1.000300',
-    exchangeName: '东方财富',
-    color: Colors.deepPurple,
-    baseAmount: 100,
-  ),
-  BuyRecordsCurrency(
-    id: 'spx',
-    label: '标普500',
-    marketSource: BuyRecordsMarketSource.eastmoney,
-    marketSymbol: '100.SPX',
-    exchangeName: '东方财富',
-    color: Colors.pink,
-    baseAmount: 100,
-  ),
-  BuyRecordsCurrency(
-    id: 'ndx',
-    label: '纳斯达克',
-    marketSource: BuyRecordsMarketSource.eastmoney,
-    marketSymbol: '100.NDX',
-    exchangeName: '东方财富',
-    color: Colors.purple,
-    baseAmount: 100,
   ),
 ];
 
@@ -173,7 +182,7 @@ BuyRecordsCurrency? findBuyRecordsCurrency(String id) {
 }
 
 BuyRecordsCurrency get defaultBuyRecordsCurrency =>
-    findBuyRecordsCurrency('btc') ?? buyRecordsCurrencies.first;
+    findBuyRecordsCurrency('trx') ?? buyRecordsCurrencies.first;
 
 /// 根据现价相对 200MA 的偏离百分比，在 [baseAmount] 基准上计算建议买入金额（USDT）。
 /// [deviationPercent] = (现价 - 200MA) / 200MA * 100

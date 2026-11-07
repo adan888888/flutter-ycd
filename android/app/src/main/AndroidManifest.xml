@@ -39,6 +39,17 @@
                 android:name="io.flutter.embedding.android.NormalTheme"
                 android:resource="@style/NormalTheme" />
         </activity>
+        <!--
+             独立进程负责在旧 Flutter 进程退出后冷启动应用。
+             透明、独立任务且不进入最近任务列表，用户不会看到辅助页面。
+        -->
+        <activity
+            android:name=".RestartActivity"
+            android:exported="false"
+            android:excludeFromRecents="true"
+            android:process=":restart"
+            android:taskAffinity="${applicationId}.restart"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->
         <meta-data

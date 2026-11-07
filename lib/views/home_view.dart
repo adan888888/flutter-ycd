@@ -10,6 +10,7 @@ import 'package:ycd/utils/network/api.dart';
 import 'package:ycd/utils/network/api_session_handler.dart';
 import 'package:ycd/utils/network/dio_manager.dart';
 import 'package:ycd/utils/network/get_store.dart';
+import 'package:ycd/utils/shorebird_update.dart';
 import 'package:ycd/utils/user_role.dart';
 import 'package:ycd/views/home_tools_controller.dart';
 import 'package:ycd/views/login/login_viw_widget/login_controller.dart';
@@ -151,9 +152,12 @@ class HomeView extends StatelessWidget {
                 PopupMenuButton<String>(
                   icon: const Icon(Icons.more_vert, color: Colors.white, size: 22),
                   offset: const Offset(0, 40),
-                  onSelected: (value) {
+                  onSelected: (value) async {
                     if (value == 'password') _showChangePassword();
                     if (value == 'logout') _confirmLogout();
+                    if (value == 'version') {
+                      await ShorebirdUpdate.checkManually();
+                    }
                   },
                   itemBuilder: (context) => [
                     const PopupMenuItem<String>(
@@ -177,7 +181,7 @@ class HomeView extends StatelessWidget {
                       ),
                     ),
                     PopupMenuItem<String>(
-                      enabled: false,
+                      value: 'version',
                       height: 36,
                       child: FutureBuilder<String>(
                         future: _versionMenuLabel(),

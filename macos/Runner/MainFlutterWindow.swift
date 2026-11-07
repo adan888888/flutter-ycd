@@ -37,17 +37,27 @@ class MainFlutterWindow: NSWindow {
         result(FlutterMethodNotImplemented)
         return
       }
-      let config = NSWorkspace.OpenConfiguration()
-      config.createsNewApplicationInstance = true
-      NSWorkspace.shared.openApplication(at: Bundle.main.bundleURL, configuration: config) { _, error in
-        if let error = error {
-          result(FlutterError(code: "restart_failed", message: error.localizedDescription, details: nil))
-          return
-        }
+      // 让独立于本应用的 shell 延迟调用 open。旧进程先完全退出，LaunchServices
+      // 才不会把打开请求交回仍在终止中的旧实例。
+      let relauncher = Process()
+      relauncher.executableURL = URL(fileURLWithPath: "/bin/sh")
+      relauncher.arguments = [
+        "-c",
+        "sleep 1; exec /usr/bin/open -n \"$1\"",
+        "ycd-restart",
+        Bundle.main.bundleURL.path,
+      ]
+      relauncher.standardOutput = FileHandle.nullDevice
+      relauncher.standardError = FileHandle.nullDevice
+
+      do {
+        try relauncher.run()
         result(nil)
         DispatchQueue.main.async {
           NSApp.terminate(nil)
         }
+      } catch {
+        result(FlutterError(code: "restart_failed", message: error.localizedDescription, details: nil))
       }
     }
 

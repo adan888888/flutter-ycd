@@ -6,6 +6,7 @@ import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.os.Process
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
@@ -26,19 +27,22 @@ class MainActivity : FlutterActivity() {
                     result.notImplemented()
                     return@setMethodCallHandler
                 }
-                val launch = packageManager.getLaunchIntentForPackage(packageName)
-                if (launch == null) {
-                    result.error("restart_failed", "找不到启动页", null)
-                    return@setMethodCallHandler
+                try {
+                    // 辅助 Activity 运行在独立进程。它会等当前 Flutter 进程完全退出后，
+                    // 再启动 Launcher Activity，确保 Shorebird 补丁由全新引擎加载。
+                    startActivity(
+                        Intent(this, RestartActivity::class.java).apply {
+                            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+                        },
+                    )
+                    result.success(null)
+                    Handler(Looper.getMainLooper()).postDelayed({
+                        finishAffinity()
+                        Process.killProcess(Process.myPid())
+                    }, 200)
+                } catch (error: Exception) {
+                    result.error("restart_failed", error.localizedMessage, null)
                 }
-                launch.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
-                result.success(null)
-                // 先让通道结果回到 Dart，再清掉当前任务并结束进程。
-                // 系统会按启动页重新拉起进程，Shorebird 补丁在新进程里生效。
-                Handler(Looper.getMainLooper()).postDelayed({
-                    startActivity(launch)
-                    Runtime.getRuntime().exit(0)
-                }, 300)
             }
     }
 

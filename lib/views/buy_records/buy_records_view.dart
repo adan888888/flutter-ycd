@@ -4,8 +4,15 @@ import 'package:get/get.dart';
 import 'buy_records_controller.dart';
 import 'buy_records_currency.dart';
 
-class BuyRecordsView extends StatelessWidget {
+class BuyRecordsView extends StatefulWidget {
   const BuyRecordsView({super.key});
+
+  @override
+  State<BuyRecordsView> createState() => _BuyRecordsViewState();
+}
+
+class _BuyRecordsViewState extends State<BuyRecordsView> {
+  late final ScrollController _currencyScrollController;
 
   // 使用 getter 替代 late final（兼容 const 构造函数）
   double get _defaultPadding => 6.0;
@@ -20,23 +27,45 @@ class BuyRecordsView extends StatelessWidget {
 
   double get _iconSize => 64.0;
 
-  double get _currencyIconSize => 24.0;
-
   // 样式 getter
-  TextStyle get _titleStyle => const TextStyle(fontSize: 14, fontWeight: FontWeight.bold);
+  TextStyle get _titleStyle =>
+      const TextStyle(fontSize: 14, fontWeight: FontWeight.bold);
 
-  TextStyle get _recordNumberStyle => const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.blue);
+  TextStyle get _recordNumberStyle => const TextStyle(
+      fontSize: 13, fontWeight: FontWeight.bold, color: Colors.blue);
 
-  TextStyle get _labelStyle => const TextStyle(fontSize: 11, color: Colors.grey);
+  TextStyle get _labelStyle =>
+      const TextStyle(fontSize: 11, color: Colors.grey);
 
-  TextStyle get _valueStyle => const TextStyle(fontSize: 12, fontWeight: FontWeight.w800);
+  TextStyle get _valueStyle =>
+      const TextStyle(fontSize: 12, fontWeight: FontWeight.w800);
 
-  TextStyle get _smallLabelStyle => const TextStyle(fontSize: 10, color: Colors.grey);
+  TextStyle get _smallLabelStyle =>
+      const TextStyle(fontSize: 10, color: Colors.grey);
 
-  TextStyle get _smallValueStyle => const TextStyle(fontSize: 10, fontWeight: FontWeight.w800);
+  TextStyle get _smallValueStyle =>
+      const TextStyle(fontSize: 10, fontWeight: FontWeight.w800);
 
   /// 「统计信息」区块底色（与外层 Card 区分）
   Color get _statsPanelBackground => const Color(0xFFE8EEF4);
+
+  @override
+  void initState() {
+    super.initState();
+    final defaultIndex = buyRecordsCurrencies.indexWhere(
+      (currency) => currency.id == defaultBuyRecordsCurrency.id,
+    );
+    _currencyScrollController = ScrollController(
+      initialScrollOffset:
+          defaultIndex <= 0 ? 0 : defaultIndex * (_currencyCardWidth + 8),
+    );
+  }
+
+  @override
+  void dispose() {
+    _currencyScrollController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -64,48 +93,53 @@ class BuyRecordsView extends StatelessWidget {
   }
 
   Widget _buildBody(BuyRecordsController controller) {
-    if (controller.state.isLoading) {
-      return _buildLoadingState();
-    }
-
-    if (controller.state.errorMessage != null) {
-      return _buildErrorState(controller);
-    }
-
     return _buildContent(controller);
   }
 
   Widget _buildLoadingState() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const CircularProgressIndicator(),
-          SizedBox(height: _defaultPadding),
-          const Text('正在加载买入记录...'),
-        ],
+    return const Center(
+      child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SizedBox(
+              width: 28,
+              height: 28,
+              child: CircularProgressIndicator(strokeWidth: 3),
+            ),
+            SizedBox(height: 10),
+            Text(
+              '正在加载当前币种数据...',
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildErrorState(BuyRecordsController controller) {
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.error_outline, size: _iconSize, color: Colors.red[300]),
-          SizedBox(height: _defaultPadding),
-          Text(
-            controller.state.errorMessage!,
-            style: const TextStyle(fontSize: 16, color: Colors.red),
-            textAlign: TextAlign.center,
-          ),
-          SizedBox(height: _defaultPadding),
-          ElevatedButton(
-            onPressed: () => controller.refreshAllData(),
-            child: const Text('重试'),
-          ),
-        ],
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.error_outline, size: 40, color: Colors.red[300]),
+            SizedBox(height: _defaultPadding),
+            Text(
+              controller.state.errorMessage!,
+              style: const TextStyle(fontSize: 14, color: Colors.red),
+              textAlign: TextAlign.center,
+            ),
+            SizedBox(height: _defaultPadding),
+            ElevatedButton(
+              onPressed: () => controller.refreshAllData(),
+              child: const Text('重试'),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -122,11 +156,23 @@ class BuyRecordsView extends StatelessWidget {
               child: _buildCurrencySelector(controller),
             ),
           ),
-          SliverPadding(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-            sliver: _buildStickyStatsSliver(controller),
-          ),
-          _buildRecordsSliver(controller),
+          if (controller.state.isLoading)
+            SliverFillRemaining(
+              hasScrollBody: false,
+              child: _buildLoadingState(),
+            )
+          else if (controller.state.errorMessage != null)
+            SliverFillRemaining(
+              hasScrollBody: false,
+              child: _buildErrorState(controller),
+            )
+          else ...[
+            SliverPadding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+              sliver: _buildStickyStatsSliver(controller),
+            ),
+            _buildRecordsSliver(controller),
+          ],
         ],
       ),
     );
@@ -163,13 +209,15 @@ class BuyRecordsView extends StatelessWidget {
         children: [
           Icon(Icons.inbox_outlined, size: _iconSize, color: Colors.grey),
           SizedBox(height: _defaultPadding),
-          const Text('暂无买入记录', style: TextStyle(fontSize: 16, color: Colors.grey)),
+          const Text('暂无买入记录',
+              style: TextStyle(fontSize: 16, color: Colors.grey)),
         ],
       ),
     );
   }
 
-  Widget _buildRecordRow(BuyRecordsController controller, Map<String, dynamic> record, int index) {
+  Widget _buildRecordRow(
+      BuyRecordsController controller, Map<String, dynamic> record, int index) {
     return Padding(
       padding: EdgeInsets.symmetric(vertical: _recordRowPaddingV),
       child: Column(
@@ -208,13 +256,15 @@ class BuyRecordsView extends StatelessWidget {
     );
   }
 
-  Widget _buildRecordHeader(BuyRecordsController controller, Map<String, dynamic> record, int index) {
+  Widget _buildRecordHeader(
+      BuyRecordsController controller, Map<String, dynamic> record, int index) {
     final n = controller.state.buyRecords.length;
     // index 0 = 时间上最后一笔（最新），笔号从最早为第1笔计起
     final purchaseNo = n - index;
     final price = record['buy_price'] as num?;
     final amount = record['buy_amount'] as num?;
-    final qty = price != null && amount != null && price != 0 ? amount / price : null;
+    final qty =
+        price != null && amount != null && price != 0 ? amount / price : null;
     return Row(
       mainAxisAlignment: MainAxisAlignment.start,
       children: [
@@ -229,7 +279,8 @@ class BuyRecordsView extends StatelessWidget {
     );
   }
 
-  Widget _buildCompactRecordDetails(BuyRecordsController controller, Map<String, dynamic> record) {
+  Widget _buildCompactRecordDetails(
+      BuyRecordsController controller, Map<String, dynamic> record) {
     return Row(
       children: [
         Text('成交价', style: _labelStyle),
@@ -240,7 +291,9 @@ class BuyRecordsView extends StatelessWidget {
         SizedBox(width: _smallPadding),
         Text('成交金额', style: _labelStyle),
         Text(
-          record['buy_amount']?.toString().isEmpty == true ? '未知' : "\$${record['buy_amount']}",
+          record['buy_amount']?.toString().isEmpty == true
+              ? '未知'
+              : "\$${record['buy_amount']}",
           style: _valueStyle,
         ),
       ],
@@ -272,8 +325,8 @@ class BuyRecordsView extends StatelessWidget {
     );
   }
 
-  Widget _buildStatsRow(
-      String leftLabel, String leftValue, Color leftColor, String rightLabel, String rightValue, Color rightColor) {
+  Widget _buildStatsRow(String leftLabel, String leftValue, Color leftColor,
+      String rightLabel, String rightValue, Color rightColor) {
     return Row(
       children: [
         _buildCompactStatItem(leftLabel, leftValue, leftColor),
@@ -293,29 +346,47 @@ class BuyRecordsView extends StatelessWidget {
   }
 
   Widget _buildStatsPanel(BuyRecordsController controller) {
-    final hasRecordStats = controller.state.buyRecords.isNotEmpty && controller.state.currentPrice != null;
-    final profitStats = hasRecordStats ? controller.calculateCurrentProfitStatsForRow(0) : <String, dynamic>{};
-    final cumulativeStats = hasRecordStats ? controller.calculateCumulativeStatsForRow(0) : <String, dynamic>{};
+    final hasRecordStats = controller.state.buyRecords.isNotEmpty &&
+        controller.state.currentPrice != null;
+    final profitStats = hasRecordStats
+        ? controller.calculateCurrentProfitStatsForRow(0)
+        : <String, dynamic>{};
+    final cumulativeStats = hasRecordStats
+        ? controller.calculateCumulativeStatsForRow(0)
+        : <String, dynamic>{};
 
     final profit = profitStats['profit'] as double?;
     final isProfit = profit != null && profit >= 0;
     final profitLabel = isProfit ? '浮盈' : '浮亏';
-    final profitColor = profit == null ? Colors.grey : (isProfit ? Colors.green : Colors.red);
+    final profitColor =
+        profit == null ? Colors.grey : (isProfit ? Colors.green : Colors.red);
     final maDeviation = controller.ma200DailyDeviationPercent;
-    final maColor = maDeviation == null ? Colors.grey : (maDeviation >= 0 ? Colors.green : Colors.red);
-    final maText = maDeviation == null ? '—' : '${maDeviation >= 0 ? '+' : ''}${maDeviation.toStringAsFixed(2)}%';
+    final maColor = maDeviation == null
+        ? Colors.grey
+        : (maDeviation >= 0 ? Colors.green : Colors.red);
+    final maText = maDeviation == null
+        ? '—'
+        : '${maDeviation >= 0 ? '+' : ''}${maDeviation.toStringAsFixed(2)}%';
     final currentPrice = controller.state.currentPrice;
 
-    final totalCostText = cumulativeStats.isEmpty ? '—' : controller.formatPriceInteger(cumulativeStats['totalCost']);
-    final averagePriceText =
-        cumulativeStats.isEmpty ? '—' : controller.formatCostPrice(cumulativeStats['averagePrice']);
-    final totalQuantityText = cumulativeStats.isEmpty || cumulativeStats['totalQuantity'] == null
+    final totalCostText = cumulativeStats.isEmpty
         ? '—'
-        : controller.formatQuantity(cumulativeStats['totalQuantity']);
-    final profitPercentText = profitStats.isEmpty ? '—' : '${profitStats['profitPercentage'].toStringAsFixed(2)}%';
-    final profitAmountText = profit == null ? '—' : controller.formatPriceFourDecimals(profit);
-    final maTextValue =
-        controller.state.ma200Daily == null ? '—' : controller.formatMaPrice(controller.state.ma200Daily!);
+        : controller.formatPriceInteger(cumulativeStats['totalCost']);
+    final averagePriceText = cumulativeStats.isEmpty
+        ? '—'
+        : controller.formatCostPrice(cumulativeStats['averagePrice']);
+    final totalQuantityText =
+        cumulativeStats.isEmpty || cumulativeStats['totalQuantity'] == null
+            ? '—'
+            : controller.formatQuantity(cumulativeStats['totalQuantity']);
+    final profitPercentText = profitStats.isEmpty
+        ? '—'
+        : '${profitStats['profitPercentage'].toStringAsFixed(2)}%';
+    final profitAmountText =
+        profit == null ? '—' : controller.formatPriceFourDecimals(profit);
+    final maTextValue = controller.state.ma200Daily == null
+        ? '—'
+        : controller.formatMaPrice(controller.state.ma200Daily!);
     final suggestedBuyText = controller.formatSuggestedBuyAmount();
     final suggestedBuyColor = controller.suggestedBuyAmountColor();
 
@@ -334,7 +405,10 @@ class BuyRecordsView extends StatelessWidget {
             children: [
               const Text(
                 '统计信息',
-                style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.purple),
+                style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.purple),
               ),
               const SizedBox(width: 10),
               Container(
@@ -354,7 +428,9 @@ class BuyRecordsView extends StatelessWidget {
                   children: [
                     Text('当前价格', style: _labelStyle),
                     Text(
-                      currentPrice == null ? '—' : controller.formatCurrentPrice(currentPrice),
+                      currentPrice == null
+                          ? '—'
+                          : controller.formatCurrentPrice(currentPrice),
                       style: _valueStyle.copyWith(color: Colors.blue),
                     ),
                   ],
@@ -363,10 +439,14 @@ class BuyRecordsView extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 2),
-          _buildStatsRow('累计金额', totalCostText, Colors.black, '成本', averagePriceText, Colors.black),
-          _buildStatsRow('累计数量', totalQuantityText, Colors.black, '收益', profitPercentText, profitColor),
-          _buildStatsRow(profitLabel, profitAmountText, profitColor, '偏离', maText, maColor),
-          _buildStatsRow('200MA', maTextValue, Colors.blueGrey, '建议买入', suggestedBuyText, suggestedBuyColor),
+          _buildStatsRow('累计金额', totalCostText, Colors.black, '成本',
+              averagePriceText, Colors.black),
+          _buildStatsRow('累计数量', totalQuantityText, Colors.black, '收益',
+              profitPercentText, profitColor),
+          _buildStatsRow(profitLabel, profitAmountText, profitColor, '偏离',
+              maText, maColor),
+          _buildStatsRow('200MA', maTextValue, Colors.blueGrey, '建议买入',
+              suggestedBuyText, suggestedBuyColor),
         ],
       ),
     );
@@ -397,13 +477,21 @@ class BuyRecordsView extends StatelessWidget {
             SizedBox(
               height: _currencyCardHeight,
               child: ListView.separated(
+                controller: _currencyScrollController,
                 scrollDirection: Axis.horizontal,
                 itemCount: buyRecordsCurrencies.length,
                 separatorBuilder: (_, __) => const SizedBox(width: 8),
                 itemBuilder: (context, index) {
-                  return _buildCurrencyCard(context, controller, buyRecordsCurrencies[index]);
+                  return _buildCurrencyCard(
+                      context, controller, buyRecordsCurrencies[index]);
                 },
               ),
+            ),
+            // 热更新兼容：正式版字体包含 show_chart 字形。保持不可见引用，
+            // 避免 Flutter 图标裁剪改变字体资源；下次完整发版后可删除。
+            const Offstage(
+              offstage: true,
+              child: Icon(Icons.show_chart),
             ),
           ],
         ),
@@ -449,26 +537,44 @@ class BuyRecordsView extends StatelessWidget {
             Text(
               currency.exchangeName,
               style: TextStyle(
-                color: isSelected ? color.withValues(alpha: 0.85) : Colors.grey[500],
+                color: isSelected
+                    ? color.withValues(alpha: 0.85)
+                    : Colors.grey[500],
                 fontSize: 9,
               ),
             ),
-            const SizedBox(height: 2),
-            Text(
-              formatBuyAmountUsdt(controller.baseAmountFor(currency)),
-              style: TextStyle(
-                color: isSelected ? color.withValues(alpha: 0.9) : Colors.grey[600],
-                fontSize: 9,
-                fontWeight: controller.hasCustomBaseAmount(currency.id) ? FontWeight.bold : FontWeight.normal,
-              ),
-            ),
-            const SizedBox(height: 2),
-            Icon(
-              Icons.show_chart,
-              size: _currencyIconSize,
-              color: isSelected ? color : Colors.grey[600],
-            ),
+            const SizedBox(height: 6),
+            _buildChange24h(controller.state.changePercent24h[currency.id]),
           ],
+        ),
+      ),
+    );
+  }
+
+  /// 近 24 小时涨跌幅。涨为绿色，跌为红色。
+  Widget _buildChange24h(double? percent) {
+    if (percent == null) {
+      return Text('—',
+          style: TextStyle(fontSize: 10, color: Colors.grey[500], height: 1));
+    }
+
+    final up = percent > 0;
+    final down = percent < 0;
+    final color = up ? Colors.green : (down ? Colors.red : Colors.grey);
+    final text = '${up ? '+' : ''}${percent.toStringAsFixed(2)}%';
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 2),
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        child: Text(
+          text,
+          style: TextStyle(
+            fontSize: 10,
+            fontWeight: FontWeight.w700,
+            color: color,
+            height: 1,
+          ),
         ),
       ),
     );
@@ -516,7 +622,9 @@ class _BaseAmountEditDialogState extends State<_BaseAmountEditDialog> {
     super.initState();
     final base = controller.baseAmountFor(currency);
     _textController = TextEditingController(
-      text: base == base.roundToDouble() ? base.toStringAsFixed(0) : base.toString(),
+      text: base == base.roundToDouble()
+          ? base.toStringAsFixed(0)
+          : base.toString(),
     );
     _loadDeviation();
   }
@@ -574,7 +682,8 @@ class _BaseAmountEditDialogState extends State<_BaseAmountEditDialog> {
           children: [
             TextField(
               controller: _textController,
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              keyboardType:
+                  const TextInputType.numberWithOptions(decimal: true),
               autofocus: true,
               decoration: const InputDecoration(
                 labelText: '基准金额 (USDT)',
