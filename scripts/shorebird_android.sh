@@ -36,6 +36,8 @@ fi
 
 echo ">>> Shorebird $MODE android (arm64)..."
 if [ "$MODE" = "release" ]; then
+  # 清掉普通 split-per-abi 构建遗留的旧 APK，避免 Jenkins 误归档旧包。
+  rm -rf build/app/outputs/flutter-apk build/app/outputs/apk/release
   "$SHOREBIRD" release android \
     --flutter-version=fvm \
     --artifact apk \
